@@ -1,0 +1,44 @@
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { AsignacionModule } from './schema_public/asignacion/asignacion.module';
+import { AuthModule } from './schema_public/auth/auth.module';
+import { PersonaModule } from './schema_public/persona/persona.module';
+
+
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
+    TypeOrmModule.forRoot({
+    type: 'postgres',
+    host: process.env.DATABASE_HOST,
+    //port: parseInt(process.env.DATABASE_PORT),    
+    port: 5432,
+    username: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
+    entities: ['dist/**/*.entity{.ts,.js}'],
+    synchronize: true,
+  }),
+  ServeStaticModule.forRoot({
+    rootPath: join(__dirname, '..', 'documentos-tramites'),
+    serveRoot: '/documentos-tramites/',
+  }),
+  AsignacionModule,
+  AuthModule,
+  PersonaModule
+
+  
+
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
