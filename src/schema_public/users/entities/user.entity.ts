@@ -8,11 +8,9 @@ import {Column,Entity,PrimaryGeneratedColumn, } from 'typeorm';
     id!: number;
   
     @Column()
-    name!: string;
+    usuario!: string;
   
-    @Column({ unique: true })
-    email!: string;
-  
+   
     @Column()
     password!: string;
   

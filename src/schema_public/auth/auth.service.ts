@@ -11,11 +11,9 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 @Injectable()
 export class AuthService {
   constructor(    @InjectRepository(User)
-  private usersRepository: Repository<User>,
+private usersRepository: Repository<User>,
   private jwtService: JwtService
   ) {}
-
-
 
   /*register(userObjetc:RegisterAuthDto){
 const {password} = userObjetc;
@@ -29,27 +27,22 @@ return this.userModel.create(userObjetc)
     return 'This action adds a new auth';
   }*/
 
-
-
   async register(registerAuthDto: RegisterAuthDto): Promise<{ token: string }> {
-    const { name, email, password } = registerAuthDto;
+    const { usuario,  password } = registerAuthDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.usersRepository.create({
-      name,
-      email,
+    const user = await this.usersRepository.create({      
+      usuario,
       password: hashedPassword,
     });
-
     await this.usersRepository.save(user);
     const token = this.jwtService.sign({ id: user.id });
     return { token };
   }
 
   async login(loginDto: LoginAuthDto): Promise<{ token: string }> {
-    const { email, password } = loginDto;
-
+    const { usuario, password } = loginDto;
     const user = await this.usersRepository.findOne({
-      where: { email },
+      where: { usuario },
     });
 
     if (!user) {

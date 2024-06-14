@@ -31,7 +31,7 @@ export class Persona {
     @Column()
     abreviatura!: string;
 
-    @Column({ nullable: true })
+    @Column({type: 'date'})
     fecha_aprobacion!: Date;
 
     @Column()
