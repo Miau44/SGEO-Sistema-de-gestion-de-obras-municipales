@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { AsignacionModule } from './schema_public/asignacion/asignacion.module';
 import { AuthModule } from './schema_public/auth/auth.module';
 import { PersonaModule } from './schema_public/persona/persona.module';
 import { UsersModule } from './schema_public/users/users.module';
@@ -32,7 +31,7 @@ import { ParametricaModule } from './schema_public/parametrica/parametrica.modul
     rootPath: join(__dirname, '..', 'documentos-tramites'),
     serveRoot: '/documentos-tramites/',
   }),
-  AsignacionModule,
+  
   AuthModule,
   PersonaModule,
   UsersModule,

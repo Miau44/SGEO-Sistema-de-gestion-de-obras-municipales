@@ -17,8 +17,8 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
   .addBearerAuth()
-  .setTitle('Gestión de Obras')
-  .setDescription('Descripción de la API de Gestión de Obras')
+  .setTitle('Sistema de Gestión de Obras')
+  .setDescription('Descripción de la API de  Gestión de Obras')
   .setVersion('1.0')
   //.addTag('item')
   .build();

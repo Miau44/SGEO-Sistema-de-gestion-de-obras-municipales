@@ -26,17 +26,19 @@ export class Persona {
     puesto!: string;
     
     @Column()
-    profesion!: string;
+    id_profesion!: number;
 
     @Column()
-    abreviatura!: string;
+    registro_profesional!: string;
+
+    @Column()
+    cod_ue!:number;    
 
     @Column({type: 'date'})
     fecha_aprobacion!: Date;
 
     @Column()
-    usuario_registro!: string;
-
+    usuario_registro!: number;
 
     @Column({ 
         default: 1 

@@ -4,20 +4,25 @@ export class CreateParametricaDto {
     id_tipo!: number;
 
     @ApiProperty()
+    desc_tipo!: string;
+
+    @ApiProperty()
     id_subtipo!: number;
 
     @ApiProperty()
-    descripcion!: string;
+    desc_subtipo!: string;
+   
+
+    @ApiProperty()
+    detalle!: string;
 
     @ApiProperty()
     id_padre!: number;
 
     @ApiProperty()
     usuario_registro!: number;
-    
+
     @ApiProperty()
-    id_estado!: number;
-
-
-
+    id_estado!:number;
+ 
 }

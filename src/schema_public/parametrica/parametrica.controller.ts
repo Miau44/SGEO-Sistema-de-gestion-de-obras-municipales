@@ -5,6 +5,7 @@ import { UpdateParametricaDto } from './dto/update-parametrica.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { FiltrosDto } from './dto/filtrosDto.dto';
 
 @ApiTags('parametrica')
 @Controller('parametrica')
@@ -35,4 +36,9 @@ export class ParametricaController {
   remove(@Param('id') id: string) {
     return this.parametricaService.remove(+id);
   }
+
+  @Post('listar')
+  listarXTipo(@Body() filtrosDto: FiltrosDto) {
+    return this.parametricaService.listarXTipo(filtrosDto);
+  }  
 }

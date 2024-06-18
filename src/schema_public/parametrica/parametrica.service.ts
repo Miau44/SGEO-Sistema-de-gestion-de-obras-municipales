@@ -4,6 +4,8 @@ import { UpdateParametricaDto } from './dto/update-parametrica.dto';
 import { Parametrica } from './entities/parametrica.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Not, Repository } from 'typeorm';
+import { FiltrosDto } from './dto/filtrosDto.dto';
+import { log } from 'console';
 
 
 
@@ -11,26 +13,58 @@ import { And, Not, Repository } from 'typeorm';
 export class ParametricaService {
 
 
-  constructor( @InjectRepository(Parametrica) private parametricaRepo: Repository<Parametrica>)
-  {}
+  constructor(@InjectRepository(Parametrica) private parametricaRepo: Repository<Parametrica>) { }
 
   create(createParametricaDto: CreateParametricaDto) {
     return  this.parametricaRepo.save(createParametricaDto)
   }
 
   findAll() {
-    return `This action returns all parametrica`;
+    return this.parametricaRepo.find()
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} parametrica`;
+    return this.parametricaRepo.findOneBy({ id });
   }
 
   update(id: number, updateParametricaDto: UpdateParametricaDto) {
-    return `This action updates a #${id} parametrica`;
+    try {
+      return this.parametricaRepo.update(id, updateParametricaDto)
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: false,
+        data: id,
+      };
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} parametrica`;
+remove(id: number) {
+  return `This action removes a #${id} parametrica`;
+}
+
+async listarXTipo(filtrosDto:FiltrosDto): Promise<any> {
+  try{
+  const query = ` SELECT * FROM parametrica WHERE ${filtrosDto.campo} = $1; `; 
+  const values = [filtrosDto.id];  
+  const resultado = await this.parametricaRepo.query(query, values);
+  return {
+    statusCode: 200,
+    message: true,
+    data: resultado
+  };
   }
+ catch (error) {
+  return {
+    statusCode: 500,
+    message: false,
+  };
+ } 
+}
+
+
+
+
+
+
 }

@@ -24,16 +24,19 @@ export class CreatePersonaDto {
     puesto!: string;
 
     @ApiProperty()
-    profesion!: string;
+    id_profesion!: number;
 
     @ApiProperty()
-    abreviatura!: string;
+    registro_profesional!: string;
+
+    @ApiProperty()
+    cod_ue!: number;    
 
     @ApiProperty()
     fecha_aprobacion!: Date;
 
     @ApiProperty()
-    usuario_registro!: string;
+    usuario_registro!: number;
 
 
     @ApiProperty()
