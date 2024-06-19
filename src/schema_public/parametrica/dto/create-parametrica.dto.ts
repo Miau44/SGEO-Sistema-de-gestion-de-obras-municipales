@@ -1,5 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
+
 export class CreateParametricaDto {
+
+
     @ApiProperty()
     id_tipo!: number;
 

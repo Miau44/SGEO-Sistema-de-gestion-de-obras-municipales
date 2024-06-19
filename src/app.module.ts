@@ -9,6 +9,7 @@ import { AuthModule } from './schema_public/auth/auth.module';
 import { PersonaModule } from './schema_public/persona/persona.module';
 import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
+import { ResponseService } from './response.service';
 
 
 @Module({
@@ -41,6 +42,6 @@ import { ParametricaModule } from './schema_public/parametrica/parametrica.modul
 
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ResponseService],
 })
 export class AppModule {}

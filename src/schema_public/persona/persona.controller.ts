@@ -17,18 +17,10 @@ export class PersonaController {
 
  // @UseGuards(JwtAuthGuard)
  // @UseGuards(AuthGuard('jwt'))
-
- //@UseFilters(AllExceptionsFilter) 
+ @UseFilters(AllExceptionsFilter) 
   @Post()
   create(@Body() createPersonaDto: CreatePersonaDto) {
-    const resultado =  this.personaService.create(createPersonaDto);
-
-    return {
-      data: resultado,
-      statusCode: 200,
-      timestamp: new Date().toISOString(),
-      message: 'Request was successful',
-    };    
+    return this.personaService.create(createPersonaDto);
   }
 
   @Get()

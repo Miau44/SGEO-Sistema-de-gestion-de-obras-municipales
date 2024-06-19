@@ -44,21 +44,17 @@ return this.userModel.create(userObjetc)
     const user = await this.usersRepository.findOne({
       where: { usuario },
     });
-
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
-
     const isPasswordMatched = await bcrypt.compare(password, user.password);
-
     if (!isPasswordMatched) {
       throw new UnauthorizedException('Invalid email or password');
     }
-
     const token = this.jwtService.sign({ id: user.id });
-
     return { token };
   }
+
 
 
   findAll() {

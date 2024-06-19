@@ -5,22 +5,33 @@ import { Parametrica } from './entities/parametrica.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Not, Repository } from 'typeorm';
 import { FiltrosDto } from './dto/filtrosDto.dto';
-import { log } from 'console';
+import { ResponseService } from 'src/response.service';
 
 
 
 @Injectable()
 export class ParametricaService {
 
-
-  constructor(@InjectRepository(Parametrica) private parametricaRepo: Repository<Parametrica>) { }
+  constructor(@InjectRepository(Parametrica) private parametricaRepo: Repository<Parametrica>
+    , private responseSevice: ResponseService) { }
 
   create(createParametricaDto: CreateParametricaDto) {
-    return  this.parametricaRepo.save(createParametricaDto)
+    try {
+      const resultado = this.parametricaRepo.save(createParametricaDto)
+      return this.responseSevice.success(resultado, "Registrado Correctamente")
+    } catch (error) {
+      return this.responseSevice.error(error);
+    }
+
   }
 
-  findAll() {
-    return this.parametricaRepo.find()
+  async findAll() {
+    try {
+      const resultado = await this.parametricaRepo.find()
+      return this.responseSevice.success(resultado, "Listado Correctamente")
+    } catch (error) {
+      return this.responseSevice.error(error);
+    }
   }
 
   findOne(id: number) {
@@ -39,28 +50,20 @@ export class ParametricaService {
     }
   }
 
-remove(id: number) {
-  return `This action removes a #${id} parametrica`;
-}
-
-async listarXTipo(filtrosDto:FiltrosDto): Promise<any> {
-  try{
-  const query = ` SELECT * FROM parametrica WHERE ${filtrosDto.campo} = $1; `; 
-  const values = [filtrosDto.id];  
-  const resultado = await this.parametricaRepo.query(query, values);
-  return {
-    statusCode: 200,
-    message: true,
-    data: resultado
-  };
+  remove(id: number) {
+    return `This action removes a #${id} parametrica`;
   }
- catch (error) {
-  return {
-    statusCode: 500,
-    message: false,
-  };
- } 
-}
+
+  async listarXTipo(filtrosDto: FiltrosDto): Promise<any> {
+    try {
+      const query = ` SELECT * FROM parametrica WHERE ${filtrosDto.campo} = $1; `;
+      const values = [filtrosDto.id];
+      const resultado = await this.parametricaRepo.query(query, values);
+      return this.responseSevice.success(resultado, "Listado Correctamente")
+    } catch (error) {
+      return this.responseSevice.error(error);
+    }
+  }
 
 
 

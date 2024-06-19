@@ -7,11 +7,11 @@ export class RegisterAuthDto extends PartialType(LoginAuthDto){
 //export class RegisterAuthDto {
     @IsNotEmpty()
     @IsString()
-    name!: string;
+    usuario!: string;
   
-    @IsNotEmpty()
+  /*  @IsNotEmpty()
     @IsEmail({}, { message: 'Please enter correct email' })
-    email!: string;
+    email!: string;*/
   
     @IsNotEmpty()
     @IsString()

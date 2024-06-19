@@ -3,26 +3,31 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 export class Parametrica {
 
     @PrimaryGeneratedColumn()
-    id_parametrica!: number;
+    id!: number;    
+
 
     @Column()
-    id_tipo!:number;
-
+    id_tipo!: number;
     @Column()
-    id_subtipo!:number;
-
-    @Column()
-    descripcion!: string;
+    desc_tipo!:string;  
     
+
     @Column()
-    id_padre!:number;
-    
+    id_subtipo!: number;
+    @Column()
+    desc_subtipo!: string;   
+
+
+    @Column()
+    detalle!: string;      
+
+    @Column()
+    id_padre!: number;
+
     @Column()
     usuario_registro!: number;
 
-    @Column({ 
-        default: 1 
-    })
+    @Column()
     id_estado!: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
