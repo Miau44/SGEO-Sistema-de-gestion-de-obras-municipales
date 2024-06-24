@@ -34,8 +34,13 @@ export class ParametricaService {
     }
   }
 
-  findOne(id: number) {
-    return this.parametricaRepo.findOneBy({ id });
+  async findOne(id: number) {
+    try {
+      const resultado = await this.parametricaRepo.findOneBy({ id });
+      return this.responseSevice.success(resultado, "Listado Correctamente")
+    } catch (error) {
+      return this.responseSevice.error(error);
+    }
   }
 
   update(id: number, updateParametricaDto: UpdateParametricaDto) {

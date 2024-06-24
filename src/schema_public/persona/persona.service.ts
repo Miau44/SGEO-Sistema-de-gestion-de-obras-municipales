@@ -26,10 +26,9 @@ export class PersonaService {
     }
   }
 
-
-  findAll() {
+async  findAll() {
     try {
-      const resultado = this.personaRepo.find()
+      const resultado =  await this.personaRepo.find()
       return this.responseService.success(resultado, "Listado Correctamente")
     } catch (error) {
       return this.responseService.error(error);
@@ -37,21 +36,23 @@ export class PersonaService {
 
   }
 
-  findOne(id_persona: number) {
-    return this.personaRepo.findOneBy({id_persona});
+ async findOne(id_persona: number) {
+    try {
+      const resultado =  await this.personaRepo.findOneBy({ id_persona });
+      return this.responseService.success(resultado, "Listado Correctamente")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+
   }
 
-  update(id_persona: number, updatePersonaDto: UpdatePersonaDto) {
-  
+  async update(id_persona: number, updatePersonaDto: UpdatePersonaDto) {
     try {
-      return this.personaRepo.update(id_persona, updatePersonaDto)
+      const resultado =  await this.personaRepo.update(id_persona, updatePersonaDto)
+      return this.responseService.success(id_persona, "Actualizado Correctamente")
     } catch (error) {
-      return {
-        statusCode: 500,
-        message: false,
-        data: id_persona,
-      };
-    }    
+      return this.responseService.error(error);
+    }        
   }
 
   remove(id: number) {
@@ -75,7 +76,7 @@ export class PersonaService {
       const resultadoUsuarios = await response.json()
 
       //interno
-      const query = `SELECT id_usuario FROM persona  `;
+      const query = `SELECT id_persona,  id_usuario FROM persona  `;
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 

@@ -3,7 +3,10 @@ import { ApiProperty } from "@nestjs/swagger";
 export class EstructuraDto {
 
     @ApiProperty()
-    ue!: string;
+    idrol!: string;    
+
+    @ApiProperty()
+    codigoue!: string;
 
     @ApiProperty()
     gestion!: string;
