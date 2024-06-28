@@ -8,15 +8,15 @@ export class Parametrica {
 
     @Column()
     id_tipo!: number;
+
     @Column()
     desc_tipo!:string;  
     
-
     @Column()
     id_subtipo!: number;
+
     @Column()
     desc_subtipo!: string;   
-
 
     @Column()
     detalle!: string;      

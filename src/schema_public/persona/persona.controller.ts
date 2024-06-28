@@ -8,24 +8,33 @@ import { AuthGuard } from '@nestjs/passport';
 import { EstructuraDto } from './dto/estructuraDto.dto';
 import { NotFoundException } from '@nestjs/common';
 import { AllExceptionsFilter } from '../exception';
+import { ResponseService } from 'src/response.service';
+import { EstructuraGralDto } from './dto/estructuraGral.dto';
+import { EstructuraDaDto } from './dto/estructuraDa.dto';
 
 
 @ApiTags('persona')
 @Controller('persona')
 export class PersonaController {
-  constructor(private readonly personaService: PersonaService) {}
+  constructor(private readonly personaService: PersonaService, private responseService: ResponseService) { }
 
  // @UseGuards(JwtAuthGuard)
  // @UseGuards(AuthGuard('jwt'))
  @UseFilters(AllExceptionsFilter) 
   @Post()
   create(@Body() createPersonaDto: CreatePersonaDto) {
-    return this.personaService.create(createPersonaDto);
+        try {
+          return this.personaService.create(createPersonaDto)          
+        } catch (error) {
+        }
   }
 
   @Get()
   findAll() {
-    return this.personaService.findAll();
+    try {
+      return this.personaService.findAll();
+    } catch (error) {
+    }    
   }
 
   @Get(':id')
@@ -40,11 +49,34 @@ export class PersonaController {
 
   @Delete(':id')
   remove(@Param('id') id_persona: string) {
-    return this.personaService.remove(+id_persona);
+    try {
+      return this.personaService.remove(+id_persona);
+    } catch (error) {
+    }
+    
   }
 
   @Post('lista')
-  listaGeneralPersonas(@Body() estructuraDto: EstructuraDto) {
-    return this.personaService.listaGeneralPersonas(estructuraDto);
-  }  
+  listaPersonasXRol(@Body() estructuraDto: EstructuraDto) {
+    try {
+      return this.personaService.listaPersonasXRol(estructuraDto);
+    } catch (error) {
+    }
+  }
+
+ 
+  @Post('lista-general')
+  listaGeneralPersonas(@Body() EstructuraGralDto: EstructuraGralDto) {
+    try {
+      return this.personaService.listaGeneralPersonas(EstructuraGralDto);
+    } catch (error) { }
+  }
+  
+  @Post('estructura-da')
+  async estructuraDa(@Body() estructuraDa: EstructuraDaDto) {
+    try {
+      return this.personaService.estructuraDa(estructuraDa);
+    } catch (error) {
+    }
+  }
 }

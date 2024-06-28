@@ -3,14 +3,7 @@ import { HttpException } from '@nestjs/common';
 
 @Injectable()
 export class ResponseService {
-  success(data: any, message: string = 'Operation successful', statusCode: number = 200) {
-    return {
-      statusCode,
-      message,
-      data,
-    };
-  }
-
+  
   error(error: any, message: string = 'Internal server error', statusCode?: number) {
     let errorMessage = 'An unknown error occurred';
     let errorStatus = statusCode || 500; 
@@ -26,6 +19,22 @@ export class ResponseService {
       statusCode: errorStatus,
       message,
       data: errorMessage,
+    };
+  }
+
+  success(data: any, message: string = 'Operation successful', statusCode: number = 200) {
+    if (data === null || data === undefined || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0)) {
+      return {
+        statusCode: 204,
+        message: 'Sin Registros.',
+        data: [],
+      };
+    }
+
+    return {
+      statusCode,
+      message,
+      data,
     };
   }
 }
