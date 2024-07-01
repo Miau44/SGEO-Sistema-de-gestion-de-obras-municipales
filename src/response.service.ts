@@ -26,7 +26,7 @@ export class ResponseService {
     if (data === null || data === undefined || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0)) {
       return {
         statusCode: 204,
-        message: 'Sin Registros.',
+        message: 'Registros no encontrados.',
         data: [],
       };
     }

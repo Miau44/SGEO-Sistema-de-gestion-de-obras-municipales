@@ -23,7 +23,7 @@ export class PersonaService {
   async create(createPesonaDto: CreatePersonaDto) {
     try {
       const resultado = await this.personaRepo.save(createPesonaDto);
-      return this.responseService.success(resultado, "Listado Correctamente")
+      return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -31,8 +31,8 @@ export class PersonaService {
 
 async  findAll() {
     try {
-      const resultado =  await this.personaRepo.find()
-      return this.responseService.success(resultado, "Listado Correctamente")
+      const resultado = await this.personaRepo.find()
+      return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -41,8 +41,8 @@ async  findAll() {
 
  async findOne(id_persona: number) {
     try {
-      const resultado =  await this.personaRepo.findOneBy({ id_persona });
-      return this.responseService.success(resultado, "Listado Correctamente")
+      const resultado = await this.personaRepo.findOneBy({ id_persona });
+      return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -51,8 +51,8 @@ async  findAll() {
 
   async update(id_persona: number, updatePersonaDto: UpdatePersonaDto) {
     try {
-      const resultado =  await this.personaRepo.update(id_persona, updatePersonaDto)
-      return this.responseService.success(id_persona, "Actualizado Correctamente")
+      const resultado = await this.personaRepo.update(id_persona, updatePersonaDto)
+      return this.responseService.success(id_persona, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }        
@@ -121,7 +121,7 @@ async  findAll() {
         const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
         return { seguridad, sgeo: asignado };
       });
-      return this.responseService.success(resultado, "Listado Correctamente")
+      return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
