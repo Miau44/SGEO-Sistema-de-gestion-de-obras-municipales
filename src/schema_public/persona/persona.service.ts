@@ -79,9 +79,10 @@ async  findAll() {
       const response = await fetch(datosSeguridad, options);
       const resultadoUsuarios = await response.json()
 
-      //interno
-      const query = `SELECT  p.id_usuario, p.id_persona, pa.desc_subtipo as profesion, p.registro_profesional, p.fecha_aprobacion, p.fecha_registro, p.nombre_da_comision FROM persona as  p
-      LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo WHERE pa.id_tipo = 2  `;
+      //interno 
+      const query = `SELECT  p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
+      p.fecha_aprobacion, p.fecha_registro, p.nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
+            LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo WHERE pa.id_tipo = 2 `;
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
@@ -89,7 +90,8 @@ async  findAll() {
         const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
         return { seguridad, sgeo: asignado };
       });
-      return this.responseService.success(resultado, "Listado Correctamente")
+
+      return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -113,7 +115,9 @@ async  findAll() {
       const resultadoUsuarios = await response.json()
 
       //interno
-      const query = `SELECT  id_usuario, id_persona, id_profesion, registro_profesional, fecha_aprobacion, fecha_registro, desc_cod_ue, desc_cod_da, desc_cod_da_comision, nombre_da_comision FROM public.persona   `;
+      const query = `SELECT  p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
+      p.fecha_aprobacion, p.fecha_registro, p.nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
+            LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo WHERE pa.id_tipo = 2  `;
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
