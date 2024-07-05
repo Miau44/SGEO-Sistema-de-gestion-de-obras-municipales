@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+//import { RolPermiso } from "src/schema_public/rol_permiso/entities/rol_permiso.entity";
 @Entity()
 export class Persona {
     @PrimaryGeneratedColumn()
@@ -34,14 +35,14 @@ export class Persona {
     @Column()
     desc_cod_ue:number;    
 
-    @Column()
-    desc_cod_da:number;    
+   /* @Column()
+    desc_cod_da:number;    */
 
     @Column()
     desc_cod_da_comision:number;    
 
-    @Column({nullable: true})
-    nombre_da_comision:string;    
+ /*   @Column({nullable: true})
+    nombre_da_comision:string;   */ 
 
     @Column({type: 'date'})
     fecha_aprobacion: Date;
@@ -53,7 +54,17 @@ export class Persona {
     fecha_vacacion_inicio: Date;
     
     @Column({type: 'date',  nullable: true})
-    fecha_vacacion_fin: Date;    
+    fecha_vacacion_fin: Date;   
+        
+   /* @ManyToOne(() => RolPermiso, (rol) => rol.id_rol)
+    @JoinColumn({ name: 'id_rol' })
+    rol: RolPermiso;*/
+
+    @Column({default:0})
+    id_rol: number;       
+
+    @Column({default:0})
+    gestion: number;    
 
     @Column()
     usuario_registro: number;

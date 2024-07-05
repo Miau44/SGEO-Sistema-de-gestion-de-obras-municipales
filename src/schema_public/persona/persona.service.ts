@@ -63,6 +63,34 @@ async  findAll() {
   }
 
 
+ 
+ async listaPersonas(id_rol:number[]) {
+  try {
+   // const values = id_rol.join(',');    
+   const parametro = id_rol.map((_, index) => `$${index + 1}`).join(',');
+
+    const query = `SELECT DISTINCT p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+    p.segundo_apellido as psegundo_apellido, 
+    pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
+    p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision
+    ,p.id_rol, rp.descripcion_rol
+    FROM persona as  p
+    LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo 
+    INNER JOIN estructura_organizacional eo ON p.desc_cod_da_comision= eo.desc_cod_da
+    INNER JOIN rol_permiso AS rp ON p.id_rol = rp.id_rol  
+    WHERE pa.id_tipo = 2 AND p.gestion =2024 AND rp.id_rol IN(${parametro}) `;
+
+    const values = id_rol   
+    const resultado:any[] = await this.personaRepo.query(query,id_rol );
+   // log(query)
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+
+
+
   //merge de repuesta de usuarios de seguridad con personas sgeo
   async listaPersonasXRol(estructuraDto: EstructuraDto) {
     try {
@@ -80,9 +108,11 @@ async  findAll() {
       const resultadoUsuarios = await response.json()
 
       //interno 
-      const query = `SELECT  p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, p.nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
-            LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo WHERE pa.id_tipo = 2 `;
+      const query = `SELECT DISTINCT p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
+      LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo 
+      INNER JOIN estructura_organizacional eo ON p.desc_cod_da_comision= eo.desc_cod_da
+      WHERE pa.id_tipo = 2 AND p.gestion =2024 `;
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
@@ -115,9 +145,11 @@ async  findAll() {
       const resultadoUsuarios = await response.json()
 
       //interno
-      const query = `SELECT  p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, p.nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
-            LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo WHERE pa.id_tipo = 2  `;
+      const query = `SELECT DISTINCT p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
+      LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo 
+      INNER JOIN estructura_organizacional eo ON p.desc_cod_da_comision= eo.desc_cod_da
+      WHERE pa.id_tipo = 2 AND p.gestion =2024 `;
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 

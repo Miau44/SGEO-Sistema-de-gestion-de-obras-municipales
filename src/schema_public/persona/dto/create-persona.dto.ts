@@ -32,15 +32,14 @@ export class CreatePersonaDto {
     @ApiProperty()
     desc_cod_ue: number;    
 
-    @ApiProperty()
-    desc_cod_da: number;    
+   /* @ApiProperty()
+    desc_cod_da: number;    */
 
     @ApiProperty()
     desc_cod_da_comision: number;    
 
-
-    @ApiProperty()
-    nombre_da_comision: string;    
+  /*  @ApiProperty()
+    nombre_da_comision: string;    */
 
     @ApiProperty()
     fecha_aprobacion: Date;
@@ -53,6 +52,12 @@ export class CreatePersonaDto {
     
     @ApiProperty()
     fecha_vacacion_fin: Date;    
+
+    @ApiProperty()
+    id_rol: number;
+
+    @ApiProperty()
+    gestion: number;  
 
     @ApiProperty()
     usuario_registro: number;

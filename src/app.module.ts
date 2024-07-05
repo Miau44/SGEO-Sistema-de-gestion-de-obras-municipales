@@ -10,6 +10,7 @@ import { PersonaModule } from './schema_public/persona/persona.module';
 import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
 import { ResponseService } from './response.service';
+import { ObraModule } from './schema_public/obra/obra.module';
 
 
 @Module({
@@ -35,12 +36,14 @@ import { ResponseService } from './response.service';
   AuthModule,
   PersonaModule,
   UsersModule,
-  ParametricaModule
+  ParametricaModule,
+  ObraModule
+   
 
   
 
   ],
   controllers: [AppController],
-  providers: [AppService, ResponseService],
+  providers: [AppService, ResponseService ],
 })
 export class AppModule {}

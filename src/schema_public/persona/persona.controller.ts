@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete , UseGuards, UseFilters} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete , UseGuards, UseFilters, BadRequestException} from '@nestjs/common';
 import { PersonaService } from './persona.service';
 import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
@@ -11,6 +11,8 @@ import { AllExceptionsFilter } from '../exception';
 import { ResponseService } from 'src/response.service';
 import { EstructuraGralDto } from './dto/estructuraGral.dto';
 import { EstructuraDaDto } from './dto/estructuraDa.dto';
+import { RolDto } from './dto/rolDTO.dto';
+import { Any } from 'typeorm';
 
 
 @ApiTags('persona')
@@ -53,8 +55,26 @@ export class PersonaController {
       return this.personaService.remove(+id_persona);
     } catch (error) {
     }
+}
+@Post('listapersonas')
+  listaPersonas(@Body() rolDto: RolDto) {
+    try {
+      let idsArray: number[];      
+      idsArray = rolDto.id_rol.map(id => {
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+          throw new BadRequestException('All ids must be valid numbers');
+        }
+        return parsedId;
+      });
     
-  }
+     
+      return this.personaService.listaPersonas(idsArray);
+    } catch (error) {
+    }
+  } 
+    
+  
 
   @Post('lista')
   listaPersonasXRol(@Body() estructuraDto: EstructuraDto) {
