@@ -11,6 +11,7 @@ import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
 import { ResponseService } from './response.service';
 import { ObraModule } from './schema_public/obra/obra.module';
+import { ExternoModule } from './schema_private/externo/externo.module';
 
 
 @Module({
@@ -37,7 +38,8 @@ import { ObraModule } from './schema_public/obra/obra.module';
   PersonaModule,
   UsersModule,
   ParametricaModule,
-  ObraModule
+  ObraModule,
+  ExternoModule
    
 
   
