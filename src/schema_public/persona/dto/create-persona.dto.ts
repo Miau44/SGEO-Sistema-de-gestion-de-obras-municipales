@@ -54,7 +54,7 @@ export class CreatePersonaDto {
     fecha_vacacion_fin: Date;    
 
     @ApiProperty()
-    id_rol: number;
+    id_permiso: number;
 
     @ApiProperty()
     gestion: number;  

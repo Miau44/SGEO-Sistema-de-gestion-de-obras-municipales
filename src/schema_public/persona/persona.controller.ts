@@ -66,10 +66,8 @@ export class PersonaController {
           throw new BadRequestException('All ids must be valid numbers');
         }
         return parsedId;
-      });
-    
-     
-      return this.personaService.listaPersonas(idsArray);
+      });  
+      return this.personaService.listaPersonas(rolDto);
     } catch (error) {
     }
   } 

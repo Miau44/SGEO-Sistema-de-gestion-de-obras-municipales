@@ -61,7 +61,7 @@ export class Persona {
     rol: RolPermiso;*/
 
     @Column({default:0})
-    id_rol: number;       
+    id_permiso: number;       
 
     @Column({default:0})
     gestion: number;    
