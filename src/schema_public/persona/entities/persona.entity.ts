@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-//import { RolPermiso } from "src/schema_public/rol_permiso/entities/rol_permiso.entity";
+import { RolPermiso } from "src/schema_public/rol_permiso/entities/rol_permiso.entity";
+import { SolicitudDesignacion } from "src/schema_public/solicitud_designacion/entities/solicitud_designacion.entity";
 @Entity()
 export class Persona {
     @PrimaryGeneratedColumn()
@@ -59,9 +60,12 @@ export class Persona {
    /* @ManyToOne(() => RolPermiso, (rol) => rol.id_rol)
     @JoinColumn({ name: 'id_rol' })
     rol: RolPermiso;*/
+    
+    
+    
 
-    @Column({default:0})
-    id_permiso: number;       
+    @Column({nullable:true})
+    id_permiso: string;    
 
     @Column({default:0})
     gestion: number;    
@@ -79,5 +83,8 @@ export class Persona {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
+
+    @OneToMany(type => SolicitudDesignacion, sol => sol.persona)
+    items: SolicitudDesignacion[];   
 
 }

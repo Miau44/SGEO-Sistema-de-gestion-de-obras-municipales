@@ -97,4 +97,14 @@ export class PersonaController {
     } catch (error) {
     }
   }
+
+  
+  @Get('persmisos/:id_persona')
+  persimosXPersona(@Param('id_persona') id_persona: number) {
+    try {
+    return this.personaService.persimosXPersona(id_persona);
+  } catch (error) {  
+  }
+}
+
 }

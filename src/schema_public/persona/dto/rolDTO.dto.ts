@@ -19,4 +19,3 @@ export class RolDto {
   @ApiProperty({ type: Number, description: 'Valor de gestión' })
   gestion: number;
 }
-

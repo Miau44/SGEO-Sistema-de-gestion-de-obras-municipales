@@ -11,7 +11,9 @@ import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
 import { ResponseService } from './response.service';
 import { ObraModule } from './schema_public/obra/obra.module';
+import { SolicitudDesignacionModule } from './schema_public/solicitud_designacion/solicitud_designacion.module';
 import { ExternoModule } from './schema_private/externo/externo.module';
+import { FichaModule } from './schema_public/ficha/ficha.module';
 
 
 @Module({
@@ -39,7 +41,9 @@ import { ExternoModule } from './schema_private/externo/externo.module';
   UsersModule,
   ParametricaModule,
   ObraModule,
-  ExternoModule
+  SolicitudDesignacionModule,
+  ExternoModule,
+  FichaModule
    
 
   
