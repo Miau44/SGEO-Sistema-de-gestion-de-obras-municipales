@@ -107,4 +107,42 @@ export class PersonaController {
   }
 }
 
+
+
+
+@Post('listapersonas-designadas')
+listaPersonasDesignadas(@Body() rolDto: RolDto) {
+  try {
+    let idsArray: number[];      
+    idsArray = rolDto.id_rol.map(id => {
+      const parsedId = parseInt(id, 10);
+      if (isNaN(parsedId)) {
+        throw new BadRequestException('All ids must be valid numbers');
+      }
+      return parsedId;
+    });  
+    return this.personaService.listaPersonasDesignadas(rolDto);
+  } catch (error) {
+  }
+}
+
+  
+  @Post('listapersonas-nodesignadas')
+  listaPersonasNoDesignadas(@Body() rolDto: RolDto) {
+    try {
+      let idsArray: number[];      
+      idsArray = rolDto.id_rol.map(id => {
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+          throw new BadRequestException('All ids must be valid numbers');
+        }
+        return parsedId;
+      });  
+      return this.personaService.listaPersonasNoDesignadas(rolDto);
+    } catch (error) {
+    }  
+
+}  
+
+
 }

@@ -24,14 +24,27 @@ export class FichaService {
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
-    }  }
+    }  
+  }
 
   findAll() {
     return `This action returns all ficha`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ficha`;
+ async findOne(id: number) {
+    try {
+      const query = `SELECT *,   tob.desc_subtipo AS desc_tipoobra, mc.desc_subtipo AS desc_modalidad   FROM public.Ficha as f
+    INNER JOIN (SELECT  desc_cod_ue, nombre_ue, gestion from estructura_organizacional WHERE  gestion =2024 GROUP BY desc_cod_ue,nombre_ue, gestion)  
+    eo ON f.desc_cod_ue= eo.desc_cod_ue
+    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  f.id_tipo_obra = tob.id_subtipo
+    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  f.id_modalidad = mc.id_subtipo
+    WHERE f.id_ficha = ${id}  `; 
+    const resultado = await this.obraRepositorio.query(query);
+    return this.responseService.success(resultado, "Registrado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  } 
+
   }
 
   async update(id: number, updateFichaDto: UpdateFichaDto) {
@@ -55,13 +68,25 @@ export class FichaService {
       INNER JOIN (SELECT  desc_cod_ue, nombre_ue, gestion from estructura_organizacional
       WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
       WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue} ORDER BY fecha_registro DESC `;*/
-      const query = ` SELECT * FROM public.Ficha as f
-      INNER JOIN (SELECT  desc_cod_ue, nombre_ue, gestion from estructura_organizacional
-      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+
+     /* const query = ` SELECT * FROM public.Ficha as f
+      INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
       INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha
       INNER JOIN persona p ON sd.id_persona = p.id_persona
-      WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue} ORDER BY f.fecha_registro DESC `;
-  
+      WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue} 
+      ORDER BY f.fecha_registro DESC `;  */
+
+
+   const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, f.total_carpeta,  eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+   f.fecha_registro
+   FROM public.Ficha as f
+         INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+         WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+         INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha
+         INNER JOIN persona p ON sd.id_persona = p.id_persona	
+   GROUP BY f.id_ficha, f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, f.total_carpeta,  eo.desc_cod_da, eo.nombre_ue, eo.gestion	  
+   ORDER BY f.fecha_registro DESC;`;       
       const resultado = await this.obraRepositorio.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -70,17 +95,24 @@ export class FichaService {
   }
   
   async listarFichaXUeValidadas(estructuraFichaDto: EstructuraFichaDto) {
-    try {
-  
-      const query = `SELECT * FROM public.Ficha as f
-      INNER JOIN (SELECT  desc_cod_ue, nombre_ue, gestion from estructura_organizacional
-      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+    try {  
+     /* const query = `SELECT * FROM public.Ficha as f
+      INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion from estructura_organizacional
+      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
       WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue}  AND 
       f.id_ficha NOT IN(
       SELECT f.id_ficha FROM public.Ficha as f
       INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha)
-      ORDER BY fecha_registro ASC `;
+      ORDER BY fecha_registro ASC `;*/
 
+      const query = `SELECT * FROM public.Ficha as f
+      INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion from estructura_organizacional
+      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+      WHERE 
+      f.id_ficha NOT IN(
+      SELECT f.id_ficha FROM public.Ficha as f
+      INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha)
+      ORDER BY fecha_registro ASC `;      
       const resultado = await this.obraRepositorio.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

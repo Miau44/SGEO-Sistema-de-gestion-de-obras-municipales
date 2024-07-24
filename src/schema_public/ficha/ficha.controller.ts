@@ -29,10 +29,13 @@ export class FichaController {
   } catch (error) {
   }      
   }
-
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
+    try {    
     return this.fichaService.findOne(+id);
+  } catch (error) {
+  }    
   }
   
   @Public()

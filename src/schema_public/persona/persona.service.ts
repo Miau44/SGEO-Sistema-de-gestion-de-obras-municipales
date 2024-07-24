@@ -303,8 +303,77 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
     } catch (error) {
       return this.responseService.error(error);
     }
-
   }
- 
 
+
+  //personas solicitud designadas
+  async listaPersonasDesignadas(data: RolDto) {
+    try { 
+      const { id_rol, gestion } = data;
+      const pid_rol = id_rol.map((_, index) => `$${index + 1}`).join(',');
+      const pgestion = `$${id_rol.length + 1}`;
+
+      const query = `	 SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+      p.segundo_apellido , 
+	   pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona	  
+      FROM persona as  p
+	  LEFT JOIN public.solicitud_designacion AS sd ON p.id_persona = sd.id_persona	
+      INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+      WHERE  gestion =${pgestion}  GROUP BY desc_cod_da,nombre_da, gestion)  
+      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	   
+      LEFT JOIN ( SELECT id_persona, unnest(string_to_array(id_permiso::text, ','::text)) AS elemento FROM persona
+      ) as per ON p.id_persona = per.id_persona
+     WHERE per.elemento  IN((SELECT CAST(${pid_rol} AS TEXT)) )
+      AND p.gestion =${pgestion} AND sd.id_ficha=2
+      GROUP BY p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+      p.segundo_apellido ,       
+      pro.id_subtipo , pro.desc_subtipo , p.registro_profesional, 
+        p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision,  sd.id_persona`;
+
+      //const values = id_rol 
+      const resultado: any[] = await this.personaRepo.query(query, [...id_rol, gestion]);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+
+  //personas no designadas
+  async listaPersonasNoDesignadas(data: RolDto) {
+    try { 
+      const { id_rol, gestion } = data;
+      const pid_rol = id_rol.map((_, index) => `$${index + 1}`).join(',');
+      const pgestion = `$${id_rol.length + 1}`;
+
+      const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+      p.segundo_apellido ,       
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision
+      FROM public.persona AS p
+      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+      WHERE  gestion =${pgestion}  GROUP BY desc_cod_da,nombre_da, gestion)  
+      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	   
+      LEFT JOIN public.solicitud_designacion AS sd ON p.id_persona = sd.id_persona 	
+      WHERE p.id_persona NOT IN (SELECT sd.id_persona
+      FROM persona as  p
+      LEFT JOIN public.solicitud_designacion AS sd ON p.id_persona = sd.id_persona	
+      INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+      WHERE  gestion =${pgestion}  GROUP BY desc_cod_da,nombre_da, gestion)  
+      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	   
+      LEFT JOIN ( SELECT id_persona, unnest(string_to_array(id_permiso::text, ','::text)) AS elemento FROM persona
+      ) as per ON p.id_persona = per.id_persona
+      WHERE per.elemento  IN((SELECT CAST(${pid_rol} AS TEXT)) )
+      AND p.gestion =2024 AND sd.id_ficha=2
+      GROUP BY sd.id_persona)`;
+
+      //const values = id_rol 
+      const resultado: any[] = await this.personaRepo.query(query, [...id_rol, gestion]);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
 }

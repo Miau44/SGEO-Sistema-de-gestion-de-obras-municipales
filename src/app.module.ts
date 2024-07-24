@@ -14,6 +14,10 @@ import { ObraModule } from './schema_public/obra/obra.module';
 import { SolicitudDesignacionModule } from './schema_public/solicitud_designacion/solicitud_designacion.module';
 import { ExternoModule } from './schema_private/externo/externo.module';
 import { FichaModule } from './schema_public/ficha/ficha.module';
+import { InstanciaFlujoModule } from './schema_public/instancia_flujo/instancia_flujo.module';
+import { InstanciaTareaModule } from './schema_public/instancia_tarea/instancia_tarea.module';
+import { ReporteModule } from './schema_public/reporte/reporte.module';
+import { DesignacionModule } from './schema_public/designacion/designacion.module';
 
 
 @Module({
@@ -43,9 +47,11 @@ import { FichaModule } from './schema_public/ficha/ficha.module';
   ObraModule,
   SolicitudDesignacionModule,
   ExternoModule,
-  FichaModule
-   
-
+  FichaModule, 
+  InstanciaFlujoModule,
+  InstanciaTareaModule,
+  ReporteModule,
+  DesignacionModule
   
 
   ],
