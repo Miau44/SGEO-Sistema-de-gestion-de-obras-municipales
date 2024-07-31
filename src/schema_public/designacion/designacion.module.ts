@@ -2,12 +2,19 @@ import { Module } from '@nestjs/common';
 import { DesignacionService } from './designacion.service';
 import { DesignacionController } from './designacion.controller';
 import { ResponseService } from 'src/response.service';
-import { Designacion } from './entities/designacion.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { Obra } from '../obra/entities/obra.entity';
+import { ConfigModule } from '@nestjs/config';
+import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.entity';
+import { Designacion } from './entities/designacion.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Designacion])],
+  imports: [ ConfigModule.forRoot({
+    isGlobal: true
+  }),
+  TypeOrmModule.forFeature([Designacion, Obra, CorrelativoMemo])],
 
   controllers: [DesignacionController],
   providers: [DesignacionService, ResponseService],

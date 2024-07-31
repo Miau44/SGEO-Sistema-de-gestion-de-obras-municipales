@@ -1,4 +1,30 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateDesignacionDto } from './create-designacion.dto';
+import { ApiProperty } from "@nestjs/swagger";
 
-export class UpdateDesignacionDto extends PartialType(CreateDesignacionDto) {}
+
+export class UpdateDesignacionDto {
+
+    @ApiProperty()
+    id_obra: number;
+
+    @ApiProperty()
+    fecha_baja: Date;
+
+    @ApiProperty()
+    fecha_efectiva: Date;
+    
+    @ApiProperty()
+    justificacion_baja: string;
+
+    @ApiProperty()
+    estado_designacion: number;
+        
+        
+    @ApiProperty()
+    usuario_registro: number;
+
+    @ApiProperty()
+    id_estado: number
+
+}

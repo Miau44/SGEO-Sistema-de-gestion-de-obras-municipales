@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
+//import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 import { Persona } from "src/schema_public/persona/entities/persona.entity";
+import { Obra } from "src/schema_public/obra/entities/obra.entity";
 @Entity()
 
 export class SolicitudDesignacion {
@@ -11,17 +12,11 @@ export class SolicitudDesignacion {
     @Column()
     id_tipo_solicitud:number;
 
-  //  @Column()
-  //  id_tipo_obra:number;
-
-//   @Column()
-//   id_modalidad: number;
-
     @Column()
     id_persona: number;   
 
     @Column()
-    id_ficha: number;       
+    id_obra: number;       
         
     @Column()
     usuario_registro: number;
@@ -39,7 +34,7 @@ export class SolicitudDesignacion {
     @JoinColumn({ name: 'id_persona' })
     persona:Persona;
 
-    @ManyToOne(() => Ficha, (ficha) => ficha.items)
-    @JoinColumn({ name: 'id_ficha' })
-    ficha:Ficha;
+    @ManyToOne(() => Obra, (obra) => obra.items)
+    @JoinColumn({ name: 'id_obra' })
+    obra:Obra;
 }

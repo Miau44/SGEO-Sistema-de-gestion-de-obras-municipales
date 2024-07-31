@@ -69,8 +69,7 @@ export class Ficha {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
 
-    @OneToMany(type => SolicitudDesignacion, sol => sol.ficha)
-    items: SolicitudDesignacion[];   
+   
 
 
 }

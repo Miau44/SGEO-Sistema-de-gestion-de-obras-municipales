@@ -1,20 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 //import * as PdfPrinter from 'pdfmake/src/printer';
 import PdfPrinter from 'pdfmake';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ResponseService } from 'src/response.service';
+import { Sequelize } from 'sequelize-typescript';
+
+
+const fonts  = {
+  Roboto: {
+    normal: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Regular.ttf'),
+    bold: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Medium.ttf'),
+    italics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Italic.ttf'),
+    bolditalics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-MediumItalic.ttf'),
+  },
+};
+
 
 @Injectable()
 export class ReportService {
-  //pdfstyles: any;
-  private readonly fonts = {
-    Roboto: {
-      normal: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Regular.ttf'),
-      bold: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Medium.ttf'),
-      italics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Italic.ttf'),
-      bolditalics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-MediumItalic.ttf'),
-    },
-  };
+
+  constructor(
+    private readonly responseService: ResponseService,
+    @Inject(Sequelize) private readonly sequelize: Sequelize, // Inyecta Sequelize correctamente
+  )
+  {  this.printer = new PdfPrinter(fonts); } 
 
   pdfstyles: any = {
     header: { fontSize: 12, alignment: 'center', bold: true, italics: true },
@@ -32,19 +42,47 @@ export class ReportService {
     linea: { alignment: 'center', bold: true },
   }
  
-
-  private readonly printer = new PdfPrinter(this.fonts);
+  private readonly printer = new PdfPrinter(fonts);
   private getImageBase64(imagePath: string): string {
     const image = fs.readFileSync(imagePath);
     return image.toString('base64');
   }
 
-  async generatePdf(data: any): Promise<Buffer> {
+ 
+  async datosGeneralesReporte(gestion:number, id_designacion:number) {
+    
+    const query1 = `  SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+    p.segundo_apellido , 
+   pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+    p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona,
+  sd.id_designacion, sd.id_obra, f.cod_carpeta, f.desc_carpeta, f.desc_zona_carpeta, f.total_carpeta, 
+  f.fecha_validacion_carpeta, pto.desc_subtipo as tipo_obra, pmc.desc_subtipo as modalidad, sd.id_designacion
+    FROM persona as  p
+  INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+  INNER JOIN obra AS o ON sd.id_obra = o.id_obra
+  INNER JOIN ficha AS f ON o.id_ficha= f.id_ficha
+    INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as pto ON  o.id_tipo_obra = pto.id_subtipo
+    INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as pmc ON  o.id_modalidad = pmc.id_subtipo	  
+    INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo	  
+    INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion FROM estructura_organizacional WHERE  gestion =${gestion}  GROUP BY desc_cod_da,nombre_da, gestion)  
+    eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	    
+    WHERE   sd.id_designacion = ${id_designacion}`;
+    //const params = [ gestion, id_designacion];  
+   // const resultado = await this.reportModel   
+    const [results] = await this.sequelize.query(query1);    
+
+  }
+
+
+  async generatePdf(): Promise<Buffer> {
+   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
 
+   // var x = await this.datosGeneralesReporte(2024,19);
+
     const documentDefinition = {
-     pageSize: 'LETTER' as any,      
+   //  pageSize: 'LETTER' as any,      
       header: {
         columns: [
           { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100},
@@ -62,19 +100,22 @@ export class ReportService {
         }
       } as any,    */  
     
-      content: [
-   
+  //    content:products.map(product => ( [
+    content:[
 
+      
         {
           text: '\n\n\n\n\FORMULARIO DE SOLICITUD DE SUPERVISOR.\n\n\n\n',
           style: 'header', alignment: 'center'
-        } as any,     
+        } as any,    
         {
           text: 'DATOS DE PROYECTO. \n\n',
           style: 'subheader',
         },  
+
+            
         
-        {
+        {          
           table: {
             widths: ['*',400],
             body: [
@@ -82,6 +123,7 @@ export class ReportService {
                 {text: [ { text: 'CÓDIGO:', style: 'textTitulo' },] , fillColor: '#dddddd' ,border: [false, true, false, false]},
                 {text: [ { text: 'OBN-629-2024', style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false]}              
             ],
+            
 
             [
               {text: [ { text: 'OBRA:', style: 'textTitulo' },]},
@@ -192,7 +234,8 @@ export class ReportService {
         },*/
 
 
-      ],
+      ] ,
+    //)),
       styles: {
         header: {
           fontSize: 14,
@@ -210,15 +253,14 @@ export class ReportService {
         textDato: {
           fontSize: 9,
           bold: false,
-        },        
-      },
-
-
+        }, 
+        
       
-           
+      },
+                 
     };
-
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    var options = {};
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition, options);
     let chunks: any[] = [];
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk:any) => {
@@ -231,4 +273,7 @@ export class ReportService {
       pdfDoc.end();
     });
   }
-}
+
+ 
+
+    }

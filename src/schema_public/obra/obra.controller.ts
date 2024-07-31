@@ -7,6 +7,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 
 import { EstructuraObraDto } from './dto/estructuraDto.dto';
+import { EstadoGeneral } from '../estado_general/entities/estado_general.entity';
+import { EstadoObraDto } from './dto/estado-obra.dto';
+import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -34,8 +37,12 @@ export class ObraController {
 
   @Public()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.obraService.findOne(+id);
+
+  findOne(@Param('id') id_obra: string) {
+    try {  
+    return this.obraService.findOne(+id_obra);
+  } catch (error) {
+  } 
   }
 
   @Public()
@@ -60,5 +67,20 @@ export class ObraController {
     }
   }
 
+
+  @Public()
+  @Post('listar-obras')
+  listarObrasXEstado(@Body() estadoDto: EstadoObraDto) {
+    try {
+      return this.obraService.listarObrasXEstado(estadoDto);
+    } catch (error) {
+    }
+  }
+
+  @Public()
+  @Patch(':id_obra')
+  actualizar(@Param('id_obra') id_obra: string, @Body() tipoObraModDto: TipoObraModObraDto) {
+    return this.obraService.actualizar(+id_obra, tipoObraModDto);
+  }  
 
 }

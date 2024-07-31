@@ -5,8 +5,11 @@ export class CorrelativoMemo {
     id_correlativo_memo: number;
 
     @Column()
-    id_ficha:number;
-
+    id_obra:number;
+    
+  /*  @Column()
+    id_designacion: number;  */
+    
     @Column()
     correlativo_memo: number;   
     

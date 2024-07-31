@@ -13,7 +13,7 @@ import { EstructuraGralDto } from './dto/estructuraGral.dto';
 import { EstructuraDaDto } from './dto/estructuraDa.dto';
 import { RolDto } from './dto/rolDTO.dto';
 import { Any } from 'typeorm';
-
+import { PersonasEstadoDto } from './dto/personas-estado.dto';
 
 @ApiTags('persona')
 @Controller('persona')
@@ -111,22 +111,23 @@ export class PersonaController {
 
 
 @Post('listapersonas-designadas')
-listaPersonasDesignadas(@Body() rolDto: RolDto) {
-  try {
-    let idsArray: number[];      
-    idsArray = rolDto.id_rol.map(id => {
-      const parsedId = parseInt(id, 10);
-      if (isNaN(parsedId)) {
-        throw new BadRequestException('All ids must be valid numbers');
-      }
-      return parsedId;
-    });  
-    return this.personaService.listaPersonasDesignadas(rolDto);
+listaPersonasDesignadas(@Body() estadoDto: PersonasEstadoDto) {
+  try {  
+    return this.personaService.listaPersonasDesignadas(estadoDto);
   } catch (error) {
   }
 }
 
-  
+
+@Post('listapersonas-nodesignadas')
+listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
+  try {  
+    return this.personaService.listaPersonasNoDesignadas(estadoDto);
+  } catch (error) {
+  }
+}
+
+ /* @Public()
   @Post('listapersonas-nodesignadas')
   listaPersonasNoDesignadas(@Body() rolDto: RolDto) {
     try {
@@ -142,7 +143,7 @@ listaPersonasDesignadas(@Body() rolDto: RolDto) {
     } catch (error) {
     }  
 
-}  
+}  */
 
 
 }

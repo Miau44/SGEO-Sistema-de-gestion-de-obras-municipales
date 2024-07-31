@@ -10,8 +10,9 @@ import { PersonaModule } from './schema_public/persona/persona.module';
 import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
 import { ResponseService } from './response.service';
-import { ObraModule } from './schema_public/obra/obra.module';
 import { SolicitudDesignacionModule } from './schema_public/solicitud_designacion/solicitud_designacion.module';
+import { ObraModule } from './schema_public/obra/obra.module';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { ExternoModule } from './schema_private/externo/externo.module';
 import { FichaModule } from './schema_public/ficha/ficha.module';
 import { InstanciaFlujoModule } from './schema_public/instancia_flujo/instancia_flujo.module';
@@ -22,6 +23,18 @@ import { DesignacionModule } from './schema_public/designacion/designacion.modul
 
 @Module({
   imports: [
+    SequelizeModule.forRoot({
+      dialect: 'postgres',
+      host: process.env.DATABASE_HOST,
+      port: Number(process.env.DATABASE_PORT),
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      autoLoadModels: true,
+      synchronize: true,
+    }),
+    ReporteModule,
+
     ConfigModule.forRoot({
       isGlobal: true
     }),
@@ -50,7 +63,7 @@ import { DesignacionModule } from './schema_public/designacion/designacion.modul
   FichaModule, 
   InstanciaFlujoModule,
   InstanciaTareaModule,
-  ReporteModule,
+
   DesignacionModule
   
 

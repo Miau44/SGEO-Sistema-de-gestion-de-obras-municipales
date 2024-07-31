@@ -1,9 +1,10 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
+//import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 import { Persona } from "src/schema_public/persona/entities/persona.entity";
+import { Obra } from "src/schema_public/obra/entities/obra.entity";
 @Entity()
-export class Designacion {
 
+export class Designacion {
     @PrimaryGeneratedColumn()
     id_designacion: number;
 
@@ -14,10 +15,22 @@ export class Designacion {
     id_persona: number;   
 
     @Column()
-    id_ficha: number;    
+    id_obra: number;     
+
+    @Column()
+    id_correlativo_memo: number;   
+        
+    @Column({nullable:true})
+    fecha_baja: Date;  
+    
+    @Column({nullable:true})
+    fecha_efectiva: Date;  
+
+    @Column({nullable:true})
+    justificacion_baja: string;   
     
     @Column()
-    correlativo: number;     
+    estado_designacion: number;       
         
     @Column()
     usuario_registro: number;
@@ -35,7 +48,8 @@ export class Designacion {
     @JoinColumn({ name: 'id_persona' })
     persona:Persona;
 
-    @ManyToOne(() => Ficha, (ficha) => ficha.items)
-    @JoinColumn({ name: 'id_ficha' })
-    ficha:Ficha;    
+    @ManyToOne(() => Obra, (obra) => obra.items)
+    @JoinColumn({ name: 'id_obra' })
+    obra:Obra;
+
 }

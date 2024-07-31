@@ -10,13 +10,14 @@ export class CreateSolicitudDesignacionDto {
 
     @ApiProperty()
     id_modalidad: number;*/
+    @ApiProperty()
+    id_ficha:number
 
     @ApiProperty()
     id_persona: number;
 
-
     @ApiProperty()
-    id_ficha: number;
+    id_obra: number;
     
     @ApiProperty()
     usuario_registro: number;

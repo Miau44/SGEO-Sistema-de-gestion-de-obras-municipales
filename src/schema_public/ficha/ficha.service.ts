@@ -78,7 +78,10 @@ export class FichaService {
       ORDER BY f.fecha_registro DESC `;  */
 
 
-   const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, f.total_carpeta,  eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+   const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, 
+   
+   REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+   eo.desc_cod_da, eo.nombre_ue, eo.gestion,
    f.fecha_registro
    FROM public.Ficha as f
          INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
@@ -95,24 +98,26 @@ export class FichaService {
   }
   
   async listarFichaXUeValidadas(estructuraFichaDto: EstructuraFichaDto) {
-    try {  
+    try {
      /* const query = `SELECT * FROM public.Ficha as f
       INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion from estructura_organizacional
       WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-      WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue}  AND 
-      f.id_ficha NOT IN(
+      WHERE  f.id_ficha NOT IN(
       SELECT f.id_ficha FROM public.Ficha as f
       INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha)
       ORDER BY fecha_registro ASC `;*/
 
-      const query = `SELECT * FROM public.Ficha as f
-      INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion from estructura_organizacional
-      WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-      WHERE 
-      f.id_ficha NOT IN(
-      SELECT f.id_ficha FROM public.Ficha as f
-      INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha)
-      ORDER BY fecha_registro ASC `;      
+      const query = ` SSELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+      REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+      eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+      f.fecha_registro  FROM public.Ficha as f
+            INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion from estructura_organizacional
+            WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+            WHERE  f.id_ficha NOT IN(
+            SELECT f.id_ficha FROM public.obra as f
+            INNER JOIN  designacion sd ON f.id_obra = sd.id_obra)
+            ORDER BY fecha_registro AS`; 
+
       const resultado = await this.obraRepositorio.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

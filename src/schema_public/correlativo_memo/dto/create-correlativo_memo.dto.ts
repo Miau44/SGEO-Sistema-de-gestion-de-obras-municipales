@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 export class CreateCorrelativoMemoDto {
     @ApiProperty()
-    id_ficha: number;
+    id_obra: number;
 
     @ApiProperty()
     correlativo_memo: number;
