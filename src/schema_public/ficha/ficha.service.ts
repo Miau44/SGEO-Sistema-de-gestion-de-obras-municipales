@@ -107,7 +107,7 @@ export class FichaService {
       INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha)
       ORDER BY fecha_registro ASC `;*/
 
-      const query = ` SSELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+      const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
       REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
       eo.desc_cod_da, eo.nombre_ue, eo.gestion,
       f.fecha_registro  FROM public.Ficha as f
@@ -116,7 +116,7 @@ export class FichaService {
             WHERE  f.id_ficha NOT IN(
             SELECT f.id_ficha FROM public.obra as f
             INNER JOIN  designacion sd ON f.id_obra = sd.id_obra)
-            ORDER BY fecha_registro AS`; 
+            ORDER BY fecha_registro ASC`; 
 
       const resultado = await this.obraRepositorio.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")

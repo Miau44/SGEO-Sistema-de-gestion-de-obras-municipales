@@ -9,6 +9,7 @@ import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.e
 import { log } from 'console';
 import { Designacion } from './entities/designacion.entity';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
+import { MaxCorrelativoDto } from './dto/correlativo.dto';
 
 
 @Injectable()
@@ -66,7 +67,7 @@ export class DesignacionService {
         const resultado = await this.DesigRepositorio.save(createDesignacionDto);
         
         if(resultado)
-         await this.update_obra_estado(2, v_id_correlativo_memo.id_obra);
+         await this.update_obra_estado(2, v_id_correlativo_memo.id_obra);// ESTADO 2 SOLICITADO
         return this.responseService.success(resultado, "Guardado Correctamente.")
   /*  }*/
 
@@ -171,7 +172,7 @@ export class DesignacionService {
     }
   }  
 
- async actualizarAprobar(id_designacion: number, estadoDto:EstadoObraDesigDto) {
+ async aprobarDesignacion(id_designacion: number, estadoDto:EstadoObraDesigDto) {
   try {
     log(id_designacion)
   const res =await  this.update_designacion_estado(estadoDto.estado_designacion, id_designacion);   
@@ -189,7 +190,7 @@ export class DesignacionService {
     }
   }  
 
-  async rechazar_designacion(id_designacion:number) {
+  async rechazarDesignacion(id_designacion:number) {
     try {
       const query1 = `
       DELETE FROM public.designacion   
@@ -207,7 +208,7 @@ export class DesignacionService {
 
       const query3 = `
       UPDATE  obra  as o
-      SET id_estado_general =0
+      SET id_estado_general =1
       WHERE o.id_obra IN(
       SELECT o.id_obra FROM obra AS o
       INNER JOIN designacion AS d ON o.id_obra = d.id_obra WHERE d.id_designacion = $1) `;
@@ -227,5 +228,21 @@ export class DesignacionService {
     }
   }
 
+
+async maxCorrelativo( correlativoDto: MaxCorrelativoDto) {
+  try {
+    const query1 = `
+    SELECT COALESCE(MAX(correlativo_memo),0) AS max_correlativo FROM designacion AS d
+    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
+    INNER JOIN correlativo_memo AS  cm ON d.id_correlativo_memo= cm.id_correlativo_memo
+    INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON p.id_persona = dp.idpersona		
+    WHERE d.id_obra = $1 AND dp.idpermisod IN($2 ) `;
+    const params = [ correlativoDto.id_obra, correlativoDto.id_permiso];  
+   const resultado = await this.DesigRepositorio.query(query1, params);      
+    return this.responseService.success(resultado,  "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
 }

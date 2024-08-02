@@ -6,6 +6,7 @@ import { ApiOperation,ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
+import { MaxCorrelativoDto } from './dto/correlativo.dto';
 
 @ApiTags('designacion')
 
@@ -60,13 +61,24 @@ export class DesignacionController {
   @Public()
   @Patch('aprobar/:id_designacion')
   actualizarAprobar(@Param('id_designacion') id_designacion: string, @Body() actEstadoDto: EstadoObraDesigDto) {
-    return this.designacionService.actualizarAprobar(+id_designacion, actEstadoDto);
+    return this.designacionService.aprobarDesignacion(+id_designacion, actEstadoDto);
   }
 
  @Public()
   @Get('rechazar/:id_designacion')
   @ApiOperation({ summary: ' id_designacion:1' })
   rechazarDesignacion(@Param('id_designacion') id_designacion: number) {
-    return this.designacionService.rechazar_designacion(+id_designacion);
+    return this.designacionService.rechazarDesignacion(+id_designacion);
   }
+    
+
+
+  @Public()
+  @Post('max-correlativo')
+  MaxCorrelativo(@Body() correlativoDto: MaxCorrelativoDto ) {
+    try {
+      return this.designacionService.maxCorrelativo(correlativoDto);
+    } catch (error) {
+    }
+  }  
 }
