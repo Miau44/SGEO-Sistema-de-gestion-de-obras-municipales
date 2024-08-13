@@ -30,7 +30,12 @@ export class CreateDesignacionDto {
 
     @ApiProperty()
     estado_designacion: number;
+
+   /* @ApiProperty()
+    id_reemplazzo: number;
         
+    @ApiProperty()
+    fecha_reemplazo: Date;  */  
         
     @ApiProperty()
     usuario_registro: number;

@@ -7,6 +7,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
 import { MaxCorrelativoDto } from './dto/correlativo.dto';
+import { ReemplazoDto } from './dto/reemplazo.dto';
 
 @ApiTags('designacion')
 
@@ -80,5 +81,12 @@ export class DesignacionController {
       return this.designacionService.maxCorrelativo(correlativoDto);
     } catch (error) {
     }
-  }  
+  }
+
+  //para reemplazar
+  @Public()
+  @Patch('reemplazar/:id_designacion')
+  actualizarReemplazar(@Param('id_designacion') id_designacion: string, @Body() reemplazoDto: ReemplazoDto) {
+    return this.designacionService.actualizarReemplazar(+id_designacion, reemplazoDto);
+  }
 }

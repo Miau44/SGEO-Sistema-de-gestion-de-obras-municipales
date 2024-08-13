@@ -30,7 +30,13 @@ export class Designacion {
     justificacion_baja: string;   
     
     @Column()
-    estado_designacion: number;       
+    estado_designacion: number;    
+    
+    @Column({nullable:true})
+    id_reemplazo: number;    
+
+    @Column({nullable:true})
+    fecha_reemplazo: Date;      
         
     @Column()
     usuario_registro: number;

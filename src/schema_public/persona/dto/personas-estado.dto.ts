@@ -10,8 +10,8 @@ export class PersonasEstadoDto {
     @ApiProperty({ type: Number, description: 'valor de ficha' })
     id_obra: number;
 
-    @ApiProperty({ type: Number, description: 'valor de ficha' })
-    id_estado_designacion: number;
+  /*  @ApiProperty({ type: Number, description: 'valor del estado_solitud' })
+    id_estado_designacion!: number;*/
 
 
 }

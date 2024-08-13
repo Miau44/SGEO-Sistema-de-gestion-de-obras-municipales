@@ -95,9 +95,9 @@ async  findAll() {
       p.segundo_apellido as psegundo_apellido, 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, p.id_permiso,
-      dp.permiso, dp.permisodetalle
+      dp.permiso, dp.permisodetalle, pro.detalle as cargodetalle
       FROM persona as  p
-      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
       WHERE  gestion =${pgestion}   GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da		
@@ -337,19 +337,19 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
       p.segundo_apellido , 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta 
+      ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona	
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
       WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
       INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
       WHERE 
       dp.idpermisod IN(${data.id_rol} )AND 
-      p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  AND sd.estado_designacion =${data.id_estado_designacion} `;     
+      p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  `;     
 
 
       const resultado = await this.personaRepo.query(query);
@@ -380,8 +380,7 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
       LEFT JOIN ( SELECT id_persona, unnest(string_to_array(id_permiso::text, ','::text)) AS elemento FROM persona
       ) as per ON p.id_persona = per.id_persona
       WHERE per.elemento  IN((SELECT CAST(${data.id_rol} AS TEXT)) )
-      AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra} AND sd.estado_designacion =${data.id_estado_designacion}
-    
+      AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}    
       AND p.id_persona NOT IN (	SELECT p.id_persona	  
       FROM persona as  p
       INNER   JOIN public.designacion AS sd ON p.id_persona = sd.id_persona)`;

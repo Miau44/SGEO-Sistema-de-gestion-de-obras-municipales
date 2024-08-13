@@ -19,6 +19,7 @@ import { InstanciaFlujoModule } from './schema_public/instancia_flujo/instancia_
 import { InstanciaTareaModule } from './schema_public/instancia_tarea/instancia_tarea.module';
 import { ReporteModule } from './schema_public/reporte/reporte.module';
 import { DesignacionModule } from './schema_public/designacion/designacion.module';
+import { TipoDocumentoModule } from './schema_public/tipo_documento/tipo_documento.module';
 
 
 @Module({
@@ -64,7 +65,8 @@ import { DesignacionModule } from './schema_public/designacion/designacion.modul
   InstanciaFlujoModule,
   InstanciaTareaModule,
 
-  DesignacionModule
+  DesignacionModule,
+  TipoDocumentoModule
   
 
   ],

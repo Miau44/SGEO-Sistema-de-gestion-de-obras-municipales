@@ -10,6 +10,7 @@ import { log } from 'console';
 import { Designacion } from './entities/designacion.entity';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
 import { MaxCorrelativoDto } from './dto/correlativo.dto';
+import { ReemplazoDto } from './dto/reemplazo.dto';
 
 
 @Injectable()
@@ -174,19 +175,14 @@ export class DesignacionService {
 
  async aprobarDesignacion(id_designacion: number, estadoDto:EstadoObraDesigDto) {
   try {
-    log(id_designacion)
+
   const res =await  this.update_designacion_estado(estadoDto.estado_designacion, id_designacion);   
   if(res)
   await   this.update_obra_estado(estadoDto.estado_general, estadoDto.id_obra);
+  return this.responseService.success(res, "Guardado Correctamente.")
+
     } catch (error) {
-      return {
-        statusCode: 500,
-        message: false,
-      };
-    }        
-    return {
-      mensaje: 'Actualizado con éxito',
-      estado: true,
+      return this.responseService.error(error);
     }
   }  
 
@@ -204,7 +200,7 @@ export class DesignacionService {
       SELECT cm.id_correlativo_memo FROM correlativo_memo AS cm
       INNER JOIN designacion AS d ON cm.id_correlativo_memo = d.id_correlativo_memo WHERE d.id_designacion = $1) `;
       const params2 = [ id_designacion];  
-      await this.DesigRepositorio.query(query2, params2); 
+    const resultado =  await this.DesigRepositorio.query(query2, params2); 
 
       const query3 = `
       UPDATE  obra  as o
@@ -215,16 +211,10 @@ export class DesignacionService {
       const params3 = [ id_designacion];  
       await this.DesigRepositorio.query(query3, params3);       
       
-      return {
-        statusCode: 200,
-        message: true,
-        data: "Se actualizaron datos",
-      };
+      return this.responseService.success(resultado, "Guardado Correctamente.")
+
     } catch (error) {
-      return {
-        statusCode: 500,
-        message: false,
-      };
+      return this.responseService.error(error);
     }
   }
 
@@ -244,5 +234,17 @@ async maxCorrelativo( correlativoDto: MaxCorrelativoDto) {
     return this.responseService.error(error);
   }
 }
+
+async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
+  try {
+
+    const resultado = await this.DesigRepositorio.update(id_designacion, reemplazoDto)
+    if(resultado)
+  return this.responseService.success(resultado, "Guardado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 }

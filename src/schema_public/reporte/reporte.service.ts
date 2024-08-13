@@ -41,10 +41,12 @@ export class ReportService {
     return resultado[0];
   }
 
-
+//SOLICITUD DE DESIGNACION 
   async generatePdf(gestion:number, id:number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(gestion, id);
-
+    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+    } 
     this.datos = res;
     console.log("Generar, ", res);
     console.log("Generar, ", this.datos);
@@ -52,9 +54,6 @@ export class ReportService {
     console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
     console.log("Generar, ", this.datos.zonacarpeta);
 
-    // this.datos_documento = res;
-    // console.log(this.datos_documento)
-    //log(respuesta)
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
 
@@ -264,6 +263,411 @@ export class ReportService {
      pdfDoc.end();
    });
  }
+
+
+ async generateMemo(gestion:number, id:number): Promise<Buffer> {
+  const res = await this.datosGeneralesReporte(gestion, id);
+  if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+    throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+  }   
+
+  this.datos = res;
+
+  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+
+  const documentDefinition = {
+    pageSize: 'LETTER' as any,
+    watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+    header: {
+      columns: [
+        { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+       // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
+      ],
+      margin: [40, 10]
+    } as any,
+    content: [
+
+      {
+        text: '\n\n\n\n\M E M O R Á N D U M.\n',
+        style: 'header0', alignment: 'center'
+      } as any,
+      {
+        text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n\n',
+        style: 'subheader11', alignment: 'center'
+      },
+      {
+        alignment: 'center',
+        columns: [
+          {
+            text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\nFECHA: La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), style: 'subheader11'
+          },
+          {
+            text: 'Señor(a).\n' + this.datos[0].profesiondetalle +' '+ this.datos[0].nombre +' '+ this.datos[0].primerapellido +' '+ this.datos[0].segundoapellido+  '\nPresente.- ',  style: 'subheader11'
+          }
+        ]
+      },   
+      
+      {
+        table: {
+          widths: ['*', 330],
+          body: [
+            [
+              { text: [{ text: '\n', style: 'textTitulo' },] },
+              { text: [{ text: '\n', style: 'textDato' }], }
+            ], [
+              { text: [{ text: '\n', style: 'textTitulo' },] },
+              { text: [{ text: '\n', style: 'textDato' }], }
+            ],
+
+
+          ]
+        },
+        layout: 'lightHorizontalLines'
+      },      
+      {
+        text: 'REF: DESIGNACIÓN DE ' + this.datos[0].descpermiso +' DE OBRA. \n\n',
+        style: 'subheader', alignment:'center'
+      },
+     
+//TEXTO
+   
+      {
+        table: {
+          widths: ['*', 400],
+          body: [
+            [
+              { text: [{ text: 'OBRA:', style: 'textTitulo',alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datos[0].desccarpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
+            ],
+
+            [
+              { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datos[0].codcarpeta +'\n', style: 'textDato' }] }
+            ],
+            [
+              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd'},
+              { text: [{ text: this.datos[0].zonacarpeta+ '', style: 'textDato' }], fillColor: '#dddddd' }
+            ]
+          ]
+        },
+        layout: 'noBorders'
+      },
+
+
+      {
+        text: '\n\n\nSeñor(a):\n En atención a la solicitud del RPC/RPA, se comunica a usted que la Dirección de Ejecución y Supervisión de Infraestructuras Especiales/'+this.datos[0].nombreda + ' ha dispuesto designarlo(a) ' + this.datos[0].descpermiso +' (a) de la obra '+  this.datos[0].desccarpeta+'.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.' ,
+        style: 'textDato', alignment:'justify'
+      },
+
+      {
+        text: [
+          '\n\n\n\n\nDIRECTOR DE SUPERVISIÓN DE OBRAS' + '\n' + 'UNIDAD EJECUTORA',
+        ],
+        style: 'subheader', alignment: 'center'
+      },
+
+
+      {
+        text: [
+          '\n\n\n\n\n\n\ncc:Arch:', 
+        ],
+        style: 'footerText'
+      },
+
+    ],
+
+  /*  footer: {
+      columns: [
+    //    { qr: 'Texto o URL para el QR', fit: 100, alignment: 'center' }, // QR Code en el pie de página
+        { image: `data:image/png;base64,${this.getImageBase64(footerImage)}`, width: 100, alignment: 'right' }
+      ],
+      margin: [40, 10]
+    } as any,*/
+
+    styles: {
+      header0: {
+        fontSize: 16,
+        bold: true,
+      },
+      header: {
+        fontSize: 14,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 12,
+        bold: true,
+      },
+      subheader11: {
+        fontSize: 11,
+        bold: true,
+      },
+      coloredText: {
+        fontSize: 11,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },
+      coloredTextgray: {
+        fontSize: 14,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },        
+      footerText: {
+        fontSize: 6,
+        bold: false,
+      },
+      textTitulo: {
+        fontSize: 10,
+        bold: true,
+      },
+      textDato: {
+        fontSize: 10,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+
+      textDato12: {
+        fontSize: 12,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+
+      
+      textDatoNormal11: {
+        fontSize: 11,
+        bold: false,
+      },
+
+    },
+    pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+
+  };
+ // Generar el PDF en memoria
+ const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+ let chunks: Buffer[] = [];
+
+ return new Promise<Buffer>((resolve, reject) => {
+   pdfDoc.on('data', (chunk) => {
+     chunks.push(chunk);
+   });
+   pdfDoc.on('end', () => {
+     const result = Buffer.concat(chunks);
+     resolve(result);
+   });
+   pdfDoc.end();
+ });
+}
+
+
+async generateMemoReemplazo(gestion:number, id:number): Promise<Buffer> {
+  const res = await this.datosGeneralesReporte(gestion, id);
+
+  if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+    throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+  }  
+  this.datos = res;
+
+  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+
+  const documentDefinition = {
+    pageSize: 'LETTER' as any,
+    watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+    header: {
+      columns: [
+        { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+       // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
+      ],
+      margin: [40, 10]
+    } as any,
+    content: [
+
+      {
+        text: '\n\n\n\n\M E M O R Á N D U M.\n',
+        style: 'header0', alignment: 'center'
+      } as any,
+      {
+        text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n\n',
+        style: 'subheader11', alignment: 'center'
+      },
+      {
+        alignment: 'center',
+        columns: [
+          {
+            text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\nFECHA: La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), style: 'subheader11'
+          },
+          {
+            text: 'Señor(a).\n' + this.datos[0].profesiondetalle +' '+ this.datos[0].nombre +' '+ this.datos[0].primerapellido +' '+ this.datos[0].segundoapellido+  '\nPresente.- ',  style: 'subheader11'
+          }
+        ]
+      },   
+      
+      {
+        table: {
+          widths: ['*', 330],
+          body: [
+            [
+              { text: [{ text: '\n', style: 'textTitulo' },] },
+              { text: [{ text: '\n', style: 'textDato' }], }
+            ], [
+              { text: [{ text: '\n', style: 'textTitulo' },] },
+              { text: [{ text: '\n', style: 'textDato' }], }
+            ],
+
+
+          ]
+        },
+        layout: 'lightHorizontalLines'
+      },      
+      {
+        text: 'REF: DESIGNACIÓN DE ' + this.datos[0].descpermiso +' DE OBRA. \n\n',
+        style: 'subheader', alignment:'center'
+      },
+     
+//TEXTO
+   
+      {
+        table: {
+          widths: ['*', 400],
+          body: [
+            [
+              { text: [{ text: 'OBRA:', style: 'textTitulo',alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datos[0].desccarpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
+            ],
+
+            [
+              { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datos[0].codcarpeta +'\n', style: 'textDato' }] }
+            ],
+            [
+              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd'},
+              { text: [{ text: this.datos[0].zonacarpeta+ '', style: 'textDato' }], fillColor: '#dddddd' }
+            ]
+          ]
+        },
+        layout: 'noBorders'
+      },
+
+
+      {
+        text: '\n\n\nSeñor(a):\n Mediante la presente se comunica a usted que la Dirección de Ejecución y Supervisión de Infraestructuras Especiales/'+this.datos[0].nombreda + ' ha dispuesto designarlo(a) a partir de la fecha ' + this.datos[0].descpermiso +' (a) de la obra '+  this.datos[0].desccarpeta+'.\n\n En reemplazo de (él/la) profesional '+ this.datos[0].personaareemplazar+', medida asumida con el fin de dar continuidad a los trabajos de la obra. Para el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.' ,
+        style: 'textDato', alignment:'justify'
+      },
+
+      {
+        text: [
+          '\n\n\n\n\nDIRECTOR DE SUPERVISIÓN DE OBRAS' + '\n' + 'UNIDAD EJECUTORA',
+        ],
+        style: 'subheader', alignment: 'center'
+      },
+
+
+      {
+        text: [
+          '\n\n\n\n\n\n\ncc:Arch:', 
+        ],
+        style: 'footerText'
+      },
+
+    ],
+
+  /*  footer: {
+      columns: [
+    //    { qr: 'Texto o URL para el QR', fit: 100, alignment: 'center' }, // QR Code en el pie de página
+        { image: `data:image/png;base64,${this.getImageBase64(footerImage)}`, width: 100, alignment: 'right' }
+      ],
+      margin: [40, 10]
+    } as any,*/
+
+    styles: {
+      header0: {
+        fontSize: 16,
+        bold: true,
+      },
+      header: {
+        fontSize: 14,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 12,
+        bold: true,
+      },
+      subheader11: {
+        fontSize: 11,
+        bold: true,
+      },
+      coloredText: {
+        fontSize: 11,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },
+      coloredTextgray: {
+        fontSize: 14,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },        
+      footerText: {
+        fontSize: 6,
+        bold: false,
+      },
+      textTitulo: {
+        fontSize: 10,
+        bold: true,
+      },
+      textDato: {
+        fontSize: 10,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+
+      textDato12: {
+        fontSize: 12,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+
+      
+      textDatoNormal11: {
+        fontSize: 11,
+        bold: false,
+      },
+
+    },
+    pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+
+  };
+ // Generar el PDF en memoria
+ const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+ let chunks: Buffer[] = [];
+
+ return new Promise<Buffer>((resolve, reject) => {
+   pdfDoc.on('data', (chunk) => {
+     chunks.push(chunk);
+   });
+   pdfDoc.on('end', () => {
+     const result = Buffer.concat(chunks);
+     resolve(result);
+   });
+   pdfDoc.end();
+ });
+}
+
+
+
+
+
 
 
 
