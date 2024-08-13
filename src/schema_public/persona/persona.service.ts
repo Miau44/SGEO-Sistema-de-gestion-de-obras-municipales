@@ -338,6 +338,7 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
       ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+      ,sd.id_reemplazo
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona	
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
