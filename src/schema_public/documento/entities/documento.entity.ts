@@ -1,0 +1,28 @@
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+@Entity()
+export class Documento {
+    @PrimaryGeneratedColumn()
+    id_documento: number;
+
+    @Column()
+    id_obra: number;    
+
+    @Column()
+    id_tipo_documento: number;
+
+    @Column()
+    cumple: boolean;   
+
+    @Column()
+    usuario_registro: number;
+
+    @Column({ default: 1 })
+    id_estado: number;
+  
+    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    fecha_registro: Date
+
+    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
+    fecha_modificacion: Date        
+
+}

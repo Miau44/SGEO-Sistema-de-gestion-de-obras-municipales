@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreateRolPermisoDto } from './dto/create-rol_permiso.dto';
 import { UpdateRolPermisoDto } from './dto/update-rol_permiso.dto';
+import { RolPermiso } from './entities/rol_permiso.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 
 @Injectable()
 export class RolPermisoService {
+  constructor(@InjectRepository(RolPermiso) private rolPermisoRepo: Repository<RolPermiso>) { }
   create(createRolPermisoDto: CreateRolPermisoDto) {
     return 'This action adds a new rolPermiso';
   }
@@ -23,4 +28,24 @@ export class RolPermisoService {
   remove(id: number) {
     return `This action removes a #${id} rolPermiso`;
   }
+  async conpermisito(v_rol: string) {
+    const consultaSql = 'SELECT * FROM public.sp_verpermisos($1)';
+    const values = [v_rol];
+    const result = await this.rolPermisoRepo.query(consultaSql, values);
+    return {
+      mensaje: 'Permisos',
+      estado: true,
+      data: result
+    };
+  }
+  //SELECT public.sp_cotejarroles('JEFE SOLICITANTE')
+  async cotejarol(v_rol: string) {
+    const consultaSql = 'SELECT * FROM public.sp_cotejarroles($1)';
+    const values = [v_rol];
+    const result = await this.rolPermisoRepo.query(consultaSql, values);
+    return result;
+  }
+
+
+
 }

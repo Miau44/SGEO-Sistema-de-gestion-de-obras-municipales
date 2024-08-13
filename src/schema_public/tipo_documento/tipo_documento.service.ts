@@ -26,11 +26,14 @@ export class TipoDocumentoService {
         },
       });*/
       const query = `
-    SELECT  *, sub.desc_subtipo AS sistema
+       SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+ td.id_subtipo_documento, td.id_etapa_documento,
+ d.fecha_registro, d.usuario_registro 
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+	LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
     ORDER BY 
-    td.id_tipo_documento DESC;`;
+    td.id_tipo_documento ASC;`;
     //const params = [id_estado_gral, id_obra];  
    const resultado = await this.tipoDocRepositorio.query(query);  
 
