@@ -311,7 +311,7 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
   }
 
 
-  //personas SI solicitadas/designada
+  //personas SI solicitadas/designadas
   async listaPersonasDesignadas(data: PersonasEstadoDto) {
     try { 
       //const {gestion, id_rol, id_obra, id_estado_designacion } = data;
@@ -338,9 +338,10 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
       ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo
+      ,sd.id_reemplazo, cm.correlativo_memo
       FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona	
+      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+      INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
       INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
@@ -350,7 +351,7 @@ p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;
       INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
       WHERE 
       dp.idpermisod IN(${data.id_rol} )AND 
-      p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  `;     
+      p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  AND   sd.estado_designacion IN(${data.id_estado_designacion}) ORDER BY dp.permiso,cm.correlativo_memo ASC `;     
 
 
       const resultado = await this.personaRepo.query(query);

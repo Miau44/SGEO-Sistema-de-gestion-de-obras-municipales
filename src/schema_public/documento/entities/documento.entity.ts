@@ -14,6 +14,10 @@ export class Documento {
     cumple: boolean;   
 
     @Column()
+    ruta_documento: string;   
+    
+
+    @Column()
     usuario_registro: number;
 
     @Column({ default: 1 })

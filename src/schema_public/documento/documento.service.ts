@@ -38,4 +38,23 @@ export class DocumentoService {
   remove(id: number) {
     return `This action removes a #${id} documento`;
   }
+
+
+  async documentosXObra(id_obra:number) {
+    try {
+      const query1 = `
+    SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+    td.id_subtipo_documento, td.id_etapa_documento,
+    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro 
+    FROM  tipo_documento as td
+    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+    LEFT OUTER JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1	
+    ORDER BY td.id_tipo_documento ASC `;
+      const params = [id_obra];  
+     const resultado = await this.documentoRepositorio.query(query1, params);      
+      return this.responseService.success(resultado,  "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 }

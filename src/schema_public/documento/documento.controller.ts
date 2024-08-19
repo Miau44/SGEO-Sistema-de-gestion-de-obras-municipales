@@ -40,4 +40,11 @@ export class DocumentoController {
   remove(@Param('id') id: string) {
     return this.documentoService.remove(+id);
   }
+
+  @Public()
+  @Get('listar/:id_obra')
+  @ApiOperation({ summary: ' id_obra:1' })
+  rechazarDesignacion(@Param('id_obra') id_obra: number) {
+    return this.documentoService.documentosXObra(+id_obra);
+  }  
 }

@@ -12,6 +12,9 @@ export class CreateDocumentoDto {
     cumple: boolean;
 
     @ApiProperty()
+    ruta_documento: string;
+
+    @ApiProperty()
     usuario_registro: number;
 
     @ApiProperty()

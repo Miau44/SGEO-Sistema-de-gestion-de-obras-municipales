@@ -7,11 +7,11 @@ export class PersonasEstadoDto {
     @ApiProperty({ })
     id_rol: number
 
-    @ApiProperty({ type: Number, description: 'valor de ficha' })
+    @ApiProperty({ type: Number, description: 'valor de obra' })
     id_obra: number;
 
-  /*  @ApiProperty({ type: Number, description: 'valor del estado_solitud' })
-    id_estado_designacion!: number;*/
-
+   
+    @ApiProperty({ type: [Number], description: 'Array de IDs' })
+    id_estado_designacion: number[];  // Cambiado a array de números
 
 }
