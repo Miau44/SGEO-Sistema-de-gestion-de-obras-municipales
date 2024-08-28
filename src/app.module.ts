@@ -10,7 +10,6 @@ import { PersonaModule } from './schema_public/persona/persona.module';
 import { UsersModule } from './schema_public/users/users.module';
 import { ParametricaModule } from './schema_public/parametrica/parametrica.module';
 import { ResponseService } from './response.service';
-import { SolicitudDesignacionModule } from './schema_public/solicitud_designacion/solicitud_designacion.module';
 import { ObraModule } from './schema_public/obra/obra.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ExternoModule } from './schema_private/externo/externo.module';
@@ -22,6 +21,9 @@ import { DesignacionModule } from './schema_public/designacion/designacion.modul
 import { RolPermisoModule } from './schema_public/rol_permiso/rol_permiso.module';
 import { TipoDocumentoModule } from './schema_public/tipo_documento/tipo_documento.module';
 import { DocumentoModule } from './schema_public/documento/documento.module';
+import { PersonaPermisoModule } from './schema_public/persona_permiso/persona_permiso.module';
+import { PersonapermisoUeModule } from './schema_public/personapermiso_ue/personapermiso_ue.module';
+import { TipoInformeModule } from './schema_public/tipo_informe/tipo_informe.module';
 
 @Module({
   imports: [
@@ -60,7 +62,6 @@ import { DocumentoModule } from './schema_public/documento/documento.module';
   UsersModule,
   ParametricaModule,
   ObraModule,
-  SolicitudDesignacionModule,
   ExternoModule,
   FichaModule, 
   InstanciaFlujoModule,
@@ -69,7 +70,10 @@ import { DocumentoModule } from './schema_public/documento/documento.module';
   DesignacionModule,
   RolPermisoModule,
   TipoDocumentoModule,
-  DocumentoModule
+  DocumentoModule,
+  PersonaPermisoModule,
+  PersonapermisoUeModule,
+  TipoInformeModule
   
 
   ],

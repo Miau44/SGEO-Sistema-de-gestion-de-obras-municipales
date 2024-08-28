@@ -61,7 +61,7 @@ export class ParametricaService {
 
   async listarXTipo(filtrosDto: FiltrosDto): Promise<any> {
     try {
-      const query = ` SELECT * FROM parametrica WHERE ${filtrosDto.campo} = $1; `;
+      const query = ` SELECT * FROM parametrica WHERE ${filtrosDto.campo} = $1 AND id_estado=1; `;
       const values = [filtrosDto.id];
       const resultado = await this.parametricaRepo.query(query, values);
       return this.responseSevice.success(resultado, "Listado Correctamente")

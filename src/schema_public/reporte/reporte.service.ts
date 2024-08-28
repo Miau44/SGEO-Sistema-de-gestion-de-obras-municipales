@@ -264,7 +264,7 @@ export class ReportService {
    });
  }
 
-
+//GENERAR MEMORANDUM 
  async generateMemo(gestion:number, id:number): Promise<Buffer> {
   const res = await this.datosGeneralesReporte(gestion, id);
   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -303,7 +303,7 @@ export class ReportService {
         alignment: 'center',
         columns: [
           {
-            text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\nFECHA: La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), style: 'subheader11'
+            text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), style: 'subheader11'
           },
           {
             text: 'Señor(a).\n' + this.datos[0].profesiondetalle +' '+ this.datos[0].nombre +' '+ this.datos[0].primerapellido +' '+ this.datos[0].segundoapellido+  '\nPresente.- ',  style: 'subheader11'
@@ -359,15 +359,19 @@ export class ReportService {
 
 
       {
-        text: '\n\n\nSeñor(a):\n En atención a la solicitud del RPC/RPA, se comunica a usted que la Dirección de Ejecución y Supervisión de Infraestructuras Especiales/'+this.datos[0].nombreda + ' ha dispuesto designarlo(a) ' + this.datos[0].descpermiso +' (a) de la obra '+  this.datos[0].desccarpeta+'.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.' ,
+        text: '\n\n\nSeñor(a):\n En atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la '+this.datos[0].nombreue + ' ha dispuesto designarlo(a) ' + this.datos[0].descpermiso +' (a) de la obra '+  this.datos[0].desccarpeta+'.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.' ,
         style: 'textDato', alignment:'justify'
       },
 
       {
-        text: [
-          '\n\n\n\n\nDIRECTOR DE SUPERVISIÓN DE OBRAS' + '\n' + 'UNIDAD EJECUTORA',
-        ],
-        style: 'subheader', alignment: 'center'
+        text: 
+          '\n\n\n\n\nDIRECTOR(A) ' + this.datos[0].aprobador ,        
+        style: 'textDato', alignment: 'center'
+      },
+        {
+        text: 
+           this.datos[0].nombreue ,        
+        style: 'textTitulo', alignment: 'center'
       },
 
 

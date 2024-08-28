@@ -4,6 +4,7 @@ import { CreateRolPermisoDto } from './dto/create-rol_permiso.dto';
 import { UpdateRolPermisoDto } from './dto/update-rol_permiso.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
+import { PermisoDto } from './dto/permisos,dto';
 
 
 
@@ -37,10 +38,10 @@ export class RolPermisoController {
     return this.rolPermisoService.remove(+id);
   }
   @Public()
-  @Get('conpermisito/:v_rol')
+  @Post('conpermisito')
   @ApiOperation({ summary: 'v_rol: JEFE SOLICITANTE' })
-  conpermisito(@Param('v_rol') v_rol: string) {
-    return this.rolPermisoService.conpermisito(v_rol);
+  conpermisito(@Body() permisoDto: PermisoDto) {
+    return this.rolPermisoService.conpermisito(permisoDto);
   }
 
   @Public()

@@ -1,5 +1,4 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { SolicitudDesignacion } from "src/schema_public/solicitud_designacion/entities/solicitud_designacion.entity";
 @Entity()
 
 export class Ficha {
@@ -63,10 +62,10 @@ export class Ficha {
     @Column({ })
     id_estado: number;
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()', nullable:true})
     fecha_registro: Date
 
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
+    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
     fecha_modificacion: Date
 
    

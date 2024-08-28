@@ -4,6 +4,7 @@ import { UpdateRolPermisoDto } from './dto/update-rol_permiso.dto';
 import { RolPermiso } from './entities/rol_permiso.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PermisoDto } from './dto/permisos,dto';
 
 
 @Injectable()
@@ -28,9 +29,9 @@ export class RolPermisoService {
   remove(id: number) {
     return `This action removes a #${id} rolPermiso`;
   }
-  async conpermisito(v_rol: string) {
-    const consultaSql = 'SELECT * FROM public.sp_verpermisos($1)';
-    const values = [v_rol];
+  async conpermisito(permisoDto: PermisoDto) {
+    const consultaSql = 'SELECT * FROM public.sp_verpermisos($1, $2)';
+    const values = [permisoDto.rol, permisoDto.usuario];
     const result = await this.rolPermisoRepo.query(consultaSql, values);
     return {
       mensaje: 'Permisos',

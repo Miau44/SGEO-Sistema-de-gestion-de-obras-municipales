@@ -13,9 +13,9 @@ export class RolPermiso {
     @Column()
     descripcion_rol:string;
 
-    @Column({nullable:true})
-    id_permiso:number;    
-
+    @Column({default:null})
+    id_permiso:number;   
+  
     @Column()
     usuario_registro: number;
 

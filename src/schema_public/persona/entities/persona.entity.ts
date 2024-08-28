@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { RolPermiso } from "src/schema_public/rol_permiso/entities/rol_permiso.entity";
-import { SolicitudDesignacion } from "src/schema_public/solicitud_designacion/entities/solicitud_designacion.entity";
+import { PersonapermisoUe } from "src/schema_public/personapermiso_ue/entities/personapermiso_ue.entity";
+import { Designacion } from "src/schema_public/designacion/entities/designacion.entity";
+import { PersonaPermiso } from "src/schema_public/persona_permiso/entities/persona_permiso.entity";
 @Entity()
 export class Persona {
     @PrimaryGeneratedColumn()
@@ -57,12 +58,12 @@ export class Persona {
     @Column({type: 'date',  nullable: true})
     fecha_vacacion_fin: Date;   
         
-   /* @ManyToOne(() => RolPermiso, (rol) => rol.id_rol)
-    @JoinColumn({ name: 'id_rol' })
-    rol: RolPermiso;*/
-    
-    
-    
+   
+    //para campos json
+    /*@Column("json", { 
+        nullable: true 
+    })
+    permiso: string;*/
 
     @Column({nullable:true})
     id_permiso: string;    
@@ -83,8 +84,12 @@ export class Persona {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
+    
+    @OneToMany(type => PersonaPermiso, personapermiso => personapermiso.persona)
+    itemspp: PersonaPermiso[];   
 
-    @OneToMany(type => SolicitudDesignacion, sol => sol.persona)
-    items: SolicitudDesignacion[];   
+
+    @OneToMany(type => Designacion, sol => sol.persona)
+    items: Designacion[];   
 
 }

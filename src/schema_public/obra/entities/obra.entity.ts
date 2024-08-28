@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { SolicitudDesignacion } from "src/schema_public/solicitud_designacion/entities/solicitud_designacion.entity";
+import { Designacion } from "src/schema_public/designacion/entities/designacion.entity";
+
 @Entity()
 export class Obra {
     @PrimaryGeneratedColumn()
@@ -29,7 +30,7 @@ export class Obra {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
 
-    @OneToMany(type => SolicitudDesignacion, sol => sol.obra)
-    items: SolicitudDesignacion[];   
+    @OneToMany(type => Designacion, sol => sol.obra)
+    items: Designacion[];   
 
 }
