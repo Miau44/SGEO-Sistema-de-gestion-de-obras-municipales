@@ -59,13 +59,13 @@ export class PersonapermisoUeService {
 
   async listarPermisosXUe(datosDto: PermisoXUeDto) {
     try {
-      const query = `SELECT ue.gestion,  per.desc_subtipo, ue.desc_cod_ue, ue.nombre_ue  FROM public.persona AS p
-INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
-INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
-INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
-INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
-WHERE gestion =$1 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
-WHERE p.usuario = $2`;
+              const query = `SELECT ppue.id_personapermiso_ue, ue.gestion,  per.desc_subtipo, ue.desc_cod_ue, ue.nombre_ue  FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        WHERE gestion =$1 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        WHERE p.usuario = $2 AND ppue.id_estado =1`;
       const params = [datosDto.gestion, datosDto.usuario];
       const resultado = await this.pperUeRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")

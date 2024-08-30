@@ -6,7 +6,8 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
-import { UsuarioDto } from './dto/usuario.dto';
+import { UsuarioDto } from './dto/usuario.dto'
+import { PermisoIdDto } from './dto/persmiso.dto';
 
 
 @ApiTags('persona-permiso')
@@ -56,4 +57,12 @@ export class PersonaPermisoController {
     } catch (error) {
     }
   }  
+  @Public()
+  @Post('cambiar-estado-ue')
+  eliminarPermisosXPersona(@Body() datosDto: PermisoIdDto) {
+    try {
+      return this.personaPermisoService.eliminarPermisosXPersona(datosDto);
+    } catch (error) {
+    }
+  }
 }

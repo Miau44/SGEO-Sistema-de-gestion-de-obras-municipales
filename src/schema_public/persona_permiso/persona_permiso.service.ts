@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { PersonaPermiso } from './entities/persona_permiso.entity';
 import { UsuarioDto } from './dto/usuario.dto';
+import { PermisoIdDto } from './dto/persmiso.dto';
+import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_ue.entity';
 
 
 
@@ -15,6 +17,7 @@ export class PersonaPermisoService {
 
   constructor(
     @InjectRepository(PersonaPermiso) private pperRepositorio: Repository<PersonaPermiso>,
+    @InjectRepository(PersonaPermiso) private pperRepositorioUe: Repository<PersonapermisoUe>,
     private responseService: ResponseService
 
   ) { }
@@ -56,10 +59,10 @@ export class PersonaPermisoService {
 
   async listarUsuarioPermiso(datosDto: UsuarioDto) {
     try {
-      const query = `SELECT pp.id_persona_permiso,  per.desc_subtipo  FROM public.persona AS p
-INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
-INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
-WHERE p.usuario = $1`;
+      const query = `SELECT pp.id_persona_permiso,  per.id_permiso, per.desc_subtipo  FROM public.persona AS p
+    INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+    INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+    WHERE p.usuario = $1 AND pp.id_estado=1 `;
       const params = [ datosDto.usuario];
       const resultado = await this.pperRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -67,4 +70,17 @@ WHERE p.usuario = $1`;
       return this.responseService.error(error);
     }
   }
+
+
+  async eliminarPermisosXPersona(idperperDto: PermisoIdDto) {
+    try {
+      const query = `UPDATE public.personapermiso_ue  SET id_estado  =0  WHERE id_persona_permiso =$1 `;
+      const params = [ idperperDto.id_persona_permiso];
+      const resultado = await this.pperRepositorio.query(query, params);      
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 }
