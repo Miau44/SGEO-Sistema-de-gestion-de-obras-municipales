@@ -9,6 +9,9 @@ export class UpdateDesignacionDto {
     id_obra: number;
 
     @ApiProperty()
+    id_persona: number;    
+
+    @ApiProperty()
     fecha_baja: Date;
 
     @ApiProperty()

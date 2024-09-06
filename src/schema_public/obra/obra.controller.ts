@@ -10,6 +10,7 @@ import { EstructuraObraDto } from './dto/estructuraDto.dto';
 import { EstadoGeneral } from '../estado_general/entities/estado_general.entity';
 import { EstadoObraDto } from './dto/estado-obra.dto';
 import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
+import { ObraIdDto } from './dto/obraDto.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -83,4 +84,9 @@ export class ObraController {
     return this.obraService.actualizar(+id_obra, tipoObraModDto);
   }  
 
+  @Public()
+  @Post('si-existe-persona')
+  async siExistePersonaMenos1y2(@Body() data: ObraIdDto): Promise<boolean> {
+    return this.obraService.siExistePersonaMenos1y2(data);
+  }
 }

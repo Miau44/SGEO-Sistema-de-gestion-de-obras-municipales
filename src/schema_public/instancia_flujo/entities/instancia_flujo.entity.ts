@@ -17,6 +17,9 @@ export class InstanciaFlujo {
     @Column()
     id_generico:number; 
 
+    @Column()
+    observacion:string; 
+
     @Column({default:false})
     finalizado:boolean; 
 

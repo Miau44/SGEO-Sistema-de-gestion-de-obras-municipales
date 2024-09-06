@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { PersonapermisoUe } from './entities/personapermiso_ue.entity';
 import { PermisoXUeDto } from './dto/datos.dto';
+import { TodaslasUesDto } from './dto/todaslasUes.dto';
+import { log } from 'console';
 
 @Injectable()
 export class PersonapermisoUeService {
@@ -73,4 +75,34 @@ export class PersonapermisoUeService {
       return this.responseService.error(error);
     }
   }
+
+
+  async insertarTodaslasUe(data:TodaslasUesDto) {
+    try{
+          const query = `DO $$
+    DECLARE
+        rec RECORD;
+    BEGIN
+        FOR rec IN 
+   			
+	      SELECT desc_cod_ue  FROM public.estructura_organizacional
+            WHERE gestion  = ${data.gestion} 
+			
+        LOOP         
+			INSERT INTO public.personapermiso_ue(
+	         id_persona_permiso, desc_cod_ue, usuario_registro, id_estado, fecha_registro, fecha_modificacion)				
+			VALUES( ${data.id_persona_permiso}, rec.desc_cod_ue, ${data.usuario_registro}, ${data.id_estado}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+			
+        END LOOP;
+    END;
+    $$;
+    `;
+  //  const params = [data.gestion, data.id_persona_permiso, data.usuario_registro, data.id_estado];
+    const resultado = await this.pperUeRepositorio.query(query);    
+      return this.responseService.success(resultado, "Ue's Asignadas")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 }

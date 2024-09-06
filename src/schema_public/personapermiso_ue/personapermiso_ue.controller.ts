@@ -7,6 +7,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { PermisoXUeDto } from './dto/datos.dto';
+import { TodaslasUesDto } from './dto/todaslasUes.dto';
 
 @ApiTags('personapermiso-ue')
 @Controller('personapermiso-ue')
@@ -56,4 +57,14 @@ export class PersonapermisoUeController {
     } catch (error) {
     }
   }  
+
+
+  @Public()
+  @Post('asignar-todas-ues')
+  asignarTodaslasUes(@Body() datosDto: TodaslasUesDto) {
+    try {
+      return this.personapermisoUeService.insertarTodaslasUe(datosDto);
+    } catch (error) {
+    }
+  } 
 }

@@ -12,6 +12,7 @@ import { EstructuraObraDto } from './dto/estructuraDto.dto';
 import { EstadoObraDto } from './dto/estado-obra.dto';
 import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { EstadoObraDesigDto } from '../designacion/dto/estado_obra_designacion.dto';
+import { ObraIdDto } from './dto/obraDto.dto';
 
 @Injectable()
 export class ObraService {
@@ -142,6 +143,16 @@ LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra
     }
   }
 
+  async siExistePersonaMenos1y2(data: ObraIdDto): Promise<boolean> {
+      const query = `SELECT d.id_obra FROM OBRA as o
+      INNER JOIN designacion AS d ON o.id_obra = d.id_obra
+      WHERE (d.id_persona = -1 OR d.id_persona =-2)  AND d.id_obra = ${data.id_obra};`;
+    //  const params = [data.id_obra]   
+      const siexiste = await this.obraRepositorio.query(query);
+      log(siexiste);
+      if(siexiste[0]){   return true; }
+      else{  return false; }        
+  }
 
  /* async token() {
     //const url = process.env.URL_SIM+'wsToken';

@@ -10,6 +10,7 @@ import { EstructuraDto } from './dto/estructuraDto.dto';
 import { ResponseService } from 'src/response.service';
 import { EstructuraGralDto } from './dto/estructuraGral.dto';
 import { EstructuraDaDto } from './dto/estructuraDa.dto';
+import { log } from 'console';
 import { RolDto } from './dto/rolDTO.dto';
 import { PersonasEstadoDto } from './dto/personas-estado.dto';
 
@@ -26,7 +27,7 @@ export class PersonaService {
   async create(createPesonaDto: CreatePersonaDto) {
     try {
       const resultado = await this.personaRepo.save(createPesonaDto);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+      return this.responseService.success(resultado, "GUardado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -66,32 +67,13 @@ async  findAll() {
   }
 
 
-  //solicitud designaciones
+  
+  //data.desc_cod_ue  si le paso null no adiciona el parametro desc_cod_ue a la consulta,  en cambio si le paso un desc_cod_ue por ejemplo 263  adiciona el parametro 
+  //desc_cod_ue  a la consulta
   async listaPersonas(data: RolDto) {
     try { 
-      const { id_rol, gestion } = data;
-      const pid_rol = id_rol.map((_, index) => `$${index + 1}`).join(',');
-      const pgestion = `$${id_rol.length + 1}`;
-
-      /*const query = `SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
-      p.segundo_apellido as psegundo_apellido, 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, p.id_permiso
-      FROM persona as  p
-      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
-      WHERE  gestion =${pgestion}  GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da
-      LEFT JOIN ( SELECT id_persona, unnest(string_to_array(id_permiso::text, ','::text)) AS elemento FROM persona
-      ) as per ON p.id_persona = per.id_persona
-      WHERE per.elemento  IN((SELECT CAST(${pid_rol} AS TEXT)) )
-      AND p.gestion =${pgestion}
-      GROUP BY p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido ,
-      pro.id_subtipo , pro.desc_subtipo , p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision`;*/
-
-      const query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+    ;      
+      let query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
       p.segundo_apellido as psegundo_apellido, 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, p.id_permiso,
@@ -99,20 +81,28 @@ async  findAll() {
       FROM persona as  p
       INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
-      WHERE  gestion =${pgestion}   GROUP BY desc_cod_da,nombre_da, gestion)  
+      WHERE  gestion =$1   ${data.desc_cod_ue !== null ? 'AND desc_cod_ue = $3' : ''}    GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da		
       INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON p.id_persona = dp.idpersona		
-      WHERE  dp.idpermisod IN(${pid_rol} )     	 
-      AND p.gestion =${pgestion}  AND   p.id_persona NOT IN ( SELECT  p.id_persona
+      WHERE  dp.idpermisod IN($2 )     	 
+      AND p.gestion =$1  AND   p.id_persona NOT IN ( SELECT  p.id_persona
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona) `;     
+      const params : any[]  = [data.gestion, data.id_rol  ];
+      if(data.desc_cod_ue!== null) 
+      {
+      //query +=  ` AND desc_cod_ue = $2`; 
+      params.push(data.desc_cod_ue);}
 
-      const resultado: any[] = await this.personaRepo.query(query, [...id_rol, gestion]);
+
+      const resultado: any[] = await this.personaRepo.query(query, params);
+
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
   }
+
 
   //menu asignaciones
     //merge de repuesta de usuarios de seguridad con personas sgeo 
@@ -132,14 +122,9 @@ async  findAll() {
       const response = await fetch(datosSeguridad, options);
       const resultadoUsuarios = await response.json()
 
-      //interno 
-     /* const query = `SELECT DISTINCT p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
-      LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo 
-      INNER JOIN estructura_organizacional eo ON p.desc_cod_da_comision= eo.desc_cod_da
-      WHERE pa.id_tipo = 2 AND p.gestion =2024 `;*/
-      
-      const query = `  SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+   
+	
+        const query = `  SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
         p.segundo_apellido as psegundo_apellido, 
         pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
         p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, p.id_permiso
@@ -164,6 +149,7 @@ async  findAll() {
         return { seguridad, sgeo: asignado };
       });
 
+      log(resultado)
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -187,14 +173,7 @@ async  findAll() {
       const response = await fetch(datosSeguridad, options);
       const resultadoUsuarios = await response.json()
 
-      //interno
-    /*  const query = `      
-      SELECT DISTINCT p.id_usuario, p.id_persona,  pa.id_subtipo as id_profesion, pa.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision FROM persona as  p
-      LEFT JOIN parametrica pa ON id_profesion = pa.id_subtipo 
-      INNER JOIN estructura_organizacional eo ON p.desc_cod_da_comision= eo.desc_cod_da
-      WHERE pa.id_tipo = 2 AND p.gestion =2024 `;*/
-
+   
    const query = `            
       SELECT  p.id_usuario, p.usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
       p.segundo_apellido as psegundo_apellido, 
@@ -311,24 +290,7 @@ async  findAll() {
   //personas SI solicitadas/designadas
   async listaPersonasDesignadas(data: PersonasEstadoDto) {
     try { 
-      //const {gestion, id_rol, id_obra, id_estado_designacion } = data;
-     /* const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido , 
-	   pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle  
-      FROM persona as  p
-	  INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
-      INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
-
-      LEFT JOIN ( SELECT id_persona, unnest(string_to_array(id_permiso::text, ','::text)) AS elemento FROM persona
-      ) as per ON p.id_persona = per.id_persona
-     WHERE per.elemento  IN((SELECT CAST(${data.id_rol} AS TEXT)) )
-      AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra} AND sd.estado_designacion =${data.id_estado_designacion}`; */
+  
       
       const query = ` SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
       p.segundo_apellido , 

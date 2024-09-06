@@ -1,11 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { CreateFlujoDto } from './dto/create-flujo.dto';
 import { UpdateFlujoDto } from './dto/update-flujo.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { And, Any, Not, Repository } from 'typeorm';
+import { Flujo } from './entities/flujo.entity';
+import { ResponseService } from 'src/response.service';
+
+
 
 @Injectable()
 export class FlujoService {
-  create(createFlujoDto: CreateFlujoDto) {
-    return 'This action adds a new flujo';
+
+  constructor(@InjectRepository(Flujo) private flujoRepo: Repository<Flujo>,
+    private responseService: ResponseService)     
+    { }
+
+ async create(createFlujoDto: CreateFlujoDto) {
+    try {
+      const resultado = await this.flujoRepo.save(createFlujoDto);
+      return this.responseService.success(resultado, "Guardado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   findAll() {

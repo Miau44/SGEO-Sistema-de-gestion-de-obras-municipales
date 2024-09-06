@@ -5,10 +5,25 @@ export class Tarea {
     id_tarea: number;
 
     @Column()
+    nro_tarea_flujo: number;       
+
+    @Column()
     descripcion:string;
 
     @Column()
-    id_flujo: string;    
+    id_flujo: number;   
+        
+    @Column()
+    tiempo_cumplimiento: number;  
+
+  /*  @Column()
+    tiene_formulario: number;     
+
+    @Column()
+    url_formulario: string; */ 
+    
+    @Column()
+    id_tipo_tarea: number;       
 
     @Column()
     usuario_registro: number;

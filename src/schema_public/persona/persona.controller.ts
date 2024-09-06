@@ -56,7 +56,8 @@ export class PersonaController {
     } catch (error) {
     }
 }
-@Post('listapersonas')
+ /* @Public()
+  @Post('listapersonas')
   listaPersonas(@Body() rolDto: RolDto) {
     try {
       let idsArray: number[];      
@@ -70,8 +71,17 @@ export class PersonaController {
       return this.personaService.listaPersonas(rolDto);
     } catch (error) {
     }
-  } 
-    
+  } */ 
+
+
+
+    @Post('listapersonas')
+    listaPersonas(@Body() rolDto: RolDto) {
+      try {  
+        return this.personaService.listaPersonas(rolDto);
+      } catch (error) {
+      }
+    }
   
 
   @Post('lista')

@@ -4,6 +4,9 @@ export class RolPermiso {
     @PrimaryGeneratedColumn()
     id_rol_permiso: number;
 
+    @Column({nullable:true})    
+    id_rolpermiso_real:number;    
+
     @Column()
     id_rol_seguridad:number;
 

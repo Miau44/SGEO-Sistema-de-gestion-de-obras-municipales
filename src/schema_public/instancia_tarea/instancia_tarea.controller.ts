@@ -12,8 +12,12 @@ export class InstanciaTareaController {
 
   @Public()
   @Post()
+
   create(@Body() createInstanciaTareaDto: CreateInstanciaTareaDto) {
+    try {    
     return this.instanciaTareaService.create(createInstanciaTareaDto);
+  } catch (error) {
+  }    
   }
 
   @Get()
