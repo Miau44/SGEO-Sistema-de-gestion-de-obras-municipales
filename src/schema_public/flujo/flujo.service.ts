@@ -24,8 +24,13 @@ export class FlujoService {
     }
   }
 
-  findAll() {
-    return `This action returns all flujo`;
+  async findAll() {
+    try {
+      const resultado = await this.flujoRepo.find();  
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   findOne(id: number) {

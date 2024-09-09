@@ -11,7 +11,7 @@ export class CreateDesignacionDto {
     id_persona: number;
 
     @ApiProperty()
-    id_obra: number|undefined;
+    id_obra: number;
 
     @ApiProperty()
     correlativo_memo: number;

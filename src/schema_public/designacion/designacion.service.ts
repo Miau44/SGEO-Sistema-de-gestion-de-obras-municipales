@@ -55,22 +55,22 @@ export class DesignacionService {
         createDesignacionDto.id_obra = v_obra.data.id_obra;*/
         let id_ficha = createDesignacionDto.id_ficha;
         const v_id_obra = await this.obraRepositorio.findOne({ where: { id_ficha } });
-        createDesignacionDto.id_obra =v_id_obra?.id_obra;
+      if (v_id_obra?.id_obra) { createDesignacionDto.id_obra = v_id_obra.id_obra; }
 
-        const data_correlativo = {
-          "id_obra": createDesignacionDto.id_obra,
-          "correlativo_memo": createDesignacionDto.correlativo_memo,
-          "usuario_registro": createDesignacionDto.usuario_registro,
-          "id_estado": 1
-        };
-        const v_id_correlativo_memo = await this.create_correlativo(data_correlativo) 
-        createDesignacionDto.id_correlativo_memo =  v_id_correlativo_memo.id_correlativo_memo            
-        const resultado = await this.DesigRepositorio.save(createDesignacionDto);
-        
-        if(resultado)
-         await this.update_obra_estado(2, v_id_correlativo_memo.id_obra);// ESTADO 2 SOLICITADO
-        return this.responseService.success(resultado, "Guardado Correctamente.")
-  /*  }*/
+      const data_correlativo = {
+        "id_obra": createDesignacionDto.id_obra,
+        "correlativo_memo": createDesignacionDto.correlativo_memo,
+        "usuario_registro": createDesignacionDto.usuario_registro,
+        "id_estado": 1
+      };
+      const v_id_correlativo_memo = await this.create_correlativo(data_correlativo)
+      createDesignacionDto.id_correlativo_memo = v_id_correlativo_memo.id_correlativo_memo
+      const resultado = await this.DesigRepositorio.save(createDesignacionDto);
+
+      if (resultado) { await this.updateDesignacionestadoXPersona(createDesignacionDto.id_obra); }
+      await this.update_obra_estado(2, v_id_correlativo_memo.id_obra);// ESTADO 2 SOLICITADO
+      return this.responseService.success(resultado, "Guardado Correctamente.")
+      /*  }*/
 
     } catch (error) {
       return this.responseService.error(error);
@@ -152,6 +152,28 @@ export class DesignacionService {
     }
   }
 
+
+  async updateDesignacionestadoXPersona(id_obra: number) {
+    try {
+      const query1 = `
+      UPDATE public.designacion
+      SET id_estado = 0
+      WHERE id_persona IN (-1,-2)  AND id_obra =$1`;
+      const params = [id_obra];
+      const resultado = await this.obraRepositorio.query(query1, params);
+      return {
+        statusCode: 200,
+        message: true,
+        data: resultado,
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: false,
+      };
+    }
+  }
+
   async update_designacion_estado(estado_designacion: number, id_designacion:number) {
     try {
       const query2 = `
@@ -186,7 +208,27 @@ export class DesignacionService {
     }
   }  
 
-  async rechazarDesignacion(id_designacion:number) {
+  async deleteDesignacionestadoXPersona(id_obra: number) {
+    try {
+      const query1 = `
+      DELETE FROM  public.designacion      
+      WHERE id_persona IN (-1,-2)  AND id_obra =$1`;
+      const params = [id_obra];
+      const resultado = await this.obraRepositorio.query(query1, params);
+      return {
+        statusCode: 200,
+        message: true,
+        data: resultado,
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: false,
+      };
+    }
+  }
+
+  async rechazarDesignacion(id_designacion: number, id_obra:number) {
     try {
       const query1 = `
       DELETE FROM public.designacion   
@@ -208,9 +250,10 @@ export class DesignacionService {
       WHERE o.id_obra IN(
       SELECT o.id_obra FROM obra AS o
       INNER JOIN designacion AS d ON o.id_obra = d.id_obra WHERE d.id_designacion = $1) `;
-      const params3 = [ id_designacion];  
-      await this.DesigRepositorio.query(query3, params3);       
-      
+      const params3 = [id_designacion];
+      await this.DesigRepositorio.query(query3, params3);
+      await this.deleteDesignacionestadoXPersona(id_obra);
+
       return this.responseService.success(resultado, "Guardado Correctamente.")
 
     } catch (error) {

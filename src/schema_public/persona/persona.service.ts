@@ -87,7 +87,7 @@ async  findAll() {
       WHERE  dp.idpermisod IN($2 )     	 
       AND p.gestion =$1  AND   p.id_persona NOT IN ( SELECT  p.id_persona
       FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona) `;     
+      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona WHERE sd.id_estado=1) `;     
       const params : any[]  = [data.gestion, data.id_rol  ];
       if(data.desc_cod_ue!== null) 
       {
@@ -308,10 +308,10 @@ async  findAll() {
       WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
       INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
-      WHERE 
-      dp.idpermisod IN(${data.id_rol} )AND 
-      p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  AND   sd.estado_designacion IN(${data.id_estado_designacion}) ORDER BY dp.permiso,cm.correlativo_memo ASC `;     
-
+      WHERE dp.idpermisod IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
+      AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
+      AND sd.id_estado =1
+      ORDER BY dp.permiso,cm.correlativo_memo ASC `;     
 
       const resultado = await this.personaRepo.query(query);
 

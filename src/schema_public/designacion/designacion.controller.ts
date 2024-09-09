@@ -65,14 +65,12 @@ export class DesignacionController {
     return this.designacionService.aprobarDesignacion(+id_designacion, actEstadoDto);
   }
 
- @Public()
-  @Get('rechazar/:id_designacion')
+  @Public()
+  @Get('rechazar/:id_designacion/:obra')
   @ApiOperation({ summary: ' id_designacion:1' })
-  rechazarDesignacion(@Param('id_designacion') id_designacion: number) {
-    return this.designacionService.rechazarDesignacion(+id_designacion);
+  rechazarDesignacion(@Param('id_designacion') id_designacion: number, @Param('obra') obra: number) {
+    return this.designacionService.rechazarDesignacion(+id_designacion, obra);
   }
-    
-
 
   @Public()
   @Post('max-correlativo')

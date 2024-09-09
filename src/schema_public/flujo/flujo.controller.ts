@@ -23,10 +23,13 @@ export class FlujoController {
   } catch (error) {
   }    
   }
-
+  @Public()  
   @Get()
   findAll() {
+    try {
     return this.flujoService.findAll();
+  } catch (error) {
+  }       
   }
 
   @Get(':id')
