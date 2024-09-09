@@ -87,7 +87,7 @@ async  findAll() {
       WHERE  dp.idpermisod IN($2 )     	 
       AND p.gestion =$1  AND   p.id_persona NOT IN ( SELECT  p.id_persona
       FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona WHERE sd.id_estado=1) `;     
+      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona WHERE sd.id_estado=1  AND p.id_persona NOT  IN(-1,-2)) `;     
       const params : any[]  = [data.gestion, data.id_rol  ];
       if(data.desc_cod_ue!== null) 
       {

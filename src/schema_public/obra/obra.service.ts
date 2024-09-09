@@ -77,29 +77,6 @@ async listarObrasXUe(estructuraDto: EstructuraObraDto) {
 
   async listarObrasXEstado(data: EstadoObraDto) {
     try {
-      /* const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
-    REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
-    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-    f.fecha_registro
-    FROM public.Ficha as f
-          INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
-          WHERE  gestion =${estadoObraDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-          INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha
-          INNER JOIN persona p ON sd.id_persona = p.id_persona	
-    GROUP BY f.id_ficha, f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, f.total_carpeta,  eo.desc_cod_da, eo.nombre_ue, eo.gestion	  
-    ORDER BY f.fecha_registro DESC;*/
-
-         /* const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
-    REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
-    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-    f.fecha_registro,  eg.desc_estado_gral FROM obra AS o   
-    INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
-    INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
-    WHERE  gestion =${estadoObraDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-    INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
-    WHERE o.id_estado_general = ${estadoObraDto.estado_general} `;*/
-
-
 const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
@@ -107,7 +84,9 @@ const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.de
     CASE WHEN d.estado_designacion IS NULL 
     THEN 1  
     ELSE d.estado_designacion 
-    END AS estado_designacion 
+    END AS estado_designacion,
+    tob.desc_subtipo AS desc_tipoobra, 
+mc.desc_subtipo AS desc_modalidad  
      FROM obra AS o   
     INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
     INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
@@ -117,11 +96,13 @@ const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.de
     INNER JOIN public.persona_permiso AS pp ON ppue.id_persona_permiso = pp.id_persona_permiso  
     INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
     INNER JOIN persona AS p ON pp.id_persona = p.id_persona
-LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra     
+LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra   
+  LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
     WHERE p.usuario = '${data.usuario}'   AND (CASE WHEN d.estado_designacion IS NULL THEN 1  ELSE d.estado_designacion END) 
 	IN(${data.id_estado_designacion}) GROUP BY 	o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-    f.fecha_registro,  eg.desc_estado_gral, estado_designacion`;
+    f.fecha_registro,  eg.desc_estado_gral, estado_designacion, tob.desc_subtipo, mc.desc_subtipo` ;
     //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
    // log(query)
       const resultado = await this.obraRepositorio.query(query);
