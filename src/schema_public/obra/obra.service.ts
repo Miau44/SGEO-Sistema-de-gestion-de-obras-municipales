@@ -99,8 +99,9 @@ mc.desc_subtipo AS desc_modalidad
 LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra   
   LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
     LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
-    WHERE p.usuario = '${data.usuario}'   AND (CASE WHEN d.estado_designacion IS NULL THEN 1  ELSE d.estado_designacion END) 
-	IN(${data.id_estado_designacion}) GROUP BY 	o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+    WHERE p.usuario = '${data.usuario}' AND (CASE WHEN d.estado_designacion IS NULL THEN 1  ELSE d.estado_designacion END) 
+	IN(${data.id_estado_designacion}) AND pp.id_estado =1 AND ppue.id_estado=1
+  GROUP BY 	o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
     f.fecha_registro,  eg.desc_estado_gral, estado_designacion, tob.desc_subtipo, mc.desc_subtipo` ;
     //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
