@@ -24,6 +24,10 @@ import { DocumentoModule } from './schema_public/documento/documento.module';
 import { PersonaPermisoModule } from './schema_public/persona_permiso/persona_permiso.module';
 import { PersonapermisoUeModule } from './schema_public/personapermiso_ue/personapermiso_ue.module';
 import { TipoInformeModule } from './schema_public/tipo_informe/tipo_informe.module';
+import { TareaModule } from './schema_public/tarea/tarea.module';
+import { FlujoModule } from './schema_public/flujo/flujo.module';
+import { TransicionModule } from './schema_public/transicion/transicion.module';
+
 
 @Module({
   imports: [
@@ -64,16 +68,21 @@ import { TipoInformeModule } from './schema_public/tipo_informe/tipo_informe.mod
   ObraModule,
   ExternoModule,
   FichaModule, 
-  InstanciaFlujoModule,
-  InstanciaTareaModule,
-
   DesignacionModule,
   RolPermisoModule,
   TipoDocumentoModule,
   DocumentoModule,
   PersonaPermisoModule,
   PersonapermisoUeModule,
-  TipoInformeModule
+  TipoInformeModule,
+
+  InstanciaFlujoModule,
+  InstanciaTareaModule,
+  TareaModule,
+  FlujoModule,
+  TransicionModule
+
+
   
 
   ],

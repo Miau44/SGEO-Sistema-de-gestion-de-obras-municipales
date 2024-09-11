@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class CreateTransicionDto {
     
     @ApiProperty()
-    descripcion: string;
+    descripcion_transicion: string;
 
     @ApiProperty()
     id_tarea_origen: number;       

@@ -5,10 +5,10 @@ export class CreateTareaDto {
     id_flujo: number;
 
     @ApiProperty()
-    nro_tarea_flujo: number;       
+    nro_tarea: number;       
 
     @ApiProperty()
-    descripcion: string;
+    descripcion_tarea: string;
     
     @ApiProperty()
     id_tipo_tarea: number;

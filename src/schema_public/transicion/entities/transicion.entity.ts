@@ -5,7 +5,7 @@ export class Transicion {
     id_transicion: number;
 
     @Column()
-    descripcion:string;  
+    descripcion_transicion:string;  
     
     @Column()
     id_tarea_origen:number;    

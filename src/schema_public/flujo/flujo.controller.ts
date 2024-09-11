@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { FlujoService } from './flujo.service';
 import { CreateFlujoDto } from './dto/create-flujo.dto';
 import { UpdateFlujoDto } from './dto/update-flujo.dto';
@@ -13,23 +13,23 @@ import { ResponseService } from 'src/response.service';
 @ApiTags('flujo')
 @Controller('flujo')
 export class FlujoController {
-  constructor(private readonly flujoService: FlujoService) {}
+  constructor(private readonly flujoService: FlujoService) { }
 
-  @Public()  
+  @Public()
   @Post()
   create(@Body() createFlujoDto: CreateFlujoDto) {
     try {
-    return this.flujoService.create(createFlujoDto);
-  } catch (error) {
-  }    
+      return this.flujoService.create(createFlujoDto);
+    } catch (error) {
+    }
   }
-  @Public()  
+  @Public()
   @Get()
   findAll() {
     try {
-    return this.flujoService.findAll();
-  } catch (error) {
-  }       
+      return this.flujoService.findAll();
+    } catch (error) {
+    }
   }
 
   @Get(':id')
@@ -37,13 +37,27 @@ export class FlujoController {
     return this.flujoService.findOne(+id);
   }
 
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFlujoDto: UpdateFlujoDto) {
-    return this.flujoService.update(+id, updateFlujoDto);
+    try {
+      return this.flujoService.update(+id, updateFlujoDto);
+    } catch (error) {
+    }
   }
 
+
+  @Public()
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.flujoService.remove(+id);
+  async eliminarFlujo(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    try {
+      return this.flujoService.eliminarFlujo(id);
+    } catch (error) {
+    }
   }
+
+  /* @Delete(':id')
+   remove(@Param('id') id: string) {
+     return this.flujoService.remove(+id);
+   }*/
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { TransicionService } from './transicion.service';
 import { CreateTransicionDto } from './dto/create-transicion.dto';
 import { UpdateTransicionDto } from './dto/update-transicion.dto';
@@ -20,9 +20,13 @@ export class TransicionController {
   }
   }
 
+  @Public()  
   @Get()
   findAll() {
+    try {
     return this.transicionService.findAll();
+  } catch (error) {
+  }       
   }
 
   @Get(':id')
@@ -30,13 +34,30 @@ export class TransicionController {
     return this.transicionService.findOne(+id);
   }
 
+
+
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTransicionDto: UpdateTransicionDto) {
+    try {  
     return this.transicionService.update(+id, updateTransicionDto);
+  } catch (error) {
+  }
+      
+  }
+ 
+  @Public()
+  @Delete(':id')
+  async eliminarFlujo(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    try {
+      return this.transicionService.eliminarTransicion(id);
+    } catch (error) {
+    }
   }
 
+/*
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.transicionService.remove(+id);
-  }
+  }*/
 }
