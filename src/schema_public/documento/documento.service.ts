@@ -5,6 +5,7 @@ import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
+import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 
 @Injectable()
 export class DocumentoService {
@@ -57,4 +58,29 @@ export class DocumentoService {
       return this.responseService.error(error);
     }
   }
+
+  async listaDocumentos(data: ListaDocumentoDto) {
+    try { 
+    ;      
+      let query = `		SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+    td.id_subtipo_documento, td.id_etapa_documento,
+    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento
+    FROM  tipo_documento as td
+    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+    INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
+    AND d.id_obra = $1	
+    ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
+    ORDER BY td.id_tipo_documento ASC `;     
+      const params : any[]  = [data.id_obra];
+      if(data.id_tipo_documento!== null) 
+      { params.push(data.id_tipo_documento);}
+      const resultado: any[] = await this.documentoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  
 }

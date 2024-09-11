@@ -5,6 +5,7 @@ import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 
 @ApiTags('documentos')
 
@@ -47,4 +48,14 @@ export class DocumentoController {
   rechazarDesignacion(@Param('id_obra') id_obra: number) {
     return this.documentoService.documentosXObra(+id_obra);
   }  
+
+  @Public()
+    @Post('lista-documentos')
+    listaPersonas(@Body() documentoDto: ListaDocumentoDto) {
+      try {  
+        return this.documentoService.listaDocumentos(documentoDto);
+      } catch (error) {
+      }
+    }
+
 }
