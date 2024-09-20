@@ -107,9 +107,6 @@ LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra
     //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
    // log(query)
       const resultado = await this.obraRepositorio.query(query);
-
-    //  PARA IMPRIMIR CONSULTAS EN EL BACKEND
-      
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);

@@ -2,7 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EstructuraOrganizacionalService } from './estructura_organizacional.service';
 import { CreateEstructuraOrganizacionalDto } from './dto/create-estructura_organizacional.dto';
 import { UpdateEstructuraOrganizacionalDto } from './dto/update-estructura_organizacional.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import { EstructuraDADto } from './dto/estructura-da.dto';
 
+
+@ApiTags('estructura-organizacional')
 @Controller('estructura-organizacional')
 export class EstructuraOrganizacionalController {
   constructor(private readonly estructuraOrganizacionalService: EstructuraOrganizacionalService) {}
@@ -12,9 +17,13 @@ export class EstructuraOrganizacionalController {
     return this.estructuraOrganizacionalService.create(createEstructuraOrganizacionalDto);
   }
 
-  @Get()
-  findAll() {
-    return this.estructuraOrganizacionalService.findAll();
+  @Public()
+  @Get(':gestion')
+  findAll(@Param('gestion') gestion: number) {
+    try {
+    return this.estructuraOrganizacionalService.findAll(gestion);
+  } catch (error) {
+  }    
   }
 
   @Get(':id')
@@ -31,4 +40,13 @@ export class EstructuraOrganizacionalController {
   remove(@Param('id') id: string) {
     return this.estructuraOrganizacionalService.remove(+id);
   }
+
+  @Public()
+  @Post('estructura-da')
+  async estructuraDa(@Body() estructuraDa: EstructuraDADto) {
+    try {
+      return this.estructuraOrganizacionalService.estructuraDa(estructuraDa);
+    } catch (error) {
+    }
+  }  
 }

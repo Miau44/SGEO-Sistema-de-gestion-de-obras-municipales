@@ -46,7 +46,7 @@ export class Persona {
  /*   @Column({nullable: true})
     nombre_da_comision:string;   */ 
 
-    @Column({type: 'date'})
+    @Column({type: 'date', nullable:true})
     fecha_aprobacion: Date;
 
     @Column({type: 'date',  nullable: true})

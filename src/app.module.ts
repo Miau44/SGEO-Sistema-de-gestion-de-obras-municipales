@@ -27,7 +27,8 @@ import { TipoInformeModule } from './schema_public/tipo_informe/tipo_informe.mod
 import { TareaModule } from './schema_public/tarea/tarea.module';
 import { FlujoModule } from './schema_public/flujo/flujo.module';
 import { TransicionModule } from './schema_public/transicion/transicion.module';
-
+import { InformeInicialModule } from './schema_public/informe/informe_inicial.module';
+import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organizacional/estructura_organizacional.module';
 
 @Module({
   imports: [
@@ -74,13 +75,16 @@ import { TransicionModule } from './schema_public/transicion/transicion.module';
   DocumentoModule,
   PersonaPermisoModule,
   PersonapermisoUeModule,
-  TipoInformeModule,
+
 
   InstanciaFlujoModule,
   InstanciaTareaModule,
   TareaModule,
   FlujoModule,
-  TransicionModule
+  TransicionModule,
+  InformeInicialModule,
+  EstructuraOrganizacionalModule  
+  
 
 
   

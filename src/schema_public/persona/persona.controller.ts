@@ -8,12 +8,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { EstructuraDto } from './dto/estructuraDto.dto';
 import { NotFoundException } from '@nestjs/common';
 import { AllExceptionsFilter } from '../exception';
+import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { EstructuraGralDto } from './dto/estructuraGral.dto';
 import { EstructuraDaDto } from './dto/estructuraDa.dto';
 import { RolDto } from './dto/rolDTO.dto';
 import { Any } from 'typeorm';
 import { PersonasEstadoDto } from './dto/personas-estado.dto';
+import { ListaEstructuraDto } from './dto/listaEstructura.dto';
 
 @ApiTags('persona')
 @Controller('persona')
@@ -99,6 +101,7 @@ export class PersonaController {
       return this.personaService.listaGeneralPersonas(EstructuraGralDto);
     } catch (error) { }
   }
+
   
   @Post('estructura-da')
   async estructuraDa(@Body() estructuraDa: EstructuraDaDto) {
@@ -129,6 +132,17 @@ listaPersonasDesignadas(@Body() estadoDto: PersonasEstadoDto) {
 }
 
 
+
+
+@Post('estructura-x-permiso')
+estructuraXPermisos(@Body() permisoDto: ListaEstructuraDto) {
+  try {  
+    return this.personaService.estructuraXPermisos(permisoDto);
+  } catch (error) {
+  }
+}
+
+@Public()
 @Post('listapersonas-nodesignadas')
 listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
   try {  
