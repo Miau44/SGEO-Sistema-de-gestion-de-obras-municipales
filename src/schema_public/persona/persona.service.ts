@@ -69,8 +69,9 @@ async  findAll() {
   }
 
 
-  
- 
+
+  //data.desc_cod_ue  si le paso null no adiciona el parametro desc_cod_ue a la consulta,  en cambio si le paso un desc_cod_ue por ejemplo 263  adiciona el parametro 
+  //desc_cod_ue  a la consulta
   async listaPersonas(data: RolDto) {
     try {
       ;
@@ -137,9 +138,7 @@ p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2);`;
       const response = await fetch(datosSeguridad, options);
       const resultadoUsuarios = await response.json()
 
-   
-	
-        const query = `  SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+     /*  `  SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
         p.segundo_apellido as psegundo_apellido, 
         pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
         p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision,  p.desc_cod_ue, p.id_permiso
@@ -155,7 +154,22 @@ p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2);`;
         GROUP BY p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
         p.segundo_apellido ,
         pro.id_subtipo , pro.desc_subtipo , p.registro_profesional, 
-        p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `; 
+        p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision; `;*/
+
+        const query = `   SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+        p.segundo_apellido as psegundo_apellido, 
+        pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
+        p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision,  p.desc_cod_ue,
+		permiso.permiso, estado.desc_subtipo as sub_estado		
+        FROM persona as  p
+        INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+        INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
+        WHERE  gestion =${estructuraDto.gestion} GROUP BY desc_cod_da,nombre_da, gestion)   eo ON p.desc_cod_da_comision= eo.desc_cod_da 
+		LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =14 )  as estado ON  p.id_estado = estado.id_subtipo
+	   LEFT JOIN (SELECT * FROM  public.sp_permisos_xpersona()) as permiso ON p.id_persona = permiso.idpersona       
+        WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado <>0 ; `;
+
+
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
@@ -188,8 +202,7 @@ p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2);`;
       const response = await fetch(datosSeguridad, options);
       const resultadoUsuarios = await response.json()
 
-   
-   const query = `            
+      /*const query = `            
       SELECT  p.id_usuario, p.usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
       p.segundo_apellido as psegundo_apellido, 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
@@ -206,7 +219,24 @@ p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2);`;
       GROUP BY p.id_usuario, p.usuario, p.id_persona, p.nombre , p.primer_apellido ,
       p.segundo_apellido ,
       pro.id_subtipo , pro.desc_subtipo , p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;   
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;*/
+
+
+      const query = ` 
+      SELECT  p.id_usuario, p.usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+      p.segundo_apellido as psegundo_apellido, 
+      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, permiso.permiso,  
+	  estado.desc_subtipo as sub_estado	
+      FROM persona as  p
+      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
+      WHERE  gestion =${estructuraGralDto.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
+      eo ON p.desc_cod_da_comision= eo.desc_cod_da
+	LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =14 )  as estado ON  p.id_estado = estado.id_subtipo	  
+      LEFT JOIN (SELECT * FROM  public.sp_permisos_xpersona()) as permiso ON p.id_persona = permiso.idpersona 
+      WHERE p.gestion =${estructuraGralDto.gestion} AND p.id_estado <> 0;	`;
+
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
