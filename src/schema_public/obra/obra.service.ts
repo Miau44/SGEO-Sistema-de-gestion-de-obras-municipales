@@ -77,7 +77,7 @@ async listarObrasXUe(estructuraDto: EstructuraObraDto) {
 
   async listarObrasXEstado(data: EstadoObraDto) {
     try {
-const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
     f.fecha_registro,  eg.desc_estado_gral,
@@ -86,7 +86,7 @@ const query = ` SELECT  o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.de
     ELSE d.estado_designacion 
     END AS estado_designacion,
     tob.desc_subtipo AS desc_tipoobra, 
-mc.desc_subtipo AS desc_modalidad  
+mc.desc_subtipo AS desc_modalidad, d.fecha_modificacion 
      FROM obra AS o   
     INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
     INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
@@ -100,10 +100,7 @@ LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra
   LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
     LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
     WHERE p.usuario = '${data.usuario}' AND (CASE WHEN d.estado_designacion IS NULL THEN 1  ELSE d.estado_designacion END) 
-	IN(${data.id_estado_designacion}) AND pp.id_estado =1 AND ppue.id_estado=1
-  GROUP BY 	o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
-    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-    f.fecha_registro,  eg.desc_estado_gral, estado_designacion, tob.desc_subtipo, mc.desc_subtipo` ;
+	IN(${data.id_estado_designacion}) AND pp.id_estado =1 AND ppue.id_estado=1` ;
     //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
    // log(query)
       const resultado = await this.obraRepositorio.query(query);
