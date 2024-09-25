@@ -57,4 +57,20 @@ export class ReportController {
     res.send(pdfBuffer);
   }
 
+
+  @Public()
+  @Get('envio-documentacion')
+  async getReporteEnvioDocumentacion(@Res() res: Response,
+  @Query('id_obra') id_obra: number, // Primer parámetro de entrada
+  @Query('id_tipo') id_tipo: number,            // Segundo parámetro de entrada
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra, id_tipo);    
+    res.set({
+      'Content-Type': 'application/pdf',
+  //    'Content-Disposition': 'attachment; filename=report.pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }  
+
 }

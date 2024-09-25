@@ -38,7 +38,23 @@ export class ObraService {
 
  async findOne(id_obra: any) {    
     try {
-      const resultado = await this.obraRepositorio.findOneBy({ id_obra });
+ const query = `
+      SELECT DISTINCT o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, 
+      f.fecha_validacion_carpeta,    
+     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+     f.fecha_registro,  
+     tob.desc_subtipo AS desc_tipoobra, 
+ mc.desc_subtipo AS desc_modalidad
+      FROM obra AS o   
+     INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
+     INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+     WHERE  gestion =2024 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+   LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+     LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
+     WHERE  o.id_obra = ${id_obra}`;
+     const resultado = await this.obraRepositorio.query(query);
+
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
