@@ -22,6 +22,11 @@ export class ParametricaController {
     return this.parametricaService.findAll();
   }
 
+  @Get(':id/lista-tabla')
+  findAllByListaTabla(@Param('id') id: string) {
+    return this.parametricaService.findAllByListaTabla(+id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.parametricaService.findOne(+id);
