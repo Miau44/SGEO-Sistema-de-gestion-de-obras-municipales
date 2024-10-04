@@ -1,19 +1,16 @@
 import {
     Entity,
     PrimaryGeneratedColumn,
-    // OneToMany,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
     Timestamp,
   } from 'typeorm';
   
-  // import { Parametrica }
-  
   @Entity()
-  export class ListaTabla {
+  export class ListaParametrica {
     @PrimaryGeneratedColumn()
-    id_lista_tabla: number;
+    id: number;
   
     @Column({
       type: 'integer',
@@ -38,7 +35,6 @@ import {
     @Column({
       type: 'integer',
       nullable: false,
-      default: () => '1',
     })
     usuario_registro: number;
   
@@ -53,7 +49,4 @@ import {
       onUpdate: 'NOW()',
     })
     fecha_modificacion: Timestamp;
-  
-    // @OneToMany(() => Parametrica, (parametrica) => parametrica.lista_tipo)
-    // actividad: Parametrica[];
   }

@@ -1,13 +1,7 @@
 import { IsNotEmpty, IsString, IsNumber, IsPositive } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
-export class CreateListaTablaDto {
-  @IsNotEmpty()
-  @IsNumber()
-  @IsPositive()
-  @ApiProperty({ description: 'Id tipo' })
-  readonly id_tipo: number;
-
+export class CreateListaParametricaDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({ description: 'Descripción del tipo' })
@@ -20,4 +14,4 @@ export class CreateListaTablaDto {
   readonly usuario_registro: number;
 }
 
-export class UpdateListaTablaDto extends PartialType(CreateListaTablaDto) {}
+export class UpdateListaParametricaDto extends PartialType(CreateListaParametricaDto) {}

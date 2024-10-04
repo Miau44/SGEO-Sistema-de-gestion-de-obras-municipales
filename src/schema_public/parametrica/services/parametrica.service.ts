@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateParametricaDto } from './dto/create-parametrica.dto';
-import { UpdateParametricaDto } from './dto/update-parametrica.dto';
-import { Parametrica } from './entities/parametrica.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FiltrosDto } from './dto/filtrosDto.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { Parametrica } from './../entities/parametrica.entity';
+import { CreateParametricaDto, UpdateParametricaDto } from './../dto/parametrica.dto';
+import { FiltrosDto } from './../dto/filtrosDto.dto';
 import { ResponseService } from 'src/response.service';
 
 @Injectable()
@@ -32,10 +32,10 @@ export class ParametricaService {
         SELECT * FROM sp_parametrica('{
         "p_accion": "A",
         "id_tipo": ${datos.id_tipo},
-        "desc_tipo": "${datos.desc_tipo}",
         "desc_subtipo": "${datos.desc_subtipo}",
         "detalle": "${datos.detalle}",
         "id_padre": ${datos.id_padre},
+        "id_protegido": ${datos.id_protegido},
         "usuario_registro": ${datos.usuario_registro}
       }')`;
       const resultado = await this.parametricaRepo.query(qry);
@@ -59,7 +59,7 @@ export class ParametricaService {
     }
   }
 
-  async findAllByListaTabla(id: number) {
+  async findAllByLista(id: number) {
     try {
       const qry = `
         SELECT * FROM sp_parametrica('{
@@ -103,31 +103,34 @@ export class ParametricaService {
   async update(id: number, changes: UpdateParametricaDto) {
     try {
       const parametrica = await this.findOne(id);
-      let merge = parametrica.data;
-      // let detalle = JSON.stringify(changes?.detalle);
-      // if (detalle[0] === '{' && detalle[detalle.length - 1] === '}') {
-      //   merge = {
-      //     ...changes,
-      //     detalle
-      //   };
-      // } else {
-      //   merge = changes;
-      // }
-      this.parametricaRepo.merge(merge, changes);
-      const qry = `
-        SELECT * FROM sp_parametrica('{
-        "p_accion": "C",
-        "id": ${id},
-        "id_tipo": ${merge.id_tipo},
-        "desc_tipo": "${merge.desc_tipo}",
-        "id_subtipo": ${merge.id_subtipo},
-        "desc_subtipo": "${merge.desc_subtipo}",
-        "detalle": "${merge.detalle}",
-        "id_padre": ${merge.id_padre},
-        "usuario_registro": ${merge.usuario_registro}
-      }')`;
-      const resp = await this.parametricaRepo.query(qry);
-      return this.responseService.success(resp, 'Actualizado correctamente');
+      if (parametrica.statusCode === 200 || parametrica.statusCode === 204) {
+        let merge = parametrica.data;
+        // let detalle = JSON.stringify(changes?.detalle);
+        // if (detalle[0] === '{' && detalle[detalle.length - 1] === '}') {
+        //   merge = {
+        //     ...changes,
+        //     detalle
+        //   };
+        // } else {
+        //   merge = changes;
+        // }
+        this.parametricaRepo.merge(merge, changes);
+        const qry = `
+          SELECT * FROM sp_parametrica('{
+          "p_accion": "C",
+          "id": ${id},
+          "id_tipo": ${merge.id_tipo},
+          "desc_subtipo": "${merge.desc_subtipo}",
+          "detalle": "${merge.detalle}",
+          "id_padre": ${merge.id_padre},
+          "id_protegido": ${merge.id_protegido},
+          "usuario_registro": ${merge.usuario_registro}
+        }')`;
+        const resp = await this.parametricaRepo.query(qry);
+        return this.responseService.success(resp, 'Actualizado correctamente');
+      } else {
+        throw Error(parametrica.data);
+      }
     } catch (error) {
       return this.responseService.error(error);
     }
