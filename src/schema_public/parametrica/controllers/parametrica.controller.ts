@@ -1,11 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ParametricaService } from './parametrica.service';
-import { CreateParametricaDto } from './dto/create-parametrica.dto';
-import { UpdateParametricaDto } from './dto/update-parametrica.dto';
+import { ParametricaService } from './../services/parametrica.service';
+import { CreateParametricaDto, UpdateParametricaDto } from './../dto/parametrica.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from './../../auth/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
-import { FiltrosDto } from './dto/filtrosDto.dto';
+import { FiltrosDto } from './../dto/filtrosDto.dto';
 
 @ApiTags('parametrica')
 @Controller('parametrica')
@@ -20,6 +19,11 @@ export class ParametricaController {
   @Get()
   findAll() {
     return this.parametricaService.findAll();
+  }
+
+  @Get(':id/lista')
+  findAllByListaTabla(@Param('id') id: string) {
+    return this.parametricaService.findAllByLista(+id);
   }
 
   @Get(':id')

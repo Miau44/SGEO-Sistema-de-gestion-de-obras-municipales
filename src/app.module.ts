@@ -83,7 +83,7 @@ import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organiza
   FlujoModule,
   TransicionModule,
   InformeInicialModule,
-  EstructuraOrganizacionalModule  
+  EstructuraOrganizacionalModule,
   
 
 
