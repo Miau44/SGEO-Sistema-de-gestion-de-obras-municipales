@@ -3,7 +3,6 @@ import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
-
 import { Persona } from './entities/persona.entity';
 
 import { EstructuraDto } from './dto/estructuraDto.dto';
