@@ -143,6 +143,15 @@ estructuraXPermisos(@Body() permisoDto: ListaEstructuraDto) {
 }
 
 @Public()
+@Post('estructura-xda-permiso')
+estructuraXDAPermisos(@Body() permisoDto: ListaEstructuraDto) {
+  try {  
+    return this.personaService.estructuraXDAPermisos(permisoDto);
+  } catch (error) {
+  }
+}
+
+@Public()
 @Post('listapersonas-nodesignadas')
 listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
   try {  
