@@ -444,30 +444,32 @@ ppue.id_estado=1;`;
 }    
 
 
-async estructuraXDAPermisos(permisoDto: ListaEstructuraDto) {
-  try {
-
-const query = ` SELECT DISTINCT p.usuario,
+  async estructuraXDAPermisos(permisoDto: ListaEstructuraDto) {
+    try {
+      const query = ` 
+ SELECT ppe.id_permiso, rp.id_rolpermiso_real, p.usuario,
  eo.sigla_da, eo.nombre_da,  
- eo.desc_cod_da, eo.gestion,  eo.desc_cod_ue
+ eo.desc_cod_da, eo.gestion, eo.sigla_ue, eo.sigla_da, eo.nombre_ue, eo.cod_ue, eo.desc_cod_da,
+ ppue.desc_cod_ue
 FROM persona as  p		
 INNER JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
 INNER JOIN public.personapermiso_ue AS ppue ON ppe.id_persona_permiso = ppue.id_persona_permiso
-INNER JOIN (SELECT  sigla_da, nombre_da, desc_cod_da, gestion, desc_cod_ue from estructura_organizacional WHERE  gestion =2024 
-GROUP BY  sigla_da, nombre_da, desc_cod_da, gestion, desc_cod_ue)  eo ON ppue.desc_cod_ue= eo.desc_cod_ue	   
-WHERE 
-p.usuario =$2 AND 
-p.gestion =$1  AND 
-ppe.id_estado =1	AND 
-ppue.id_estado=1;`;
-    const values = [permisoDto.gestion, permisoDto.usuario]
-    const resultado = await this.personaRepo.query(query, values);
-    return this.responseService.success(resultado, "Listado Correctamente.")
-  } catch (error) {
-    return this.responseService.error(error);
+INNER JOIN (SELECT  sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue from estructura_organizacional WHERE  gestion =2024
+GROUP BY sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue) AS eo ON ppue.desc_cod_ue= eo.desc_cod_ue
+INNER JOIN rol_permiso AS rp ON ppe.id_permiso = rp.id_permiso
+      WHERE 
+      p.usuario =$2 AND 
+      p.gestion = $1  AND 
+      ppe.id_estado =1	AND 
+      ppue.id_estado=1 
+      AND rp.id_rolpermiso_real IN(${permisoDto.permiso})`;
+      const values = [permisoDto.gestion, permisoDto.usuario, ]
+      const resultado = await this.personaRepo.query(query, values);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-
-}  
 
 
   //personas NO solicitadas/designadas  
