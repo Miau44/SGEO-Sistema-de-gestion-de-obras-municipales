@@ -29,6 +29,7 @@ import { FlujoModule } from './schema_public/flujo/flujo.module';
 import { TransicionModule } from './schema_public/transicion/transicion.module';
 import { InformeInicialModule } from './schema_public/informe/informe_inicial.module';
 import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organizacional/estructura_organizacional.module';
+import {FichaItemModule} from './schema_sim/ficha_item/ficha_item.module';
 
 @Module({
   imports: [
@@ -84,9 +85,7 @@ import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organiza
   TransicionModule,
   InformeInicialModule,
   EstructuraOrganizacionalModule,
-  
-
-
+  FichaItemModule
   
 
   ],

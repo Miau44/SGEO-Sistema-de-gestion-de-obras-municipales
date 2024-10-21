@@ -17,4 +17,6 @@ usuario_registro: number;
 @ApiProperty()
 id_estado: number;
 
+@ApiProperty()
+id_estado_general: number;
 }
