@@ -7,6 +7,7 @@ import { Tarea } from './entities/tarea.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { FlujoTareaDto } from './dto/flujo.dto';
+import { TareaDatosDto } from './dto/tarea-datos.dto';
 
 @Injectable()
 export class TareaService {
@@ -56,9 +57,6 @@ INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=12 ) 
       throw new NotFoundException(`Flujo con ID ${id} no encontrado`);
     }
   }
-
-
-
   remove(id: number) {
     return `This action removes a #${id} tarea`;
   }
@@ -77,6 +75,102 @@ INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=12 ) 
     } catch (error) {
       return this.responseService.error(error);
     }
-  
-}
+  }
+
+  async flujoSiguienteTarea(data: TareaDatosDto) {
+    try {
+      {
+        let resultado = { resultado: '', valor: '' };
+        // Cerrar la tarea actual
+        const insFlujo = await this.tareaRepo.query(
+          'SELECT * FROM "instancia_flujo" WHERE "id_ins_flujo" = $1',
+          [data.idInstanciaFlujo],
+        );
+
+        if (insFlujo.length > 0) {
+          const insTarea = await this.tareaRepo.query(
+            `SELECT "id_inst_tarea", "id_tarea", "id_ins_flujo"
+             FROM "instancia_tarea"
+             WHERE "id_ins_flujo" = $1
+             ORDER BY "id_ins_tarea" DESC
+             LIMIT 1`,
+            [data.idInstanciaFlujo],
+          );
+
+          if (insTarea.length > 0) {
+            const tareaActual = insTarea[0];
+
+            if (data.idTareaDestino > 0) {
+              // Finalizar la tarea actual
+              await this.tareaRepo.query(
+                `UPDATE "instancia_tarea"
+                 SET "finalizado" = true, "fecha_fin" = NOW(), "observacion" = $1
+                 WHERE "id_ins_tarea" = $2`,
+                [data.observacion, tareaActual.id_ins_tarea],
+              );
+
+              // Crear nueva tarea
+              const nuevaTareaId = await this.tareaRepo.query(
+                'SELECT nextval(\'"InstanciaTarea_id_seq"\') AS id', // Obtener el siguiente ID
+              );
+
+              await this.tareaRepo.query(
+                `INSERT INTO "instancia_tarea" 
+                 ("id_ins_tarea", "fecha_inicio", "finalizado", "idEstado", "id_ins_flujo", "usuario_registro", "idTarea", "observacion", "aceptado", "idInsTareaAnterior")
+                 VALUES ($1, NOW(), false, 1, $2, $3, $4, '', false, $5)`,
+                [
+                  nuevaTareaId[0].id,
+                  tareaActual.id_ins_flujo,
+                  data.usuario_registro,
+                  data.idTareaDestino,
+                  tareaActual.id_ins_tarea,
+                ],
+              );
+
+              // Actualizar flujo y verificar si es la tarea final
+              const tarea = await this.tareaRepo.query(
+                'SELECT "idTipoTarea" FROM "Tarea" WHERE "idTarea" = $1',
+                [data.idTareaDestino],
+              );
+
+              if (tarea.length > 0 && tarea[0].idTipoTarea === 2) {
+                // Si es la tarea final, marcar como finalizado
+                await this.tareaRepo.query(
+                  `UPDATE "instancia_tarea" 
+                   SET "finalizado" = true, "fecha_fin" = NOW()
+                   WHERE "id_ins_tarea" = $1`,
+                  [nuevaTareaId[0].id],
+                );
+
+                await this.tareaRepo.query(
+                  `UPDATE "instancia_flujo" 
+                   SET "fecha_fin" = NOW(), "finalizado" = true, "observacion" = $1
+                   WHERE "id_ins_flujo" = $2`,
+                  [data.observacion, data.idInstanciaFlujo],
+                );
+              }
+
+              resultado.resultado = 'OK';
+              resultado.valor = `Responsable: ${data.usuario_registro}`;
+            } else {
+              resultado.resultado = 'ERROR';
+              resultado.valor = 'No se puede enviar a la siguiente tarea. Tarea destino no especificada.';
+            }
+          } else {
+            resultado.resultado = 'ERROR';
+            resultado.valor = 'Tarea actual no encontrada.';
+          }
+        } else {
+          resultado.resultado = 'ERROR';
+          resultado.valor = 'Flujo actual no encontrado.';
+        }
+      }
+    //   return resultado;
+
+      return this.responseService.success("Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 }

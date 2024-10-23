@@ -62,6 +62,16 @@ export class TareaController {
   }       
   }
 
+  @Public()  
+  @Post('tareas-x-flujo')
+  Flujo(@Body() flujo: FlujoTareaDto) {
+    try {
+    return this.tareaService.tareasxFlujo(flujo);
+  } catch (error) {
+  }       
+  }
+
+
  /* @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tareaService.remove(+id);

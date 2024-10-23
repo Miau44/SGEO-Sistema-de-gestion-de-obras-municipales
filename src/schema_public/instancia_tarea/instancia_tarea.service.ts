@@ -29,8 +29,13 @@ private responseService:ResponseService){}
     return `This action returns a #${id} instanciaTarea`;
   }
 
-  update(id: number, updateInstanciaTareaDto: UpdateInstanciaTareaDto) {
-    return `This action updates a #${id} instanciaTarea`;
+ async update(id: number, updateInstanciaTareaDto: UpdateInstanciaTareaDto) {
+    try {
+      const resultado = await this.instareaRepo.update(id, updateInstanciaTareaDto)
+      return this.responseService.success(id, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   remove(id: number) {

@@ -9,6 +9,7 @@ import { PersonapermisoUe } from './entities/personapermiso_ue.entity';
 import { PermisoXUeDto } from './dto/datos.dto';
 import { TodaslasUesDto } from './dto/todaslasUes.dto';
 import { log } from 'console';
+import { UsuarioPermisoXUeDto } from './dto/usuario_permiso_ue.dto';
 
 @Injectable()
 export class PersonapermisoUeService {
@@ -104,5 +105,24 @@ export class PersonapermisoUeService {
       return this.responseService.error(error);
     }
   }
+
+
+  async usuarioXPermisoXUe(datosDto: UsuarioPermisoXUeDto) {
+    try {
+              const query = `SELECT p.id_usuario, p.nombre, p.primer_apellido, p.segundo_apellido, p.id_usuario FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        WHERE  pp.id_estado =1 AND ppue.id_estado=1 AND  per.id_permiso =$1 AND ppue.desc_cod_ue =$2`;
+      const params = [datosDto.id_permiso, datosDto.desc_cod_ue];
+      const resultado = await this.pperUeRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }				
+    
 
 }

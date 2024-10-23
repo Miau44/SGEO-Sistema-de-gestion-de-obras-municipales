@@ -14,6 +14,9 @@ export class CreateInstanciaFlujoDto {
     id_generico: number;    
 
     @ApiProperty()
+    observacion: string;   
+
+    @ApiProperty()
     finalizado: boolean;   
 
     @ApiProperty()

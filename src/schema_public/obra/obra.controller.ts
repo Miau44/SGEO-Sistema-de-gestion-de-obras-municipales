@@ -11,6 +11,7 @@ import { EstadoGeneral } from '../estado_general/entities/estado_general.entity'
 import { EstadoObraDto } from './dto/estado-obra.dto';
 import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
+import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -77,6 +78,15 @@ export class ObraController {
     } catch (error) {
     }
   }
+
+  @Public()
+  @Post('listar-obras-sol')
+  listarObras(@Body() estadoDto: ObraSolicitudesDto) {
+    try {
+      return this.obraService.listarObrasXSolicitudes(estadoDto);
+    } catch (error) {
+    }
+  }  
 
   @Public()
   @Patch(':id_obra')

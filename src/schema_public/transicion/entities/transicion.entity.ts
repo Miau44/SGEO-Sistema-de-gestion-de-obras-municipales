@@ -13,11 +13,8 @@ export class Transicion {
     @Column()
     id_tarea_destino:number;    
 
-    /*@Column()
-    id_direccion:number; */   
-
-    @Column()
-    funcion_externa:string;    
+    @Column({nullable:true})
+    id_direccion:number; 
     
     @Column()
     id_flujo:number;    

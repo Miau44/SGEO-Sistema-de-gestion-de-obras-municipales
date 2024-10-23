@@ -13,6 +13,7 @@ import { EstadoObraDto } from './dto/estado-obra.dto';
 import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { EstadoObraDesigDto } from '../designacion/dto/estado_obra_designacion.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
+import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 
 @Injectable()
 export class ObraService {
@@ -93,8 +94,9 @@ async listarObrasXUe(estructuraDto: EstructuraObraDto) {
 
   async listarObrasXEstado(data: EstadoObraDto) {
     try {
-const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,  d.id_designacion, f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+    f.total_carpeta as totalcarpeta,
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
     f.fecha_registro,  eg.desc_estado_gral,
     CASE WHEN d.estado_designacion IS NULL 
@@ -102,7 +104,8 @@ const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_
     ELSE d.estado_designacion 
     END AS estado_designacion,
     tob.desc_subtipo AS desc_tipoobra, 
-mc.desc_subtipo AS desc_modalidad, d.fecha_modificacion 
+mc.desc_subtipo AS desc_modalidad, d.fecha_modificacion,
+(CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema 
      FROM obra AS o   
     INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
     INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
@@ -112,6 +115,7 @@ mc.desc_subtipo AS desc_modalidad, d.fecha_modificacion
     INNER JOIN public.persona_permiso AS pp ON ppue.id_persona_permiso = pp.id_persona_permiso  
     INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
     INNER JOIN persona AS p ON pp.id_persona = p.id_persona
+LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	    
 LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra   
   LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
     LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
@@ -125,6 +129,37 @@ LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra
       return this.responseService.error(error);
     }
   }
+
+  async listarObrasXSolicitudes(data: ObraSolicitudesDto) {
+    try {
+const query = ` SELECT  o.id_obra, f.id_ficha,  f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+    REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+    f.fecha_registro,  eg.desc_estado_gral,
+    tob.desc_subtipo AS desc_tipoobra, 
+mc.desc_subtipo AS desc_modalidad, 
+(CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema , sol.solicitud
+     FROM obra AS o   
+    INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
+    INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+    WHERE  gestion =2024 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+    INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
+	INNER JOIN  public.sp_solicitudes_x_obra() AS sol ON o.id_obra = sol.idobra
+	LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra
+  LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
+WHERE sol.idusuario= ${data.usuario} ` ;
+   // log(query)
+      const resultado = await this.obraRepositorio.query(query);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+
+
+  
 
   actualizar(id_obra: number, tipoObraModDto: TipoObraModObraDto) {
     this.obraRepositorio.update(id_obra, tipoObraModDto);

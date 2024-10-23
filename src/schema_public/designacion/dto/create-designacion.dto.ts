@@ -14,6 +14,9 @@ export class CreateDesignacionDto {
     id_obra: number;
 
     @ApiProperty()
+    id_solicitud: number;    
+
+    @ApiProperty()
     correlativo_memo: number;
 
     @ApiProperty()

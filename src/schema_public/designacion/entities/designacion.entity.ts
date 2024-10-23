@@ -9,13 +9,15 @@ export class Designacion {
     id_designacion: number;
 
     @Column()
-    id_tipo_solicitud:number;
+    id_persona: number; 
 
-    @Column()
-    id_persona: number;   
+  
 
     @Column()
     id_obra: number;     
+
+    @Column({nullable:true})
+    id_solicitud: number; 
 
     @Column()
     id_correlativo_memo: number;   

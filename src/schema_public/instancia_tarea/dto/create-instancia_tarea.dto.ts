@@ -11,7 +11,7 @@ export class CreateInstanciaTareaDto {
     @ApiProperty()
     fecha_inicio: Date;
 
-    @ApiProperty()
+    @ApiProperty({nullable:true})
     fecha_fin: Date;
 
     @ApiProperty()
@@ -20,7 +20,7 @@ export class CreateInstanciaTareaDto {
     @ApiProperty()
     observacion:string;
 
-    @ApiProperty()
+    @ApiProperty({nullable:true})
     id_inst_tarea_anterior:number;
 
     @ApiProperty()

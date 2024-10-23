@@ -9,6 +9,13 @@ export class EstadoGeneral {
     @Column()
     desc_estado_gral:string;
 
+   
+    @Column({nullable:true})
+    desc_subestado:string;
+
+    @Column({nullable:true})
+    desc_estado_reporte:string;
+
     @Column()
     usuario_registro: number;
 

@@ -8,6 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { PermisoXUeDto } from './dto/datos.dto';
 import { TodaslasUesDto } from './dto/todaslasUes.dto';
+import { UsuarioPermisoXUeDto } from './dto/usuario_permiso_ue.dto';
 
 @ApiTags('personapermiso-ue')
 @Controller('personapermiso-ue')
@@ -67,4 +68,13 @@ export class PersonapermisoUeController {
     } catch (error) {
     }
   } 
+
+  @Public()
+  @Post('usuario-permiso')
+  usuarioPermisoUe(@Body() datosDto: UsuarioPermisoXUeDto) {
+    try {
+      return this.personapermisoUeService.usuarioXPermisoXUe(datosDto);
+    } catch (error) {
+    }
+  }   
 }
