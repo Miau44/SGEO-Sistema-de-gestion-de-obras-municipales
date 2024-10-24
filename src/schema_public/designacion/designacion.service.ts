@@ -262,21 +262,31 @@ export class DesignacionService {
   }
 
 
-async maxCorrelativo( correlativoDto: MaxCorrelativoDto) {
-  try {
-    const query1 = `
+
+
+
+  async maxCorrelativo(correlativoDto: MaxCorrelativoDto) {
+    try {
+   /*   const query1 = `
     SELECT COALESCE(MAX(correlativo_memo),0) AS max_correlativo FROM designacion AS d
     INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
     INNER JOIN correlativo_memo AS  cm ON d.id_correlativo_memo= cm.id_correlativo_memo
     INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON p.id_persona = dp.idpersona		
-    WHERE d.id_obra = $1 AND dp.idpermisod IN($2 ) `;
-    const params = [ correlativoDto.id_obra, correlativoDto.id_permiso];  
-   const resultado = await this.DesigRepositorio.query(query1, params);      
-    return this.responseService.success(resultado,  "Listado Correctamente.")
-  } catch (error) {
-    return this.responseService.error(error);
+    WHERE d.id_obra = $1 AND dp.idpermisod IN($2 ) `;*/
+
+   const query1 = `
+    SELECT COALESCE(MAX(correlativo_memo),0) AS max_correlativo FROM designacion AS d
+    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
+    INNER JOIN correlativo_memo AS  cm ON d.id_correlativo_memo= cm.id_correlativo_memo
+    INNER JOIN LATERAL ( SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona		
+    WHERE d.id_obra = $1 AND dp.idpermiso IN($2  )`;
+      const params = [correlativoDto.id_obra, correlativoDto.id_permiso];
+      const resultado = await this.DesigRepositorio.query(query1, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-}
 
 async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   try {

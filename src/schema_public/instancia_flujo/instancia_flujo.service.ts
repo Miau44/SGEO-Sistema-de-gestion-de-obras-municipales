@@ -102,7 +102,7 @@ export class InstanciaFlujoService {
     }
   }
 
-  // Método para avanzar a la siguiente tarea o manejar rechazos
+  
   //  async avanzarTarea(idInsFlujo: number, idTareaActual: number, idUsuario: number, observacion: string, esRechazo: boolean, condicion: boolean): Promise<any> {
   async avanzarTarea(avanzarDto: AvanzarDto): Promise<any> {
     //const client = await this.pool.connect();

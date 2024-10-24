@@ -177,7 +177,7 @@ if (data.validada) {
 }
 
 if (data.designada) {
-  query += ` AND o.id_obra IN (SELECT id_obra FROM solicitud WHERE  id_estado IN (8,9) GROUP BY id_obra )`;
+  query += ` AND o.id_obra IN (SELECT id_obra FROM solicitud WHERE  id_estado IN (10,11) GROUP BY id_obra )`;
  
 }
 
@@ -206,7 +206,7 @@ if (data.designada) {
 const query = ` SELECT  o.id_obra, f.id_ficha,  f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-    f.fecha_registro,  eg.desc_estado_gral,
+    f.fecha_registro,  eg.desc_subestado as desc_estado_gral,
     tob.desc_subtipo AS desc_tipoobra, 
 mc.desc_subtipo AS desc_modalidad, 
 (CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema , sol.solicitud
