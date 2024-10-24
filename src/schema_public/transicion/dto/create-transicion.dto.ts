@@ -16,7 +16,13 @@ export class CreateTransicionDto {
 
     @ApiProperty()
     id_flujo: number;
+
+    @ApiProperty()
+    es_rechazo: boolean;
    
+    @ApiProperty()
+    condicion: boolean;
+      
     @ApiProperty()
     usuario_registro: number;  
 

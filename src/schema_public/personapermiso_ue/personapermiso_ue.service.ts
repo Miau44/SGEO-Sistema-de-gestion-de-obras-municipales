@@ -109,7 +109,7 @@ export class PersonapermisoUeService {
 
   async usuarioXPermisoXUe(datosDto: UsuarioPermisoXUeDto) {
     try {
-              const query = `SELECT p.id_usuario, p.nombre, p.primer_apellido, p.segundo_apellido, p.id_usuario FROM public.persona AS p
+              const query = `SELECT p.id_usuario, p.nombre || ' ' || p.primer_apellido || ' ' || p.segundo_apellido as nombre,  p.id_usuario FROM public.persona AS p
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso

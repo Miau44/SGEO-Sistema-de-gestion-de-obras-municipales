@@ -28,12 +28,14 @@ export class TransicionService {
   async findAll() {
     try {
 
-   const query = `   SELECT f.id_flujo, f.descripcion,  t.id_tarea, t.descripcion_tarea,  
-      trs.id_transicion, trs.descripcion_transicion, trs.id_tarea_origen, trs.id_tarea_destino
+   const query = ` SELECT f.id_flujo, f.descripcion,  t.id_tarea, t.descripcion_tarea,  
+      trs.id_transicion, trs.descripcion_transicion, trs.id_tarea_origen, trs.id_tarea_destino,
+	  t3.descripcion_tarea as origen, t2.descripcion_tarea as destino
        FROM tarea AS t 
       INNER JOIN flujo AS f ON t.id_flujo= f.id_flujo
       INNER JOIN transicion AS trs ON t.id_tarea = trs.id_tarea_origen
-      INNER JOIN tarea as t2  ON  trs.id_tarea_destino = t2.id_tarea; `;
+      INNER JOIN tarea as t2  ON  trs.id_tarea_destino = t2.id_tarea	
+	  INNER JOIN tarea as t3 ON  trs.id_tarea_origen = t3.id_tarea; `;
 
       //const resultado = await this.transicionRepo.find();  
       const resultado = await this.transicionRepo.query(query);
@@ -47,10 +49,10 @@ export class TransicionService {
     return `This action returns a #${id} transicion`;
   }
 
-  async update(id_persona: number, updateTransicionDto: UpdateTransicionDto) {
+  async update(id: number, updateTransicionDto: UpdateTransicionDto) {
     try {
-      const resultado = await this.transicionRepo.update(id_persona, updateTransicionDto)
-      return this.responseService.success(id_persona, "Actualizado Correctamente.")
+      const resultado = await this.transicionRepo.update(id, updateTransicionDto)
+      return this.responseService.success(id, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }

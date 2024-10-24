@@ -13,12 +13,15 @@ export class Transicion {
     @Column()
     id_tarea_destino:number;    
 
-    @Column({nullable:true})
-    id_direccion:number; 
+    @Column({default:false})
+    condicion:boolean; 
+    
+    @Column({default:false})
+    es_rechazo:boolean;   
     
     @Column()
-    id_flujo:number;    
-
+    id_flujo:number;   
+    
     @Column()
     usuario_registro: number;
 
@@ -27,7 +30,7 @@ export class Transicion {
     })
     id_estado: number;
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })

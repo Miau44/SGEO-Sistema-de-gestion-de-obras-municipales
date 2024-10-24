@@ -94,7 +94,7 @@ async listarObrasXUe(estructuraDto: EstructuraObraDto) {
 
   async listarObrasXEstado(data: EstadoObraDto) {
     try {
-const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,  d.id_designacion, f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
+/*const query = ` SELECT DISTINCT o.id_obra, f.id_ficha,  d.id_designacion, f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta,    
     REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
     f.total_carpeta as totalcarpeta,
     eo.desc_cod_da, eo.nombre_ue, eo.gestion,
@@ -120,10 +120,81 @@ LEFT OUTER JOIN designacion as d ON o.id_obra = d.id_obra
   LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
     LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
     WHERE p.usuario = '${data.usuario}' AND (CASE WHEN d.estado_designacion IS NULL THEN 1  ELSE d.estado_designacion END) 
-	IN(${data.id_estado_designacion}) AND pp.id_estado =1 AND ppue.id_estado=1` ;
+	IN(${data.id_estado_designacion}) AND pp.id_estado =1 AND ppue.id_estado=1` ;*/
+
+
+/* let query:any = ` SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
+f.fecha_validacion_carpeta,    
+    REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+    f.total_carpeta as totalcarpeta,
+    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+    f.fecha_registro,  eg.desc_subestado as desc_estado_gral,    
+    tob.desc_subtipo AS desc_tipoobra, 
+mc.desc_subtipo AS desc_modalidad, 
+(CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema, 
+  '0' as estado_designacion, f.fecha_validacion_carpeta as  fecha_modificacion
+     FROM obra AS o   
+    INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
+    INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+    WHERE  gestion =$1  GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+    INNER JOIN public.personapermiso_ue AS ppue ON eo.desc_cod_ue = ppue.desc_cod_ue
+    INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
+    INNER JOIN public.persona_permiso AS pp ON ppue.id_persona_permiso = pp.id_persona_permiso  
+    INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+    INNER JOIN persona AS p ON pp.id_persona = p.id_persona
+LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	
+    INNER JOIN solicitud AS s ON o.id_obra = s.id_obra  
+  LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
+    WHERE p.usuario = $2  
+	 AND pp.id_estado =1 AND ppue.id_estado=1  ` ;*/
+
+   let query:any = ` SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
+f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+f.total_carpeta as totalcarpeta,eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+f.fecha_registro,  eg.desc_subestado as desc_estado_gral, tob.desc_subtipo AS desc_tipoobra, 
+mc.desc_subtipo AS desc_modalidad, (CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema, 
+'0' as estado_designacion, f.fecha_validacion_carpeta as  fecha_modificacion
+FROM obra AS o   
+INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
+INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+WHERE  gestion =$1 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+INNER JOIN public.personapermiso_ue AS ppue ON eo.desc_cod_ue = ppue.desc_cod_ue
+INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
+INNER JOIN public.persona_permiso AS pp ON ppue.id_persona_permiso = pp.id_persona_permiso  
+INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+INNER JOIN persona AS p ON pp.id_persona = p.id_persona	
+LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	     
+LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
+WHERE p.usuario = $2  AND pp.id_estado =1 AND ppue.id_estado=1 
+` ;
+
+// Condiciones adicionales según el DTO
+if (data.validada) {
+  query += ` AND o.id_obra NOT IN(SELECT id_obra FROM solicitud WHERE  id_estado IN (6, 7) GROUP BY id_obra HAVING COUNT(DISTINCT id_estado) = 2) 
+`;
+}
+
+if (data.designada) {
+  query += ` AND o.id_obra IN (SELECT id_obra FROM solicitud WHERE  id_estado IN (8,9) GROUP BY id_obra )`;
+ 
+}
+
+
+   const queryParams = [data.gestion, data.usuario]; 
+  /* if (data.in) {
+    query += 'AND s.id_estado = ANY($3) '; // Usamos ANY para manejar arrays en PostgreSQL
+    queryParams.push(data.in);
+  } else if (data.lt) {
+    query += 'AND s.id_estado < $3 '; // Usamos el parámetro para el valor < 8
+    queryParams.push(data.lt);
+  }*/
+
+
     //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
    // log(query)
-      const resultado = await this.obraRepositorio.query(query);
+      const resultado = await this.obraRepositorio.query(query, queryParams);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
