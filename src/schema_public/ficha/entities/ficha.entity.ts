@@ -67,8 +67,4 @@ export class Ficha {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
     fecha_modificacion: Date
-
-   
-
-
 }
