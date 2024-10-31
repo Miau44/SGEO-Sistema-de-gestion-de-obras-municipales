@@ -1,11 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { DocumentoService } from './documento.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import multer from 'multer';
+import path from 'path';
+import { Documento } from './entities/documento.entity';
 
 @ApiTags('documentos')
 
@@ -19,28 +24,99 @@ export class DocumentoController {
     try {
     return this.documentoService.create(createDocumentoDto);
   } catch (error) {
-  }       
+    }       
   }
 
-  @Get()
-  findAll() {
-    return this.documentoService.findAll();
+
+  @Post('uploadSICOM')
+  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        id_obra: { type: 'number' },
+        id_tipo_documento: { type: 'number' },
+        usuario_registro: { type: 'number' },
+      },
+    },
+  })
+  async uploadDocumentoSICOM(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('id_obra') id_obra: number,
+    @Body('id_tipo_documento') id_tipo_documento: number,
+    @Body('usuario_registro') usuario_registro: number
+  ): Promise<{ url_file: string; id_documento: number }> {
+    const fileExtension = path.extname(file.originalname).slice(1);
+
+    // Genera la ruta
+    const ruta = await this.documentoService.generateDocumentRoute(id_obra, id_tipo_documento, usuario_registro, fileExtension);
+
+    // Crea el documento en la base de datos
+    const nuevoDocumento = new Documento();
+    nuevoDocumento.id_obra = id_obra;
+    nuevoDocumento.id_tipo_documento = id_tipo_documento;
+    nuevoDocumento.usuario_registro = usuario_registro;
+    nuevoDocumento.ruta_documento = ruta;
+    nuevoDocumento.cumple = false;
+
+    const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
+
+    // Llama al servicio externo para subir el archivo
+    const uploadResponse = await this.documentoService.uploadFileToExternalService(
+      file,
+      ruta,
+      "marvel",
+      "marvel123",
+      "rita.flores"
+    );
+
+    // Actualiza `ruta_documento` con el `url_file` si la subida es exitosa
+    if (uploadResponse.estado && uploadResponse.url_file) {
+      await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
+    }
+
+    // Retorna tanto el `url_file` como el `id_documento`
+    return {
+      url_file: uploadResponse.url_file,
+      id_documento: savedDocumento.id_documento,
+    };
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.documentoService.findOne(+id);
-  }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDocumentoDto: UpdateDocumentoDto) {
-    return this.documentoService.update(+id, updateDocumentoDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.documentoService.remove(+id);
-  }
+  /*@Post('uploadSICOM')
+  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        ruta: { type: 'string' },
+        resumen: { type: 'string' },
+        palabraClave: { type: 'string' },
+        usuario: { type: 'string' },
+      },
+    },
+  })
+  async uploadDocumentoSICOM(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('ruta') ruta: string,
+    @Body('resumen') resumen: string,
+    @Body('palabraClave') palabraClave: string,
+    @Body('usuario') usuario: string
+  ): Promise<string> {
+    // Envía el archivo completo (con todos los metadatos) al servicio
+    const result = await this.documentoService.uploadFileToExternalService(file, ruta, resumen, palabraClave, usuario);
+    return result;
+  }*/
 
   @Public()
   @Get('listar/:id_obra')

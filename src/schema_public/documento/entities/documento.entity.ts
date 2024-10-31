@@ -16,7 +16,6 @@ export class Documento {
     @Column()
     ruta_documento: string;   
     
-
     @Column()
     usuario_registro: number;
 
