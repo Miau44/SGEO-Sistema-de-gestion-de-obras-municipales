@@ -11,6 +11,9 @@ import { Designacion } from './entities/designacion.entity';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
 import { MaxCorrelativoDto } from './dto/correlativo.dto';
 import { ReemplazoDto } from './dto/reemplazo.dto';
+import { Solicitud } from '../solicitud/entities/solicitud.entity';
+import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_ue.entity';
+import { GenerarDto } from './dto/generar.dto';
 
 
 @Injectable()
@@ -20,6 +23,11 @@ export class DesignacionService {
     @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
     @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
     @InjectRepository(CorrelativoMemo) private correlativoRepositorio: Repository<CorrelativoMemo>,
+    @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
+    @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
+
+
+
     private responseService: ResponseService
 
   ) { }
@@ -300,4 +308,53 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     }
   }
 
+  async generarSolicitud(data: GenerarDto) {
+    try {
+      const existeDesignacionesQuery = `
+          SELECT id_obra FROM solicitud WHERE id_obra = ${data.idobra} AND id_estado_general IN (10,11) 
+          GROUP BY id_obra HAVING COUNT(DISTINCT id_estado_general) = 2`;
+      const params3 = [data.idobra];
+      const existeDesignacionesResult = await this.DesigRepositorio.query(existeDesignacionesQuery);
+
+      if (!existeDesignacionesResult || existeDesignacionesResult.length === 0) {
+        return {
+          statusCode: 500,
+          message: false,
+          error: "Error: No se encontraron designaciones para el criterio dado.Ocurrió un error en el servidor",
+        };
+      }
+
+      const usuarioDestinoQuery = `
+          SELECT idusuario FROM public.sp_permisos_xpersona_filas() WHERE idpermiso IN (85,86)
+          AND desccodue = ${data.desccodue}`;
+      const params4 = [data.desccodue];
+      const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
+
+      if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+
+        return {
+          statusCode: 500,
+          message: false,
+          error: "Error: No se encontró un usuario destino válido.",
+        };
+      }
+      const usuario = usuarioDestinoResult[0].idusuario;
+      const data_solicitud = {
+        id_tipo_solicitud: 114,
+        id_estado_solicitud: 2,
+        id_obra: data.idobra,
+        id_estado_general: 12,
+        id_usuario: usuario,
+        proveido: "string",
+        usuario_registro: 0,
+        id_estado_registro: 1,
+      };
+
+    const resultado =  await this.solicitudRepocitorio.save(data_solicitud);
+
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 }

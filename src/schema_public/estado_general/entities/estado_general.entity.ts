@@ -16,13 +16,16 @@ export class EstadoGeneral {
     @Column({nullable:true})
     desc_estado_reporte:string;
 
+    @Column({nullable:true})
+    url_formulario:string;    
+
     @Column()
     usuario_registro: number;
 
     @Column({default:1})
     id_estado: number;    
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })  
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })

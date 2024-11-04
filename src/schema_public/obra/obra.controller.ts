@@ -12,6 +12,7 @@ import { EstadoObraDto } from './dto/estado-obra.dto';
 import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
+import { MisProyectoDto } from './dto/mis-proyectos.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -99,4 +100,13 @@ export class ObraController {
   async siExistePersonaMenos1y2(@Body() data: ObraIdDto): Promise<boolean> {
     return this.obraService.siExistePersonaMenos1y2(data);
   }
+
+  @Public()
+  @Post('listar-mis-proyectos')
+  misProyectos(@Body() misproyDto: MisProyectoDto) {
+    try {
+      return this.obraService.listaMisProyectos(misproyDto);
+    } catch (error) {
+    }
+  }  
 }
