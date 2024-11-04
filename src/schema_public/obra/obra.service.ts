@@ -14,6 +14,7 @@ import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { EstadoObraDesigDto } from '../designacion/dto/estado_obra_designacion.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
+import { MisProyectoDto } from './dto/mis-proyectos.dto';
 
 @Injectable()
 export class ObraService {
