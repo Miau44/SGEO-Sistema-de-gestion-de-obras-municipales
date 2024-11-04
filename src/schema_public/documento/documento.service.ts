@@ -83,7 +83,7 @@ export class DocumentoService {
       );
     }
   }
-
+  
   async documentosXObra(id_obra:number) {
     try {
       const query1 = `

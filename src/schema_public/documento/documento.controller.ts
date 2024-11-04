@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
 import { DocumentoService } from './documento.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
@@ -53,10 +53,8 @@ export class DocumentoController {
   ): Promise<{ url_file: string; id_documento: number }> {
     const fileExtension = path.extname(file.originalname).slice(1);
 
-    // Genera la ruta
     const ruta = await this.documentoService.generateDocumentRoute(id_obra, id_tipo_documento, usuario_registro, fileExtension);
 
-    // Crea el documento en la base de datos
     const nuevoDocumento = new Documento();
     nuevoDocumento.id_obra = id_obra;
     nuevoDocumento.id_tipo_documento = id_tipo_documento;
@@ -66,7 +64,6 @@ export class DocumentoController {
 
     const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
 
-    // Llama al servicio externo para subir el archivo
     const uploadResponse = await this.documentoService.uploadFileToExternalService(
       file,
       ruta,
@@ -75,48 +72,16 @@ export class DocumentoController {
       "rita.flores"
     );
 
-    // Actualiza `ruta_documento` con el `url_file` si la subida es exitosa
     if (uploadResponse.estado && uploadResponse.url_file) {
       await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
     }
 
-    // Retorna tanto el `url_file` como el `id_documento`
     return {
       url_file: uploadResponse.url_file,
       id_documento: savedDocumento.id_documento,
     };
   }
 
-
-  /*@Post('uploadSICOM')
-  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-        ruta: { type: 'string' },
-        resumen: { type: 'string' },
-        palabraClave: { type: 'string' },
-        usuario: { type: 'string' },
-      },
-    },
-  })
-  async uploadDocumentoSICOM(
-    @UploadedFile() file: Express.Multer.File,
-    @Body('ruta') ruta: string,
-    @Body('resumen') resumen: string,
-    @Body('palabraClave') palabraClave: string,
-    @Body('usuario') usuario: string
-  ): Promise<string> {
-    // Envía el archivo completo (con todos los metadatos) al servicio
-    const result = await this.documentoService.uploadFileToExternalService(file, ruta, resumen, palabraClave, usuario);
-    return result;
-  }*/
 
   @Public()
   @Get('listar/:id_obra')

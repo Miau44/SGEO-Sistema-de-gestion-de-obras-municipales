@@ -2,33 +2,38 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EmpresaService } from './empresa.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
+import { Empresa } from './entities/empresa.entity';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Empresa')
 @Controller('empresa')
 export class EmpresaController {
+  
   constructor(private readonly empresaService: EmpresaService) {}
 
   @Post()
-  create(@Body() createEmpresaDto: CreateEmpresaDto) {
-    return this.empresaService.create(createEmpresaDto);
+  async create(@Body() createEmpresaDto: CreateEmpresaDto): Promise<Empresa> {
+    return await this.empresaService.create(createEmpresaDto);
   }
 
   @Get()
-  findAll() {
-    return this.empresaService.findAll();
+  async findAll(): Promise<Empresa[]> {
+    return await this.empresaService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.empresaService.findOne(+id);
+  async findOne(@Param('id') id: number): Promise<Empresa> {
+    return await this.empresaService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEmpresaDto: UpdateEmpresaDto) {
-    return this.empresaService.update(+id, updateEmpresaDto);
+  @ApiBody({ type: UpdateEmpresaDto })
+  async update(@Param('id') id: number, @Body() updateEmpresaDto: UpdateEmpresaDto): Promise<Empresa> {
+    return await this.empresaService.update(id, updateEmpresaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.empresaService.remove(+id);
+  async remove(@Param('id') id: number): Promise<void> {
+    return await this.empresaService.remove(id);
   }
 }
