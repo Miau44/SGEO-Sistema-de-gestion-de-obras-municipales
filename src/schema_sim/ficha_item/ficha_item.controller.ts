@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { ficha_itemService } from './ficha_item.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CreateFichaDto } from '../../schema_public/ficha/dto/create-ficha.dto';
@@ -7,19 +7,19 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateFichaItemDto } from './dto/ficha-item.dto';
 import { error } from 'console';
 import { QueryFailedError } from 'typeorm';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('ficha-item') // Etiqueta para agrupar en Swagger
 @Controller('ficha-item')
 export class FichaItemController {
   constructor(private readonly ficha_itemService: ficha_itemService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Crear una nueva Ficha y Obra' })
   @Post()
   //@ApiResponse({ status: 201, description: 'Ficha and Obra created successfully.' })
   async create(@Body() body: CreateFichaItemDto) {
 
-
-        //
         const createFichaDto: CreateFichaDto = {
             desc_cod_ue: body.desc_cod_ue,
             nombre_ue: body.nombre_ue,
@@ -48,11 +48,14 @@ export class FichaItemController {
             id_ficha:0,
             id_modalidad:body.id_modalidad,
             usuario_registro:0,
+<<<<<<< HEAD
+            id_estado:1
+=======
             id_estado:1,
             //id_estado_general:0
+>>>>>>> dev_marvel
         };
         
-    
     try {
         await this.ficha_itemService.importarFicha(createFichaDto,createObraDto,body.item_st,body.documentos_st); 
         return { message: 'Ficha, Obra, Items y Documentos creados exitosamente' };

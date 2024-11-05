@@ -19,11 +19,8 @@ import { ListaEstructuraDto } from './dto/listaEstructura.dto';
 @Injectable()
 export class PersonaService {
 
-
   constructor(@InjectRepository(Persona) private personaRepo: Repository<Persona>,
     private responseService: ResponseService) { }
-
-
 
   async create(createPesonaDto: CreatePersonaDto) {
     try {
@@ -270,7 +267,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   }
 
   async token() {
-    // const url = 'http://gmlpsr00037:3100/api/service/dlc/wsToken'; //SERVIDOR PRODUCCIÓN
+    // const url = 'http://gmlpsr00037:3100/api/service/dlc/wsToken'; //SERVIDOR PRODUCCIï¿½N
     const url = process.env.URL_SIM + 'wsToken';
     const options = {
       method: 'POST',
@@ -289,7 +286,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   async estructuraDa(estructuraDa: EstructuraDaDto) {
     try {
       const v_token = await this.token();
-      //const url = 'http://gmlpsr00037:3100/api/service/dlc/wsEstructuraOrganizacional'; //SERVIDOR DE PRODUCCIÓN
+      //const url = 'http://gmlpsr00037:3100/api/service/dlc/wsEstructuraOrganizacional'; //SERVIDOR DE PRODUCCIï¿½N
       const url = process.env.URL_SIM + 'wsEstructuraOrganizacional';
 
       const options = {

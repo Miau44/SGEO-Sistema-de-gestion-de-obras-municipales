@@ -21,9 +21,7 @@ import { JwtStrategy } from './jwt.strategy';
          /* signOptions: {
             expiresIn: config.get<string | number>('JWT_EXPIRES'),
           },*/
-
-          signOptions: { expiresIn: '60s' }, // Usa una cadena de tiempo correcta
-
+          signOptions: { expiresIn: config.get<string>('JWT_TIME') }, // Usa una cadena de tiempo correcta
         };
       },
     }),

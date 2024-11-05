@@ -15,6 +15,9 @@ export class CreateDocumentoDto {
     ruta_documento: string;
 
     @ApiProperty()
+    observacion: string;    
+
+    @ApiProperty()
     usuario_registro: number;
 
     @ApiProperty()

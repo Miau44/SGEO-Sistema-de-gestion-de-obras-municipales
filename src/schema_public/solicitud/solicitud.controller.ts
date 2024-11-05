@@ -5,6 +5,7 @@ import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Solicitud } from './entities/solicitud.entity';
+import { BandejaDto } from './dto/bandeja.dtos';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -41,4 +42,14 @@ export class SolicitudController {
   remove(@Param('id') id: string) {
     return this.solicitudService.remove(+id);
   }
+
+
+  @Public()
+  @Post('listar-mi-bandeja')
+  misProyectos(@Body() mibandejaDto: BandejaDto) {
+    try {
+      return this.solicitudService.listarMiBandeja(mibandejaDto);
+    } catch (error) {
+    }
+  }    
 }
