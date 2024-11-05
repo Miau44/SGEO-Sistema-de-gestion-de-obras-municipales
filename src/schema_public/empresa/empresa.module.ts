@@ -4,7 +4,6 @@ import { EmpresaController } from './empresa.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Empresa } from './entities/empresa.entity';
 import { Obra } from '../obra/entities/obra.entity';
-import { Estado } from '../estado/entities/estado.entity';
 
 @Module({
   imports: [ 

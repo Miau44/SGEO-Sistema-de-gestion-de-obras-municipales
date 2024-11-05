@@ -48,12 +48,8 @@ export class FichaItemController {
             id_ficha:0,
             id_modalidad:body.id_modalidad,
             usuario_registro:0,
-<<<<<<< HEAD
-            id_estado:1
-=======
             id_estado:1,
             //id_estado_general:0
->>>>>>> dev_marvel
         };
         
     try {
