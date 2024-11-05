@@ -31,6 +31,9 @@ import { InformeInicialModule } from './schema_public/informe/informe_inicial.mo
 import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organizacional/estructura_organizacional.module';
 import { SolicitudModule } from './schema_public/solicitud/solicitud.module';
 import {FichaItemModule} from './schema_sim/ficha_item/ficha_item.module';
+import { EmpresaModule } from './schema_public/empresa/empresa.module';
+import { GarantiaSeguro } from './schema_public/garantia_seguro/entities/garantia_seguro.entity';
+import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_seguro.module';
 
 
 @Module({
@@ -88,7 +91,10 @@ import {FichaItemModule} from './schema_sim/ficha_item/ficha_item.module';
   InformeInicialModule,
   EstructuraOrganizacionalModule,
   SolicitudModule,   
-  FichaItemModule
+  FichaItemModule,
+
+  EmpresaModule,
+  GarantiaSeguroModule
   
 
   ],

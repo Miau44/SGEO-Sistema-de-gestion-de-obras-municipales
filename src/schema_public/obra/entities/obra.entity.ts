@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Designacion } from "src/schema_public/designacion/entities/designacion.entity";
+import { GarantiaSeguro } from "src/schema_public/garantia_seguro/entities/garantia_seguro.entity";
+import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
 
 @Entity()
 export class Obra {
@@ -32,5 +34,11 @@ export class Obra {
 
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   
+
+    @OneToMany(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.obras)
+    garantiaSeguro: GarantiaSeguro[];   
+
+    @OneToMany(type => Empresa, empres => empres.obraa)
+    empresa: GarantiaSeguro[];   
 
 }

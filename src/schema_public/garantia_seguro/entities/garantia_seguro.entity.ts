@@ -1,0 +1,65 @@
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { TipoDocumento } from 'src/schema_public/tipo_documento/entities/tipo_documento.entity';
+import { Estado } from 'src/schema_public/estado/entities/estado.entity';
+import { Obra } from 'src/schema_public/obra/entities/obra.entity';
+import { Documento } from 'src/schema_public/documento/entities/documento.entity';
+
+@Entity()
+export class GarantiaSeguro {
+  
+  @PrimaryGeneratedColumn()
+  id_garantia_seguro: number;
+
+  @Column()
+  id_obra: number;
+
+  @Column({ type: 'varchar', nullable: false })
+  tipo_accion: string;
+
+  @Column()
+  id_tipo_documento: number;
+
+  @Column({ nullable: true })
+  id_tipo_garantia: number;
+
+  @Column({ type: 'varchar', nullable: false })
+  entidad_emisora: string;
+
+  @Column({ type: 'timestamp', nullable: false })
+  inicio_vigencia: Date;
+
+  @Column({ type: 'timestamp', nullable: false })
+  fin_vigencia: Date;
+
+  @Column({ type: 'numeric', nullable: false })
+  monto: number;
+
+  @Column({ nullable: true })
+  id_documento: number;
+
+  @Column({ nullable: false })
+  id_estado: number;
+
+  @CreateDateColumn({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+  fecha_registro: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', nullable: false, onUpdate: 'CURRENT_TIMESTAMP' })
+  fecha_modificacion: Date;
+
+  @Column({ nullable: false })
+  id_usuario: number;
+
+  // Relaciones con otras entidades
+  @ManyToOne(() => Obra, (obra) => obra.garantiaSeguro)
+  @JoinColumn({ name: 'id_obra' })
+  obras: Obra;
+
+  @ManyToOne(() => Documento, (docu) => docu.garantiaSeguro)
+  @JoinColumn({ name: 'id_documento' })
+  documento: Documento;
+
+  @ManyToOne(() => TipoDocumento, (tipDocu) => tipDocu.garantiaSeguro )
+  @JoinColumn({ name: 'id_tipo_documento' })
+  tipoDocumen: TipoDocumento;
+
+}

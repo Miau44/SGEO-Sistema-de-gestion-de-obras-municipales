@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { GarantiaSeguro } from 'src/schema_public/garantia_seguro/entities/garantia_seguro.entity';
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()
 
@@ -40,4 +41,6 @@ export class TipoDocumento {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date        
 
+    @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.tipoDocumen)
+    garantiaSeguro: GarantiaSeguro[];  
 }
