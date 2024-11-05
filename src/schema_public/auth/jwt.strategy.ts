@@ -10,19 +10,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-
-
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_SECRET,
     });
   }
-
- /* async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
-  }*/
-
 
   async validate(payload:any) {
     const { id } = payload;
@@ -34,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Login first to access this endpoint.');
+      throw new UnauthorizedException('Credenciales invalidas.');
     }
 
     return user;

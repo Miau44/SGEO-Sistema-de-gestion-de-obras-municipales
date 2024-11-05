@@ -1,4 +1,4 @@
-import { Injectable , UnauthorizedException} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { RegisterAuthDto } from './dto/registrer-auth.dto';
@@ -10,10 +10,7 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(    @InjectRepository(User)
-private usersRepository: Repository<User>,
-  private jwtService: JwtService
-  ) {}
+  constructor(@InjectRepository(User) private usersRepository: Repository<User>, private jwtService: JwtService) { }
 
   /*register(userObjetc:RegisterAuthDto){
 const {password} = userObjetc;
@@ -28,9 +25,9 @@ return this.userModel.create(userObjetc)
   }*/
 
   async register(registerAuthDto: RegisterAuthDto): Promise<{ token: string }> {
-    const { usuario,  password } = registerAuthDto;
+    const { usuario, password } = registerAuthDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.usersRepository.create({      
+    const user = await this.usersRepository.create({
       usuario,
       password: hashedPassword,
     });
@@ -40,19 +37,28 @@ return this.userModel.create(userObjetc)
   }
 
   async login(loginDto: LoginAuthDto): Promise<{ token: string }> {
-    const { usuario, password } = loginDto;
-    const user = await this.usersRepository.findOne({
-      where: { usuario },
-    });
-    if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+    try {
+      const { usuario, password } = loginDto;
+      const user = await this.usersRepository.findOne({
+        where: { usuario },
+      });
+      if (!user) {
+        throw new UnauthorizedException('Credenciales inválidas, usuario no encontrado');
+      }
+      const isPasswordMatched = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatched) {
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+      const token = this.jwtService.sign({ id: user.id });
+      return { token };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      // Loguear error en consola o en un sistema de registro
+      console.error('Error en login:', error);
+      throw new Error('Credenciales inválidas, formato incorrecto.');
     }
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatched) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-    const token = this.jwtService.sign({ id: user.id });
-    return { token };
   }
 
 
@@ -65,11 +71,12 @@ return this.userModel.create(userObjetc)
     return `This action returns a #${id} auth`;
   }
 
- /* update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }*/
+  /* update(id: number, updateAuthDto: UpdateAuthDto) {
+     return `This action updates a #${id} auth`;
+   }*/
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
   }
+
 }
