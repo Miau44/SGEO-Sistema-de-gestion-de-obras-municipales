@@ -1,4 +1,4 @@
-import { Estado } from "src/schema_public/estado/entities/estado.entity";
+
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
