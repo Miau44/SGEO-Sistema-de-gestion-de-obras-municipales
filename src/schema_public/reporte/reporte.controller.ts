@@ -61,10 +61,10 @@ export class ReportController {
   @Public()
   @Get('envio-documentacion')
   async getReporteEnvioDocumentacion(@Res() res: Response,
-  @Query('id_obra') id_obra: number, // Primer parámetro de entrada
-  @Query('id_tipo') id_tipo: number,            // Segundo parámetro de entrada
+  @Query('id_obra') id_obra: number
+
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra, id_tipo);    
+    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',

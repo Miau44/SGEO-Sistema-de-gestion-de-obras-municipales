@@ -11,16 +11,16 @@ export class Solicitud {
     @Column({nullable:true})
     nro_solicitud:number;    
     
-    @Column({ default: 0 })
+    @Column()
     id_estado_solicitud: number;       
 
     @Column()
     id_obra:number;
 
-    @Column({ default: 0 })
+    @Column()
     id_estado_general: number;      
         
-    @Column({nullable:true})
+    @Column()
     id_usuario: number;   
 
     @Column({nullable:true})
@@ -35,7 +35,7 @@ export class Solicitud {
     @Column({nullable:true})
     id_usuario_previo: number;
 
-    @Column({nullable:true})
+    @Column()
     usuario_registro: number;
 
     @Column({ 
