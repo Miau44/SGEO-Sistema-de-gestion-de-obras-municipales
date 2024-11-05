@@ -9,7 +9,7 @@ import { Estado } from '../estado/entities/estado.entity';
 import { GarantiaSeguro } from './entities/garantia_seguro.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([GarantiaSeguro, Obra, Documento, TipoDocumento, Estado])],
+  imports: [TypeOrmModule.forFeature([GarantiaSeguro, Obra, Documento, TipoDocumento])],
 
   controllers: [GarantiaSeguroController],
   providers: [GarantiaSeguroService],

@@ -23,10 +23,4 @@ export class Estado {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date  
-    
-    @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.estado)
-    garantiaSeguro: GarantiaSeguro[]; 
-
-    @OneToOne(type => Empresa, empresa => empresa.estado)
-    empresas: Empresa[]; 
 }

@@ -8,7 +8,7 @@ import { Estado } from '../estado/entities/estado.entity';
 
 @Module({
   imports: [ 
-    TypeOrmModule.forFeature([Empresa, Obra, Estado])],
+    TypeOrmModule.forFeature([Empresa, Obra])],
   controllers: [EmpresaController],
   providers: [EmpresaService],
 })

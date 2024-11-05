@@ -42,9 +42,4 @@ export class Empresa {
   @ManyToOne(() => Obra, (obra) => obra.empresa)
   @JoinColumn({ name: 'id_obra' })
   obraa: Obra;
-
-  @ManyToOne(() => Estado, (estad) => estad.empresas)
-  @JoinColumn({ name: 'id_estado' })
-  estado: Estado;
-
 }

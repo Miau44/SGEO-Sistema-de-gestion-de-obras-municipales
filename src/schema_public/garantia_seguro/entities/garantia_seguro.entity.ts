@@ -62,7 +62,4 @@ export class GarantiaSeguro {
   @JoinColumn({ name: 'id_tipo_documento' })
   tipoDocumen: TipoDocumento;
 
-  @ManyToOne(() => Estado , (estad) => estad.garantiaSeguro  )
-  @JoinColumn({ name: 'id_estado' })
-  estado: Estado;
 }
