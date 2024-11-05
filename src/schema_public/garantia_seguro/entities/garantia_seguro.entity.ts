@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { TipoDocumento } from 'src/schema_public/tipo_documento/entities/tipo_documento.entity';
-import { Estado } from 'src/schema_public/estado/entities/estado.entity';
 import { Obra } from 'src/schema_public/obra/entities/obra.entity';
 import { Documento } from 'src/schema_public/documento/entities/documento.entity';
 

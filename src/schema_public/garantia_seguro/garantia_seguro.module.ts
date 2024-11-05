@@ -5,7 +5,6 @@ import { Obra } from '../obra/entities/obra.entity';
 import { Documento } from '../documento/entities/documento.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TipoDocumento } from '../tipo_documento/entities/tipo_documento.entity';
-import { Estado } from '../estado/entities/estado.entity';
 import { GarantiaSeguro } from './entities/garantia_seguro.entity';
 
 @Module({
