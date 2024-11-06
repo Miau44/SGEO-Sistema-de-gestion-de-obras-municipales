@@ -47,6 +47,7 @@ export class FichaItemController {
             id_tipo_obra : body.id_tipo_obra,
             id_ficha:0,
             id_modalidad:body.id_modalidad,
+            anticipo:false,
             usuario_registro:0,
             id_estado:1
         };
