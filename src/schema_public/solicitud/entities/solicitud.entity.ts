@@ -11,7 +11,7 @@ export class Solicitud {
     @Column({nullable:true})
     nro_solicitud:number;    
     
-    @Column({ default: 0 })
+    @Column({ default: 0, nullable:true })
     id_estado_solicitud: number;       
 
     @Column()

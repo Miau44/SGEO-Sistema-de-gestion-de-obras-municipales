@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { GarantiaSeguroService } from './garantia_seguro.service';
 import { CreateGarantiaSeguroDto } from './dto/create-garantia_seguro.dto';
 import { UpdateGarantiaSeguroDto } from './dto/update-garantia_seguro.dto';
@@ -16,11 +16,23 @@ export class GarantiaSeguroController {
     return await this.garantiaSeguroService.create(createGarantiaSeguroDto);
   }
 
-  @Get()
+  @Get('garantia')
   @ApiOperation({ summary: 'Obtener todas las garantías de seguro' })
   @ApiResponse({ status: 200, description: 'Lista de garantías de seguro.' })
-  async findAll() {
-    return await this.garantiaSeguroService.findAll();
+  async findAllGaranti() {
+      return await this.garantiaSeguroService.findAllGarantias();
+  }
+
+  @Get('seguro')
+  @ApiOperation({ summary: 'Obtener todas las garantías de seguro' })
+  @ApiResponse({ status: 200, description: 'Lista de garantías de seguro.' })
+  async findAllSegur() {
+      return await this.garantiaSeguroService.findAllSeguros();
+  }
+
+  @Get('subtipos')
+  async getSubtipos(@Query('descTipo') descTipo: string) {
+    return this.garantiaSeguroService.listarSubtiposPorTipo(descTipo);
   }
 
   @Get(':id')

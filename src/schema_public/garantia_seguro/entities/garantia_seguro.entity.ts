@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { TipoDocumento } from 'src/schema_public/tipo_documento/entities/tipo_documento.entity';
 import { Obra } from 'src/schema_public/obra/entities/obra.entity';
 import { Documento } from 'src/schema_public/documento/entities/documento.entity';
+import { Parametrica } from 'src/schema_public/parametrica/entities/parametrica.entity';
 
 @Entity()
 export class GarantiaSeguro {
@@ -15,11 +16,14 @@ export class GarantiaSeguro {
   @Column({ type: 'varchar', nullable: false })
   tipo_accion: string;
 
-  @Column()
-  id_tipo_documento: number;
+  @Column({nullable:true})
+  id_tipo_doc_garantia: number;
 
-  @Column({ nullable: true })
+  @Column({nullable:true})
   id_tipo_garantia: number;
+
+  @Column({nullable:true})
+  id_tipo_seguro: number;
 
   @Column({ type: 'varchar', nullable: false })
   entidad_emisora: string;
@@ -53,12 +57,8 @@ export class GarantiaSeguro {
   @JoinColumn({ name: 'id_obra' })
   obras: Obra;
 
-  @ManyToOne(() => Documento, (docu) => docu.garantiaSeguro)
+  @ManyToOne(() => Documento, (doc) => doc.garantiaSeguro )
   @JoinColumn({ name: 'id_documento' })
-  documento: Documento;
-
-  @ManyToOne(() => TipoDocumento, (tipDocu) => tipDocu.garantiaSeguro )
-  @JoinColumn({ name: 'id_tipo_documento' })
-  tipoDocumen: TipoDocumento;
+  documento: Documento
 
 }

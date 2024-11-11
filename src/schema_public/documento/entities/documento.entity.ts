@@ -16,6 +16,9 @@ export class Documento {
 
     @Column()
     ruta_documento: string;   
+
+    @Column({nullable:true})
+    observacion: string;
     
     @Column()
     usuario_registro: number;

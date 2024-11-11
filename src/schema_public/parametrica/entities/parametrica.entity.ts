@@ -1,7 +1,9 @@
+import { GarantiaSeguro } from 'src/schema_public/garantia_seguro/entities/garantia_seguro.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
