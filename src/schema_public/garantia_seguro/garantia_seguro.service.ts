@@ -17,8 +17,18 @@ export class GarantiaSeguroService {
     return await this.garantiaSeguroRepository.save(nuevaGarantia);
   }
 
-  async findAll(): Promise<GarantiaSeguro[]> {
-    return await this.garantiaSeguroRepository.find({ relations: ['obras', 'documento', 'tipoDocumen', 'estado'] });
+  async findAllGarantias(): Promise<any[]> {
+    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias()');
+  }
+
+  async findAllSeguros(): Promise<any[]> {
+    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_seguros()');
+  }
+
+  async listarSubtiposPorTipo(descTipo: string): Promise<{ id: number; desc_subtipo: string }[]> {
+    const query = ` SELECT * FROM listar_subtipos_por_tipo($1);`;
+    const result = await this.garantiaSeguroRepository.query(query, [descTipo]);
+    return result;
   }
 
   async findOne(id: number): Promise<GarantiaSeguro> {

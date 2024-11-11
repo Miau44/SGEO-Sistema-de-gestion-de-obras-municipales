@@ -23,7 +23,7 @@ export class TipoDocumento {
     @Column()
     id_etapa_documento: number;
 
-    @Column()
+    @Column({nullable: true})
     idtipo_documento: number;
 
     @Column()
@@ -41,6 +41,6 @@ export class TipoDocumento {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date        
 
-    @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.tipoDocumen)
-    garantiaSeguro: GarantiaSeguro[];  
+    /*@OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.tipoDocumen)
+    garantiaSeguro: GarantiaSeguro[];  */
 }
