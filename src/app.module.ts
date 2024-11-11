@@ -63,9 +63,12 @@ import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_s
     entities: ['dist/**/*.entity{.ts,.js}'],
     synchronize: true,
   }),
+
+ 
+
   ServeStaticModule.forRoot({
-    rootPath: join(__dirname, '..', 'documentos-tramites'),
-    serveRoot: '/documentos-tramites/',
+    rootPath: join(__dirname, '..', 'assets'), // Directorio de tu carpeta 'assets'
+    
   }),
   
   AuthModule,

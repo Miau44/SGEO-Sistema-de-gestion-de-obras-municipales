@@ -11,6 +11,7 @@ import { Express } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { Documento } from './entities/documento.entity';
+import { DocumentoObraDto } from './dto/documento_obra.dto';
 
 @ApiTags('documentos')
 
@@ -83,12 +84,15 @@ export class DocumentoController {
   }
 
 
-  @Public()
-  @Get('listar/:id_obra')
-  @ApiOperation({ summary: ' id_obra:1' })
-  rechazarDesignacion(@Param('id_obra') id_obra: number) {
-    return this.documentoService.documentosXObra(+id_obra);
-  }  
+   @Public()
+    @Post('listar')
+    documentosXObra(@Body() documentoDto: DocumentoObraDto) {
+      try {  
+        return this.documentoService.documentosXObra(documentoDto);
+      } catch (error) {
+      }
+    } 
+
 
   @Public()
     @Post('lista-documentos')

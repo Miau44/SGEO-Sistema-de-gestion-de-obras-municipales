@@ -9,6 +9,7 @@ import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
 import axios from 'axios';
+import { DocumentoObraDto } from './dto/documento_obra.dto';
 
 @Injectable()
 export class DocumentoService {
@@ -84,23 +85,31 @@ export class DocumentoService {
     }
   }
   
-  async documentosXObra(id_obra:number) {
+  async documentosXObra(data:DocumentoObraDto) {
     try {
-      const query1 = `
+      let query = `
     SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
     td.id_subtipo_documento, td.id_etapa_documento,
-    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento
+    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento, d.observacion
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1	
-    ORDER BY td.id_tipo_documento ASC `;
-      const params = [id_obra];  
-     const resultado = await this.documentoRepositorio.query(query1, params);      
+    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1	`;
+    if(data.anticipo){
+      query += ` WHERE   td.id_tipo_documento IN(20,31)  ORDER BY td.id_tipo_documento ASC`;
+    } else {
+
+      query += `ORDER BY td.id_tipo_documento ASC`;
+
+    }
+
+      const params = [data.obra];  
+     const resultado = await this.documentoRepositorio.query(query, params);      
       return this.responseService.success(resultado,  "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
   }
+
 
   async listaDocumentos(data: ListaDocumentoDto) {
     try { 

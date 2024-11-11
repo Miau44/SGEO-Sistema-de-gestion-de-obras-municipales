@@ -12,6 +12,10 @@ id_tipo_obra: number;
 id_modalidad: number;
 
 @ApiProperty()
+anticipo: boolean;
+
+
+@ApiProperty()
 usuario_registro: number;
 
 @ApiProperty()

@@ -6,18 +6,30 @@ import * as fs from 'fs';
 import { ResponseService } from 'src/response.service';
 import { Sequelize } from 'sequelize-typescript';
 import { log } from 'console';
+import { existsSync } from 'fs'
+import { join } from 'path';
 
 
+
+const rootPath = process.cwd();
+const fontsPath = join(process.cwd(), 'assets', 'fonts');
 
 const fonts = {
   Roboto: {
-    normal: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Regular.ttf'),
-    bold: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Medium.ttf'),
-    italics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-Italic.ttf'),
-    bolditalics: path.join(__dirname, '..', 'assets', 'fonts', 'Roboto-MediumItalic.ttf'),
+    normal: join(fontsPath, 'Roboto-Regular.ttf'),
+    bold: join(fontsPath, 'Roboto-Medium.ttf'),
+    italics: join(fontsPath, 'Roboto-Italic.ttf'),
+    bolditalics: join(fontsPath, 'Roboto-MediumItalic.ttf'),
   },
 };
 
+Object.entries(fonts.Roboto).forEach(([style, path]) => {
+  if (!existsSync(path)) {
+    console.error(`Archivo de fuente ${style} no encontrado en ${path}`);
+  } else {
+    console.log(`Archivo de fuente ${style} encontrado en ${path}`);
+  }
+});
 
 @Injectable()
 export class ReportService {
@@ -43,24 +55,22 @@ export class ReportService {
   }
 
 
-  async datosReporteEnvio(id_obra: number, id_tipo: number) {
+  async datosReporteEnvio(obra: number) {
     const query1 = ` SELECT *
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
 	LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
 	INNER JOIN obra  as o ON  d.id_obra = o.id_obra
 	INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-	WHERE  
---d.id_obra = 693 AND 
+	WHERE  d.id_obra = ${obra} AND 
   id_etapa_documento =1 AND id_subtipo_documento =108
     ORDER BY td.id_tipo_documento ASC;	`;
-    //const response = await sequelize.query(query);
+    const values = [obra]
+
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
   	
-
-
 //SOLICITUD DE DESIGNACION 
   async generatePdf(gestion:number, id:number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(gestion, id);
@@ -76,16 +86,21 @@ export class ReportService {
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
+    const imgPath = 'assets/images/logo_gamlp.png';
+   // const imgPath = 'assets/images/logo_gamlp.png';
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
       watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
+      
+   
       header: {
         columns: [
-          { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+          { image: imgPath, width: 120},  // Uso de la ruta de imagen directamente          
+       //   { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-               { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+           { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
 
           
@@ -295,14 +310,16 @@ export class ReportService {
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-
+  const imgPath = 'assets/images/logo.png';
   const documentDefinition = {
     pageSize: 'LETTER' as any,
     watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
     header: {
       columns: [
-        { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        //{ image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        { image: imgPath, width: 150 },  // Uso de la ruta de imagen directamente          
+
         //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
              { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
        // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
@@ -692,26 +709,26 @@ async generateMemoReemplazo(gestion:number, id:number): Promise<Buffer> {
 
 
 //FORMULARIO DE ENVIO DE DOCUMENTACION 
-async generateEnvioDoc(id_obra:number, id_tipo:number): Promise<Buffer> {
+async generateEnvioDoc(obra:number): Promise<Buffer> {
     
-  const res = await this.datosReporteEnvio(id_obra, id_tipo);
+  const res = await this.datosReporteEnvio(obra);
   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
     throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
   } 
   this.datosEnvio = res;
-
-  console.log();
-  
-
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+  const imgPath = 'assets/images/logo_gamlp.png';
+
   const documentDefinition = {
     pageSize: 'LETTER' as any,
     watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
     header: {
       columns: [
-        { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        { image: imgPath, width: 120 },            
+
+       // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
         //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
              { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
        // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          

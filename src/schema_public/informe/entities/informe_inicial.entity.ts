@@ -11,13 +11,19 @@ export class Informe {
     @Column()
     id_tipo_informe: number;
 
-    @Column({nullable:true})
+    @Column()
+    antecedentes: string;
+    
+    @Column()
+    analisis: string;
+
+    @Column()
     obs_general: string;
 
-    @Column({nullable:true})
+    @Column()
     conslusion: string;
 
-    @Column({nullable:true})
+    @Column()
     recomendacion: string;
 
     @Column("json", { 
@@ -25,13 +31,10 @@ export class Informe {
     })
     informe_inicial: string;
 
-
-    
-
     @Column()
     usuario_registro: number;
 
-    @Column({ })
+    @Column({ default:1})
     id_estado: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' , nullable:true})

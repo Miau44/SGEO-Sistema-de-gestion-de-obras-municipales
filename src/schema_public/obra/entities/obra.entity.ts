@@ -19,6 +19,9 @@ export class Obra {
 
     @Column()
     id_estado_general: number;    
+  
+    @Column({default:false})
+    anticipo:boolean;
 
     @Column()
     usuario_registro: number;

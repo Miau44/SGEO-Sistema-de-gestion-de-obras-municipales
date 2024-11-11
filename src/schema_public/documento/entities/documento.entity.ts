@@ -11,7 +11,7 @@ export class Documento {
     @Column()
     id_tipo_documento: number;
 
-    @Column()
+    @Column({default:false})
     cumple: boolean;   
 
     @Column()
@@ -20,6 +20,9 @@ export class Documento {
     @Column({nullable:true})
     observacion: string;
     
+    @Column({nullable:true})
+    observacion: string;   
+
     @Column()
     usuario_registro: number;
 

@@ -171,30 +171,18 @@ LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 ) 
 WHERE p.usuario = $2  AND pp.id_estado =1 AND ppue.id_estado=1 
 ` ;
 
-// Condiciones adicionales según el DTO
+// Condiciones adicionales seg?n el DTO
 if (data.validada) {
-  query += ` AND o.id_obra NOT IN(SELECT id_obra FROM solicitud WHERE  id_estado IN (6, 7) GROUP BY id_obra HAVING COUNT(DISTINCT id_estado) = 2) 
+  query += ` AND o.id_obra NOT IN(SELECT id_obra FROM solicitud WHERE  id_estado_general IN (6, 7) GROUP BY id_obra HAVING COUNT(DISTINCT id_estado_general) = 2) 
 `;
 }
 
 if (data.designada) {
-  query += ` AND o.id_obra IN (SELECT id_obra FROM solicitud WHERE  id_estado IN (10,11) GROUP BY id_obra )`;
+  query += ` AND o.id_obra IN (SELECT id_obra FROM solicitud WHERE  id_estado_general IN (10,11) GROUP BY id_obra )`;
  
 }
 
-
    const queryParams = [data.gestion, data.usuario]; 
-  /* if (data.in) {
-    query += 'AND s.id_estado = ANY($3) '; // Usamos ANY para manejar arrays en PostgreSQL
-    queryParams.push(data.in);
-  } else if (data.lt) {
-    query += 'AND s.id_estado < $3 '; // Usamos el parámetro para el valor < 8
-    queryParams.push(data.lt);
-  }*/
-
-
-    //const params = [ estadoObraDto.gestion, estadoObraDto.usuario, estadoObraDto.id_estado_designacion];  
-   // log(query)
       const resultado = await this.obraRepositorio.query(query, queryParams);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
