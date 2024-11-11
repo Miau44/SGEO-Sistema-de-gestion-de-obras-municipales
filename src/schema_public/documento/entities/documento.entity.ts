@@ -19,9 +19,6 @@ export class Documento {
 
     @Column({nullable:true})
     observacion: string;
-    
-    @Column({nullable:true})
-    observacion: string;   
 
     @Column()
     usuario_registro: number;
