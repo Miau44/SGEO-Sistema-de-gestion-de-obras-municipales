@@ -23,17 +23,16 @@ import { TipoDocumentoModule } from './schema_public/tipo_documento/tipo_documen
 import { DocumentoModule } from './schema_public/documento/documento.module';
 import { PersonaPermisoModule } from './schema_public/persona_permiso/persona_permiso.module';
 import { PersonapermisoUeModule } from './schema_public/personapermiso_ue/personapermiso_ue.module';
-import { TipoInformeModule } from './schema_public/tipo_informe/tipo_informe.module';
 import { TareaModule } from './schema_public/tarea/tarea.module';
 import { FlujoModule } from './schema_public/flujo/flujo.module';
 import { TransicionModule } from './schema_public/transicion/transicion.module';
 import { InformeInicialModule } from './schema_public/informe/informe_inicial.module';
 import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organizacional/estructura_organizacional.module';
 import { SolicitudModule } from './schema_public/solicitud/solicitud.module';
-import {FichaItemModule} from './schema_sim/ficha_item/ficha_item.module';
+import { FichaItemModule } from './schema_sim/ficha_item/ficha_item.module';
 import { EmpresaModule } from './schema_public/empresa/empresa.module';
-import { GarantiaSeguro } from './schema_public/garantia_seguro/entities/garantia_seguro.entity';
 import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_seguro.module';
+import { ContratoModificatorioModule } from './schema_public/contrato-modificatorio/contrato-modificatorio.module';
 
 
 @Module({
@@ -97,9 +96,8 @@ import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_s
   FichaItemModule,
 
   EmpresaModule,
-  GarantiaSeguroModule
-  
-
+  GarantiaSeguroModule,
+  ContratoModificatorioModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService ],

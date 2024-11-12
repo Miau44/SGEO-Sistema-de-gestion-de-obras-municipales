@@ -6,65 +6,68 @@ export class ContratoModificatorio {
   id_contrato_modificatorio: number;
 
   @Column({ type: 'int', nullable: true })
-  idCarpeta: number;
+  id_carpeta: number;
 
   @Column({ type: 'int', nullable: true })
-  idProveedor: number;
+  id_proveedor: number;
 
   @Column({ type: 'decimal', precision: 18, scale: 2, nullable: true })
-  contratoMonto: number;
+  contrato_monto: number;
 
   @Column({ type: 'date', nullable: true })
-  contratoFecha: Date;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  tipoPlazo: string;
-
-  @Column({ type: 'int', nullable: true })
-  contratoPlazo: number;
-
-  @Column({ type: 'int', nullable: true })
-  gestion: number;
-
-  @Column({ type: 'int', nullable: true })
-  id: number;
-
-  @Column({ type: 'date', nullable: true })
-  fechaNumeracion: Date;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  proponenteNIT: string;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  proponenteRazonSocial: string;
-
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  proponenteRepresentante: string;
+  contrato_fecha: Date;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  modalidad: string;
+  nombre_rpa: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  nombreRPA: string;
+  apellido_p_rpa: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  apellidoPRPA: string;
+  apellido_m_rpa: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  apellidoMRPA: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  pmcCodCarpSIM: string;
+  pmc_cod_carp_sim: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   rpa: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  subModalidad: string;
-
   @Column({ type: 'varchar', length: 50, nullable: true })
-  contratoNumero: string;
+  contrato_numero: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  contraEstado: string;
+  @Column({ type: 'int'})
+  id_tipo_contrato: number;
 }
+
+// @Column({ type: 'varchar', length: 50, nullable: true })
+  // tipo_plazo: string;
+
+  // @Column({ type: 'int', nullable: true })
+  // contrato_plazo: number;
+
+  // @Column({ type: 'int', nullable: true })
+  // gestion: number;
+
+  // @Column({ type: 'int', nullable: true })
+  // id: number;
+
+  // @Column({ type: 'date', nullable: true })
+  // fecha_numeracion: Date;
+
+  // @Column({ type: 'varchar', length: 20, nullable: true })
+  // proponente_nit: string;
+
+  // @Column({ type: 'varchar', length: 200, nullable: true })
+  // proponente_razon_social: string;
+
+  // @Column({ type: 'varchar', length: 150, nullable: true })
+  // proponente_representante: string;
+
+  // @Column({ type: 'varchar', length: 100, nullable: true })
+  // modalidad: string;
+
+  // @Column({ type: 'varchar', length: 100, nullable: true })
+  // sub_modalidad: string;
+
+  // @Column({ type: 'varchar', length: 50, nullable: true })
+  // contra_estado: string;
