@@ -1,35 +1,21 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
-export class Informe {
+export class InformeInicial {
 
     @PrimaryGeneratedColumn()
+    id_informe_inicial: number;
+
+    @Column()
     id_informe: number;
 
     @Column()
-    id_designacion: number;
-
-    @Column()
-    id_tipo_informe: number;
-
-    @Column()
-    antecedentes: string;
-    
-    @Column()
-    analisis: string;
-
-    @Column()
-    obs_general: string;
-
-    @Column()
-    conslusion: string;
-
-    @Column()
-    recomendacion: string;
-
+    id_subtipo: number;   
+     
+   
     @Column("json", { 
         nullable: true 
     })
-    informe_inicial: string;
+    descripcion: string;
 
     @Column()
     usuario_registro: number;

@@ -7,28 +7,45 @@ export class SolicitudHistorial {
     id_historial: number;
 
     @Column()
-    id_solicitud:number;    
+    id_solicitud:number;   
 
     @Column()
-    id_estado_solicitud:number;     
+    id_tipo_solicitud:number;
+
+    @Column({nullable:true})
+    nro_solicitud:number;    
+             
+    @Column()
+    id_estado_solicitud:number;    
+    
+    @Column()
+    id_obra:number;
+
+    @Column({nullable:true})
+    id_estado_general: number;  
 
     @Column()
     id_usuario:number;     
    
-    @Column("json", { nullable: true })
-    data_solicitud: string;
-
     @Column()
     proveido:string;   
 
-    @Column()
-    id_usuario_previo:number;       
-    
+    @Column("json", { nullable: true })
+    data_solicitud: string;    
+           
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
     fecha_envio: Date  
-   
+  
+
+    @Column({nullable:true})
+    id_usuario_previo: number;    
+
     @Column()
     usuario_registro: number;
+    
+    @Column({  default: 1 })
+    id_estado_registro: number;
+  
 
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
     fecha_registro: Date

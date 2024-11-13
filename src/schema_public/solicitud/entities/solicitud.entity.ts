@@ -23,14 +23,14 @@ export class Solicitud {
     @Column()
     id_usuario: number;   
 
-    @Column({nullable:true})
+    @Column()
     proveido:string;        
+    @Column("json", { nullable: true })
+    data_solicitud: string;
             
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
     fecha_envio: Date  
-
-    @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
-    fecha_recepcion: Date       
+      
 
     @Column({nullable:true})
     id_usuario_previo: number;
@@ -38,9 +38,7 @@ export class Solicitud {
     @Column()
     usuario_registro: number;
 
-    @Column({ 
-        default: 1 
-    })
+    @Column({  default: 1 })
     id_estado_registro: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })

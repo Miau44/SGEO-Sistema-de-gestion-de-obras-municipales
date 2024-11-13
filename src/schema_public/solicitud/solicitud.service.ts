@@ -31,8 +31,15 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
     return `This action returns all solicitud`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} solicitud`;
+ async findOne(id_solicitud: number) {
+    try {
+      const resultado =  await this.solicitudRepositorio.findOneBy({ id_solicitud });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }      
+
+
   }
 
  async update(id: number, updateSolicitudDto: UpdateSolicitudDto) {
@@ -54,8 +61,8 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
 
   async listarMiBandeja(bandeja: BandejaDto) {
     try {
-      const query = `SELECT  o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
-      eo.gestion, eg.desc_estado_gral AS actividad,  
+      const query = `SELECT s.id_solicitud, o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
+      eo.gestion, eg.id_estado_general, eg.desc_estado_gral AS actividad,   s.id_estado_solicitud,
      s.fecha_registro as fecha, eg.url_formulario
      FROM obra AS o   
      INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
