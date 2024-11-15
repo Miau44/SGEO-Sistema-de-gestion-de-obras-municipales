@@ -73,4 +73,20 @@ export class ReportController {
     res.send(pdfBuffer);
   }  
 
+
+
+  @Public()
+  @Get('informe-inicial')
+  async getReporteInformeInicial(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateInformeInicial(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+  //    'Content-Disposition': 'attachment; filename=report.pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }    
 }

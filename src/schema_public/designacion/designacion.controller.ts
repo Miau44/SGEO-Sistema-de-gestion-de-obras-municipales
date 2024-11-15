@@ -8,6 +8,7 @@ import { ResponseService } from 'src/response.service';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
 import { MaxCorrelativoDto } from './dto/correlativo.dto';
 import { ReemplazoDto } from './dto/reemplazo.dto';
+import { GenerarDto } from './dto/generar.dto';
 
 @ApiTags('designacion')
 
@@ -87,4 +88,15 @@ export class DesignacionController {
   actualizarReemplazar(@Param('id_designacion') id_designacion: string, @Body() reemplazoDto: ReemplazoDto) {
     return this.designacionService.actualizarReemplazar(+id_designacion, reemplazoDto);
   }
+
+  @Public()
+  @Post('generar')
+  generar(@Body() correlativoDto: GenerarDto ) {
+    try {
+      return this.designacionService.generarSolicitud(correlativoDto);
+    } catch (error) {
+    }
+  }
+
+ 
 }

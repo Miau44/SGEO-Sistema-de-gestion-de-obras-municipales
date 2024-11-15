@@ -33,6 +33,7 @@ import { FichaItemModule } from './schema_sim/ficha_item/ficha_item.module';
 import { EmpresaModule } from './schema_public/empresa/empresa.module';
 import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_seguro.module';
 import { ContratoModificatorioModule } from './schema_public/contrato-modificatorio/contrato-modificatorio.module';
+import { SolicitudHistorialModule } from './schema_public/solicitud_historial/solicitud_historial.module';
 
 
 @Module({
@@ -94,6 +95,8 @@ import { ContratoModificatorioModule } from './schema_public/contrato-modificato
   EstructuraOrganizacionalModule,
   SolicitudModule,   
   FichaItemModule,
+  SolicitudHistorialModule,
+  
 
   EmpresaModule,
   GarantiaSeguroModule,

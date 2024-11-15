@@ -27,9 +27,13 @@ export class SolicitudController {
     return this.solicitudService.findAll();
   }
 
+  @Public()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.solicitudService.findOne(+id);
+  findOne(@Param('id') id_solicitud: string) {
+    try {
+    return this.solicitudService.findOne(+id_solicitud);
+  } catch (error) {
+  }    
   }
 
   @Public()

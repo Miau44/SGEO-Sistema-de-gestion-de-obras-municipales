@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class UsuarioPermisoXUeDto {
 
-    @ApiProperty()
-    id_permiso: number;
+    @ApiProperty({ type: [Number], description: 'Array de IDs' })
+    id_permiso: number[];
 
     @ApiProperty()
     desc_cod_ue: number;

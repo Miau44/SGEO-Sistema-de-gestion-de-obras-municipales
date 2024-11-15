@@ -1,10 +1,14 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
-export class Informe {
+export class InformeInicial {
 
     @PrimaryGeneratedColumn()
+    id_informe_inicial: number;
+
+    @Column()
     id_informe: number;
 
+<<<<<<< HEAD
     @Column({nullable:true})
     id_obra: number;
 
@@ -25,6 +29,16 @@ export class Informe {
 
     @Column()
     recomendacion: string;
+=======
+    @Column()
+    id_subtipo: number;   
+     
+   
+    @Column("json", { 
+        nullable: true 
+    })
+    descripcion: string;
+>>>>>>> 68663226851fc2a0c90bf19fa076bd0e53b036ef
 
     @Column()
     usuario_registro: number;
