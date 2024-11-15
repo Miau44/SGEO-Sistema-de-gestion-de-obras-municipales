@@ -5,8 +5,8 @@ export class Informe {
     @PrimaryGeneratedColumn()
     id_informe: number;
 
-    @Column()
-    id_designacion: number;
+    @Column({nullable:true})
+    id_obra: number;
 
     @Column()
     id_tipo_informe: number;
@@ -20,16 +20,11 @@ export class Informe {
     @Column()
     obs_general: string;
 
-    @Column()
-    conslusion: string;
+    @Column({nullable:true})
+    conclusion: string;
 
     @Column()
     recomendacion: string;
-
-    @Column("json", { 
-        nullable: true 
-    })
-    informe_inicial: string;
 
     @Column()
     usuario_registro: number;
