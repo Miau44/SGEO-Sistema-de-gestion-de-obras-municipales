@@ -23,7 +23,7 @@ export class Solicitud {
     @Column()
     id_usuario: number;   
 
-    @Column()
+    @Column({ nullable: true })
     proveido:string;        
     @Column("json", { nullable: true })
     data_solicitud: string;
