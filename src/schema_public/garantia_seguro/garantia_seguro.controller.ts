@@ -10,25 +10,26 @@ export class GarantiaSeguroController {
   constructor(private readonly garantiaSeguroService: GarantiaSeguroService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear una nueva garantía de seguro' })
-  @ApiResponse({ status: 201, description: 'Garantía creada exitosamente.' })
+  @ApiOperation({ summary: 'Crear una nueva garantía - seguro' })
+  @ApiResponse({ status: 201, description: 'creada exitosamente.' })
   async create(@Body() createGarantiaSeguroDto: CreateGarantiaSeguroDto) {
-    return await this.garantiaSeguroService.create(createGarantiaSeguroDto);
+      return await this.garantiaSeguroService.create(createGarantiaSeguroDto);
   }
 
   @Get('garantia')
-  @ApiOperation({ summary: 'Obtener todas las garantías de seguro' })
-  @ApiResponse({ status: 200, description: 'Lista de garantías de seguro.' })
-  async findAllGaranti() {
-      return await this.garantiaSeguroService.findAllGarantias();
+  @ApiOperation({ summary: 'Obtener todas las garantías de seguro para una obra específica' })
+  @ApiResponse({ status: 200, description: 'Lista de garantías de seguro para una obra.' })
+  async findAllGarantias(@Query('id_obra') id_obra: number) {
+      return await this.garantiaSeguroService.findAllGarantias(id_obra);
   }
 
   @Get('seguro')
-  @ApiOperation({ summary: 'Obtener todas las garantías de seguro' })
-  @ApiResponse({ status: 200, description: 'Lista de garantías de seguro.' })
-  async findAllSegur() {
-      return await this.garantiaSeguroService.findAllSeguros();
+  @ApiOperation({ summary: 'Obtener todos los seguros para una obra específica' })
+  @ApiResponse({ status: 200, description: 'Lista de seguros para una obra.' })
+  async findAllSeguros(@Query('id_obra') id_obra: number) {
+      return await this.garantiaSeguroService.findAllSeguros(id_obra);
   }
+
 
   @Get('subtipos')
   async getSubtipos(@Query('descTipo') descTipo: string) {

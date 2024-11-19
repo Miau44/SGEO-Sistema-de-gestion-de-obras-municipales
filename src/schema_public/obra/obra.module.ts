@@ -6,12 +6,13 @@ import { Obra } from './entities/obra.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GarantiaSeguro } from '../garantia_seguro/entities/garantia_seguro.entity';
 import { Empresa } from '../empresa/entities/empresa.entity';
+import { Memorandum } from '../memorandum/entities/memorandum.entity';
 
 
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Obra, GarantiaSeguro, Empresa])],
+  imports: [TypeOrmModule.forFeature([Obra, GarantiaSeguro, Empresa, Memorandum])],
 
   controllers: [ObraController],
   providers: [ObraService, ResponseService],

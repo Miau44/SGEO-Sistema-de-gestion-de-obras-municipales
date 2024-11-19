@@ -12,18 +12,53 @@ export class GarantiaSeguroService {
     private readonly garantiaSeguroRepository: Repository<GarantiaSeguro>
   ) {}
 
-  async create(createGarantiaSeguroDto: CreateGarantiaSeguroDto): Promise<GarantiaSeguro> {
-    const nuevaGarantia = this.garantiaSeguroRepository.create(createGarantiaSeguroDto);
-    return await this.garantiaSeguroRepository.save(nuevaGarantia);
+  async create(createGarantiaSeguroDto: CreateGarantiaSeguroDto): Promise<void> {
+    const {
+        id_obra,
+        tipo_accion,
+        id_tipo_documento,
+        entidad_emisora,
+        inicio_vigencia,
+        fin_vigencia,
+        monto,
+        id_estado,
+        id_usuario,
+        id_tipo_garantia,
+        id_tipo_seguro,  // Añadido para manejar seguros
+        id_documento
+    } = createGarantiaSeguroDto;
+
+    await this.garantiaSeguroRepository.query(
+        `SELECT public.sp_crear_garantia_seguro(
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+        )`,
+        [
+            id_obra,
+            tipo_accion,
+            id_tipo_documento,
+            entidad_emisora,
+            inicio_vigencia,
+            fin_vigencia,
+            monto,
+            id_estado,
+            id_usuario,
+            tipo_accion === 'garantia' ? id_tipo_garantia : null, // Enviar id_tipo_garantia solo si es garantía
+            tipo_accion === 'seguro' ? id_tipo_seguro : null,     // Enviar id_tipo_seguro solo si es seguro
+            id_documento
+        ]
+    );
   }
 
-  async findAllGarantias(): Promise<any[]> {
-    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias()');
-  }
 
-  async findAllSeguros(): Promise<any[]> {
-    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_seguros()');
-  }
+
+  async findAllGarantias(id_obra: number): Promise<any[]> {
+    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias($1)', [id_obra]);
+}
+
+async findAllSeguros(id_obra: number): Promise<any[]> {
+    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_seguros($1)', [id_obra]);
+}
+
 
   async listarSubtiposPorTipo(descTipo: string): Promise<{ id: number; desc_subtipo: string }[]> {
     const query = ` SELECT * FROM listar_subtipos_por_tipo($1);`;

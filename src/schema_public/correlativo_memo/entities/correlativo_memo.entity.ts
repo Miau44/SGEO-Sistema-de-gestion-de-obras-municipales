@@ -1,3 +1,4 @@
+import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
 export class CorrelativoMemo {
@@ -23,6 +24,9 @@ export class CorrelativoMemo {
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
-    fecha_modificacion: Date      
+    fecha_modificacion: Date 
+    
+    @OneToMany(type => Memorandum, memoriand => memoriand.correlativ)
+    correla: Memorandum[];  
 
 }

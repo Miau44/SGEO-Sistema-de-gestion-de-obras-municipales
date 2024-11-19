@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { Designacion } from "src/schema_public/designacion/entities/designacion.entity";
 import { GarantiaSeguro } from "src/schema_public/garantia_seguro/entities/garantia_seguro.entity";
 import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
+import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 
 @Entity()
 export class Obra {
@@ -44,4 +45,6 @@ export class Obra {
     @OneToMany(type => Empresa, empres => empres.obraa)
     empresa: GarantiaSeguro[];   
 
+    @OneToMany(type => Memorandum, memo => memo.memorandum1)
+    memorandum1: Memorandum[];   
 }
