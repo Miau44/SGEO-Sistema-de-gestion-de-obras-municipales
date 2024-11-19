@@ -35,7 +35,28 @@ export class Obra {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
+    
+    @Column({nullable:true,default: 'NOW()' })
+    fecha_ordenproceder: Date;    
 
+    @Column({nullable:true,default: 'NOW()' })
+    fecha_inicio: Date;    
+
+    @Column({nullable:true})
+    plazo_ejecucion: number;    
+
+    @Column({nullable:true})
+    numero_pagos: number;    
+
+    @Column({nullable:true,default: 'NOW()' })
+    fecha_recep_provisional: Date;
+
+    @Column({nullable:true,default: 'NOW()' })
+    fecha_recep_definitiva: Date;    
+
+    @Column({nullable:true})
+    plazo_prov_definitiva: number;
+  
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   
 
