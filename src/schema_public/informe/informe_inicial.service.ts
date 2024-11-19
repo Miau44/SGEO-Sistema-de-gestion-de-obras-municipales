@@ -70,25 +70,54 @@ export class InformeService {
       let query;
       if (data.padre === 0) {
 
-        query = ` SELECT * FROM parametrica WHERE id_tipo=21 AND id_padre =$1;`;
+      /*  query = ` SELECT p.*,   CASE WHEN ii.id_subtipo > 0 THEN 1 
+        WHEN p.id_subtipo = 220 THEN 1 ELSE 0 END AS validar   FROM  parametrica AS p
+        LEFT OUTER JOIN  public.informe_inicial AS ii ON p.id_subtipo =ii.id_subtipo WHERE id_tipo = 21 AND id_padre = $1
+        ORDER BY p.id_subtipo; `;*/
+
+
+
+       query = ` SELECT pp.id_tipo, pp.id_subtipo, pp.desc_subtipo, CASE WHEN c.validar = 1 THEN 1 ELSE 0 END as validar
+        FROM parametrica AS pp
+        LEFT OUTER JOIN (
+        SELECT p.*,   CASE WHEN ii.id_subtipo > 0 THEN 1 
+        WHEN p.id_subtipo = 220 THEN 2 ELSE 0 END AS validar   FROM  parametrica AS p
+        LEFT OUTER JOIN  public.informe_inicial AS ii ON p.id_subtipo =ii.id_subtipo 
+        WHERE id_tipo = 21 AND id_padre = 0  AND ii.id_informe =$2
+        ORDER BY p.id_subtipo) as c ON  pp.id = c.id
+        WHERE pp.id_tipo = 21 AND pp.id_padre = $1; `;
+
       }
       else {       
-        query = `
-      SELECT de.id, pa.id_subtipo as padre_id_subtipo, pa.desc_subtipo as padre_desc_subtipo 
+     /*   query = `
+    SELECT de.id, ijson.id_informe_inicial, pa.id_subtipo as padre_id_subtipo, pa.desc_subtipo as padre_desc_subtipo 
       , de.id_subtipo, de.desc_subtipo ,  ijson.opcion, ijson.observaciones FROM parametrica as pa 
       INNER JOIN (SELECT * FROM  parametrica WHERE id_tipo=21 
       AND id_padre IN(SELECT id_padre FROM  parametrica WHERE id_tipo=21 AND id_padre =$1)) as de 	
       ON pa.id_subtipo = de.id_padre
-    LEFT OUTER JOIN (SELECT     
+    LEFT OUTER JOIN (SELECT id_informe_inicial,    
       (f.x ->> 'id_subtipo')::integer AS idsubtipo,
       (f.x ->> 'opcion')::integer AS opcion,
       f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
-      jsonb_array_elements(descripcion::jsonb) AS f(x)) AS ijson   ON de.id_subtipo = ijson.idsubtipo; `;
+      jsonb_array_elements(descripcion::jsonb) AS f(x)) AS ijson   ON de.id_subtipo = ijson.idsubtipo; `;*/
 
-
-
-      }
-      const params = [data.padre];
+query = `
+      SELECT de.id, ijson.id_informe_inicial, pa.id_subtipo as padre_id_subtipo, pa.desc_subtipo as padre_desc_subtipo 
+      , de.id_subtipo, de.desc_subtipo ,  ijson.opcion, ijson.observaciones,  
+      CASE WHEN ijson.cumple IS NULL THEN 0 ELSE ijson.cumple END AS cumple FROM parametrica as pa 
+      INNER JOIN (SELECT * FROM  parametrica WHERE id_tipo=21 
+      AND id_padre IN(SELECT id_padre FROM  parametrica WHERE id_tipo=21 AND id_padre =$1)) as de 	
+      ON pa.id_subtipo = de.id_padre
+      LEFT OUTER JOIN (SELECT t2.id_informe_inicial,t2.id_padre, t2.idsubtipo, t2.opcion, t2.observaciones, t1.obs as cumple 
+      FROM public.sp_opcion_informeinicial() AS t1
+      RIGHT OUTER JOIN  (
+      SELECT id_informe_inicial, id_subtipo as id_padre,   
+      (f.x ->> 'id_subtipo')::integer AS idsubtipo,
+      (f.x ->> 'opcion')::integer AS opcion,
+      f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
+      jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 ) AS t2
+      ON t1.idsubtipo = t2.opcion AND t1.idpadre = t2.id_padre ) AS ijson   ON de.id_subtipo = ijson.idsubtipo; `;   }
+      const params = [data.padre, data.informe];
       const resultado: any[] = await this.informeRepositorio.query(query, params);
 
       return this.responseService.success(resultado, "Listado Correctamente.")

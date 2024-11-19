@@ -5,4 +5,7 @@ export class ListaInformeDto {
     @ApiProperty()
     padre: number;  
 
+    @ApiProperty({default:0})
+    informe: number;      
+
 }

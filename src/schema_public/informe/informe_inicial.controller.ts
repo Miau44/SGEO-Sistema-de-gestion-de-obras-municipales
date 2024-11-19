@@ -37,9 +37,12 @@ export class InformeController {
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
+    try {    
     return this.informeService.findOne(+id);
+  } catch (error) { }    
   }
 
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInformeDto: UpdateInformeDto) {
     try {
@@ -72,8 +75,8 @@ export class InformeController {
       } catch (error) { }
     }
 
-
-  @Patch('informe-inicial:id')
+  @Public()
+  @Patch('informe-inicial/:id')
   updateInformeInicial(@Param('id') id: string, @Body() updateInformeInicialDto: UpdateInformeInicialDto) {
     try {
       return this.informeService.updateInformeInicial(+id, updateInformeInicialDto);
