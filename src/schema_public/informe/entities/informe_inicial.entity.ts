@@ -8,28 +8,6 @@ export class InformeInicial {
     @Column()
     id_informe: number;
 
-<<<<<<< HEAD
-    @Column({nullable:true})
-    id_obra: number;
-
-    @Column()
-    id_tipo_informe: number;
-
-    @Column()
-    antecedentes: string;
-    
-    @Column()
-    analisis: string;
-
-    @Column()
-    obs_general: string;
-
-    @Column({nullable:true})
-    conclusion: string;
-
-    @Column()
-    recomendacion: string;
-=======
     @Column()
     id_subtipo: number;   
      
@@ -38,7 +16,6 @@ export class InformeInicial {
         nullable: true 
     })
     descripcion: string;
->>>>>>> 68663226851fc2a0c90bf19fa076bd0e53b036ef
 
     @Column()
     usuario_registro: number;

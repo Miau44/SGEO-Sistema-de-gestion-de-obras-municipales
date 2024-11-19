@@ -21,6 +21,11 @@ export class CreateGarantiaSeguroDto {
   id_tipo_garantia?: number;
 
   @ApiProperty()
+  @IsOptional()
+  @IsInt()
+  id_tipo_seguro?: number;
+
+  @ApiProperty()
   @IsString()
   entidad_emisora: string;
 

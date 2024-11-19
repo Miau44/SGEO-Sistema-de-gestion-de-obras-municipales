@@ -11,7 +11,7 @@ export class Solicitud {
     @Column({nullable:true})
     nro_solicitud:number;    
     
-    @Column()
+    @Column({nullable:true})
     id_estado_solicitud: number;       
 
     @Column()
@@ -23,8 +23,9 @@ export class Solicitud {
     @Column()
     id_usuario: number;   
 
-    @Column()
-    proveido:string;        
+    @Column({ nullable: true })
+    proveido:string;  
+
     @Column("json", { nullable: true })
     data_solicitud: string;
             

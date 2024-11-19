@@ -24,12 +24,13 @@ export class GarantiaSeguroService {
         id_estado,
         id_usuario,
         id_tipo_garantia,
+        id_tipo_seguro,  // Añadido para manejar seguros
         id_documento
     } = createGarantiaSeguroDto;
 
     await this.garantiaSeguroRepository.query(
         `SELECT public.sp_crear_garantia_seguro(
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
         )`,
         [
             id_obra,
@@ -41,11 +42,13 @@ export class GarantiaSeguroService {
             monto,
             id_estado,
             id_usuario,
-            id_tipo_garantia,
+            tipo_accion === 'garantia' ? id_tipo_garantia : null, // Enviar id_tipo_garantia solo si es garantía
+            tipo_accion === 'seguro' ? id_tipo_seguro : null,     // Enviar id_tipo_seguro solo si es seguro
             id_documento
         ]
     );
-}
+  }
+
 
 
   async findAllGarantias(id_obra: number): Promise<any[]> {
