@@ -48,6 +48,12 @@ export class Obra {
     @Column({nullable:true})
     numero_pagos: number;    
 
+    @Column({nullable:true})
+    id_tipopago: number;    
+
+    @Column({nullable:true})
+    planillas_anticipo: number;    
+
     @Column({nullable:true,default: 'NOW()' })
     fecha_recep_provisional: Date;
 
