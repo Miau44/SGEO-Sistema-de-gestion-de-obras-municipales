@@ -48,6 +48,7 @@ export class FichaItemController {
             id_ficha:0,
             id_modalidad:body.id_modalidad,
             anticipo:false,
+            procede:0,
             usuario_registro:0,
             id_estado:1
         };

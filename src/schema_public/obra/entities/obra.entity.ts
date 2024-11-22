@@ -23,19 +23,7 @@ export class Obra {
   
     @Column({default:false})
     anticipo:boolean;
-
-    @Column()
-    usuario_registro: number;
-
-    @Column({default:1})
-    id_estado: number;    
-  
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
-    fecha_registro: Date
-
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
-    fecha_modificacion: Date
-    
+   
     @Column({nullable:true,default: 'NOW()' })
     fecha_ordenproceder: Date;    
 
@@ -62,6 +50,22 @@ export class Obra {
 
     @Column({nullable:true})
     plazo_prov_definitiva: number;
+
+
+    @Column({nullable:true})
+    procede:number;
+
+    @Column({nullable:true})
+    usuario_registro: number;
+
+    @Column({default:1})
+    id_estado: number;    
+  
+    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    fecha_registro: Date
+
+    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
+    fecha_modificacion: Date    
   
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   

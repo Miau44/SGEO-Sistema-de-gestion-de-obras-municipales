@@ -16,6 +16,12 @@ anticipo: boolean;
 
 
 @ApiProperty()
+procede: number;
+
+
+
+
+@ApiProperty()
 usuario_registro: number;
 
 @ApiProperty()
