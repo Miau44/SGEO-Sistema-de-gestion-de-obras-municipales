@@ -35,39 +35,25 @@ export class ContratoModificatorio {
   @Column({ type: 'varchar', length: 50, nullable: true })
   contrato_numero: string;
 
-  @Column({ type: 'int'})
+  @Column({ type: 'int', nullable: true})
   id_tipo_contrato: number;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  modalidad: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  proponente_razon_social: string;
+
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  proponente_representante: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  proponente_nit: string;
+
+  @Column({ type: 'date', nullable: true })
+  fecha_numeracion: Date;
+
+  @Column({ type: 'date', nullable: true })
+  fecha_contrato: Date;
 }
-
-// @Column({ type: 'varchar', length: 50, nullable: true })
-  // tipo_plazo: string;
-
-  // @Column({ type: 'int', nullable: true })
-  // contrato_plazo: number;
-
-  // @Column({ type: 'int', nullable: true })
-  // gestion: number;
-
-  // @Column({ type: 'int', nullable: true })
-  // id: number;
-
-  // @Column({ type: 'date', nullable: true })
-  // fecha_numeracion: Date;
-
-  // @Column({ type: 'varchar', length: 20, nullable: true })
-  // proponente_nit: string;
-
-  // @Column({ type: 'varchar', length: 200, nullable: true })
-  // proponente_razon_social: string;
-
-  // @Column({ type: 'varchar', length: 150, nullable: true })
-  // proponente_representante: string;
-
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // modalidad: string;
-
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // sub_modalidad: string;
-
-  // @Column({ type: 'varchar', length: 50, nullable: true })
-  // contra_estado: string;
+  

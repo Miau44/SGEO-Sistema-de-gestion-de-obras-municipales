@@ -109,19 +109,38 @@ export class PersonapermisoUeService {
 
   async usuarioXPermisoXUe(datosDto: UsuarioPermisoXUeDto) {
     try {
-      const query = `SELECT p.id_usuario, p.nombre || ' ' || p.primer_apellido || ' ' || p.segundo_apellido as nombre,  p.id_usuario, 
-per.desc_subtipo,  ppue.desc_cod_ue
-FROM public.persona AS p
-INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
-INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
-INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
-INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
-WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
-       WHERE  pp.id_estado =1 AND ppue.id_estado=1 AND  per.id_permiso IN(${datosDto.id_permiso})  
-       AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue};`;
-     // const params = [datosDto.id_permiso, datosDto.desc_cod_ue];
-      const resultado = await this.pperUeRepositorio.query(query);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+      if(datosDto.obra > 0){
+        const query = `
+        SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre,  p.id_usuario, 
+        per.desc_subtipo,  ppue.desc_cod_ue
+        FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        INNER JOIN public.designacion AS d ON  p.id_persona = d.id_persona 
+        WHERE  pp.id_estado =1 AND ppue.id_estado=1  AND d.id_estado=1 AND per.id_permiso IN(${datosDto.id_permiso}) 
+        AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   AND  d.id_obra =${datosDto.obra};`;          
+        const resultado = await this.pperUeRepositorio.query(query);
+        return this.responseService.success(resultado, "Listado Correctamente.")
+        
+      }else{
+        const query = `
+        SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre,  p.id_usuario, 
+        per.desc_subtipo,  ppue.desc_cod_ue
+        FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        WHERE  pp.id_estado =1 AND ppue.id_estado=1 AND  per.id_permiso IN(${datosDto.id_permiso})  
+        AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue};`;  
+        const resultado = await this.pperUeRepositorio.query(query);
+        return this.responseService.success(resultado, "Listado Correctamente.")        
+      }
+      
     } catch (error) {
       return this.responseService.error(error);
     }

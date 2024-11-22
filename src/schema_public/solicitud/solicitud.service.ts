@@ -6,6 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { And, Any, Not, Repository } from 'typeorm';
 import { BandejaDto } from './dto/bandeja.dtos';
+import { GenerarSolicitudDto } from './dto/generar-solicitud.dto';
+import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
+import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 
 
 
@@ -79,6 +82,73 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
     } catch (error) {
       return this.responseService.error(error);
     }
+  } 
+  
+  
+   async generarSolicitud(data: GenerarSolicitudDto) {
+    try {
+      const usuarioDestinoQuery = `
+          SELECT idusuario FROM public.sp_permisos_xpersona_filas() WHERE idpermiso IN (85,86)
+          AND desccodue = ${data.desccodue};`;
+      const params4 = [data.desccodue];
+      const usuarioDestinoResult = await this.solicitudRepositorio.query(usuarioDestinoQuery);
+      if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+        return {
+          statusCode: 500,
+          message: false,
+          error: "Error: No se encontró un usuario destino válido.",
+        };
+      }
+      const usuario = usuarioDestinoResult[0].idusuario;
+      const data_solicitud = {
+        id_tipo_solicitud: data.id_tipo_solicitud,
+        id_estado_solicitud: data.id_estado_solicitud,
+        id_obra: data.id_obra,
+        id_estado_general: data.id_estado_general,
+        id_usuario: usuario,
+        proveido: 'SOLICITUD GENEERADA',
+        usuario_registro: data.usuario_registro,
+        id_estado_registro: 1,
+      };
+
+      const resultado = await this.solicitudRepositorio.save(data_solicitud);
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  async verEtapaSolicitud(data: EtapaSolicitudDto) {
+    try {
+      const query = `
+        SELECT id_obra, id_estado_general FROM solicitud_historial WHERE id_obra =$1 AND id_estado_general =$2;  `;
+        const params = [data.obra, data.estado_general]        
+      const resultado = await this.solicitudRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  async usuarioSolicitud(data: UsuarioSolicitudDto) {
+    try {
+      const query = `
+        SELECT DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre
+        FROM solicitud_historial sh
+        INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
+        WHERE id_solicitud =$1  AND id_estado_general= $2
+        LIMIT 1;  `;
+
+        const values = [data.solicitud, data.estado_general]        
+      const resultado = await this.solicitudRepositorio.query(query, values);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+
   }  
 
 }

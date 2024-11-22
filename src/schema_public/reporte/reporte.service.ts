@@ -706,7 +706,167 @@ async generateMemoReemplazo(gestion:number, id:number): Promise<Buffer> {
 }
 
 
+//FORMULARIO DE ENVIO DE DOCUMENTACION 
+async generateEnvioDoc(obra:number): Promise<Buffer> {
+    
+  const res = await this.datosReporteEnvio(obra);
+  if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+    throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+  } 
+  this.datosEnvio = res;
+  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+  const imgPath = 'assets/images/logo_gamlp.png';
 
+  const documentDefinition = {
+    pageSize: 'LETTER' as any,
+    watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+    header: {
+      columns: [
+        { image: imgPath, width: 120 },            
+
+       // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+       // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
+      ],
+      margin: [40, 10]
+    } as any,
+    content: [
+
+      {
+        text: '\n\n\n\n\FORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n\n\n',
+        style: 'header', alignment: 'center'
+      } as any,
+     
+      {
+        text: 'DATOS DE PROYECTO. \n\n',
+        style: 'subheader',
+      },
+
+      {
+        table: {
+          widths: ['*', 400],
+          body: [
+            [
+              { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+            ],
+
+            [
+              { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
+              { text: [{ text:this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+            ],
+
+            [
+              { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+            ],
+
+            [
+              { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
+              { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+            ],
+
+            [
+              { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },]  },
+              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n\n\n', style: 'textDato' }] }
+            ]
+
+
+
+          ]
+        },
+        layout: 'noBorders'
+      },
+
+      {
+        table: {
+          widths: [100,'*',100],
+          body: [
+            [
+              { text: [{ text: 'Nº:', style: 'textTitulo' },], fillColor: '#dddddd'},
+              { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: 'ADJUNTO:', style: 'textTitulo' },] , fillColor: '#dddddd'},
+
+            ],
+            ...this.buildItems(this.datosEnvio)            
+          ]
+        },
+      },
+   
+      {
+        text: [
+          '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
+        ],
+        style: 'subheader', alignment: 'center'
+      },
+
+
+      {
+        text: [
+          '\n\n\n\n\n\n\ncc:Arch:', 
+        ],
+        style: 'footerText'
+      },
+
+    ],
+
+
+    styles: {
+      header: {
+        fontSize: 14,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 12,
+        bold: true,
+      },
+      coloredText: {
+        fontSize: 11,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },
+      coloredTextgray: {
+        fontSize: 14,
+        bold: true,
+        color: 'gray', // Cambiar el color del texto a 'blue'
+      },        
+      footerText: {
+        fontSize: 6,
+        bold: false,
+      },
+      textTitulo: {
+        fontSize: 10,
+        bold: true,
+      },
+      textDato: {
+        fontSize: 10,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+
+
+    },
+
+  };
+ // Generar el PDF en memoria
+ const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+ let chunks: Buffer[] = [];
+
+ return new Promise<Buffer>((resolve, reject) => {
+   pdfDoc.on('data', (chunk) => {
+     chunks.push(chunk);
+   });
+   pdfDoc.on('end', () => {
+     const result = Buffer.concat(chunks);
+     resolve(result);
+   });
+   pdfDoc.end();
+ });
+}
 
 //INFORME INICIAL SUPERVISOR 
 async generateInformeInicial(obra:number): Promise<Buffer> {
@@ -820,8 +980,9 @@ async generateInformeInicial(obra:number): Promise<Buffer> {
  });
 }
 
-//FORMULARIO DE ENVIO DE DOCUMENTACION 
-async generateEnvioDoc(obra:number): Promise<Buffer> {
+
+//INFORME INICIAL SUPERVISOR 
+async generateInformeActividades(obra:number): Promise<Buffer> {
     
   const res = await this.datosReporteEnvio(obra);
   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -836,86 +997,36 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
     pageSize: 'LETTER' as any,
     watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
-    header: {
+  /*  header: {
       columns: [
         { image: imgPath, width: 120 },            
 
        // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
         //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+        //     { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
        // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
       ],
       margin: [40, 10]
-    } as any,
+    } as any,*/
     content: [
 
       {
-        text: '\n\n\n\n\FORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n\n\n',
+        text: '\n\n\n\n\INFORME DE ACTIVIDADES PREVIAS.\n\n\n\n',
         style: 'header', alignment: 'center'
       } as any,
      
-      {
+     /* {
         text: 'DATOS DE PROYECTO. \n\n',
         style: 'subheader',
       },
 
-      {
-        table: {
-          widths: ['*', 400],
-          body: [
-            [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-
-            [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-              { text: [{ text:this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
-            ],
-
-            [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-
-            [
-              { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
-              { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
-            ],
-
-            [
-              { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },]  },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n\n\n', style: 'textDato' }] }
-            ]
-
-
-
-          ]
-        },
-        layout: 'noBorders'
-      },
-
-      {
-        table: {
-          widths: [100,'*',100],
-          body: [
-            [
-              { text: [{ text: 'Nº:', style: 'textTitulo' },], fillColor: '#dddddd'},
-              { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: 'ADJUNTO:', style: 'textTitulo' },] , fillColor: '#dddddd'},
-
-            ],
-            ...this.buildItems(this.datosEnvio)            
-          ]
-        },
-      },
-   
+  
       {
         text: [
           '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
         ],
         style: 'subheader', alignment: 'center'
-      },
+      },*/
 
 
       {

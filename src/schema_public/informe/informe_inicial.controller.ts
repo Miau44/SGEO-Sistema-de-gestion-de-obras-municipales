@@ -10,6 +10,7 @@ import { CreateInformeInicialDto } from './dto/create-informe-inicial.dto';
 import { UpdateInformeInicialDto } from './dto/update-informe-inicial.dto';
 import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
+import { InformeActividadesDto } from './dto/informe-actividades.dto';
 
 
 @ApiTags('informe')
@@ -108,5 +109,24 @@ export class InformeController {
     } catch (error) { }
   }
 
+  @Public()
+  @Post('lista-informe-actividades')
+  listaInformeActividades(@Body() informeDto: InformeActividadesDto) {
+    try {  
+      return this.informeService.listaInformeActividades(informeDto);
+    } catch (error) {
+    }
+  } 
+
+  @Public()
+  @Post('lista-emitir-orden')
+  listaEmitirOrder() {
+    try {  
+      return this.informeService.listaEmitirOrden();
+    } catch (error) {
+    }
+  }   
+  
+  
       
 }

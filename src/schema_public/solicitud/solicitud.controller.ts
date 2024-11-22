@@ -6,6 +6,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Solicitud } from './entities/solicitud.entity';
 import { BandejaDto } from './dto/bandeja.dtos';
+import { GenerarSolicitudDto } from './dto/generar-solicitud.dto';
+import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
+import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -56,4 +59,34 @@ export class SolicitudController {
     } catch (error) {
     }
   }    
+
+
+  @Public()
+  @Post('generar-solicitud')
+  generarSolicitud(@Body() dataDto: GenerarSolicitudDto) {
+    try {
+      return this.solicitudService.generarSolicitud(dataDto);
+    } catch (error) {
+    }
+  }  
+
+
+  @Public()
+  @Post('ver-etapa-solicitud')
+  verEtapaSolicitud(@Body() etapaDto: EtapaSolicitudDto) {
+    try {
+      return this.solicitudService.verEtapaSolicitud(etapaDto);
+    } catch (error) {
+    }
+  }  
+
+  @Public()
+  @Post('usuario-solicitud')
+  usuarioSolicitud(@Body() usuarioDto: UsuarioSolicitudDto) {
+    try {
+      return this.solicitudService.usuarioSolicitud(usuarioDto);
+    } catch (error) {
+    }
+  }    
+
 }

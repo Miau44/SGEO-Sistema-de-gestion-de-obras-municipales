@@ -61,4 +61,29 @@ export class CreateContratoModificatorioDto {
   @ApiProperty({ example: 1, description: 'ID del tipo de contrato' })
   @IsInt()
   id_tipo_contrato: number;
+
+  @ApiProperty({ example: '', description: 'Modalidad del contrato' })
+  @IsString()
+  modalidad?: string;
+
+  @ApiProperty({ example: '', description: 'Razon social' })
+  @IsString()
+  proponente_razon_social: string;
+
+  @ApiProperty({ example: 1, description: 'ID del tipo de contrato' })
+  @IsInt()
+  proponente_representante: string;
+
+  @ApiProperty({ example: '', description: 'NIT' })
+  @IsString()
+  proponente_nit: string;
+
+  @ApiProperty({ example: '2024-11-11', description: 'ID del tipo de contrato' })
+  @IsDateString()
+  fecha_numeracion: Date;
+
+  @ApiProperty({ example: '2024-11-11', description: 'ID del tipo de contrato' })
+  @IsDateString()
+  fecha_contrato: Date;
 }
+
