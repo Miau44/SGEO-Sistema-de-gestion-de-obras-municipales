@@ -103,4 +103,15 @@ export class DocumentoController {
       }
     }
 
+
+
+    @Public()
+    @Post('lista-documentos-adjuntos')
+    listaDocumentos(@Body() documentoDto: ListaDocumentoDto) {
+      try {  
+        return this.documentoService.listaDocumentosXObraConAdjunto(documentoDto);
+      } catch (error) {
+      }
+    }
+
 }

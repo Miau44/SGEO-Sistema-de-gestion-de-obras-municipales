@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { SolicitudService } from './solicitud.service';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
@@ -87,6 +87,19 @@ export class SolicitudController {
       return this.solicitudService.usuarioSolicitud(usuarioDto);
     } catch (error) {
     }
-  }    
+  }   
+  
+ 
+
+  @Public()
+  @Get('contador-solicitudes/:usuario')
+  async getTaskCounts(@Param('usuario', ParseIntPipe) usuario: number) {
+    try {
+      return await this.solicitudService.getTaskCounts(usuario);
+    } catch (error) {
+      console.error('Error en el controlador getTaskCounts:');
+      throw error;
+    }
+  }  
 
 }
