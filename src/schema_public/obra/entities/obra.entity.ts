@@ -3,6 +3,7 @@ import { Designacion } from "src/schema_public/designacion/entities/designacion.
 import { GarantiaSeguro } from "src/schema_public/garantia_seguro/entities/garantia_seguro.entity";
 import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
+import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 
 @Entity()
 export class Obra {
@@ -23,6 +24,12 @@ export class Obra {
   
     @Column({default:false})
     anticipo:boolean;
+
+    @Column({nullable:true})
+    fecha_anticipo: Date;
+
+    @Column({ type: 'numeric', precision: 15, scale: 5, nullable: true })
+    monto_anticipo: string;
    
     @Column({nullable:true,default: 'NOW()' })
     fecha_ordenproceder: Date;    
@@ -78,4 +85,10 @@ export class Obra {
 
     @OneToMany(type => Memorandum, memo => memo.memorandum1)
     memorandum1: Memorandum[];   
+
+    // Relación con la entidad Ficha
+    @ManyToOne(() => Ficha, (ficha) => ficha.obras)
+    ficha: Ficha;
+
+      
 }

@@ -1,3 +1,4 @@
+import { Obra } from "src/schema_public/obra/entities/obra.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
 
@@ -67,4 +68,10 @@ export class Ficha {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
     fecha_modificacion: Date
+
+    // Relación con la entidad Obra
+    @OneToMany(() => Obra, (obra) => obra.ficha)
+    obras: Obra[];
+
+    
 }
