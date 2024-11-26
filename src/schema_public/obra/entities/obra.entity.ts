@@ -24,43 +24,43 @@ export class Obra {
   
     @Column({default:false})
     anticipo:boolean;
-
-    @Column({nullable:true})
-    fecha_anticipo: Date;
-
-    @Column({ type: 'numeric', precision: 15, scale: 5, nullable: true })
-    monto_anticipo: string;
    
-    @Column({nullable:true,default: 'NOW()' })
-    fecha_ordenproceder: Date;    
+    @Column({type: 'date', nullable:true,})
+    fecha_orden_proceder: Date;    
 
-    @Column({nullable:true,default: 'NOW()' })
-    fecha_inicio: Date;    
+    @Column({type: 'date', nullable:true})
+    fecha_inicio_ejecucion: Date;    
 
     @Column({nullable:true})
     plazo_ejecucion: number;    
 
     @Column({nullable:true})
-    numero_pagos: number;    
+    numero_pago: number;    
 
     @Column({nullable:true})
-    id_tipopago: number;    
+    id_tipo_pago: number;    
 
     @Column({nullable:true})
-    planillas_anticipo: number;    
+    planilla_anticipo: number;    
 
-    @Column({nullable:true,default: 'NOW()' })
+    @Column({type: 'date',  nullable: true })
     fecha_recep_provisional: Date;
 
-    @Column({nullable:true,default: 'NOW()' })
+    @Column({type: 'date',  nullable: true})
     fecha_recep_definitiva: Date;    
 
     @Column({nullable:true})
     plazo_prov_definitiva: number;
 
-
     @Column({nullable:true})
     procede:number;
+
+    @Column({type: 'date',  nullable: true })
+    fecha_pago_anticipo: Date | null;
+
+
+
+    ///---------campos genericos-----//////
 
     @Column({nullable:true})
     usuario_registro: number;
@@ -73,7 +73,9 @@ export class Obra {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date    
-  
+
+    ///---------campos genericos-----//////
+
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   
 
