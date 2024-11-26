@@ -12,6 +12,19 @@ export class CreateContratoModificatorioDto {
   @IsInt()
   id_proveedor?: number;
 
+  @ApiProperty({ example: 'EMA-87-2024', description: 'cod_carpeta' })
+  @IsString()
+  cod_carpeta: string;
+
+
+  @IsOptional()
+  @IsInt()
+  id_obra?:number;
+
+  // @IsOptional()
+  // @IsInt()
+  // id_ficha?:number;
+
   @ApiProperty({ example: 10000.50, description: 'Monto del contrato' })
   @IsOptional()
   @IsDecimal({ decimal_digits: '2' })
@@ -86,4 +99,3 @@ export class CreateContratoModificatorioDto {
   @IsDateString()
   fecha_contrato: Date;
 }
-

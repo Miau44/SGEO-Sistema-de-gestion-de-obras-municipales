@@ -8,6 +8,12 @@ export class ContratoModificatorio {
   @Column({ type: 'int', nullable: true })
   id_carpeta: number;
 
+  @Column({ type: 'varchar', nullable: true })
+  cod_carpeta: string;
+
+  @Column({ type: 'int',default : 0 })
+  id_obra: number;
+
   @Column({ type: 'int', nullable: true })
   id_proveedor: number;
 
