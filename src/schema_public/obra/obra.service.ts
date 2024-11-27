@@ -223,7 +223,7 @@ WHERE sol.idusuario= ${data.usuario} ` ;
   actualizar(id_obra: number, tipoObraModDto: TipoObraModObraDto) {
     this.obraRepositorio.update(id_obra, tipoObraModDto);
     return {
-      mensaje: 'Obra Actualizado con éxito',
+      mensaje: 'Obra Actualizado con ï¿½xito',
       estado: true,
       data: id_obra
     }
@@ -238,6 +238,11 @@ WHERE sol.idusuario= ${data.usuario} ` ;
       log(siexiste);
       if(siexiste[0]){   return true; }
       else{  return false; }        
+  }
+
+  async actualizarEstadoSicom(id_obra: number, id_estado_sicom: number): Promise<Obra| null> {
+    await this.obraRepositorio.update(id_obra, { id_estado_sicom });
+    return this.obraRepositorio.findOneBy({ id_obra }); // Retorna el registro actualizado
   }
 
  /* async token() {

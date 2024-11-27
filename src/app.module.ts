@@ -32,7 +32,7 @@ import { SolicitudModule } from './schema_public/solicitud/solicitud.module';
 import { FichaItemModule } from './schema_sim/ficha_item/ficha_item.module';
 import { EmpresaModule } from './schema_public/empresa/empresa.module';
 import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_seguro.module';
-import { ContratoModificatorioModule } from './schema_public/contrato-modificatorio/contrato-modificatorio.module';
+import { ContratoModule } from './schema_public/contrato-modificatorio/contrato.module';
 import { SolicitudHistorialModule } from './schema_public/solicitud_historial/solicitud_historial.module';
 import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
 import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
@@ -102,7 +102,7 @@ import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
 
   EmpresaModule,
   GarantiaSeguroModule,
-  ContratoModificatorioModule,
+  ContratoModule,
   MemorandumModule,
   ],
   controllers: [AppController],

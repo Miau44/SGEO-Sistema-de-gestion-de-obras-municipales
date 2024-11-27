@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
-import { ContratoModificatorioService } from './contrato-modificatorio.service';
-import { ContratoModificatorio } from './entities/contrato-modificatorio.entity';
+import { ContratoService } from './contrato.service';
+import { Contrato } from './entities/contrato.entity';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateContratoModificatorioDto } from './dto/create-contrato-modificatorio.dto';
+import { CreateContratoDto } from './dto/create-contrato.dto';
 
-@ApiTags('Contrato Modificatorio')
-@Controller('contrato-modificatorio')
-export class ContratoModificatorioController {
-  constructor(private readonly contratoService: ContratoModificatorioService) {}
+@ApiTags('Contrato')
+@Controller('contrato')
+export class ContratoController {
+  constructor(private readonly contratoService: ContratoService) {}
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los contratos modificatorios' })
@@ -37,7 +37,7 @@ export class ContratoModificatorioController {
   // //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
   @ApiOperation({ summary: 'registrar_contrato un nuevo contrato modificatorio' })
    @ApiResponse({ status: 201, description: 'registrar_contrato Contrato creado con éxito.' })
-   registrar_contrato(@Body() createContratoModificatorioDto:CreateContratoModificatorioDto) {
+   registrar_contrato(@Body() createContratoModificatorioDto:CreateContratoDto) {
      return this.contratoService.registrar_contrato(createContratoModificatorioDto);
    }
 
