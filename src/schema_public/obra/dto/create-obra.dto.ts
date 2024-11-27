@@ -2,6 +2,9 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateObraDto {
 
+
+
+    
 @ApiProperty()
 id_ficha: number;
 
@@ -18,8 +21,8 @@ anticipo: boolean;
 @ApiProperty()
 procede: number;
 
-
-
+@ApiProperty()
+fecha_pago_anticipo!: Date | null;
 
 @ApiProperty()
 usuario_registro: number;

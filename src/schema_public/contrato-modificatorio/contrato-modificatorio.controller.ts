@@ -25,14 +25,29 @@ export class ContratoModificatorioController {
     return this.contratoService.findOne(id);
   }
 
-  @Post()
-  //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
-  @ApiOperation({ summary: 'Crear un nuevo contrato modificatorio' })
-  @ApiResponse({ status: 201, description: 'Contrato creado con éxito.' })
-  create(@Body() createContratoModificatorioDto:CreateContratoModificatorioDto) {
-    return this.contratoService.create(createContratoModificatorioDto);
-  }
+  // @Post()
+  // //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
+  // @ApiOperation({ summary: 'Crear un nuevo contrato modificatorio' })
+  // @ApiResponse({ status: 201, description: 'Contrato creado con éxito.' })
+  // create(@Body() createContratoModificatorioDto:CreateContratoModificatorioDto) {
+  //   return this.contratoService.create(createContratoModificatorioDto);
+  // }
 
+   @Post()
+  // //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
+  @ApiOperation({ summary: 'registrar_contrato un nuevo contrato modificatorio' })
+   @ApiResponse({ status: 201, description: 'registrar_contrato Contrato creado con éxito.' })
+   registrar_contrato(@Body() createContratoModificatorioDto:CreateContratoModificatorioDto) {
+     return this.contratoService.registrar_contrato(createContratoModificatorioDto);
+   }
+
+  // @Post()
+  // //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
+  // @ApiOperation({ summary: 'Crear un nuevo contrato modificatorio' })
+  // //@ApiResponse({ status: 201, description: 'Contrato creado con éxito.' })
+  // registrar_contrato(@Body() createContratoModificatorioDto:CreateContratoModificatorioDto) {
+  //   return 0;
+  // }
   // @Put(':id')
   // update(@Param('id') id: number, @Body() data: Partial<ContratoModificatorio>) {
   //   return this.contratoService.update(id, data);

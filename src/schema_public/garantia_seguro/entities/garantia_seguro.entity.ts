@@ -28,19 +28,20 @@ export class GarantiaSeguro {
   @Column({ type: 'varchar', nullable: false })
   entidad_emisora: string;
 
-  @Column({ type: 'timestamp', nullable: false })
+  @Column({ type: 'date', nullable: false })
   inicio_vigencia: Date;
 
-  @Column({ type: 'timestamp', nullable: false })
+  @Column({ type: 'date', nullable: false })
   fin_vigencia: Date;
 
-  @Column({ type: 'numeric', nullable: false })
+ // @Column({ type: 'numeric', nullable: false })
+  @Column("decimal",{ precision: 10, scale: 5 })
   monto: number;
 
   @Column({ nullable: true })
   id_documento: number;
 
-  @Column({ nullable: false })
+  @Column()
   id_estado: number;
 
   @CreateDateColumn({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })

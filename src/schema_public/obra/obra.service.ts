@@ -173,8 +173,7 @@ WHERE p.usuario = $2  AND pp.id_estado =1 AND ppue.id_estado=1
 
 // Condiciones adicionales seg?n el DTO
 if (data.validada) {
-  query += ` AND o.id_obra NOT IN(SELECT id_obra FROM solicitud WHERE  id_estado_general IN (6, 7) GROUP BY id_obra HAVING COUNT(DISTINCT id_estado_general) = 2) 
-`;
+  query += ` AND o.id_obra NOT IN(SELECT id_obra FROM solicitud WHERE  id_estado_general IN (10,11) GROUP BY id_obra HAVING COUNT(DISTINCT id_estado_general) = 2) `;
 }
 
 if (data.designada) {

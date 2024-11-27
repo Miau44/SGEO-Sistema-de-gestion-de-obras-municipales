@@ -35,6 +35,7 @@ import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_s
 import { ContratoModificatorioModule } from './schema_public/contrato-modificatorio/contrato-modificatorio.module';
 import { SolicitudHistorialModule } from './schema_public/solicitud_historial/solicitud_historial.module';
 import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
+import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
 
 
 @Module({
@@ -105,6 +106,6 @@ import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
   MemorandumModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ResponseService ],
+  providers: [AppService, ResponseService, SolicitudGateway ],
 })
 export class AppModule {}

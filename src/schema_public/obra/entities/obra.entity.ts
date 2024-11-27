@@ -3,6 +3,7 @@ import { Designacion } from "src/schema_public/designacion/entities/designacion.
 import { GarantiaSeguro } from "src/schema_public/garantia_seguro/entities/garantia_seguro.entity";
 import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
+import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 
 @Entity()
 export class Obra {
@@ -24,36 +25,42 @@ export class Obra {
     @Column({default:false})
     anticipo:boolean;
    
-    @Column({nullable:true,default: 'NOW()' })
-    fecha_ordenproceder: Date;    
+    @Column({type: 'date', nullable:true,})
+    fecha_orden_proceder: Date;    
 
-    @Column({nullable:true,default: 'NOW()' })
-    fecha_inicio: Date;    
+    @Column({type: 'date', nullable:true})
+    fecha_inicio_ejecucion: Date;    
 
     @Column({nullable:true})
     plazo_ejecucion: number;    
 
     @Column({nullable:true})
-    numero_pagos: number;    
+    numero_pago: number;    
 
     @Column({nullable:true})
-    id_tipopago: number;    
+    id_tipo_pago: number;    
 
     @Column({nullable:true})
-    planillas_anticipo: number;    
+    planilla_anticipo: number;    
 
-    @Column({nullable:true,default: 'NOW()' })
+    @Column({type: 'date',  nullable: true })
     fecha_recep_provisional: Date;
 
-    @Column({nullable:true,default: 'NOW()' })
+    @Column({type: 'date',  nullable: true})
     fecha_recep_definitiva: Date;    
 
     @Column({nullable:true})
     plazo_prov_definitiva: number;
 
-
     @Column({nullable:true})
     procede:number;
+
+    @Column({type: 'date',  nullable: true })
+    fecha_pago_anticipo: Date | null;
+
+
+
+    ///---------campos genericos-----//////
 
     @Column({nullable:true})
     usuario_registro: number;
@@ -66,7 +73,9 @@ export class Obra {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date    
-  
+
+    ///---------campos genericos-----//////
+
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   
 
@@ -78,4 +87,10 @@ export class Obra {
 
     @OneToMany(type => Memorandum, memo => memo.memorandum1)
     memorandum1: Memorandum[];   
+
+    // Relación con la entidad Ficha
+    @ManyToOne(() => Ficha, (ficha) => ficha.obras)
+    ficha: Ficha;
+
+      
 }

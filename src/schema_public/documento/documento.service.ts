@@ -134,5 +134,22 @@ export class DocumentoService {
   }
 
 
+  async listaDocumentosXObraConAdjunto(data: ListaDocumentoDto) {
+    try { 
+    ;      
+      let query = `SELECT * FROM public.documento as d
+INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
+WHERE id_obra = $1 AND cumple = true`;     
+      const params : any[]  = [data.id_obra];
+     
+      const resultado: any[] = await this.documentoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+
   
 }

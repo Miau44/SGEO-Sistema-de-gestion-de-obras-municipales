@@ -9,7 +9,8 @@ import { BandejaDto } from './dto/bandeja.dtos';
 import { GenerarSolicitudDto } from './dto/generar-solicitud.dto';
 import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
 import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
-
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 
 
@@ -17,8 +18,9 @@ import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 export class SolicitudService {
 
 
-  constructor(@InjectRepository(Solicitud) private solicitudRepositorio: Repository<Solicitud>,
+  constructor(@InjectRepository(Solicitud) private solicitudRepositorio: Repository<Solicitud>,  
   private responseService: ResponseService,
+  @InjectDataSource() private readonly dataSource: DataSource
 ) { }
 
 async  create(createSolicitudDto: CreateSolicitudDto) {
@@ -150,5 +152,26 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
     }
 
   }  
+
+
+  async getTaskCounts(usuario: number): Promise<Record<string, number>> {
+    const query = `
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END) AS pendientes,
+        SUM(CASE WHEN id_estado_solicitud = 3 THEN 1 ELSE 0 END) AS enProgreso,
+        SUM(CASE WHEN id_estado_solicitud = 4 THEN 1 ELSE 0 END) AS completadas
+      FROM public.solicitud
+      WHERE id_usuario = $1;
+    `;
+    try {
+      const result = await this.dataSource.query(query, [usuario]);
+      return result[0];
+    } catch (error) {
+      console.error('Error al obtener las estadísticas de tareas:', error);
+      throw new Error('No se pudieron obtener las estadísticas de tareas');
+    }
+  }
+  
 
 }

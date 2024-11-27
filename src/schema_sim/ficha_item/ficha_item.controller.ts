@@ -6,7 +6,7 @@ import { CreateObraDto } from '../../schema_public/obra/dto/create-obra.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateFichaItemDto } from './dto/ficha-item.dto';
 import { error } from 'console';
-import { QueryFailedError } from 'typeorm';
+import { IsNull, QueryFailedError } from 'typeorm';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('ficha-item') // Etiqueta para agrupar en Swagger
@@ -49,6 +49,7 @@ export class FichaItemController {
             id_modalidad:body.id_modalidad,
             anticipo:false,
             procede:0,
+            fecha_pago_anticipo: null,
             usuario_registro:0,
             id_estado:1
         };
