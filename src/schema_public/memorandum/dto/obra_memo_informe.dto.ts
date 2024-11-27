@@ -1,121 +1,121 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString, IsBoolean, IsDateString, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsDateString } from 'class-validator';
 
 export class GuardarObraDto {
-    
-    @ApiProperty()
-    @IsInt()
-    idObra: number;
+  @ApiProperty()
+  @IsInt()
+  idObra: number;
 
-    @ApiProperty()
-    @IsInt()
-    idTipoObra: number;
+  @ApiProperty()
+  @IsInt()
+  idTipoObra: number;
 
-    @ApiProperty()
-    @IsInt()
-    numeroPagos: number;
+  @ApiProperty()
+  @IsInt()
+  numeroPago: number; // Cambiado de `numeroPagos`
 
-    @ApiProperty()
-    @IsInt()
-    planillasAnticipo: number;
+  @ApiProperty()
+  @IsInt()
+  planillaAnticipo: number; // Cambiado de `planillasAnticipo`
 
-    @ApiProperty()
-    @IsDateString()
-    fechaOrdenProceder: string;
+  @ApiProperty()
+  @IsDateString()
+  fechaOrdenProceder: string;
 
-    @ApiProperty()
-    @IsDateString()
-    fechaRecepProvisional: string;
+  @ApiProperty()
+  @IsDateString()
+  fechaRecepProvisional: string;
 
-    @ApiProperty()
-    @IsInt()
-    plazoProvDefinitiva: number;
+  @ApiProperty()
+  @IsInt()
+  plazoProvDefinitiva: number;
 
-    @ApiProperty()
-    @IsDateString()
-    fechaRecepDefinitiva: string;
+  @ApiProperty()
+  @IsDateString()
+  fechaRecepDefinitiva: string;
 
-    @ApiProperty()
-    @IsDateString()
-    fechaInicio: string;
+  @ApiProperty()
+  @IsDateString()
+  fechaInicioEjecucion: string; // Cambiado de `fechaInicio`
 
-    @ApiProperty()
-    @IsInt()
-    plazoEjecucion: number;
+  @ApiProperty()
+  @IsInt()
+  plazoEjecucion: number;
 
-    @ApiProperty()
-    @IsInt()
-    idTipoMemo: number;
+  @ApiProperty()
+  @IsInt()
+  idTipoMemo: number;
 
-    @ApiProperty()
-    @IsInt()
-    idCorrelativoMemo: number;
+  @ApiProperty()
+  @IsInt()
+  idCorrelativoMemo: number;
 
-    @ApiProperty()
-    @IsDateString()
-    fechaMemo: string;
+  @ApiProperty()
+  @IsDateString()
+  fechaMemo: string;
 
-    @ApiProperty()
-    @IsString()
-    nombreDestinatario: string;
+  @ApiProperty()
+  @IsString()
+  nombreDestinatario: string;
 
-    @ApiProperty()
-    @IsString()
-    referencia: string;
+  @ApiProperty()
+  @IsString()
+  referencia: string;
 
-    @ApiProperty()
-    @IsString()
-    descripcion: string;
+  @ApiProperty()
+  @IsString()
+  descripcion: string;
 
-    @ApiProperty()
-    @IsString()
-    nombreRemitente: string;
+  @ApiProperty()
+  @IsString()
+  nombreRemitente: string;
 
-    @ApiProperty()
-    @IsString()
-    cargoRemitente: string;
+  @ApiProperty()
+  @IsString()
+  cargoRemitente: string;
 
-    @ApiProperty()
-    @IsInt()
-    idEstadoMemo: number;
+  @ApiProperty()
+  @IsInt()
+  idEstadoMemo: number;
 
-    @ApiProperty()
-    @IsInt()
-    idUsuarioMemo: number;
+  @ApiProperty()
+  @IsInt()
+  idUsuarioMemo: number;
 
-    @ApiProperty()
-    @IsInt()
-    idTipoInforme: number;
+  @ApiProperty()
+  @IsInt()
+  idTipoInforme: number;
 
-    @ApiProperty()
-    @IsString()
-    antecedentes: string;
+  @ApiProperty()
+  @IsString()
+  antecedentes: string;
 
-    @ApiProperty()
-    @IsString()
-    analisis: string;
+  @ApiProperty()
+  @IsString()
+  analisis: string;
 
-    @ApiProperty()
-    @IsString()
-    obsGeneral: string;
+  @ApiProperty()
+  @IsString()
+  obsGeneral: string;
 
-    @ApiProperty()
-    @IsString()
-    conclusion: string;
+  @ApiProperty()
+  @IsString()
+  conclusion: string;
 
-    @ApiProperty()
-    @IsString()
-    recomendacion: string;
+  @ApiProperty()
+  @IsString()
+  recomendacion: string;
 
-    @ApiProperty()
-    @IsInt()
-    idCorrelativoInforme: number;
+  @ApiProperty()
+  @IsInt()
+  idCorrelativoInforme: number;
 
-    @ApiProperty()
-    @IsInt()
-    usuarioRegistro: number;
+  @ApiProperty()
+  @IsInt()
+  usuarioRegistroInforme: number; // Cambiado de `usuarioRegistro`
 
-    @ApiProperty()
-    @IsInt()
-    idEstadoInforme: number;
+  @ApiProperty()
+  @IsInt()
+  idEstadoInforme: number;
 }
+
