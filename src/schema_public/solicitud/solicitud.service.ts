@@ -11,6 +11,7 @@ import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
 import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
 
 
 
@@ -150,8 +151,30 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
     } catch (error) {
       return this.responseService.error(error);
     }
-
   }  
+
+  async usuarioAsignadoObra(data: UsuarioSolicitudObraDto) {
+    try {
+      const query = `
+        	   SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre
+        ,sh.id_obra
+        FROM solicitud_historial sh
+        INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
+        WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso})
+        LIMIT 1; 
+ `;
+
+       // const values = [data.obra, data.permiso]        
+      const resultado = await this.solicitudRepositorio.query(query);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  } 
+
 
 
   async getTaskCounts(usuario: number): Promise<Record<string, number>> {

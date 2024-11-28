@@ -4,12 +4,15 @@ import { UpdateGarantiaSeguroDto } from './dto/update-garantia_seguro.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GarantiaSeguro } from './entities/garantia_seguro.entity';
 import { Repository } from 'typeorm';
+import { ResponseService } from 'src/response.service';
+import { ObraGarantiaDto } from './dto/obra.dto';
 
 @Injectable()
 export class GarantiaSeguroService {
   constructor(
     @InjectRepository(GarantiaSeguro)
-    private readonly garantiaSeguroRepository: Repository<GarantiaSeguro>
+    private readonly garantiaSeguroRepository: Repository<GarantiaSeguro>,
+    private responseService: ResponseService
   ) {}
 
   async create(createGarantiaSeguroDto: CreateGarantiaSeguroDto): Promise<void> {
@@ -89,5 +92,22 @@ async findAllSeguros(id_obra: number): Promise<any[]> {
       throw new NotFoundException(`Garantía de seguro con ID ${id} no encontrada`);
     }
   }
+
+
+  async listaTipoGarantia(data: ObraGarantiaDto) {
+    try {
+  
+      const query = `SELECT idsubtipo AS id_subtipo, descsubtipo AS desc_subtipo FROM  public.sp_lista_tipo_garantia($1)`;
+  
+      const values =[data.obra]
+      const resultado = await this.garantiaSeguroRepository.query(query, values);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  
+  
 
 }

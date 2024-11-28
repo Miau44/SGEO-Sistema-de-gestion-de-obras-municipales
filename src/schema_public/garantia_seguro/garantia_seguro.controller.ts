@@ -3,6 +3,9 @@ import { GarantiaSeguroService } from './garantia_seguro.service';
 import { CreateGarantiaSeguroDto } from './dto/create-garantia_seguro.dto';
 import { UpdateGarantiaSeguroDto } from './dto/update-garantia_seguro.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import { ObraGarantiaDto } from './dto/obra.dto';
+
 
 @ApiTags('Garantia Seguro')
 @Controller('garantia-seguro')
@@ -57,4 +60,14 @@ export class GarantiaSeguroController {
   async remove(@Param('id') id: number) {
     return await this.garantiaSeguroService.remove(id);
   }
+
+
+  @Public()
+  @Post('listar-tipo_garantia')
+  misProyectos(@Body() data: ObraGarantiaDto) {
+    try {
+      return this.garantiaSeguroService.listaTipoGarantia(data);
+    } catch (error) {
+    }
+  } 
 }
