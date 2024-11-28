@@ -54,8 +54,8 @@ export class GarantiaSeguroService {
 
 
 
-  async findAllGarantias(id_obra: number): Promise<any[]> {
-    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias($1)', [id_obra]);
+async findAllGarantias(id_obra: number): Promise<any[]> {
+  return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias($1)', [id_obra]);
 }
 
 async findAllSeguros(id_obra: number): Promise<any[]> {

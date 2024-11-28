@@ -27,7 +27,7 @@ export class Memorandum {
     referencia:string;
 
     @Column({ type: 'varchar'})
-    decripcion:string;   
+    descripcion:string;   
 
     @Column({ type: 'varchar'})
     nombre_remitente:string;
