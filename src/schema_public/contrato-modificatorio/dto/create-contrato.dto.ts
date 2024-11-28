@@ -1,7 +1,7 @@
 import { IsInt, IsOptional, IsDecimal, IsDateString, IsString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateContratoModificatorioDto {
+export class CreateContratoDto {
   @ApiProperty({ example: 1, description: 'ID de la carpeta' })
   @IsOptional()
   @IsInt()

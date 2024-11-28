@@ -42,18 +42,18 @@ export class ObraService {
     try {
  const query = `
 
- SELECT DISTINCT o.id_obra, f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, 
+ SELECT DISTINCT  f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, 
  f.fecha_validacion_carpeta,    
 REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
 eo.desc_cod_da, eo.nombre_ue, eo.gestion,
 f.fecha_registro,  
-tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, o.procede
+tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, o.*
  FROM public.obra AS o   
 INNER JOIN public.ficha f  ON o.id_ficha = f.id_ficha
 INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from public.estructura_organizacional
 WHERE  gestion =2024 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
 LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
-INNER JOIN public.estado_general as eg ON  o.id_estado = eg.id_estado_general      
+INNER JOIN public.estado_general as eg ON  o.id_estado = eg.id_estado_general       
      WHERE  o.id_obra = ${id_obra}`;
      const resultado = await this.obraRepositorio.query(query);
 
@@ -223,7 +223,7 @@ WHERE sol.idusuario= ${data.usuario} ` ;
   actualizar(id_obra: number, tipoObraModDto: TipoObraModObraDto) {
     this.obraRepositorio.update(id_obra, tipoObraModDto);
     return {
-      mensaje: 'Obra Actualizado con éxito',
+      mensaje: 'Obra Actualizado con ï¿½xito',
       estado: true,
       data: id_obra
     }
@@ -238,6 +238,11 @@ WHERE sol.idusuario= ${data.usuario} ` ;
       log(siexiste);
       if(siexiste[0]){   return true; }
       else{  return false; }        
+  }
+
+  async actualizarEstadoSicom(id_obra: number, id_estado_sicom: number): Promise<Obra| null> {
+    await this.obraRepositorio.update(id_obra, { id_estado_sicom });
+    return this.obraRepositorio.findOneBy({ id_obra }); // Retorna el registro actualizado
   }
 
  /* async token() {

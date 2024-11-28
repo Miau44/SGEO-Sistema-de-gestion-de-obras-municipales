@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('contrato_modificatorio')
-export class ContratoModificatorio {
+@Entity('contrato')
+export class Contrato {
   @PrimaryGeneratedColumn()
-  id_contrato_modificatorio: number;
+  id_contrato: number;
 
   @Column({ type: 'int', nullable: true })
   id_carpeta: number;

@@ -75,6 +75,8 @@ export class Obra {
     fecha_modificacion: Date    
 
     ///---------campos genericos-----//////
+    @Column({nullable:true,default:1})
+    id_estado_sicom:number;
 
     @OneToMany(type => Designacion, sol => sol.obra)
     items: Designacion[];   

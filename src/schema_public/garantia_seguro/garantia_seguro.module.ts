@@ -6,11 +6,12 @@ import { Documento } from '../documento/entities/documento.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TipoDocumento } from '../tipo_documento/entities/tipo_documento.entity';
 import { GarantiaSeguro } from './entities/garantia_seguro.entity';
+import { ResponseService } from 'src/response.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([GarantiaSeguro, Obra, Documento, TipoDocumento])],
 
   controllers: [GarantiaSeguroController],
-  providers: [GarantiaSeguroService],
+  providers: [GarantiaSeguroService, ResponseService],
 })
 export class GarantiaSeguroModule {}

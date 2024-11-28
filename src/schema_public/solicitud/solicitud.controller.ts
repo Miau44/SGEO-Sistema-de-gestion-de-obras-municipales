@@ -9,6 +9,7 @@ import { BandejaDto } from './dto/bandeja.dtos';
 import { GenerarSolicitudDto } from './dto/generar-solicitud.dto';
 import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
 import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
+import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -100,6 +101,16 @@ export class SolicitudController {
       console.error('Error en el controlador getTaskCounts:');
       throw error;
     }
-  }  
+  } 
+  
+  @Public()
+  @Post('usuario-asignado-obra')
+  usuarioAsignadoObra(@Body() usuarioDto: UsuarioSolicitudObraDto) {
+    try {
+      return this.solicitudService.usuarioAsignadoObra(usuarioDto);
+    } catch (error) {
+    }
+  }   
+  
 
 }

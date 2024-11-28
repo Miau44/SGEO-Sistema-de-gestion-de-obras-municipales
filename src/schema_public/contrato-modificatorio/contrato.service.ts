@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ContratoModificatorio } from './entities/contrato-modificatorio.entity';
-import { CreateContratoModificatorioDto } from './dto/create-contrato-modificatorio.dto';
+import { Contrato } from './entities/contrato.entity';
+import { CreateContratoDto } from './dto/create-contrato.dto';
 import { Ficha } from '../ficha/entities/ficha.entity';
 import { Obra } from '../obra/entities/obra.entity';
-import { ResponseDto } from './../parametrica/dto/response.dto';
+import { ObraService } from '../obra/obra.service';
+import { ResponseDto } from '../parametrica/dto/response.dto';
 
 @Injectable()
-export class ContratoModificatorioService {
+export class ContratoService {
+  
   constructor(
-    @InjectRepository(ContratoModificatorio)
-    private contratoRepo: Repository<ContratoModificatorio>,
+    @InjectRepository(Contrato)
+    private contratoRepo: Repository<Contrato>,
     @InjectRepository(Ficha)
     private fichaRepo: Repository<Ficha>,
     @InjectRepository(Obra)
     private obraRepo: Repository<Obra>,
+    private readonly obraService: ObraService, // Inyección de ObraService
   ) {}
 
   findAll() {
@@ -23,7 +26,7 @@ export class ContratoModificatorioService {
   }
 
   findOne(id: number) {
-    return this.contratoRepo.findOne({ where: { id_contrato_modificatorio: id } });
+    return this.contratoRepo.findOne({ where: { id_contrato: id } });
   }
 
   // async create(createContratoModificatorioDto: CreateContratoModificatorioDto): Promise<ContratoModificatorio> {
@@ -31,16 +34,16 @@ export class ContratoModificatorioService {
   //   return await this.contratoRepo.save(contrato);
   // }
 
-  async update(id: number, data: Partial<ContratoModificatorio>) {
+  async update(id: number, data: Partial<Contrato>) {
     await this.contratoRepo.update(id, data);
-    return this.contratoRepo.findOne({ where: { id_contrato_modificatorio: id } });
+    return this.contratoRepo.findOne({ where: { id_contrato: id } });
   }
 
   delete(id: number) {
     return this.contratoRepo.delete(id);
   }
 
-  async registrar_contrato(createContratoModificatorioDto: CreateContratoModificatorioDto): Promise<ResponseDto> {
+  async registrar_contrato(createContratoModificatorioDto: CreateContratoDto): Promise<ResponseDto> {
     console.log("registrar_contrato");
     
     try {
@@ -64,6 +67,11 @@ export class ContratoModificatorioService {
       createContratoModificatorioDto.id_obra=resultado[0].id_obra;
       const newContract = this.contratoRepo.create(createContratoModificatorioDto);
       await this.contratoRepo.save(newContract);
+
+
+      const obraActualizada = await this.obraService.actualizarEstadoSicom(resultado[0].id_obra, 2);
+      console.log(obraActualizada);
+
       return new ResponseDto('success', 1, 'Contrato registrado correctamente');
 
     } catch (error) {
