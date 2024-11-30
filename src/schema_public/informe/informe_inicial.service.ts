@@ -70,13 +70,8 @@ export class InformeService {
     try {
       let query;
       if (data.padre === 0) {
-
-        /*  query = ` SELECT p.*,   CASE WHEN ii.id_subtipo > 0 THEN 1 
-          WHEN p.id_subtipo = 220 THEN 1 ELSE 0 END AS validar   FROM  parametrica AS p
-          LEFT OUTER JOIN  public.informe_inicial AS ii ON p.id_subtipo =ii.id_subtipo WHERE id_tipo = 21 AND id_padre = $1
-          ORDER BY p.id_subtipo; `;*/
-
-        query = ` SELECT pp.id_tipo, pp.id_subtipo, pp.desc_subtipo, CASE WHEN c.validar = 1 THEN 1 
+      
+       /*     query = ` SELECT pp.id_tipo, pp.id_subtipo, pp.desc_subtipo, CASE WHEN c.validar = 1 THEN 1 
        WHEN pp.id_subtipo IN(220,172) THEN 2 ELSE 0 END as validar
         FROM parametrica AS pp
         LEFT OUTER JOIN (
@@ -85,8 +80,34 @@ export class InformeService {
         LEFT OUTER JOIN  public.informe_inicial AS ii ON p.id_subtipo =ii.id_subtipo 
         WHERE id_tipo = 21 AND id_padre = 0  AND ii.id_informe =$2
         ORDER BY p.id_subtipo) as c ON  pp.id = c.id
-        WHERE pp.id_tipo = 21 AND pp.id_padre = $1; `;
+        WHERE pp.id_tipo = 21 AND pp.id_padre = $1; `;*/
 
+      query = `SELECT pp.id_tipo, pp.id_subtipo, pp.desc_subtipo, 
+      CASE 
+      WHEN c.validar = 1 THEN 1 
+      WHEN pp.id_subtipo = 220 THEN 2 
+      ELSE 0 
+      END AS validar
+      FROM parametrica AS pp
+      LEFT OUTER JOIN (
+      SELECT sub.id_subtipo, sub.desc_subtipo, sub.validar
+      FROM (SELECT ii.id_subtipo, p.desc_subtipo,  
+          CASE 
+              WHEN ii.id_subtipo > 0 THEN 1
+              WHEN p.id_subtipo = 220 THEN 2 
+              ELSE 0 END AS validar
+      FROM parametrica AS p
+      LEFT OUTER JOIN public.informe_inicial AS ii ON p.id_subtipo = ii.id_subtipo
+      WHERE p.id_tipo = 21 AND p.id_padre = 0 AND ii.id_informe = $2         
+      UNION ALL         
+      SELECT 172 AS id_subtipo, NULL AS desc_subtipo, 
+          CASE WHEN obs_general IS NULL OR TRIM(obs_general) = '' THEN 0
+              ELSE 1 END AS validar
+      FROM public.informe 
+      WHERE id_informe = $2) AS sub
+      ) AS c ON pp.id_subtipo = c.id_subtipo
+      WHERE pp.id_tipo = 21 AND pp.id_padre = $1
+      ORDER BY pp.id_subtipo ASC;; `;
       }
       else {
 
@@ -176,7 +197,11 @@ export class InformeService {
     try {
 
       const query = `  SELECT de.id, ijson.id_informe_inicial, pa.id_subtipo as padre_id_subtipo, pa.desc_subtipo as padre_desc_subtipo 
-  , de.id_subtipo, de.desc_subtipo ,  ijson.opcion, ijson.observaciones FROM parametrica as pa 
+  , de.id_subtipo, de.desc_subtipo ,  ijson.opcion, ijson.observaciones,
+CASE 
+WHEN ijson.id_informe_inicial > 0 THEN 1
+ELSE 0 END AS validar  
+  FROM parametrica as pa 
   INNER JOIN (SELECT * FROM  parametrica WHERE id_tipo=28 
   AND id_padre IN(SELECT id_padre FROM  parametrica WHERE id_tipo=28 AND id_padre IN(228,227))) as de 	
   ON pa.id_subtipo = de.id_padre

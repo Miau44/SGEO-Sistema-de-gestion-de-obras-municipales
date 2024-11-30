@@ -111,7 +111,7 @@ export class PersonapermisoUeService {
     try {
       if(datosDto.obra > 0){
         const query = `
-        SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre,  p.id_usuario, 
+        SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre,  p.id_usuario, 
         per.desc_subtipo,  ppue.desc_cod_ue
         FROM public.persona AS p
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 

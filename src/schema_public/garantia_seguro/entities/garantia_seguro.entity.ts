@@ -25,8 +25,8 @@ export class GarantiaSeguro {
   @Column({nullable:true})
   id_tipo_seguro: number;
 
-  @Column({ type: 'varchar', nullable: false })
-  entidad_emisora: string;
+  @Column()
+  id_entidad_emisora: number;
 
   @Column({ type: 'date', nullable: false })
   inicio_vigencia: Date;

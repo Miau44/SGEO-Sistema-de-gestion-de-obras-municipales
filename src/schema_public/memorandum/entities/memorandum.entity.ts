@@ -17,7 +17,7 @@ export class Memorandum {
     @Column()
     id_correlativo:number;
 
-    @Column({ type: 'timestamp', nullable: false })
+    @Column({ type: 'date', nullable: true })
     fecha_memo:Date;   
 
     @Column({ type: 'varchar'})
@@ -35,7 +35,7 @@ export class Memorandum {
     @Column({ type: 'varchar'})
     cargo_remitente:string;   
 
-    @Column({ nullable: false })
+    @Column({ default : 1})
     id_estado:number;
 
     @CreateDateColumn({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })

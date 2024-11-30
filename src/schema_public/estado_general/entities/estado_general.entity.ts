@@ -17,7 +17,10 @@ export class EstadoGeneral {
     desc_estado_reporte:string;
 
     @Column({nullable:true})
-    url_formulario:string;    
+    url_formulario:string;  
+    
+    @Column({nullable:true})
+    desc_modulo:string;    
 
     @Column()
     usuario_registro: number;

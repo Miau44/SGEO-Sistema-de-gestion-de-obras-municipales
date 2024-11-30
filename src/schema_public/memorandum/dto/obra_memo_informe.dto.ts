@@ -2,13 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsString, IsDateString } from 'class-validator';
 
 export class GuardarObraDto {
+
+  // update tabla obra
   @ApiProperty()
   @IsInt()
   idObra: number;
 
   @ApiProperty()
   @IsInt()
-  idTipoObra: number;
+  idTipoPago: number;
 
   @ApiProperty()
   @IsInt()
@@ -19,40 +21,30 @@ export class GuardarObraDto {
   planillaAnticipo: number; // Cambiado de `planillasAnticipo`
 
   @ApiProperty()
-  @IsDateString()
-  fechaOrdenProceder: string;
+  fechaOrdenProceder: Date;
 
   @ApiProperty()
-  @IsDateString()
-  fechaRecepProvisional: string;
+  fechaRecepProvisional: Date;
 
   @ApiProperty()
   @IsInt()
   plazoProvDefinitiva: number;
 
   @ApiProperty()
-  @IsDateString()
-  fechaRecepDefinitiva: string;
+  fechaRecepDefinitiva: Date;
 
   @ApiProperty()
-  @IsDateString()
-  fechaInicioEjecucion: string; // Cambiado de `fechaInicio`
+  fechaInicioEjecucion: Date; // Cambiado de `fechaInicio`
 
   @ApiProperty()
   @IsInt()
   plazoEjecucion: number;
 
-  @ApiProperty()
-  @IsInt()
-  idTipoMemo: number;
+  //insercion tabla memorandum
 
   @ApiProperty()
   @IsInt()
   idCorrelativoMemo: number;
-
-  @ApiProperty()
-  @IsDateString()
-  fechaMemo: string;
 
   @ApiProperty()
   @IsString()
@@ -68,35 +60,17 @@ export class GuardarObraDto {
 
   @ApiProperty()
   @IsString()
-  nombreRemitente: string;
-
-  @ApiProperty()
-  @IsString()
   cargoRemitente: string;
-
-  @ApiProperty()
-  @IsInt()
-  idEstadoMemo: number;
 
   @ApiProperty()
   @IsInt()
   idUsuarioMemo: number;
 
-  @ApiProperty()
-  @IsInt()
-  idTipoInforme: number;
-
-  @ApiProperty()
-  @IsString()
-  antecedentes: string;
+  //insercion tabla informe
 
   @ApiProperty()
   @IsString()
   analisis: string;
-
-  @ApiProperty()
-  @IsString()
-  obsGeneral: string;
 
   @ApiProperty()
   @IsString()
@@ -112,10 +86,6 @@ export class GuardarObraDto {
 
   @ApiProperty()
   @IsInt()
-  usuarioRegistroInforme: number; // Cambiado de `usuarioRegistro`
-
-  @ApiProperty()
-  @IsInt()
-  idEstadoInforme: number;
+  usuarioRegistroInforme: number;
 }
 
