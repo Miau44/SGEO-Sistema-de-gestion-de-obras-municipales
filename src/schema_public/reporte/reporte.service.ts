@@ -35,6 +35,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class ReportService {
   datos: any = [];
   datosEnvio: any = [];  
+  datosSIM: any = [];  
   constructor(
     private readonly responseService: ResponseService,
     @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -55,21 +56,7 @@ export class ReportService {
   }
 
 
-  async datosReporteEnvio(obra: number) {
-    const query1 = ` SELECT *
-    FROM  tipo_documento as td
-    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-	LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-	INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-	INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-	WHERE  d.id_obra = ${obra} AND 
-  id_etapa_documento =1 AND id_subtipo_documento =108
-    ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
-
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
+ 
   	
 //SOLICITUD DE DESIGNACION 
   async generatePdf(gestion:number, id:number): Promise<Buffer> {
@@ -707,12 +694,40 @@ async generateMemoReemplazo(gestion:number, id:number): Promise<Buffer> {
 
 
 //FORMULARIO DE ENVIO DE DOCUMENTACION 
+
+async datosReporteEnvio(obra: number) {
+  const query1 = `SELECT distinct *, td.id_tipo_documento  
+  FROM  tipo_documento as td
+  INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+  const values = [obra]
+  const resultado = await this.sequelize.query(query1);
+  return resultado[0];
+}
+
+
+async datosAdjuntoSim(obra: number) {
+const query1 = `SELECT *  
+  FROM  tipo_documento as td
+WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
+const values = [obra]
+const resultado = await this.sequelize.query(query1);
+return resultado[0];
+}
+
+
 async generateEnvioDoc(obra:number): Promise<Buffer> {
     
   const res = await this.datosReporteEnvio(obra);
   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
     throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
   } 
+  const ressim = await this.datosAdjuntoSim(obra);
+
+  this.datosSIM = ressim;
   this.datosEnvio = res;
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -736,12 +751,12 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
     content: [
 
       {
-        text: '\n\n\n\n\FORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n\n\n',
+        text: '\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n',
         style: 'header', alignment: 'center'
       } as any,
      
       {
-        text: 'DATOS DE PROYECTO. \n\n',
+        text: 'DATOS DE PROYECTO. \n',
         style: 'subheader',
       },
 
@@ -771,7 +786,7 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
 
             [
               { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },]  },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n\n\n', style: 'textDato' }] }
+              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
             ]
 
 
@@ -781,32 +796,73 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
         layout: 'noBorders'
       },
 
+
+      {
+        text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
+        style: 'textDato',
+      },
+
       {
         table: {
-          widths: [100,'*',100],
+          widths: [30,'*',50,100],
           body: [
             [
-              { text: [{ text: 'Nº:', style: 'textTitulo' },], fillColor: '#dddddd'},
+              { text: [{ text: 'Nº:', style: 'textTitulo',alignment: 'center', },], fillColor: '#dddddd'},
               { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: 'ADJUNTO:', style: 'textTitulo' },] , fillColor: '#dddddd'},
+              { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },] , fillColor: '#dddddd'},
+              { text: [{ text: 'OBS:', style: 'textTitulo' },] , fillColor: '#dddddd'},
 
             ],
-            ...this.buildItems(this.datosEnvio)            
+            ...this.buildDocumentosSIM(this.datosSIM)            
+          ]
+        },
+      },      
+
+      {
+        text: '\nDocumentación Complementaría. \n',
+        style: 'textTitulo',
+      },      
+      
+
+      {
+        table: {
+          widths: [30,'*',50,100],
+          body: [
+            [
+              { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd'},
+              { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: 'ADJUNTO:', style: 'textTitulo' , alignment: 'center',},] , fillColor: '#dddddd'},
+              { text: [{ text: 'OBS:', style: 'textTitulo' },] , fillColor: '#dddddd'},
+
+            ],
+            ...this.buildDocumentos(this.datosEnvio)            
           ]
         },
       },
+
+      {
+        text: '\n\n* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
+        +'\n** Se remite una copia a la Fiscalización de Obra. \n\n',
+        style: 'textDato',
+      },    
+
+
+      {
+        text: '\n Fecha de Envío: 03/12/2024  ',
+        style: 'textDato',
+      },         
+  
    
       {
         text: [
-          '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
+          '\nIng. Jefe Sub:' + '\n' + 'Jefe de Unidad Solicitante',
         ],
         style: 'subheader', alignment: 'center'
       },
 
-
       {
         text: [
-          '\n\n\n\n\n\n\ncc:Arch:', 
+          '\ncc:Arch:', 
         ],
         style: 'footerText'
       },
@@ -816,11 +872,11 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
 
     styles: {
       header: {
-        fontSize: 14,
+        fontSize: 12,
         bold: true,
       },
       subheader: {
-        fontSize: 12,
+        fontSize: 10,
         bold: true,
       },
       coloredText: {
@@ -838,11 +894,11 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
         bold: false,
       },
       textTitulo: {
-        fontSize: 10,
+        fontSize: 8,
         bold: true,
       },
       textDato: {
-        fontSize: 10,
+        fontSize: 8,
         bold: false,
         //color: 'gray', 
         opacity: 0.8,
@@ -850,6 +906,8 @@ async generateEnvioDoc(obra:number): Promise<Buffer> {
 
 
     },
+    pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
 
   };
  // Generar el PDF en memoria
@@ -1125,7 +1183,7 @@ async generateInformeActividades(obra:number): Promise<Buffer> {
 }
 
 
-buildItems(data: any) {
+buildDocumentos(data: any) {
   let datosResp = data; 
   let arrayData = [];
 
@@ -1133,9 +1191,29 @@ buildItems(data: any) {
   for (let i = 0; i < datosResp.length; i++) {
    c= c+1;
     let rowData = [
-      { text: [{ text: c, style: 'textDato' }]},
+      { text: [{ text: c, style: 'textDato', alignment: 'center', }]},
       { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }]  },
-      { text: [{ text: datosResp[i].cumple  ?'SI':'NO'  , style: 'textDato' }]  },
+      { text: [{ text: datosResp[i].cumple  ?'SI':'NO'  , style: 'textDato', alignment: 'center', }]  },
+      { text: [{ text: datosResp[i].observacion, style: 'textDato' }]  },
+    ];
+    arrayData.push(rowData);
+
+  }
+  return arrayData;
+}
+
+buildDocumentosSIM(data: any) {
+  let datosResp = data; 
+  let arrayData = [];
+
+  var c =0;
+  for (let i = 0; i < datosResp.length; i++) {
+   c= c+1;
+    let rowData = [
+      { text: [{ text: c, style: 'textDato', alignment: 'center', }]},
+      { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }]  },
+      { text: [{ text: datosResp[i].cumple  ?'SI':'SI'  , style: 'textDato', alignment: 'center', }]  },
+      { text: [{ text: datosResp[i].observacion, style: 'textDato' }]  },
     ];
     arrayData.push(rowData);
 
