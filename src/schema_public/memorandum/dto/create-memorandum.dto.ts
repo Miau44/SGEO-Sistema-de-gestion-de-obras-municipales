@@ -9,12 +9,10 @@ export class CreateMemorandumDto {
 
     @IsInt()
     @ApiProperty()
-    @IsNotEmpty()
     id_tipo_memo: number;
 
     @IsInt()
     @ApiProperty()
-    @IsNotEmpty()
     id_correlativo: number;
 
     @IsDate()

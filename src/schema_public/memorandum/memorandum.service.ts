@@ -23,6 +23,15 @@ export class MemorandumService {
   ) { }
 
 
+  constructor(
+    @InjectRepository(Memorandum) private memoRepository: Repository<Memorandum>,
+    @InjectRepository(Obra) private obraRepository: Repository<Obra>,
+    @InjectRepository(Informe) private informeRepository: Repository<Informe>,
+
+    private responseService: ResponseService
+  ) { }
+
+
   async create(createMemorandumDto: CreateMemorandumDto) {
     try {
       const resultado = await this.memoRepository.save(createMemorandumDto);

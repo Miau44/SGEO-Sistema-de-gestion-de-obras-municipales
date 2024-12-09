@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { DocumentoService } from './documento.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
@@ -36,11 +36,8 @@ export class DocumentoController {
     schema: {
       type: 'object',
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-        id_obra: { type: 'number' },
+        file: { type: 'string', format: 'binary' },
+        id_documento: { type: 'number' }, // Cambiado de id_obra a id_documento
         id_tipo_documento: { type: 'number' },
         usuario_registro: { type: 'number' },
       },
@@ -48,38 +45,55 @@ export class DocumentoController {
   })
   async uploadDocumentoSICOM(
     @UploadedFile() file: Express.Multer.File,
-    @Body('id_obra') id_obra: number,
+    @Body('id_documento') id_documento: number, // Cambiado de id_obra a id_documento
     @Body('id_tipo_documento') id_tipo_documento: number,
     @Body('usuario_registro') usuario_registro: number
   ): Promise<{ url_file: string; id_documento: number }> {
     const fileExtension = path.extname(file.originalname).slice(1);
 
-    const ruta = await this.documentoService.generateDocumentRoute(id_obra, id_tipo_documento, usuario_registro, fileExtension);
+    // Obtén el documento por su ID para obtener id_obra
+    const documentoExistente = await this.documentoService.findById(id_documento);
+    if (!documentoExistente) {
+      throw new HttpException('Documento no encontrado', HttpStatus.NOT_FOUND);
+    }
 
-    const nuevoDocumento = new Documento();
-    nuevoDocumento.id_obra = id_obra;
-    nuevoDocumento.id_tipo_documento = id_tipo_documento;
-    nuevoDocumento.usuario_registro = usuario_registro;
-    nuevoDocumento.ruta_documento = ruta;
-    nuevoDocumento.cumple = false;
+    const { id_obra } = documentoExistente; // Usa id_obra del documento encontrado
 
-    const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
+    // Genera la ruta real utilizando id_obra
+    const ruta = await this.documentoService.generateDocumentRoute(
+      id_obra,
+      id_tipo_documento,
+      usuario_registro,
+      fileExtension
+    );
 
+    // Actualiza la ruta generada en el documento
+    await this.documentoService.saveDocumentoUrl(id_documento, ruta);
+
+    // Carga el archivo al servicio externo
     const uploadResponse = await this.documentoService.uploadFileToExternalService(
       file,
       ruta,
-      "marvel",
-      "marvel123",
-      "rita.flores"
+      'marvel',
+      'marvel123',
+      'rita.flores'
     );
 
     if (uploadResponse.estado && uploadResponse.url_file) {
-      await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
+      // Actualiza la URL del archivo en la base de datos
+      await this.documentoService.saveDocumentoUrl(id_documento, uploadResponse.url_file);
+      // Actualizar el campo 'cumple' a true
+      await this.documentoService.updateCumpleField(id_documento, true);
+    } else {
+      throw new HttpException(
+        'Error en la respuesta del servicio externo',
+        HttpStatus.BAD_GATEWAY
+      );
     }
 
     return {
       url_file: uploadResponse.url_file,
-      id_documento: savedDocumento.id_documento,
+      id_documento,
     };
   }
 

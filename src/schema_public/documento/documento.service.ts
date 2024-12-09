@@ -44,6 +44,7 @@ export class DocumentoService {
     const formattedDate = fecha.toISOString().slice(0, 10).replace(/-/g, '');
     const timestamp = Date.now().toString().slice(-6);
 
+    // Genera la ruta basada en id_obra y los demás parámetros
     const ruta = `${year}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}.${fileExtension}`;
     return ruta;
   }
@@ -53,7 +54,16 @@ export class DocumentoService {
   }
 
   async saveDocumentoUrl(id_documento: number, url_file: string): Promise<void> {
+    // Actualiza la ruta o URL del archivo en el documento
     await this.documentoRepositorio.update(id_documento, { ruta_documento: url_file });
+  }
+
+  async updateCumpleField(id_documento: number, cumple: boolean): Promise<void> {
+    await this.documentoRepositorio.update(id_documento, { cumple });
+  }
+
+  async findById(id_documento: number): Promise<Documento | null> {
+    return await this.documentoRepositorio.findOne({ where: { id_documento } });
   }
 
   async uploadFileToExternalService(

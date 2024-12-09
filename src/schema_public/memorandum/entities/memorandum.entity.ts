@@ -11,7 +11,7 @@ export class Memorandum {
     @Column()
     id_obra:number;
 
-    @Column()
+    @Column({nullable: true})
     id_tipo_memo:number;    
 
     @Column()
@@ -20,19 +20,19 @@ export class Memorandum {
     @Column({ type: 'date', nullable: true })
     fecha_memo:Date;   
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     nombre_destinatario:string;  
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     referencia:string;
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     descripcion:string;   
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     nombre_remitente:string;
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     cargo_remitente:string;   
 
     @Column({ default : 1})
@@ -44,7 +44,7 @@ export class Memorandum {
     @UpdateDateColumn({ type: 'timestamp', nullable: false, onUpdate: 'CURRENT_TIMESTAMP' })
     fecha_modificacion:Date;
 
-    @Column()
+    @Column({nullable: true})
     id_usuario:number;   
 
     @ManyToOne(() => Obra, (obra) => obra.memorandum1)

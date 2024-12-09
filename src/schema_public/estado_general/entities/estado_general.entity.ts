@@ -22,6 +22,9 @@ export class EstadoGeneral {
     @Column({nullable:true})
     desc_modulo:string;    
 
+    @Column({nullable:true})
+    desc_modulo: string;
+
     @Column()
     usuario_registro: number;
 
