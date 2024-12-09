@@ -4,6 +4,7 @@ import { CreateMemorandumDto } from './dto/create-memorandum.dto';
 import { UpdateMemorandumDto } from './dto/update-memorandum.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GuardarObraDto } from './dto/obra_memo_informe.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Memorandum')
 @Controller('memorandum')
@@ -12,6 +13,8 @@ export class MemorandumController {
     private readonly memorandumService: MemorandumService,
   ) {}
 
+
+  @Public()
   @Post()
   create(@Body() createMemorandumDto: CreateMemorandumDto) {
     return this.memorandumService.create(createMemorandumDto);
@@ -37,7 +40,8 @@ export class MemorandumController {
     return this.memorandumService.remove(+id);
   }
 
-  @Post('ObraMemoInf')
+  @Public()
+  @Post('obra-memo-infor')
   guardarObraMemorandumInforme( @Body() updateMemorandumDto: GuardarObraDto) {
     try{
       return this.memorandumService.guardarObraMemorandumInforme(updateMemorandumDto);

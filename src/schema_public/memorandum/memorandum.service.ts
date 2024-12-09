@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Memorandum } from './entities/memorandum.entity';
 import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
+import { CreateInformeDto } from '../informe/dto/create-informe.dto';
 import { Obra } from '../obra/entities/obra.entity';
 import { Informe } from '../informe/entities/informe.entity';
 
@@ -21,8 +22,23 @@ export class MemorandumService {
     private responseService: ResponseService
   ) { }
 
-  create(createMemorandumDto: CreateMemorandumDto) {
-    return 'This action adds a new memorandum';
+
+  constructor(
+    @InjectRepository(Memorandum) private memoRepository: Repository<Memorandum>,
+    @InjectRepository(Obra) private obraRepository: Repository<Obra>,
+    @InjectRepository(Informe) private informeRepository: Repository<Informe>,
+
+    private responseService: ResponseService
+  ) { }
+
+
+  async create(createMemorandumDto: CreateMemorandumDto) {
+    try {
+      const resultado = await this.memoRepository.save(createMemorandumDto);
+      return this.responseService.success(resultado, "GUardado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   findAll() {

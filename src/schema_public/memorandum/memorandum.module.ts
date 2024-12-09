@@ -12,6 +12,6 @@ import { Informe } from '../informe/entities/informe.entity';
   imports: [TypeOrmModule.forFeature([Memorandum, Obra, CorrelativoMemo, Informe])],
 
   controllers: [MemorandumController],
-  providers: [MemorandumService,ResponseService],
+  providers: [MemorandumService, ResponseService],
 })
 export class MemorandumModule {}

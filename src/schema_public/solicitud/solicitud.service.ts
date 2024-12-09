@@ -68,7 +68,7 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
   async listarMiBandeja(bandeja: BandejaDto) {
     try {
       const query = `SELECT s.id_solicitud, o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
-      eo.gestion, eg.id_estado_general, eg.desc_estado_gral AS actividad,   s.id_estado_solicitud,
+      eo.gestion, eg.id_estado_general, eg.desc_estado_gral AS actividad, eg.desc_modulo,   s.id_estado_solicitud,
      s.fecha_registro as fecha, eg.url_formulario
      FROM obra AS o   
      INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
@@ -156,7 +156,7 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
   async usuarioAsignadoObra(data: UsuarioSolicitudObraDto) {
     try {
       const query = `
-        	   SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre
+        	   SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
         ,sh.id_obra
         FROM solicitud_historial sh
         INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 

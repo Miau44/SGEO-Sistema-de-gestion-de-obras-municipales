@@ -26,8 +26,7 @@ export class CreateGarantiaSeguroDto {
   id_tipo_seguro?: number;
 
   @ApiProperty()
-  @IsString()
-  entidad_emisora: string;
+  id_entidad_emisora: number;
 
   @ApiProperty()
   @IsDate()
