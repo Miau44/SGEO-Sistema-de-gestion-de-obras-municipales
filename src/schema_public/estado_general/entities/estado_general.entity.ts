@@ -19,6 +19,9 @@ export class EstadoGeneral {
     @Column({nullable:true})
     url_formulario:string;    
 
+    @Column({nullable:true})
+    desc_modulo: string;
+
     @Column()
     usuario_registro: number;
 

@@ -37,8 +37,13 @@ export class MemorandumController {
     return this.memorandumService.remove(+id);
   }
 
-  @Post('guardar')
-  async guardarObraMemorandumInforme(@Body() body: GuardarObraDto): Promise<void> {
-    return this.memorandumService.guardarObraMemorandumInforme(body);
-  }
+  @Post('ObraMemoInf')
+  guardarObraMemorandumInforme( @Body() updateMemorandumDto: GuardarObraDto) {
+    try{
+      return this.memorandumService.guardarObraMemorandumInforme(updateMemorandumDto);
+
+    }catch (error){
+
+    }}
+
 }

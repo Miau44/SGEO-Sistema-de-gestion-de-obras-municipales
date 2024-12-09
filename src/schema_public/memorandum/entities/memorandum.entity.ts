@@ -11,31 +11,31 @@ export class Memorandum {
     @Column()
     id_obra:number;
 
-    @Column()
+    @Column({nullable: true})
     id_tipo_memo:number;    
 
     @Column()
     id_correlativo:number;
 
-    @Column({ type: 'timestamp', nullable: false })
+    @Column({ type: 'date', nullable: true })
     fecha_memo:Date;   
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     nombre_destinatario:string;  
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     referencia:string;
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     descripcion:string;   
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     nombre_remitente:string;
 
-    @Column({ type: 'varchar'})
+    @Column({nullable: true})
     cargo_remitente:string;   
 
-    @Column({ nullable: false })
+    @Column({ default : 1})
     id_estado:number;
 
     @CreateDateColumn({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
@@ -44,7 +44,7 @@ export class Memorandum {
     @UpdateDateColumn({ type: 'timestamp', nullable: false, onUpdate: 'CURRENT_TIMESTAMP' })
     fecha_modificacion:Date;
 
-    @Column()
+    @Column({nullable: true})
     id_usuario:number;   
 
     @ManyToOne(() => Obra, (obra) => obra.memorandum1)
