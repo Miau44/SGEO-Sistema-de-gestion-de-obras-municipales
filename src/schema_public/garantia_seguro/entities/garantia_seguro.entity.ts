@@ -34,8 +34,7 @@ export class GarantiaSeguro {
   @Column({ type: 'date', nullable: false })
   fin_vigencia: Date;
 
- // @Column({ type: 'numeric', nullable: false })
-  @Column("decimal",{ precision: 10, scale: 5 })
+  @Column("decimal", { precision: 15, scale: 2})
   monto: number;
 
   @Column({ nullable: true })

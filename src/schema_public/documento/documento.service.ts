@@ -37,7 +37,8 @@ export class DocumentoService {
     id_obra: number,
     id_tipo_documento: number,
     usuario_registro: number,
-    fileExtension: string
+    fileExtension: string,
+    ciNitFuncionario: string
   ): Promise<string> {
     const fecha = new Date();
     const year = fecha.getFullYear();
@@ -45,7 +46,7 @@ export class DocumentoService {
     const timestamp = Date.now().toString().slice(-6);
 
     // Genera la ruta basada en id_obra y los demás parámetros
-    const ruta = `${year}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}.${fileExtension}`;
+    const ruta = `${ciNitFuncionario}/funcionario/${year}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}.${fileExtension}`;
     return ruta;
   }
 

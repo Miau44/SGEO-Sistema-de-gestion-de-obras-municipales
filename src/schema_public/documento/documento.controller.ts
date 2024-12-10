@@ -40,6 +40,7 @@ export class DocumentoController {
         id_documento: { type: 'number' }, // Cambiado de id_obra a id_documento
         id_tipo_documento: { type: 'number' },
         usuario_registro: { type: 'number' },
+        ciNitFuncionario: { type: 'string' }, 
       },
     },
   })
@@ -47,7 +48,8 @@ export class DocumentoController {
     @UploadedFile() file: Express.Multer.File,
     @Body('id_documento') id_documento: number, // Cambiado de id_obra a id_documento
     @Body('id_tipo_documento') id_tipo_documento: number,
-    @Body('usuario_registro') usuario_registro: number
+    @Body('usuario_registro') usuario_registro: number,
+    @Body('ciNitFuncionario') ciNitFuncionario: string
   ): Promise<{ url_file: string; id_documento: number }> {
     const fileExtension = path.extname(file.originalname).slice(1);
 
@@ -64,7 +66,8 @@ export class DocumentoController {
       id_obra,
       id_tipo_documento,
       usuario_registro,
-      fileExtension
+      fileExtension,
+      ciNitFuncionario 
     );
 
     // Actualiza la ruta generada en el documento
