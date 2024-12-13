@@ -27,6 +27,9 @@ export class Ficha {
     @Column("decimal",{ precision: 10, scale: 2 })
     total_carpeta: number;
 
+    @Column({nullable:true})
+    id_carpeta: number;
+
     @Column()
     cod_carpeta: string;
 
