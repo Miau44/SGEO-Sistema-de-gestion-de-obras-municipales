@@ -114,7 +114,7 @@ export class InformeService {
 
         query = `
       SELECT de.id, ijson.id_informe_inicial, pa.id_subtipo as padre_id_subtipo, pa.desc_subtipo as padre_desc_subtipo 
-      , de.id_subtipo, de.desc_subtipo ,  ijson.opcion, ijson.observaciones,  
+      , de.id_subtipo, de.desc_subtipo , de.detalle, ijson.opcion, ijson.observaciones,  
       CASE WHEN ijson.cumple IS NULL THEN 0 ELSE ijson.cumple END AS cumple FROM parametrica as pa 
       INNER JOIN (SELECT * FROM  parametrica WHERE id_tipo=21 
       AND id_padre IN(SELECT id_padre FROM  parametrica WHERE id_tipo=21 AND id_padre =$1)) as de 	
@@ -174,7 +174,7 @@ export class InformeService {
   async listaOpcionesInforme(data:InformeOpcionDto ) {
     try {
 
-      if (data.subtipo === 169  || data.subtipo === 170 ) {
+      /*if (data.subtipo === 169  || data.subtipo === 170 ) {
         const query = ` SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo =25 AND id_estado=1;`;
        
         const resultado = await this.informeRepositorio.query(query, );
@@ -186,7 +186,14 @@ export class InformeService {
         const query = `SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo =25 AND id_estado=1 AND id_subtipo NOT IN (218);`;
         const resultado = await this.informeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")
-      }
+      }*/
+
+        const query = ` SELECT  idpadre AS id_padre,  idsubtipo AS id_subtipo, descsubtipo AS desc_subtipo, obs AS observacion
+        FROM sp_opcion_informeinicial() WHERE idpadre =$1`;
+        const params = [data.subtipo];
+        const resultado = await this.informeRepositorio.query(query, params);
+        return this.responseService.success(resultado, "Listado Correctamente.")        
+
     } catch (error) {
       return this.responseService.error(error);
     }

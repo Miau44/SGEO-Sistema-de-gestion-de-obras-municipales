@@ -36,6 +36,7 @@ import { ContratoModule } from './schema_public/contrato-modificatorio/contrato.
 import { SolicitudHistorialModule } from './schema_public/solicitud_historial/solicitud_historial.module';
 import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
 import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
+import { CorrelativoModule } from './schema_public/correlativo/correlativo.module';
 
 
 @Module({
@@ -104,6 +105,7 @@ import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
   GarantiaSeguroModule,
   ContratoModule,
   MemorandumModule,
+  CorrelativoModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

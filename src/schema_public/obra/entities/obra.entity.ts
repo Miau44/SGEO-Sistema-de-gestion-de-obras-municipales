@@ -58,8 +58,9 @@ export class Obra {
     @Column({type: 'date',  nullable: true })
     fecha_pago_anticipo: Date | null;
 
-
-
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    monto_anticipo: number;
+    
     ///---------campos genericos-----//////
 
     @Column({nullable:true})

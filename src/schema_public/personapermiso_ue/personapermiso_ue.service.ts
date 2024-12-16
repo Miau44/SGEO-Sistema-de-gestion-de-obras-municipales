@@ -109,7 +109,8 @@ export class PersonapermisoUeService {
 
   async usuarioXPermisoXUe(datosDto: UsuarioPermisoXUeDto) {
     try {
-      if(datosDto.obra > 0){
+      if(datosDto.obra > 0){ // fiscales y supervisores
+
         const query = `
         SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre,  p.id_usuario, 
         per.desc_subtipo,  ppue.desc_cod_ue
@@ -125,10 +126,10 @@ export class PersonapermisoUeService {
         const resultado = await this.pperUeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")
         
-      }else{
+      }else{ //personas que no son supervisores y fiscales
         const query = `
-        SELECT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || '/ ' || per.desc_subtipo as nombre,  p.id_usuario, 
-        per.desc_subtipo,  ppue.desc_cod_ue
+        SELECT DISTINCT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || p.puesto as nombre,  p.id_usuario, 
+        ppue.desc_cod_ue
         FROM public.persona AS p
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
