@@ -30,72 +30,76 @@ export class DocumentoController {
 
 
   @Post('uploadSICOM')
-  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: { type: 'string', format: 'binary' },
-        id_documento: { type: 'number' }, // Cambiado de id_obra a id_documento
-        id_tipo_documento: { type: 'number' },
-        usuario_registro: { type: 'number' },
-      },
+@UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      file: { type: 'string', format: 'binary' },
+      id_obra: { type: 'number' },
+      id_tipo_documento: { type: 'number' },
+      id_usuario_registro: { type: 'number' },
+      ciNitFuncionario: { type: 'string' },
     },
-  })
-  async uploadDocumentoSICOM(
-    @UploadedFile() file: Express.Multer.File,
-    @Body('id_documento') id_documento: number, // Cambiado de id_obra a id_documento
-    @Body('id_tipo_documento') id_tipo_documento: number,
-    @Body('usuario_registro') usuario_registro: number
-  ): Promise<{ url_file: string; id_documento: number }> {
-    const fileExtension = path.extname(file.originalname).slice(1);
+  },
+})
+async uploadDocumentoSICOM(
+  @UploadedFile() file: Express.Multer.File,
+  @Body('id_obra') id_obra: number,
+  @Body('id_tipo_documento') id_tipo_documento: number,
+  @Body('id_usuario_registro') id_usuario_registro: number,
+  @Body('ciNitFuncionario') ciNitFuncionario: string
+): Promise<{ url_file: string; id_documento: number }> {
+  const fileExtension = path.extname(file.originalname).slice(1);
 
-    // Obtén el documento por su ID para obtener id_obra
-    const documentoExistente = await this.documentoService.findById(id_documento);
-    if (!documentoExistente) {
-      throw new HttpException('Documento no encontrado', HttpStatus.NOT_FOUND);
-    }
+  // Genera la ruta inicial para el documento
+  const ruta = await this.documentoService.generateDocumentRoute(
+    id_obra,
+    id_tipo_documento,
+    id_usuario_registro,
+    fileExtension,
+    ciNitFuncionario
+  );
 
-    const { id_obra } = documentoExistente; // Usa id_obra del documento encontrado
+  // Crea el documento en la base de datos con la ruta inicial
+  const nuevoDocumento = new Documento();
+  nuevoDocumento.id_obra = id_obra;
+  nuevoDocumento.id_tipo_documento = id_tipo_documento;
+  nuevoDocumento.usuario_registro = id_usuario_registro;
+  nuevoDocumento.ruta_documento = ruta; // Ruta inicial generada
+  nuevoDocumento.cumple = false;
 
-    // Genera la ruta real utilizando id_obra
-    const ruta = await this.documentoService.generateDocumentRoute(
-      id_obra,
-      id_tipo_documento,
-      usuario_registro,
-      fileExtension
+  const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
+
+  // Subir el archivo al servicio externo
+  const uploadResponse = await this.documentoService.uploadFileToExternalService(
+    file,
+    ruta,
+    'marvel',
+    'marvel123',
+    'rita.flores'
+  );
+
+  // Verificar la respuesta del servicio externo
+  if (uploadResponse.estado && uploadResponse.url_file) {
+    // Actualiza la URL del archivo en la base de datos
+    await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
+  } else {
+    throw new HttpException(
+      'Error en la respuesta del servicio externo',
+      HttpStatus.BAD_GATEWAY
     );
-
-    // Actualiza la ruta generada en el documento
-    await this.documentoService.saveDocumentoUrl(id_documento, ruta);
-
-    // Carga el archivo al servicio externo
-    const uploadResponse = await this.documentoService.uploadFileToExternalService(
-      file,
-      ruta,
-      'marvel',
-      'marvel123',
-      'rita.flores'
-    );
-
-    if (uploadResponse.estado && uploadResponse.url_file) {
-      // Actualiza la URL del archivo en la base de datos
-      await this.documentoService.saveDocumentoUrl(id_documento, uploadResponse.url_file);
-      // Actualizar el campo 'cumple' a true
-      await this.documentoService.updateCumpleField(id_documento, true);
-    } else {
-      throw new HttpException(
-        'Error en la respuesta del servicio externo',
-        HttpStatus.BAD_GATEWAY
-      );
-    }
-
-    return {
-      url_file: uploadResponse.url_file,
-      id_documento,
-    };
   }
+
+  // Retorna tanto el `url_file` como el `id_documento`
+  return {
+    url_file: uploadResponse.url_file,
+    id_documento: savedDocumento.id_documento,
+  };
+}
+
+
 
 
    @Public()

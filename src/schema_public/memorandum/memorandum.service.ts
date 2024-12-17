@@ -13,7 +13,6 @@ import { Informe } from '../informe/entities/informe.entity';
 @Injectable()
 export class MemorandumService {
 
-
   constructor(
     @InjectRepository(Memorandum) private memoRepository: Repository<Memorandum>,
     @InjectRepository(Obra) private obraRepository: Repository<Obra>,
@@ -21,6 +20,7 @@ export class MemorandumService {
 
     private responseService: ResponseService
   ) { }
+
 
   async create(createMemorandumDto: CreateMemorandumDto) {
     try {
