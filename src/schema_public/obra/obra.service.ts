@@ -156,6 +156,8 @@ f.total_carpeta as totalcarpeta,eo.desc_cod_da, eo.nombre_ue, eo.gestion,
 f.fecha_registro,  eg.desc_subestado as desc_estado_gral, tob.desc_subtipo AS desc_tipoobra, 
 mc.desc_subtipo AS desc_modalidad, (CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema, 
 '0' as estado_designacion, f.fecha_validacion_carpeta as  fecha_modificacion
+(select id_solicitud from solicitud where solicitud.id_obra = o.id_obra and solicitud.id_estado_general in (7,9,11) limit 1) as id_sol_fiscal,
+(select id_solicitud from solicitud where solicitud.id_obra = o.id_obra and solicitud.id_estado_general in (7,9,11) limit 1) as id_sol_sup
 FROM obra AS o   
 INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
 INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional

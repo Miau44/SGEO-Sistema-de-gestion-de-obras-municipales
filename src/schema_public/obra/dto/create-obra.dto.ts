@@ -25,6 +25,10 @@ procede: number;
 fecha_pago_anticipo!: Date | null;
 
 @ApiProperty()
+monto_anticipo?: number;
+
+
+@ApiProperty()
 usuario_registro: number;
 
 @ApiProperty()
