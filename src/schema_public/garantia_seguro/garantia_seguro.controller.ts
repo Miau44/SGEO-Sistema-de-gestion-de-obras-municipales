@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { GarantiaSeguroService } from './garantia_seguro.service';
 import { CreateGarantiaSeguroDto } from './dto/create-garantia_seguro.dto';
 import { UpdateGarantiaSeguroDto } from './dto/update-garantia_seguro.dto';
@@ -70,4 +70,25 @@ export class GarantiaSeguroController {
     } catch (error) {
     }
   } 
+
+  @Post('updateGarantiaSeguroDocumento')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_garantia_seguro: { type: 'number' },
+        id_documento: { type: 'number' },
+      },
+      required: ['id_garantia_seguro', 'id_documento'],
+    },
+  })
+  async updateGarantiaSeguroDocumento(@Body() body: any) {
+    const { id_garantia_seguro, id_documento } = body;
+
+    if (!id_garantia_seguro || !id_documento) {
+      throw new HttpException('Los campos id_garantia_seguro e id_documento son requeridos.', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.garantiaSeguroService.updateGarantiaSeguroDocumento(id_garantia_seguro, id_documento);
+  }
 }

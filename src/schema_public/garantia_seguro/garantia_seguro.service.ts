@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGarantiaSeguroDto } from './dto/create-garantia_seguro.dto';
 import { UpdateGarantiaSeguroDto } from './dto/update-garantia_seguro.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -52,16 +52,34 @@ export class GarantiaSeguroService {
     );
   }
 
+  async updateGarantiaSeguroDocumento(id_garantia_seguro: number, id_documento: number): Promise<any> {
+    const garantiaSeguro = await this.garantiaSeguroRepository.findOne({
+      where: { id_garantia_seguro },
+    });
+
+    if (!garantiaSeguro) {
+      throw new HttpException('El registro no existe.', HttpStatus.NOT_FOUND);
+    }
+
+    garantiaSeguro.id_documento = id_documento;
+
+    await this.garantiaSeguroRepository.save(garantiaSeguro);
+
+    return {
+      message: 'El campo id_documento fue actualizado correctamente.',
+      id_garantia_seguro,
+      id_documento,
+    };
+  }
 
 
-async findAllGarantias(id_obra: number): Promise<any[]> {
-  return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias($1)', [id_obra]);
-}
+  async findAllGarantias(id_obra: number): Promise<any[]> {
+    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_garantias($1)', [id_obra]);
+  }
 
-async findAllSeguros(id_obra: number): Promise<any[]> {
-    return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_seguros($1)', [id_obra]);
-}
-
+  async findAllSeguros(id_obra: number): Promise<any[]> {
+      return await this.garantiaSeguroRepository.query('SELECT * FROM sp_obtener_seguros($1)', [id_obra]);
+  }
 
   async listarSubtiposPorTipo(descTipo: string): Promise<{ id: number; desc_subtipo: string }[]> {
     const query = ` SELECT * FROM listar_subtipos_por_tipo($1);`;

@@ -39,14 +39,15 @@ export class DocumentoService {
     id_tipo_documento: number,
     usuario_registro: number,
     fileExtension: string,
-    ciNitFuncionario: string
+    ciNitFuncionario: string,
+    funcionario:string
   ): Promise<string> {
     const fecha = new Date();
-    const year = fecha.getFullYear();
     const formattedDate = fecha.toISOString().slice(0, 10).replace(/-/g, '');
     const timestamp = Date.now().toString().slice(-6);
-    const ruta = `${ciNitFuncionario}/funcionario/${year}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}.${fileExtension}`;
-
+    const ruta = `${ciNitFuncionario}/${funcionario}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}.${fileExtension}`;
+    console.log('ruta nueva agregando funcionario',ruta);
+    
     return ruta;
   }
 
