@@ -16,6 +16,9 @@ export class RolPermiso {
     @Column()
     descripcion_rol:string;
 
+    @Column({nullable:true})
+    descripcion_rol_sgeo:string;
+
     @Column({default:null})
     id_permiso:number;   
   

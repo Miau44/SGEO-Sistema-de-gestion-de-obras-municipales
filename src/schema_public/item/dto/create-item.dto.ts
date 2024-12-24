@@ -4,17 +4,23 @@ export class CreateItemDto {
   @ApiProperty()
   id_obra: number;
 
-  @ApiProperty({ nullable: true })
-  id_orden_item: number;
-
   @ApiProperty()
   codigo_item: string;
 
   @ApiProperty()
-  item: string;
+  partida_sim?: number;
 
   @ApiProperty()
-  unidad_medida: string;
+  orden_item: number; 
+
+  @ApiProperty()
+  item_sim: number;
+
+  @ApiProperty()
+  desc_item_sim: string;
+
+  @ApiProperty()
+  unidad_medida_sim: string;
 
   @ApiProperty()
   cantidad_sim: number;
@@ -25,36 +31,50 @@ export class CreateItemDto {
   @ApiProperty()
   total_item_sim: number;
 
-  @ApiProperty({ nullable: true })
-  fuente_financiamiento: string;
+  @ApiProperty()
+  fuente_financiamiento_sim: string;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   p_unitario_adjudicado: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   total_adjudicado: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   cantidad_modificacion: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   total_modificacion: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   p_unitario_modificacion: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   tipo_modificacion: string;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   numero_modificacion: number;
 
-  @ApiProperty({ nullable: true })
-  tipo_item: string;
+  @ApiProperty()
+  cantidad_pago_aprobado: number;
 
   @ApiProperty()
-  estado_item: number;
+  monto_pago_aprobado: number;
 
   @ApiProperty()
-  id_usuario: number;
+  nro_pago: number;
+
+  @ApiProperty()
+  tipo_pago: number;
+
+  @ApiProperty()
+  estado_pago: number;
+
+  @ApiProperty()
+  id_usuario_registro: number;
+
+  @ApiProperty()
+  id_estado: number;
+
+
 }
