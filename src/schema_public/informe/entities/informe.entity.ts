@@ -29,6 +29,11 @@ export class Informe {
     @Column({nullable:true})
     id_correlativo: number;
 
+    @Column("json", { 
+        nullable: true 
+    })
+    id_documento: string;
+
     @Column()
     usuario_registro: number;
 

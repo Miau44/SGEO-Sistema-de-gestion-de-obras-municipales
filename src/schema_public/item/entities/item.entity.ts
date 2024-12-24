@@ -44,16 +44,16 @@ export class Item {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
   p_unitario_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
   total_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
   cantidad_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
   total_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2 , nullable:true})
   p_unitario_modificacion: number;
 
   @Column({ type: 'varchar', nullable: true })

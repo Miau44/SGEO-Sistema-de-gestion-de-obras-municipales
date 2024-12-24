@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -245,6 +245,29 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
     }
   }
 
+  async updateInformeDocumentos(id_informe: number, id_documentos: number[]): Promise<any> {
+    // Buscar el informe
+    const informe = await this.informeRepositorio.findOne({
+        where: { id_informe },
+    });
 
+    if (!informe) {
+        throw new HttpException('El informe no existe.', HttpStatus.NOT_FOUND);
+    }
+
+    // Crear el array de objetos JSON con los id_documentos
+    const documentosJson = id_documentos.map((id) => ({ id_documento: id }));
+
+    // Guardar directamente el array JSON en el campo de la base de datos
+    informe.id_documento = documentosJson as any;
+
+    await this.informeRepositorio.save(informe);
+
+    return {
+        message: 'El campo id_documento fue actualizado correctamente.',
+        id_informe,
+        documentos: documentosJson,
+    };
+}
 
 }

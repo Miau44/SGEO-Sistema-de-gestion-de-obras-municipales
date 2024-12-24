@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, Query, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, Query, HttpException, HttpStatus, UploadedFiles } from '@nestjs/common';
 import { DocumentoService } from './documento.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
@@ -6,7 +6,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import multer from 'multer';
 import path from 'path';
@@ -30,106 +30,110 @@ export class DocumentoController {
 
 
   @Post('uploadSICOM')
-@UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      file: { type: 'string', format: 'binary' },
-      id_obra: { type: 'number' },
-      id_tipo_documento: { type: 'number' },
-      id_usuario_registro: { type: 'number' },
-      ciNitFuncionario: { type: 'string' },
+  @UseInterceptors(FilesInterceptor('files', 10, { storage: multer.memoryStorage() }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: { type: 'array', items: { type: 'string', format: 'binary' } },
+        id_obra: { type: 'number' },
+        id_tipo_documento: { type: 'number' },
+        id_usuario_registro: { type: 'number' },
+        ciNitFuncionario: { type: 'string' },
+        usuario_desc: { type: 'string' },
+      },
     },
-  },
-})
-async uploadDocumentoSICOM(
-  @UploadedFile() file: Express.Multer.File,
-  @Body('id_obra') id_obra: number,
-  @Body('id_tipo_documento') id_tipo_documento: number,
-  @Body('id_usuario_registro') id_usuario_registro: number,
-  @Body('ciNitFuncionario') ciNitFuncionario: string
-): Promise<{ url_file: string; id_documento: number }> {
-  const fileExtension = path.extname(file.originalname).slice(1);
+  })
+  async uploadMultipleDocumentosSICOM(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('id_obra') id_obra: number,
+    @Body('id_tipo_documento') id_tipo_documento: number,
+    @Body('id_usuario_registro') id_usuario_registro: number,
+    @Body('ciNitFuncionario') ciNitFuncionario: string,
+    @Body('usuario_desc') usuario_desc: string
+  ): Promise<{ documentos: { id_documento: number; url_file: string }[] }> {
+    if (!files || files.length === 0) {
+      throw new HttpException('No se han cargado archivos', HttpStatus.BAD_REQUEST);
+    }
 
-  // Genera la ruta inicial para el documento
-  const ruta = await this.documentoService.generateDocumentRoute(
-    id_obra,
-    id_tipo_documento,
-    id_usuario_registro,
-    fileExtension,
-    ciNitFuncionario
-  );
+    const resultados = [];
+    
+    for (const file of files) {
+      const fileExtension = path.extname(file.originalname).slice(1);
 
-  // Crea el documento en la base de datos con la ruta inicial
-  const nuevoDocumento = new Documento();
-  nuevoDocumento.id_obra = id_obra;
-  nuevoDocumento.id_tipo_documento = id_tipo_documento;
-  nuevoDocumento.usuario_registro = id_usuario_registro;
-  nuevoDocumento.ruta_documento = ruta; // Ruta inicial generada
-  nuevoDocumento.cumple = false;
+      // Genera la ruta inicial para el documento
+      const ruta = await this.documentoService.generateDocumentRoute(
+        id_obra,
+        id_tipo_documento,
+        id_usuario_registro,
+        ciNitFuncionario,
+        usuario_desc
+      );
 
-  const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
+      // Crea el documento en la base de datos con la ruta inicial
+      const nuevoDocumento = new Documento();
+      nuevoDocumento.id_obra = id_obra;
+      nuevoDocumento.id_tipo_documento = id_tipo_documento;
+      nuevoDocumento.usuario_registro = id_usuario_registro;
+      nuevoDocumento.ruta_documento = ruta;
+      nuevoDocumento.cumple = false;
 
-  // Subir el archivo al servicio externo
-  const uploadResponse = await this.documentoService.uploadFileToExternalService(
-    file,
-    ruta,
-    'marvel',
-    'marvel123',
-    'rita.flores'
-  );
+      const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
 
-  // Verificar la respuesta del servicio externo
-  if (uploadResponse.estado && uploadResponse.url_file) {
-    // Actualiza la URL del archivo en la base de datos
-    await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
-  } else {
-    throw new HttpException(
-      'Error en la respuesta del servicio externo',
-      HttpStatus.BAD_GATEWAY
-    );
+      // Subir el archivo al servicio externo
+      const uploadResponse = await this.documentoService.uploadFileToExternalService(
+        file,
+        ruta,
+        'marvel',
+        'marvel123',
+        'rita.flores'
+      );
+
+      if (uploadResponse.estado && uploadResponse.url_file) {
+        // Actualiza la URL del archivo en la base de datos
+        await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
+        resultados.push({
+          id_documento: savedDocumento.id_documento,
+          url_file: uploadResponse.url_file,
+        });
+      } else {
+        throw new HttpException(
+          `Error en el servicio externo para el archivo ${file.originalname}`,
+          HttpStatus.BAD_GATEWAY
+        );
+      }
+    }
+
+    // Retorna los resultados acumulados
+    return { documentos: resultados };
   }
 
-  // Retorna tanto el `url_file` como el `id_documento`
-  return {
-    url_file: uploadResponse.url_file,
-    id_documento: savedDocumento.id_documento,
-  };
-}
 
-
-
-
-   @Public()
-    @Post('listar')
+  @Public()
+  @Post('listar')
     documentosXObra(@Body() documentoDto: DocumentoObraDto) {
       try {  
         return this.documentoService.documentosXObra(documentoDto);
       } catch (error) {
       }
-    } 
-
+  } 
 
   @Public()
-    @Post('lista-documentos')
+  @Post('lista-documentos')
     listaPersonas(@Body() documentoDto: ListaDocumentoDto) {
       try {  
         return this.documentoService.listaDocumentos(documentoDto);
       } catch (error) {
       }
-    }
+  }
 
-
-
-    @Public()
-    @Post('lista-documentos-adjuntos')
+  @Public()
+  @Post('lista-documentos-adjuntos')
     listaDocumentos(@Body() documentoDto: ListaDocumentoDto) {
       try {  
         return this.documentoService.listaDocumentosXObraConAdjunto(documentoDto);
       } catch (error) {
       }
-    }
-
+  }
 }
