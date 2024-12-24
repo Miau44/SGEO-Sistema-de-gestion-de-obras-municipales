@@ -2,7 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import { ResponseService } from 'src/response.service';
+import { ItemObra } from './dto/itemObra.dto';
 
+
+@ApiTags('item')
 @Controller('items')
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
@@ -15,10 +21,13 @@ export class ItemController {
   }
 
   // Ruta para obtener todos los items
+  @Public()
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll() {
+    try {    
     return await this.itemService.findAll();
+  } catch (error) { }    
   }
 
   // Ruta para obtener un item por id
@@ -29,6 +38,8 @@ export class ItemController {
   }
 
   // Ruta para actualizar un item por id
+
+  @Public()
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
@@ -41,4 +52,11 @@ export class ItemController {
   async remove(@Param('id') id: string) {
     await this.itemService.remove(+id);
   }
+
+@Public()
+  @Post('items-obra')
+  async itemXObra(@Body() itemObra: ItemObra) {
+    return await this.itemService.listarItemsXObra(itemObra);
+  }
+
 }
