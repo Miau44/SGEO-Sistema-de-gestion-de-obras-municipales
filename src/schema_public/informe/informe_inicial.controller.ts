@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { InformeService } from './informe_inicial.service';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
 import { ResponseService } from 'src/response.service';
 import { Public } from 'src/common/decorators/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ListaInformeDto } from './dto/lista-informe.dto';
 import { CreateInformeInicialDto } from './dto/create-informe-inicial.dto';
 import { UpdateInformeInicialDto } from './dto/update-informe-inicial.dto';
@@ -127,6 +127,34 @@ export class InformeController {
     }
   }   
   
+  @Post('updateDocumentosInforme')
+  @ApiBody({
+      schema: {
+          type: 'object',
+          properties: {
+              id_informe: { type: 'number', example: 1 },
+              id_documentos: {
+                  type: 'array',
+                  items: { type: 'number' },
+                  example: [197, 198, 199],
+              },
+          },
+          required: ['id_informe', 'id_documentos'],
+      },
+  })
+  async updateInformeDocumentos(
+      @Body('id_informe') id_informe: number,
+      @Body('id_documentos') id_documentos: number[]
+  ): Promise<{ message: string; id_informe: number; documentos: { id_documento: number }[] }> {
+      if (!id_informe || !id_documentos || id_documentos.length === 0) {
+          throw new HttpException(
+              'El id_informe y id_documentos son requeridos.',
+              HttpStatus.BAD_REQUEST
+          );
+      }
   
-      
+      const result = await this.informeService.updateInformeDocumentos(id_informe, id_documentos);
+      return result;
+  }
+  
 }

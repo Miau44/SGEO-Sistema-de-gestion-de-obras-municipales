@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Obra } from './../../obra/entities/obra.entity'; // Relación con Obra
 @Entity('item')
 export class Item {
@@ -8,17 +8,24 @@ export class Item {
   @Column()
   id_obra: number;
 
-  @Column({ nullable: true })
-  id_orden_item: number;
+  @Column({ type: 'varchar' })
+  codigo_item: string;  
+
+  //datos sim
+  @Column()
+  partida_sim: number;
+
+  @Column()
+  orden_sim: number;
+
+  @Column()
+  item_sim: number;
 
   @Column({ type: 'varchar' })
-  codigo_item: string;
+  desc_item_sim: string;
 
   @Column({ type: 'varchar' })
-  item: string;
-
-  @Column({ type: 'varchar' })
-  unidad_medida: string;
+  unidad_medida_sim: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   cantidad_sim: number;
@@ -29,22 +36,24 @@ export class Item {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total_item_sim: number;
 
-  @Column({ type: 'varchar' })
-  fuente_financiamiento: string;
+  @Column({ type: 'varchar', nullable:true })
+  fuente_financiamiento_sim: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+
+//datos adjudicacion
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
   p_unitario_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
   total_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
   cantidad_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
   total_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2 , nullable:true})
   p_unitario_modificacion: number;
 
   @Column({ type: 'varchar', nullable: true })
@@ -53,14 +62,26 @@ export class Item {
   @Column({ nullable: true })
   numero_modificacion: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  tipo_item: string;
+  //datos pago
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  cantidad_pago_aprobado: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  partida: string;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  monto_pago_aprobado: number;
 
+  @Column({ nullable: true })
+  nro_pago: number;
+
+  @Column({ nullable: true })
+  tipo_pago: number;
+
+  @Column({ nullable: true })
+  estado_pago: number;
+
+
+  ///campos de tabla generales
   @Column()
-  estado_item: number;
+  id_usuario_registro: number;
 
   @CreateDateColumn({ type: 'timestamp'})
   fecha_registro: Date;
@@ -69,9 +90,11 @@ export class Item {
   fecha_modificacion: Date;
 
   @Column()
-  id_usuario: number;
+  id_estado: number;
+
 
   // Relación con la entidad Obra
   @ManyToOne(() => Obra, (obra) => obra.items)
+  @JoinColumn({ name: 'id_obra' })
   obra: Obra;
 }
