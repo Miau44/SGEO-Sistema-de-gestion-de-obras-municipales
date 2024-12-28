@@ -2,11 +2,14 @@ import { Controller, Get, Res,Query } from '@nestjs/common';
 import { ReportService } from './reporte.service';
 import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
+import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 
 
 @Controller('reporte')
 export class ReportController {
-  constructor(private readonly reportService: ReportService) {}
+  constructor(private readonly reportService: ReportService,
+    private readonly reporteOPService: ReporteOrdenProcederService
+  ) {}
 
   @Public()
   @Get('solicitud')
@@ -79,12 +82,10 @@ export class ReportController {
   @Get('informe-inicial')
   async getReporteInformeInicial(@Res() res: Response,
   @Query('id_obra') id_obra: number
-
 ): Promise<void> {
     const pdfBuffer = await this.reportService.generateInformeInicial(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
-  //    'Content-Disposition': 'attachment; filename=report.pdf',
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
@@ -100,9 +101,25 @@ export class ReportController {
     const pdfBuffer = await this.reportService.generateInformeActividades(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
-  //    'Content-Disposition': 'attachment; filename=report.pdf',
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
   }    
+
+//////////////////////////////////////////////MÓDULO ORDEN DE PROCEDER///////////////////////////////
+
+@Public()
+@Get('op-informe-doc-contrato')
+async getReporteDocContrato(@Res() res: Response,
+@Query('id_obra') id_obra: number
+
+): Promise<void> {
+  const pdfBuffer = await this.reporteOPService.generateEnvioDoc(id_obra);    
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Length': pdfBuffer.length,      
+  });
+  res.send(pdfBuffer);
+}    
+
 }

@@ -24,9 +24,6 @@ export class TipoDocumento {
     @Column()
     id_etapa_documento: number;
 
-    @Column({nullable: true})
-    idtipo_documento: number;
-
     @Column()
     orden_tipo_documento: number;
  
