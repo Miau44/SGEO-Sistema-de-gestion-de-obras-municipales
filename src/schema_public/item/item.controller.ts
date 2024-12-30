@@ -6,6 +6,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { ItemObra } from './dto/itemObra.dto';
+import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 
 
 @ApiTags('item')
@@ -58,5 +59,30 @@ export class ItemController {
   async itemXObra(@Body() itemObra: ItemObra) {
     return await this.itemService.listarItemsXObra(itemObra);
   }
+
+  @Public()
+  @Patch('update/:id')
+  @HttpCode(HttpStatus.OK)
+  async updateItem(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+    try {
+      return await this.itemService.updateItem(+id, updateItemDto);
+    } catch (error) {
+    }
+  }
+
+
+//exportar items para monto adjudicado
+  @Public()
+  @Post('exportar-items')
+  async exportarItems(@Body() itemObra: ItemObra) {
+    return await this.itemService.exportarItems(itemObra);
+  }  
+
+//exportar items para monto adjudicado
+@Public()
+@Post('update-item-bloque')
+async updateItemBloque(@Body() item: ItemAdjudicadoDto[]) {
+  return await this.itemService.updateItemBloque(item);
+}    
 
 }

@@ -249,7 +249,7 @@ export class ReportService {
           fontSize: 14,
           bold: true,
           color: 'gray', // Cambiar el color del texto a 'blue'
-        },        
+        },
         footerText: {
           fontSize: 6,
           bold: false,
@@ -284,6 +284,15 @@ export class ReportService {
       pdfDoc.end();
     });
   }
+
+
+
+
+
+
+
+
+
 
   //GENERAR MEMORANDUM 
   async generateMemo(gestion: number, id: number): Promise<Buffer> {
@@ -492,6 +501,10 @@ export class ReportService {
   }
 
 
+
+
+
+  //GENERAR MEMORANDUM DE REEMPLAZO
   async generateMemoReemplazo(gestion: number, id: number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(gestion, id);
 
@@ -691,31 +704,37 @@ export class ReportService {
     });
   }
 
-//FORMULARIO DE ENVIO DE DOCUMENTACION 
 
-async datosReporteEnvio(obra: number) {
-  const query1 = `SELECT distinct *, td.id_tipo_documento  
+
+
+
+
+  //FORMULARIO DE ENVIO DE DOCUMENTACION 
+  async datosReporteEnvio(obra: number) {
+    const query1 = `SELECT distinct *, td.id_tipo_documento  
   FROM  tipo_documento as td
   INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
 LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
 INNER JOIN obra  as o ON  d.id_obra = o.id_obra
 INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
 WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
-  const values = [obra]
-  const resultado = await this.sequelize.query(query1);
-  return resultado[0];
-}
+    const values = [obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
 
 
-async datosAdjuntoSim(obra: number) {
-const query1 = `SELECT *  
+
+
+  //CONSULTASSS
+  async datosAdjuntoSim(obra: number) {
+    const query1 = `SELECT *  
   FROM  tipo_documento as td
 WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
-const values = [obra]
-const resultado = await this.sequelize.query(query1);
-return resultado[0];
-}
-
+    const values = [obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
 
 
   async preguntasInforme(obra: number, tipo_informe: number) {
@@ -746,74 +765,70 @@ return resultado[0];
     }
     const ressim = await this.datosAdjuntoSim(obra);
 
-  this.datosSIM = ressim;
-  this.datosEnvio = res;
-  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = 'assets/images/logo_gamlp.png';
+    this.datosSIM = ressim;
+    this.datosEnvio = res;
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const imgPath = 'assets/images/logo_gamlp.png';
 
-  const documentDefinition = {
-    pageSize: 'LETTER' as any,
-    watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+    const documentDefinition = {
+      pageSize: 'LETTER' as any,
+      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
-    header: {
-      columns: [
-        { image: imgPath, width: 120 },            
+      header: {
+        columns: [
+          { image: imgPath, width: 120 },
 
-       // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-       // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
-      ],
-      margin: [40, 10]
-    } as any,
-    content: [
-
-      {
-        text: '\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n',
-        style: 'header', alignment: 'center'
+          // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+          //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+          { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
+        ],
+        margin: [40, 10]
       } as any,
-     
-      {
-        text: 'DATOS DE PROYECTO. \n',
-        style: 'subheader',
-      },
+      content: [
+        {
+          text: '\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n',
+          style: 'header', alignment: 'center'
+        } as any,
 
-      {
-        table: {
-          widths: ['*', 400],
-          body: [
-            [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-
-            [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-              { text: [{ text:this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
-            ],
-
-            [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-
-            [
-              { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
-              { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
-            ],
-
-            [
-              { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },]  },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
-            ]
-
-
-
-          ]
+        {
+          text: 'DATOS DE PROYECTO. \n',
+          style: 'subheader',
         },
-        layout: 'noBorders'
-      },
+
+        {
+          table: {
+            widths: ['*', 400],
+            body: [
+              [
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
+                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              ],
+
+              [
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
+                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+              ],
+
+              [
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },] },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
+              ]
+            ]
+          },
+          layout: 'noBorders'
+        },
 
         {
           table: {
@@ -848,10 +863,10 @@ return resultado[0];
           //layout: 'noBorders'
         },
 
-      {
-        text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
-        style: 'textDato',
-      },
+        {
+          text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
+          style: 'textDato',
+        },
 
         {
           table: {
@@ -1311,14 +1326,14 @@ return resultado[0];
           },
         ],
 
-      {
-        text: [
-          '\n\n\n\n\n\n\ncc:Arch:', 
-        ],
-        style: 'footerText'
-      },
+        {
+          text: [
+            '\n\n\n\n\n\n\ncc:Arch:',
+          ],
+          style: 'footerText'
+        },
 
-    ],
+      ],
 
 
       styles: {
@@ -1371,223 +1386,223 @@ return resultado[0];
       },
       pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo    
 
-  };
- // Generar el PDF en memoria
- const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
- let chunks: Buffer[] = [];
+    };
+    // Generar el PDF en memoria
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    let chunks: Buffer[] = [];
 
- return new Promise<Buffer>((resolve, reject) => {
-   pdfDoc.on('data', (chunk) => {
-     chunks.push(chunk);
-   });
-   pdfDoc.on('end', () => {
-     const result = Buffer.concat(chunks);
-     resolve(result);
-   });
-   pdfDoc.end();
- });
-}
+    return new Promise<Buffer>((resolve, reject) => {
+      pdfDoc.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      pdfDoc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      pdfDoc.end();
+    });
+  }
 
 
-//INFORME INICIAL SUPERVISOR 
-async generateInformeActividades(obra:number): Promise<Buffer> {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //INFORME INICIAL SUPERVISOR 
+  async generateInformeActividades(obra: number): Promise<Buffer> {
+
+    const res = await this.datosReporteEnvio(obra);
+    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+    }
+    this.datosEnvio = res;
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const imgPath = 'assets/images/logo_gamlp.png';
+
+    const documentDefinition = {
+      pageSize: 'LETTER' as any,
+      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+      /*  header: {
+          columns: [
+            { image: imgPath, width: 120 },            
     
-  const res = await this.datosReporteEnvio(obra);
-  if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-    throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-  } 
-  this.datosEnvio = res;
-  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = 'assets/images/logo_gamlp.png';
+           // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+            //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+            //     { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
+          ],
+          margin: [40, 10]
+        } as any,*/
+      content: [
 
-  const documentDefinition = {
-    pageSize: 'LETTER' as any,
-    watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+        {
+          text: '\n\n\n\n\INFORME DE ACTIVIDADES PREVIAS.\n\n\n\n',
+          style: 'header', alignment: 'center'
+        } as any,
 
-  /*  header: {
-      columns: [
-        { image: imgPath, width: 120 },            
-
-       // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-        //     { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-       // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
-      ],
-      margin: [40, 10]
-    } as any,*/
-    content: [
-
-      {
-        text: '\n\n\n\n\INFORME DE ACTIVIDADES PREVIAS.\n\n\n\n',
-        style: 'header', alignment: 'center'
-      } as any,
+        /* {
+           text: 'DATOS DE PROYECTO. \n\n',
+           style: 'subheader',
+         },
+   
      
-     /* {
-        text: 'DATOS DE PROYECTO. \n\n',
-        style: 'subheader',
+         {
+           text: [
+             '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
+           ],
+           style: 'subheader', alignment: 'center'
+         },*/
+
+
+        {
+          text: [
+            '\n\n\n\n\n\n\ncc:Arch:',
+          ],
+          style: 'footerText'
+        },
+
+      ],
+
+
+      styles: {
+        header: {
+          fontSize: 14,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 12,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 11,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        coloredTextgray: {
+          fontSize: 14,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+        textTitulo: {
+          fontSize: 10,
+          bold: true,
+        },
+        textDato: {
+          fontSize: 10,
+          bold: false,
+          //color: 'gray', 
+          opacity: 0.8,
+        },
+
+
       },
+
+    };
+    // Generar el PDF en memoria
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    let chunks: Buffer[] = [];
+
+    return new Promise<Buffer>((resolve, reject) => {
+      pdfDoc.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      pdfDoc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      pdfDoc.end();
+    });
+  }
+
+
+
+
+//FUNCIONES PARA CONSTRUIR 
+  fechaString(iso: string): string {
+    let formattedDate = '';
+    let fecha: Date;
+
+    if (iso === 'hoy') {
+      fecha = new Date();
+    } else {
+      fecha = new Date(iso);
+    }
+
+    if (iso) {
+      const h = fecha.getHours();
+      const m = fecha.getMinutes();
+      const horas = h < 10 ? `0${h}` : `${h}`;
+      const minutos = m < 10 ? `0${m}` : `${m}`;
+
+      // Formatea la fecha
+      formattedDate = fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+
+    return formattedDate;
+  }
+
+
+  buildDocumentos(data: any) {
+    let datosResp = data;
+    let arrayData = [];
+
+    var c = 0;
+    for (let i = 0; i < datosResp.length; i++) {
+      c = c + 1;
+      let rowData = [
+        { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
+        { text: [{ text: datosResp[i].cumple ? 'SI' : 'NO', style: 'textDato', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
+      ];
+      arrayData.push(rowData);
+
+    }
+    return arrayData;
+  }
+
+  buildDocumentosSIM(data: any) {
+    let datosResp = data;
+    let arrayData = [];
+
+    var c = 0;
+    for (let i = 0; i < datosResp.length; i++) {
+      c = c + 1;
+      let rowData = [
+        { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
+        { text: [{ text: datosResp[i].cumple ? 'SI' : 'SI', style: 'textDato', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
+      ];
+      arrayData.push(rowData);
+
+    }
+    return arrayData;
+  }
 
   
-      {
-        text: [
-          '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
-        ],
-        style: 'subheader', alignment: 'center'
-      },*/
-
-
-      {
-        text: [
-          '\n\n\n\n\n\n\ncc:Arch:', 
-        ],
-        style: 'footerText'
-      },
-
-    ],
-
-
-    styles: {
-      header: {
-        fontSize: 14,
-        bold: true,
-      },
-      subheader: {
-        fontSize: 12,
-        bold: true,
-      },
-      coloredText: {
-        fontSize: 11,
-        bold: true,
-        color: 'gray', // Cambiar el color del texto a 'blue'
-      },
-      coloredTextgray: {
-        fontSize: 14,
-        bold: true,
-        color: 'gray', // Cambiar el color del texto a 'blue'
-      },        
-      footerText: {
-        fontSize: 6,
-        bold: false,
-      },
-      textTitulo: {
-        fontSize: 10,
-        bold: true,
-      },
-      textDato: {
-        fontSize: 10,
-        bold: false,
-        //color: 'gray', 
-        opacity: 0.8,
-      },
-
-
-    },
-
-  };
- // Generar el PDF en memoria
- const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
- let chunks: Buffer[] = [];
-
- return new Promise<Buffer>((resolve, reject) => {
-   pdfDoc.on('data', (chunk) => {
-     chunks.push(chunk);
-   });
-   pdfDoc.on('end', () => {
-     const result = Buffer.concat(chunks);
-     resolve(result);
-   });
-   pdfDoc.end();
- });
-}
-
-
-
-
-
- fechaString(iso: string): string {
-  let formattedDate = '';
-  let fecha: Date;
-
-  if (iso === 'hoy') {
-    fecha = new Date();
-  } else {
-    fecha = new Date(iso);
-  }
-
-  if (iso) {
-    const h = fecha.getHours();
-    const m = fecha.getMinutes();
-    const horas = h < 10 ? `0${h}` : `${h}`;
-    const minutos = m < 10 ? `0${m}` : `${m}`;
-
-    // Formatea la fecha
-    formattedDate = fecha.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });   
-  }
-
-  return formattedDate;
-}
-
-
-buildDocumentos(data: any) {
-  let datosResp = data; 
-  let arrayData = [];
-
-  var c =0;
-  for (let i = 0; i < datosResp.length; i++) {
-   c= c+1;
-    let rowData = [
-      { text: [{ text: c, style: 'textDato', alignment: 'center', }]},
-      { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }]  },
-      { text: [{ text: datosResp[i].cumple  ?'SI':'NO'  , style: 'textDato', alignment: 'center', }]  },
-      { text: [{ text: datosResp[i].observacion, style: 'textDato' }]  },
-    ];
-    arrayData.push(rowData);
-
-  }
-  return arrayData;
-}
-
-buildDocumentosSIM(data: any) {
-  let datosResp = data; 
-  let arrayData = [];
-
-  var c =0;
-  for (let i = 0; i < datosResp.length; i++) {
-   c= c+1;
-    let rowData = [
-      { text: [{ text: c, style: 'textDato', alignment: 'center', }]},
-      { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }]  },
-      { text: [{ text: datosResp[i].cumple  ?'SI':'SI'  , style: 'textDato', alignment: 'center', }]  },
-      { text: [{ text: datosResp[i].observacion, style: 'textDato' }]  },
-    ];
-    arrayData.push(rowData);
-
-  }
-  return arrayData;
-}
-
-  /* buildPreguntas(data: any) {
-     let datosResp = data;
- 
-     console.log('datosRespdatosResp', datosResp);
- 
-     let arrayData = [];
-    for (let i = 0; i < datosResp.length; i++) {
-       let rowData = [
-         { text: [{ text: datosResp[i].desc_subtipo, style: 'textDato' }] },
-         { text: [{ text: datosResp[i].opcion, style: 'textDato', alignment: 'center', }] },
-         { text: [{ text: datosResp[i].observaciones, style: 'textDato', alignment: 'center', }] },
-       ]    
-       arrayData.push(rowData);
-     }
-     return arrayData;
-   }*/
-
   buildPreguntaPadre(data: any) {
     let groupedData = data.reduce((acc: any, item: any) => {
       if (!acc[item.padre]) {
