@@ -5,7 +5,8 @@ import { And, Any, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { Obra } from '../obra/entities/obra.entity';
-import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.entity';
+//import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.entity';
+import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { log } from 'console';
 import { Designacion } from './entities/designacion.entity';
 import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
@@ -22,7 +23,7 @@ export class DesignacionService {
   constructor(
     @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
     @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
-    @InjectRepository(CorrelativoMemo) private correlativoRepositorio: Repository<CorrelativoMemo>,
+  @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
     @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
     @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
 

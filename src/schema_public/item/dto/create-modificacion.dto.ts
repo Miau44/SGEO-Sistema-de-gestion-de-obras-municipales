@@ -18,7 +18,25 @@ export class CreateModificacionDto {
     nro_modificacion: number;      
 
     @ApiProperty()
-    nro_minuta: number;      
+    dias_variacion: number;     
+        
+    @ApiProperty()
+    monto_variacion: number;    
+        
+    @ApiProperty()
+    monto_total: number; 
+
+    @ApiProperty()
+    porcentaje_modificacion: number;    
+        
+    @ApiProperty()
+    porcentaje_total: number;     
+
+    @ApiProperty()
+    num_contrato_modificatorio: number;    
+        
+    @ApiProperty()
+    fecha_aprobacion_contrato: Date;        
     
     @ApiProperty()
     id_usuario_registro: number;          

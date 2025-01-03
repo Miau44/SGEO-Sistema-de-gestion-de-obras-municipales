@@ -14,8 +14,6 @@ import { ObraModule } from './schema_public/obra/obra.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ExternoModule } from './schema_private/externo/externo.module';
 import { FichaModule } from './schema_public/ficha/ficha.module';
-import { InstanciaFlujoModule } from './schema_public/instancia_flujo/instancia_flujo.module';
-import { InstanciaTareaModule } from './schema_public/instancia_tarea/instancia_tarea.module';
 import { ReporteModule } from './schema_public/reporte/reporte.module';
 import { DesignacionModule } from './schema_public/designacion/designacion.module';
 import { RolPermisoModule } from './schema_public/rol_permiso/rol_permiso.module';
@@ -23,9 +21,6 @@ import { TipoDocumentoModule } from './schema_public/tipo_documento/tipo_documen
 import { DocumentoModule } from './schema_public/documento/documento.module';
 import { PersonaPermisoModule } from './schema_public/persona_permiso/persona_permiso.module';
 import { PersonapermisoUeModule } from './schema_public/personapermiso_ue/personapermiso_ue.module';
-import { TareaModule } from './schema_public/tarea/tarea.module';
-import { FlujoModule } from './schema_public/flujo/flujo.module';
-import { TransicionModule } from './schema_public/transicion/transicion.module';
 import { InformeInicialModule } from './schema_public/informe/informe_inicial.module';
 import { EstructuraOrganizacionalModule } from './schema_sim/estructura_organizacional/estructura_organizacional.module';
 import { SolicitudModule } from './schema_public/solicitud/solicitud.module';
@@ -33,11 +28,11 @@ import { FichaItemModule } from './schema_sim/ficha_item/ficha_item.module';
 import { EmpresaModule } from './schema_public/empresa/empresa.module';
 import { GarantiaSeguroModule } from './schema_public/garantia_seguro/garantia_seguro.module';
 import { ContratoModule } from './schema_public/contrato-modificatorio/contrato.module';
-import { SolicitudHistorialModule } from './schema_public/solicitud_historial/solicitud_historial.module';
 import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
 import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
 import { CorrelativoModule } from './schema_public/correlativo/correlativo.module';
 import { ItemModule } from './schema_public/item/item.module';
+import { ComputoPlanillaModule } from './schema_public/computo_planilla/computo_planilla.module';
 
 
 @Module({
@@ -88,26 +83,19 @@ import { ItemModule } from './schema_public/item/item.module';
   DocumentoModule,
   PersonaPermisoModule,
   PersonapermisoUeModule,
-
-
-  InstanciaFlujoModule,
-  InstanciaTareaModule,
-  TareaModule,
-  FlujoModule,
-  TransicionModule,
+  
   InformeInicialModule,
   EstructuraOrganizacionalModule,
   SolicitudModule,   
   FichaItemModule,
-  SolicitudHistorialModule,
   
-
   EmpresaModule,
   GarantiaSeguroModule,
   ContratoModule,
   MemorandumModule,
   CorrelativoModule,
-  ItemModule
+  ItemModule,
+  ComputoPlanillaModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

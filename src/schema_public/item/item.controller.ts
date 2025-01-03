@@ -5,14 +5,20 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
-import { ItemObra } from './dto/itemObra.dto';
+import { ItemObra } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
+import { Modificacion } from './entities/modificacion.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { And, Any, Not, Repository } from 'typeorm';
+import { CreateModificacionDto } from './dto/create-modificacion.dto';
 
 
 @ApiTags('item')
 @Controller('items')
 export class ItemController {
-  constructor(private readonly itemService: ItemService) {}
+  constructor(
+    @InjectRepository(Modificacion) private modificacionRepository: Repository<Modificacion>,
+    private readonly itemService: ItemService) { }
 
   // Ruta para crear un nuevo item
   @Post()
@@ -84,5 +90,30 @@ export class ItemController {
 async updateItemBloque(@Body() item: ItemAdjudicadoDto[]) {
   return await this.itemService.updateItemBloque(item);
 }    
+
+
+/////////////////////////modificacion/////////////////////////
+
+@Post('modificacion-create')
+@HttpCode(HttpStatus.CREATED)
+async createModificacion(@Body() createModificacion: CreateModificacionDto) {
+  try {
+  return await this.itemService.createModificacion(createModificacion);
+} catch (error) {
+}
+}
+
+
+
+@Public()
+@Post('modificacion-lista')
+listaPersonas(@Body() documentoDto: ItemObra) {
+  try {  
+    return this.itemService.listaModificacion(documentoDto);
+  } catch (error) {
+  }
+}
+
+
 
 }

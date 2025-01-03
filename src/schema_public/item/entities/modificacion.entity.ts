@@ -18,8 +18,26 @@ export class Modificacion {
     nro_modificacion: number;
     
     @Column()
-    nro_minuta: number;
-   
+    dias_variacion: number;
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    monto_variacion: number;
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    monto_total: number;   
+    
+    @Column()
+    porcentaje_modificacion: number;
+
+    @Column()
+    porcentaje_total: number;
+
+    @Column()
+    num_contrato_modificatorio: number;
+
+    @Column({ type: 'date', nullable: true })
+    fecha_aprobacion_contrato:Date;   
+
    ///campos de tabla generales
 
    @Column()

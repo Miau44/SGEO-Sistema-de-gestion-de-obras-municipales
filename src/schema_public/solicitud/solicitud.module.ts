@@ -5,10 +5,11 @@ import { ResponseService } from 'src/response.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Solicitud } from './entities/solicitud.entity';
 import { SolicitudGateway } from './solicitud.gateway';
+import { SolicitudHistorial } from './entities/solicitud_historial.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Solicitud])],
+  imports: [TypeOrmModule.forFeature([Solicitud, SolicitudHistorial])],
 
   controllers: [SolicitudController],
   providers: [SolicitudService, ResponseService, SolicitudGateway],
