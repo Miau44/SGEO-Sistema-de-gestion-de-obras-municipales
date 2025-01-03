@@ -1,4 +1,5 @@
-import { CorrelativoMemo } from "src/schema_public/correlativo_memo/entities/correlativo_memo.entity";
+//import { CorrelativoMemo } from "src/schema_public/correlativo_memo/entities/correlativo_memo.entity";
+import { Correlativo } from "src/schema_public/correlativo/entities/correlativo.entity";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
@@ -11,7 +12,7 @@ export class Memorandum {
     @Column()
     id_obra:number;
 
-    @Column({nullable: true})
+    @Column()
     id_tipo_memo:number;    
 
     @Column()
@@ -20,19 +21,19 @@ export class Memorandum {
     @Column({ type: 'date', nullable: true })
     fecha_memo:Date;   
 
-    @Column({nullable: true})
+    @Column({ type: 'varchar'})
     nombre_destinatario:string;  
 
-    @Column({nullable: true})
+    @Column({ type: 'varchar'})
     referencia:string;
 
-    @Column({nullable: true})
+    @Column({ type: 'varchar'})
     descripcion:string;   
 
-    @Column({nullable: true})
+    @Column({ type: 'varchar'})
     nombre_remitente:string;
 
-    @Column({nullable: true})
+    @Column({ type: 'varchar'})
     cargo_remitente:string;   
 
     @Column({ default : 1})
@@ -44,15 +45,15 @@ export class Memorandum {
     @UpdateDateColumn({ type: 'timestamp', nullable: false, onUpdate: 'CURRENT_TIMESTAMP' })
     fecha_modificacion:Date;
 
-    @Column({nullable: true})
+    @Column()
     id_usuario:number;   
 
     @ManyToOne(() => Obra, (obra) => obra.memorandum1)
     @JoinColumn({ name: 'id_obra' })
     memorandum1: Obra;
 
-    @ManyToOne(() => CorrelativoMemo, (correlativo) => correlativo.correla)
+    @ManyToOne(() => Correlativo, (correlativo) => correlativo.correla)
     @JoinColumn({ name: 'id_correlativo' })
-    correlativ: CorrelativoMemo;
+    correlativ: Correlativo;
 
 }

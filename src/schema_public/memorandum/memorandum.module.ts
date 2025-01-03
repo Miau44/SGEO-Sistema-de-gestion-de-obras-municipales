@@ -4,12 +4,12 @@ import { MemorandumController } from './memorandum.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Memorandum } from './entities/memorandum.entity';
 import { Obra } from '../obra/entities/obra.entity';
-import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.entity';
+import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { ResponseService } from 'src/response.service';
 import { Informe } from '../informe/entities/informe.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Memorandum, Obra, CorrelativoMemo, Informe])],
+  imports: [TypeOrmModule.forFeature([Memorandum, Obra, Correlativo, Informe])],
 
   controllers: [MemorandumController],
   providers: [MemorandumService, ResponseService],

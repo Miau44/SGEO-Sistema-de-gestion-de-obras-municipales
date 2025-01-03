@@ -10,11 +10,14 @@ import { GenerarSolicitudDto } from './dto/generar-solicitud.dto';
 import { EtapaSolicitudDto } from './dto/etapa-solicitud.dto';
 import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
+import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dto';
+import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
 export class SolicitudController {
-  constructor(private readonly solicitudService: SolicitudService) {}
+  constructor(private readonly solicitudService: SolicitudService,
+  ) { }
 
 
   @Public()
@@ -110,7 +113,24 @@ export class SolicitudController {
       return this.solicitudService.usuarioAsignadoObra(usuarioDto);
     } catch (error) {
     }
-  }   
-  
+  }
+
+
+  ////////////////////////////SOLICITUD HISTORIAL/////////////////////////////////////
+  @Public()
+  @Post('crear-solicitud-historial')
+  createSolHistorial(@Body() createSolicitudHistorialDto: CreateSolicitudHistorialDto) {
+    try {
+      return this.solicitudService.createHistorial(createSolicitudHistorialDto);
+    } catch (error) {
+    }
+  }
+
+
+  @Public()
+  @Patch('update-solicitud-historial/:id')
+  updateHistorial(@Param('id') id: string, @Body() updateSolicitudHistorialDto: UpdateSolicitudHistorialDto) {
+    return this.solicitudService.updateHistorial(+id, updateSolicitudHistorialDto);
+  }
 
 }

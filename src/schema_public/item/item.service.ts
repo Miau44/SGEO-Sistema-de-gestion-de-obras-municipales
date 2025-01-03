@@ -5,17 +5,18 @@ import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import { ResponseService } from 'src/response.service';
-import { ItemObra } from './dto/itemObra.dto';
+import { ItemObra } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
-
-
+import { CreateModificacionDto } from './dto/create-modificacion.dto';
+import { Modificacion } from './entities/modificacion.entity';
 
 
 @Injectable()
 export class ItemService {
   constructor(
     @InjectRepository(Item)
-    private readonly itemRepository: Repository<Item>,
+private readonly itemRepository: Repository<Item>,
+@InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
     private responseService: ResponseService,
   ) { }
 
@@ -137,5 +138,36 @@ export class ItemService {
   }
     
     
+
+
+//////////modificacion///////////////////
+
+
+
+async createModificacion(createModDto: CreateModificacionDto) {
+  try {
+    const resultado = await this.modificacionRepo.save(createModDto);
+    return this.responseService.success(resultado, "Guardado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+
+
+async listaModificacion(data: ItemObra) {
+  try { 
+  ;      
+    let query = `SELECT * FROM public.modificacion AS m
+INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
+INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
+WHERE m.id_obra =$1`;     
+    const params : any[]  = [data.id_obra];
+   
+    const resultado: any[] = await this.modificacionRepo.query(query, params);
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
 }

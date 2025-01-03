@@ -12,6 +12,10 @@ import { UsuarioSolicitudDto } from './dto/usuario-solicitud.dto';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
+import { SolicitudHistorial } from './entities/solicitud_historial.entity';
+import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dto';
+import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
+
 
 
 
@@ -19,7 +23,8 @@ import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
 export class SolicitudService {
 
 
-  constructor(@InjectRepository(Solicitud) private solicitudRepositorio: Repository<Solicitud>,  
+  constructor(@InjectRepository(Solicitud) private solicitudRepositorio: Repository<Solicitud>,
+  @InjectRepository(SolicitudHistorial) private solicitudHisRepositorio: Repository<SolicitudHistorial>,    
   private responseService: ResponseService,
   @InjectDataSource() private readonly dataSource: DataSource
 ) { }
@@ -196,5 +201,23 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
     }
   }
   
+///////////////////////////////////////HISTORIAL//////////////////////////
+async createHistorial(createSolicitudHistorialDto: CreateSolicitudHistorialDto) {
+  try {
+    const resultado = await this.solicitudHisRepositorio.save(createSolicitudHistorialDto);
+    return this.responseService.success(resultado, "Registrado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }  }
 
+
+async updateHistorial(id: number, updateSolicitudHistorialDto: UpdateSolicitudHistorialDto) {
+  try {
+    const resultado = await this.solicitudHisRepositorio.update(id, updateSolicitudHistorialDto)
+    return this.responseService.success(id, "Actualizado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+
+}
 }
