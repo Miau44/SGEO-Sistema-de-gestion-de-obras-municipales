@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Header } from '@nestjs/common';
 //import * as PdfPrinter from 'pdfmake/src/printer';
 import PdfPrinter from 'pdfmake';
 import * as path from 'path';
@@ -1514,6 +1514,171 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
       },
+
+    };
+    // Generar el PDF en memoria
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    let chunks: Buffer[] = [];
+
+    return new Promise<Buffer>((resolve, reject) => {
+      pdfDoc.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      pdfDoc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      pdfDoc.end();
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async generateSolicitudBajaSupervisorFiscal(obra: number): Promise<Buffer>{
+
+    const res = await this.datosReporteEnvio(obra);
+    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+    }
+    const ressim = await this.datosAdjuntoSim(obra);
+    
+    this.datosSIM = ressim;
+    this.datosEnvio = res;
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const imgPath = 'assets/images/logo_gamlp.png';
+    const imgLogoPath = 'assets/images/logoSGEO.png';
+
+    const documentDefinition = {
+      pageSize: 'LEGAL' as any,
+
+      header: {
+        columns: [
+          // Columna del texto centrado
+          {
+            text: 'Secretaría Municipal de Infraestructura Pública',
+            style: 'coloredText',
+            alignment: 'center',
+            margin: [0, 15, 0, 0]
+          },
+        ],
+        margin: [40, 10]
+      } as any,
+      content: [
+        {
+          columns: [
+            { image: imgPath, width: 120, margin: [0, 0, 5, 0] }, // Primera imagen
+            { image: imgLogoPath, width: 120, margin: [5, 30, 0, 0] }, // Segunda imagen,
+            {
+              stack: [
+                { text: '\n\nFORMULARIO DE SOLICITUD DE BAJA DE SUPERVISOR /FISCAL.\n', style: 'header', alignment: 'center', margin: [0, 10, 0, 0] },
+              ],
+              width: 'auto',
+              margin: [70, 0, 10, 0]
+            }
+          ],
+          margin: [10, 0, 10, 0]
+        } as any,
+        ['\n'],
+        {
+          table: {
+            widths: [100, '*'],
+            body: [
+              [
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+              ],
+
+              [
+                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              ],
+
+              [
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+              ],
+            ]
+          },
+          //layout: 'noBorders'
+        },
+        {
+          text: '\n\nSeñor:\nPERSONA QUE REALIZA LA DESIGNACION\n\n',
+          style: 'normalText',
+        },
+        {
+          text: 'Mediante la presente se solicita el baja en la obra señalada del siguiente profesional:\n\n\n',
+          style: 'normalText',
+        },
+
+        {
+          table: {
+            widths: ['*', '*', '*', '*', '*'], // Distribuir columnas uniformemente
+            body: [
+              // Encabezados de la tabla
+              [
+                { text: 'PROFESIÓN', style: 'tableHeader', fillColor: '#d9eaf7' },
+                { text: 'NOMBRES', style: 'tableHeader', fillColor: '#d9eaf7' },
+                { text: 'APELLIDO PATERNO', style: 'tableHeader', fillColor: '#d9eaf7' },
+                { text: 'APELLIDO MATERNO', style: 'tableHeader', fillColor: '#d9eaf7' },
+                { text: 'ROL DE USUARIO', style: 'tableHeader', fillColor: '#d9eaf7' },
+              ],
+              // Fila de datos
+              [
+                { text: 'INGENIERO(A)/ARQUITECTO(A)', style: 'tableBody' },
+                { text: 'JOSUE MIGUEL', style: 'tableBody' },
+                { text: 'TORREZ', style: 'tableBody' },
+                { text: 'ARRATIA', style: 'tableBody' },
+                { text: 'FISCAL/SUPERVISOR', style: 'tableBody' },
+              ],
+            ],
+          },
+          layout: {
+            fillColor: (rowIndex: number, node: any, columnIndex: number): string | null => {
+              return rowIndex === 0 ? '#d9eaf7' : null; // Colorear el encabezado
+            },
+            hLineWidth: (i: number, node: any): number => {
+              return i === 0 || i === node.table.body.length ? 2 : 1; // Línea superior e inferior gruesas
+            },
+            vLineWidth: (i: number, node: any): number => {
+              return 1; // Líneas verticales delgadas
+            },
+            hLineColor: (i: number, node: any): string => {
+              return '#000000'; // Líneas horizontales negras
+            },
+            vLineColor: (i: number, node: any): string => {
+              return '#000000'; // Líneas verticales negras
+            },
+          },
+        },
+        {
+          text: '\n\JUSTIFICACION\n\n\n',
+          style: 'normalText',
+        },
+        {
+          text: 'Fecha de solicitud: 08/08/2024\nFecha de baja efectiva: 09/08/2024 \n\n\n',
+          style: 'normalText',
+        },
+
+
+      ],
+      styles: {
+
+      }
 
     };
     // Generar el PDF en memoria
