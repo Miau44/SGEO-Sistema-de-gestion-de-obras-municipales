@@ -106,20 +106,85 @@ export class ReportController {
     res.send(pdfBuffer);
   }    
 
-//////////////////////////////////////////////MÓDULO ORDEN DE PROCEDER///////////////////////////////
 
-@Public()
-@Get('op-informe-doc-contrato')
-async getReporteDocContrato(@Res() res: Response,
-@Query('id_obra') id_obra: number
+  @Public()
+  @Get('informe-solicitud-baja')
+  async getReporteSolicitudBaja(@Res() res: Response,
+  @Query('id_obra') id_obra: number
 
 ): Promise<void> {
-  const pdfBuffer = await this.reporteOPService.generateEnvioDoc(id_obra);    
-  res.set({
-    'Content-Type': 'application/pdf',
-    'Content-Length': pdfBuffer.length,      
-  });
-  res.send(pdfBuffer);
-}    
+    const pdfBuffer = await this.reportService.generateSolicitudBajaSupervisorFiscal(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }    
+//////////////////////////////////////////////MÓDULO ORDEN DE PROCEDER/////////////////////////////// 
 
+  //controller formulario 14
+  @Public()
+  @Get('op-informe-doc-contrato2')
+  async getReporteDocumento2(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+
+  ): Promise<void> {
+    const pdfBuffer = await this.reporteOPService.generateDocumentoContrato2(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }   
+
+  @Public()
+  @Get('op-informe-Sol-Anticipo')
+  async getReporteInformeSolAnticip(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.reporteOPService.generateInformeSoliAnticipio(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }   
+
+  @Public()
+  @Get('op-instrcciones-Orden-Proceder-Carta')
+  async generatecartaInstruccionesOrdeProcedeRev(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.reporteOPService.generatecartaInstruccionesOrdeProcedeRev(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  } 
+
+  @Public()
+  @Get('op-Orden-Proceder-REV01')
+  async generateOrdProcRev01(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.reporteOPService.generateOrdenProcederREV01(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  } 
+  @Public()
+  @Get('op-inf-revisionPagos-REV')
+  async generateinfrevisionPagosREV(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.reporteOPService.generateInformeRevisionPagos(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  } 
 }
