@@ -8,6 +8,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { report } from 'process';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 import { ReporteModificacionService } from './reporte-modificacion.service';
+import { ReporteActPreviasService } from './reporte-act-previas.service';
 
 
 @Module({
@@ -17,7 +18,7 @@ import { ReporteModificacionService } from './reporte-modificacion.service';
     SequelizeModule.forFeature([]), 
   ],
 
-  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService],
+  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService],
   controllers: [ReportController],
 })
 export class ReporteModule {}
