@@ -15,7 +15,7 @@ export class Computo {
     descripcion: string;
 
     @Column()
-    numero: number;
+    numero_veces: number;
 
     @Column({ type: 'decimal', precision: 15, scale: 5 })
     alto: number;

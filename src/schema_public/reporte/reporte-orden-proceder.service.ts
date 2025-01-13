@@ -51,14 +51,16 @@ export class ReporteOrdenProcederService {
     }
   
   //CONSULTAS
-    async datosGeneralesReporte(gestion: number, id: number) {
-      const query1 = ` SELECT * FROM sp_reporte_memorandum(${gestion},${id})`;
-      //const response = await sequelize.query(query);
-      const resultado = await this.sequelize.query(query1);
-      return resultado[0];
-    }
+  async datosGeneralesReporte(idSolicitud: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.sp_reporte_datos_gral_obra(${idSolicitud});
+    `;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
 
-
+  //opcional para borrar los datos que no sean neceasrios
   async datosAdjuntoSim(obra: number) {
     const query1 = `SELECT *  
   FROM  tipo_documento as td
@@ -66,9 +68,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-  }
-
-  
+  } 
   async datosReporteEnvio(obra: number) {
     const query1 = `SELECT distinct *, td.id_tipo_documento  
   FROM  tipo_documento as td
@@ -82,6 +82,18 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     return resultado[0];
   }
 
+  
+  async datosReporteAnticipo(obra: number, tipo: number) {
+    const query1 = `SELECT DISTINCT desc_tipo_documento, cumple, observacion,  td.id_tipo_documento    
+    FROM  tipo_documento as td
+    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+    LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento 
+    WHERE  d.id_obra = ${obra} AND id_etapa_documento =2 AND id_subtipo_documento = ${tipo} ORDER BY td.id_tipo_documento ASC;`;
+    const values = [obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
+  
   //para borrar de ser necesario
   async preguntasInforme(obra: number, tipo_informe: number) {
     const query1 = `
@@ -173,16 +185,20 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
   }
 
   // 14_Form_documentosContrato2
-  async generateDocumentoContrato2(obra: number): Promise<Buffer> {
+  async generateDocumentoContrato2(obra: number, solicitud: number): Promise<Buffer> {
 
-    const res = await this.datosReporteEnvio(obra);
-    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+    //para borrar
+    const res = await this.datosGeneralesReporte(solicitud);
+    const ressim1 = await this.datosReporteAnticipo(obra, 145);
+    const ressim2 = await this.datosReporteAnticipo(obra, 164);
+    if ((!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) && (!ressim1 || (Array.isArray(ressim1) && ressim1.length === 0) || (typeof ressim1 === 'object' && Object.keys(ressim1).length === 0)) ){
       throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }
-    const ressim = await this.datosAdjuntoSim(obra);
 
-    this.datosSIM = ressim;
     this.datosEnvio = res;
+    this.datosSIM = ressim1;
+    this.datos = ressim2;
+    
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/logo_gamlp.png';
@@ -215,7 +231,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
         },
 
         {
-          table: {
+          table: { //codigo
             widths: [100, '*'],
             body: [
               [
@@ -267,14 +283,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
             ]
           },
         },
-
-        {
-          text: '\nDocumentación Complementaría. \n\n',
-          style: 'textTitulo',
-        },
-
-
-
+        ['\n'],
         {
           table: {
             widths: [30, '*', 50, 100],
@@ -286,7 +295,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
                 { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
-              ...this.buildDocumentos(this.datosEnvio)
+              ...this.buildDocumentos(this.datos)
             ]
           },
         },
@@ -299,14 +308,14 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
 
         {
-          text: '\n Fecha de Envío: 03/12/2024  ',
           style: 'textDato',
+          text: '\n Fecha de Envío: '+ this.fechaString(this.datosEnvio[0].fecha_envio) + '\n\n',
         },
 
 
         {
           text: [
-            '\nIng. Jefe Sub:' + '\n' + 'Jefe de Unidad Solicitante',
+            '\n'+ this.datosEnvio[0].nombre  + '\n' + 'Jefe de Unidad Solicitante',
           ],
           style: 'subheader', alignment: 'center'
         },
@@ -1274,6 +1283,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
 
   //FUNCIONES PARA CONSTRUIR 
+  //funcion para generar la fecha de manera escrita
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -1300,7 +1310,75 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
     return formattedDate;
   }
-
+  //funcion para generar de manera escrita el monto del dinero
+  private unidades = [
+    '', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
+  ];
+  private decenas = [
+    '', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA',
+  ];
+  private especiales = [
+    'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE',
+  ];
+  private centenas = [
+    '', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS',
+    'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS',
+  ];
+  convertToWords(value: string, currency: string): string {
+    const [integerPart, decimalPart] = value.replace(/[^\d,]/g, '').split(',');
+  
+    const integerNumber = parseInt(integerPart.replace(/\./g, ''), 10);
+    const decimalNumber = parseInt(decimalPart || '0', 10);
+  
+    const integerWords = this.numberToWords(integerNumber).trim();
+    const decimalWords = decimalNumber > 0 ? `${decimalNumber}/100` : '00/100';
+    const currencyWords = this.getCurrencyWord(currency);
+  
+    return `${integerWords} ${decimalWords} ${currencyWords}`;
+  } 
+  private numberToWords(value: number): string {
+    if (value === 0) return 'CERO';
+    if (value < 10) return this.unidades[value];
+    if (value < 20) return this.especiales[value - 11];
+    if (value < 100) {
+      const decena = Math.floor(value / 10);
+      const unidad = value % 10;
+      return unidad > 0
+        ? `${this.decenas[decena]} Y ${this.unidades[unidad]}`
+        : this.decenas[decena];
+    }
+    if (value < 1000) {
+      const centena = Math.floor(value / 100);
+      const resto = value % 100;
+      if (centena === 1 && resto === 0) return 'CIEN';
+      return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+    }
+    if (value < 1_000_000) {
+      const miles = Math.floor(value / 1000);
+      const resto = value % 1000;
+      const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
+      return `${milesWord} ${this.numberToWords(resto)}`.trim();
+    }
+    if (value < 1_000_000_000) {
+      const millones = Math.floor(value / 1_000_000);
+      const resto = value % 1_000_000;
+      const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
+      return `${millonesWord} ${this.numberToWords(resto)}`.trim();
+    }
+    throw new Error('Valor fuera de rango');
+  }
+  private getCurrencyWord(currency: string): string {
+    switch (currency) {
+      case 'Bs.':
+        return 'BOLIVIANOS';
+      case '$':
+        return 'DÓLARES';
+      case '€':
+        return 'EUROS';
+      default:
+        throw new Error(`Moneda no soportada: ${currency}`);
+    }
+  }  
 
   buildDocumentos(data: any) {
     let datosResp = data;

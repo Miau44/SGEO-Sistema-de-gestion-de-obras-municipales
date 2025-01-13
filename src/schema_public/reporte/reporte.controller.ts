@@ -3,12 +3,14 @@ import { ReportService } from './reporte.service';
 import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
+import { ReporteActPreviasService } from './reporte-act-previas.service';
 
 
 @Controller('reporte')
 export class ReportController {
   constructor(private readonly reportService: ReportService,
-    private readonly reporteOPService: ReporteOrdenProcederService
+    private readonly reporteOPService: ReporteOrdenProcederService,
+    private readonly reporteAPService: ReporteActPreviasService
   ) {}
 
   @Public()
@@ -120,16 +122,34 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   }    
+//////////////////////////////////////////////MÓDULO ACTIVIDADES PREVIAS/////////////////////////////// 
+
+  @Public()
+    @Get('ap-actividades_previas_fiscal')
+    async getReporteActPreviasFiscal(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+
+    ): Promise<void> {
+      const pdfBuffer = await this.reporteAPService.generateInformeFISCAL(id_obra);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
+
 //////////////////////////////////////////////MÓDULO ORDEN DE PROCEDER/////////////////////////////// 
 
   //controller formulario 14
   @Public()
   @Get('op-informe-doc-contrato2')
   async getReporteDocumento2(@Res() res: Response,
-  @Query('id_obra') id_obra: number
+  @Query('id_obra') id_obra: number,
+  @Query('id_solicitud') id_solicitud: number,
 
   ): Promise<void> {
-    const pdfBuffer = await this.reporteOPService.generateDocumentoContrato2(id_obra);    
+    const pdfBuffer = await this.reporteOPService.generateDocumentoContrato2(id_obra, id_solicitud);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
