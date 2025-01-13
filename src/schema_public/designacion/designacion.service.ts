@@ -21,11 +21,11 @@ import { GenerarDto } from './dto/generar.dto';
 export class DesignacionService {
 
   constructor(
-    @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
-    @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
+  @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
+  @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
   @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
-    @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
-    @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
+  @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
+  @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
 
 
 

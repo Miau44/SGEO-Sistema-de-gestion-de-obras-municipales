@@ -43,4 +43,12 @@ export class ExternoController {
     return this.externoService.logeo(loginDto);
   }
  
+
+  @Public()
+  @Post('/items-sgpu')
+  async itemsSGPU() {
+    return this.externoService.sgpuItemsVigentes();
+  }
+
+
 }

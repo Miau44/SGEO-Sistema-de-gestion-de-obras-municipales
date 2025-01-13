@@ -61,4 +61,43 @@ export class ExternoService {
       };
     }
   }  
+
+
+  //http://192.168.8.4:3007/api/v1/servicio/login
+  async sgpuItemsVigentes() {
+    try {
+            
+    //  const url = 'http://localhost:3004/item/sgeo-item-vigente';
+      const url =  process.env.URL_SGPU+ 'item/sgeo-item-vigente';
+      
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      /*  body: JSON.stringify({
+          "usuario": loginDto.usuario,
+          "clave": loginDto.clave,
+          "sistema": "SGEO"
+        })*/
+      };
+      console.log('este es el console', url, options);
+      const response = await fetch(url!, options);
+      const resultado = await response.json();
+
+      console.log('resultado', resultado);
+      
+
+
+      if (resultado) {
+        return resultado;
+      }
+    } catch (error) {
+      return {
+      //  mensaje: error.message,
+        estado: false,
+        data: null,
+      };
+    }
+  }    
 }

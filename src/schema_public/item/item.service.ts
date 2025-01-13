@@ -9,6 +9,7 @@ import { ItemObra } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { Modificacion } from './entities/modificacion.entity';
+import { ExternoService } from 'src/schema_private/externo/externo.service';
 
 
 @Injectable()
@@ -18,6 +19,7 @@ export class ItemService {
 private readonly itemRepository: Repository<Item>,
 @InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
     private responseService: ResponseService,
+    private externoService: ExternoService
   ) { }
 
   // Crear un nuevo item
@@ -104,6 +106,41 @@ private readonly itemRepository: Repository<Item>,
 
 
 
+    //menu asignaciones general
+    async listaItemVigentes() {
+      try {
+        //externo sistema seguridad
+        // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
+        const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+  
+        const options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        /*  body: JSON.stringify(
+            estructuraGralDto
+          ),*/
+        };
+        const response = await fetch(datosSeguridad, options);
+        const resultadoUsuarios = await response.json()
+  
+        const query = `SELECT * FROM public.item	`;
+  
+        const resultadoSgeo: any[] = await this.itemRepository.query(query);
+        const resultadoSgpu: any[] = await this.externoService.sgpuItemsVigentes();        
+       // const resultadoSgpu: any[] = resultadoUsuarios.data
+  
+        const resultado = resultadoSgpu.map(sgpu => {
+          const itemsNuevos = resultadoSgeo.filter(sgeo => sgeo.codigo_item === sgpu.codigoItem);
+          return { sgpu, sgeo: itemsNuevos };
+        });
+        return this.responseService.success(resultado, "Listado Correctamente.")
+      } catch (error) {
+        return this.responseService.error(error);
+      }
+  
+  
+    }
+
 
   //actualizar items monto adjudicado
   async updateItemBloque(registros: ItemAdjudicadoDto[]) {
@@ -154,20 +191,24 @@ async createModificacion(createModDto: CreateModificacionDto) {
 }
 
 
-async listaModificacion(data: ItemObra) {
-  try { 
-  ;      
-    let query = `SELECT * FROM public.modificacion AS m
-INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
-INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
-WHERE m.id_obra =$1`;     
-    const params : any[]  = [data.id_obra];
-   
-    const resultado: any[] = await this.modificacionRepo.query(query, params);
-    return this.responseService.success(resultado, "Listado Correctamente.")
-  } catch (error) {
-    return this.responseService.error(error);
+  async listaModificacion(data: ItemObra) {
+    try {
+      ;
+      let query = `SELECT  s.id_solicitud, p.desc_subtipo AS tipo_modificacion,
+      nro_modificacion, es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+      FROM public.modificacion AS m
+      INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
+      INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
+      INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
+      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica where id_tipo =33 ) as p ON m.id_tipo_modificacion= p.id_subtipo 
+      WHERE m.id_obra =$1`;
+      const params: any[] = [data.id_obra];
+
+      const resultado: any[] = await this.modificacionRepo.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-}
 
 }

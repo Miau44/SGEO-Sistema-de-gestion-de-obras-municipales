@@ -12,7 +12,7 @@ export class CreateComputoDto {
     descripcion: string;    
 
     @ApiProperty()
-    numero: number;    
+    numero_veces: number;    
 
     @ApiProperty()
     alto: number;   

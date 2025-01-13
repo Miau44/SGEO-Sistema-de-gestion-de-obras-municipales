@@ -92,6 +92,14 @@ async updateItemBloque(@Body() item: ItemAdjudicadoDto[]) {
 }    
 
 
+@Public()
+@Post('/items-sgpu')
+async itemsSGPU() {
+  return this.itemService.listaItemVigentes();
+}
+
+
+
 /////////////////////////modificacion/////////////////////////
 
 @Post('modificacion-create')
