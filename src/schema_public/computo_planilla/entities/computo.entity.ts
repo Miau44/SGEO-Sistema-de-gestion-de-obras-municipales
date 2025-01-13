@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Item } from 'src/schema_public/item/entities/item.entity'; //relacion con item
-@Entity('computo')
+@Entity('')
 export class Computo {
     @PrimaryGeneratedColumn()
     id_computo: number;
@@ -15,7 +15,7 @@ export class Computo {
     descripcion: string;
 
     @Column()
-    numero: number;
+    numero_veces: number;
 
     @Column({ type: 'decimal', precision: 15, scale: 5 })
     alto: number;

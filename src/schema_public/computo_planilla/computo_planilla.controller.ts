@@ -5,16 +5,17 @@ import { UpdateComputoDto } from './dto/update-computo.dto';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ComputoObra } from './dto/computo-obra.dto';
-
+import { CreatePlanillaDto } from './dto/create-planilla.dto';
+import { ComputoItem } from './dto/computo-Item.dto';
 
 @ApiTags('computo-planilla')
 @Controller('computo-planilla')
 export class ComputoPlanillaController {
   constructor(private readonly computoPlanillaService: ComputoPlanillaService) {}
 
-  @Public()  
-  @Post('computo-create')
-async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
+  @Public()
+  @Post('create-computo')
+  async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
     return this.computoPlanillaService.create(createComputoPlanillaDto);
   }
 
@@ -43,13 +44,38 @@ async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
 
   @Public()
   @Post('computo-lista')
-  listaDocumentos(@Body() computoObraDto: ComputoObra) {
+  listaItem(@Body() computoObraDto: ComputoObra) {
     try {  
       return this.computoPlanillaService.listaItemComputoXObra(computoObraDto);
     } catch (error) {
     }
   }
 
+  @Public()
+  @Post('computo-x-item')
+  listaComputoItem(@Body() computoItemDto: ComputoItem) {
+    try {  
+      return this.computoPlanillaService.listaComputoXItem(computoItemDto);
+    } catch (error) {
+    }
+  }
 
+  ///////////////////////PLANILLA/////////////////////////
 
+  @Public()
+  @Post('planilla-create')
+  async  createPlanilla(@Body() planilla: CreatePlanillaDto) {
+    return this.computoPlanillaService.createPlanilla(planilla);
+  }  
+
+  ///////////////////////CRITERIO/////////////////////////
+
+  @Public()
+  @Get('criterio-lista')
+  findAllCriterio() {
+    try {
+      return this.computoPlanillaService.findAllCriterio();
+    } catch (error) {
+    }    
+  }  
 }
