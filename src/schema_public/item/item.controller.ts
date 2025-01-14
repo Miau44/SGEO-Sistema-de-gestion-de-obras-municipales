@@ -94,8 +94,8 @@ async updateItemBloque(@Body() item: ItemAdjudicadoDto[]) {
 
 @Public()
 @Post('/items-sgpu')
-async itemsSGPU() {
-  return this.itemService.listaItemVigentes();
+async itemsSGPU(@Body() itemObra: ItemObra) {
+  return this.itemService.listaItemSGPU(itemObra);
 }
 
 

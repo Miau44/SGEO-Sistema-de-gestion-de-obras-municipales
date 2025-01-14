@@ -15,6 +15,7 @@ import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
 import { SolicitudHistorial } from './entities/solicitud_historial.entity';
 import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dto';
 import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
+import { HistorialObraDto } from './dto/historial-obra.dto';
 
 
 
@@ -220,4 +221,31 @@ async updateHistorial(id: number, updateSolicitudHistorialDto: UpdateSolicitudHi
   }
 
 }
+
+
+async listaHistorialXObra(data: HistorialObraDto) {
+  try {
+    const query = `
+        SELECT s.id_obra, s.id_solicitud,  s.fecha_envio, desc_modulo, desc_estado_gral,
+        p.id_usuario, pro.detalle || ' ' || TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido)  as nombre
+        FROM public.solicitud AS s 
+        INNER JOIN public.solicitud_historial AS sh ON s.id_solicitud = sh.id_solicitud
+        INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
+        INNER JOIN  public.persona AS p ON sh.id_usuario = p.id_usuario
+        INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo      
+        WHERE 
+        s.id_obra =$1 AND
+        p.id_estado IN (1,5);`;
+    const params = [data.obra]        
+    const resultado = await this.solicitudRepositorio.query(query, params);
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+} 
+
+
+
+
+
 }
