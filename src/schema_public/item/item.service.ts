@@ -82,8 +82,8 @@ private readonly itemRepository: Repository<Item>,
       FROM public.obra AS o
       INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
       INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
-      WHERE i.id_obra =$1 AND  i.id_estado =1 ORDER BY i.id_item`;
-    const param =[data.id_obra]
+      WHERE i.id_obra =$1 AND  i.id_estado =1  ORDER BY i.orden_sim ASC`;
+      const param = [data.id_obra]
       const resultado = await this.itemRepository.query(query, param);
       return this.responseService.success(resultado, "Listado Correctamente.")
 
@@ -107,12 +107,11 @@ private readonly itemRepository: Repository<Item>,
 
 
     //menu asignaciones general
-    async listaItemVigentes() {
+    async listaItemSGPU(data:ItemObra) {
       try {
         //externo sistema seguridad
         // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
-        const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
-  
+    
         const options = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -120,8 +119,8 @@ private readonly itemRepository: Repository<Item>,
             estructuraGralDto
           ),*/
         };
-        const response = await fetch(datosSeguridad, options);
-        const resultadoUsuarios = await response.json()
+       
+        
   
         const query = `SELECT * FROM public.item	`;
   
