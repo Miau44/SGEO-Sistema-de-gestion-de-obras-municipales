@@ -5,4 +5,10 @@ import { ApiProperty } from '@nestjs/swagger';
 export class ItemObra {
     @ApiProperty({ required: false })
     id_obra: number;
+
+    @ApiProperty({ required: false })
+    id_tipo_item: number;
+
+
+    
 }

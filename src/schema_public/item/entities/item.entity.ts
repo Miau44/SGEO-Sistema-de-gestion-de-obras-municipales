@@ -18,11 +18,11 @@ export class Item {
   @Column()
   orden_sim: number;
 
-  @Column()
-  item_sim: number;
+  @Column({nullable:true})
+  id_item_sim: number;
 
   @Column({ type: 'varchar' })
-  desc_item_sim: string;
+  desc_item: string;
 
   @Column({ type: 'varchar' })
   unidad_medida_sim: string;
@@ -56,11 +56,14 @@ export class Item {
   @Column({ type: 'decimal', precision: 10, scale: 2 , nullable:true})
   p_unitario_modificacion: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  tipo_modificacion: string;
+  @Column({nullable: true })
+  id_tipo_modificacion: number;
 
   @Column({ nullable: true })
   numero_modificacion: number;
+
+  @Column({nullable: true })
+  id_tipo_item: number;  
 
   //datos pago
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})

@@ -24,7 +24,9 @@ export class ItemController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createItemDto: CreateItemDto) {
+    try {
     return await this.itemService.create(createItemDto);
+  } catch (error) { } 
   }
 
   // Ruta para obtener todos los items
@@ -65,6 +67,13 @@ export class ItemController {
   async itemXObra(@Body() itemObra: ItemObra) {
     return await this.itemService.listarItemsXObra(itemObra);
   }
+
+  @Public()
+  @Post('items-obra-x-tipo')
+  async itemXObraXTipo(@Body() itemObra: ItemObra) {
+    return await this.itemService.listarItemsXObraXTipo(itemObra);
+  }
+
 
   @Public()
   @Patch('update/:id')

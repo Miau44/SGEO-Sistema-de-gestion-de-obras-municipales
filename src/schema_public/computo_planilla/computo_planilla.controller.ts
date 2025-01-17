@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { ComputoPlanillaService } from './computo_planilla.service';
 import { CreateComputoDto } from './dto/create-computo.dto';
 import { UpdateComputoDto } from './dto/update-computo.dto';
@@ -7,6 +7,10 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ComputoObra } from './dto/computo-obra.dto';
 import { CreatePlanillaDto } from './dto/create-planilla.dto';
 import { ComputoItem } from './dto/computo-Item.dto';
+import { UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadedFile } from '@nestjs/common';
+
 
 @ApiTags('computo-planilla')
 @Controller('computo-planilla')
