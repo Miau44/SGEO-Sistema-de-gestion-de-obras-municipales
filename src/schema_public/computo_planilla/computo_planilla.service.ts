@@ -11,6 +11,8 @@ import { CreatePlanillaDto } from './dto/create-planilla.dto';
 import { ComputoItem } from './dto/computo-Item.dto';
 import { ComputoCriterio } from './entities/computo_criterio.entity';
 
+
+
 @Injectable()
 export class ComputoPlanillaService {
 
@@ -75,6 +77,7 @@ export class ComputoPlanillaService {
       let query = `
       SELECT  
       i.id_item, 
+      i.orden_sim,
       c.id_computo, 
       codigo_item, i.desc_item_sim, unidad_medida_sim, p_unitario_adjudicado,
       total_adjudicado, 

@@ -8,16 +8,16 @@ export class CreateItemDto {
   codigo_item: string;
 
   @ApiProperty()
-  partida_sim?: number;
+  partida_sim: number;
 
   @ApiProperty()
-  orden_item: number; 
+  orden_sim: number; 
 
   @ApiProperty()
-  item_sim: number;
+  id_item_sim: number;
 
   @ApiProperty()
-  desc_item_sim: string;
+  desc_item: string;
 
   @ApiProperty()
   unidad_medida_sim: string;
@@ -50,10 +50,13 @@ export class CreateItemDto {
   p_unitario_modificacion: number;
 
   @ApiProperty()
-  tipo_modificacion: string;
+  id_tipo_modificacion: number;
 
   @ApiProperty()
   numero_modificacion: number;
+
+  @ApiProperty()
+  id_tipo_item: number;  
 
   @ApiProperty()
   cantidad_pago_aprobado: number;
