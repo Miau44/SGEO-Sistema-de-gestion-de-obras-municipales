@@ -29,6 +29,15 @@ export class ItemController {
   } catch (error) { } 
   }
 
+
+  @Public()
+  @Post('crear-item-nuevo')
+  async crearItems(@Body() createItemDto: CreateItemDto) {
+    try {
+    return await this.itemService.guardarItemNuevos(createItemDto);
+  } catch (error) { } 
+}
+
   // Ruta para obtener todos los items
   @Public()
   @Get()

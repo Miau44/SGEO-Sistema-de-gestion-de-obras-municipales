@@ -10,6 +10,7 @@ import { ComputoItem } from './dto/computo-Item.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadedFile } from '@nestjs/common';
+import { Any } from 'typeorm';
 
 
 @ApiTags('computo-planilla')
@@ -34,9 +35,12 @@ export class ComputoPlanillaController {
     return this.computoPlanillaService.findOne(+id);
   }
 
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateComputoPlanillaDto: UpdateComputoDto) {
+    try{
     return this.computoPlanillaService.update(+id, updateComputoPlanillaDto);
+    }catch {}
   }
 
   @Delete(':id')
@@ -63,6 +67,40 @@ export class ComputoPlanillaController {
     } catch (error) {
     }
   }
+
+  @Public()
+  @Post('computo-exportar-excel')
+  exportarComputos(@Body() computoObra: ComputoObra) {
+    try {  
+      return this.computoPlanillaService.descargarComputosMetricos(computoObra);
+    } catch (error) {
+    }
+  }  
+
+  @Post('computo-importar-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  async importarExcel(@UploadedFile() file: Express.Multer.File) {
+    try {
+      if (!file) {
+        throw new HttpException('No se ha subido ningún archivo', HttpStatus.BAD_REQUEST);
+      }
+      // Procesar el archivo
+      const resultado = await this.computoPlanillaService.procesarYGuardarExcel(file);
+      return {
+        success: true,
+        message: 'Archivo procesado correctamente.',
+        data: resultado,
+      };
+    } catch (error:any) {
+      throw new HttpException(
+        error.message || 'Error al procesar el archivo',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  
+ 
 
   ///////////////////////PLANILLA/////////////////////////
 

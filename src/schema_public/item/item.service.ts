@@ -23,10 +23,36 @@ private readonly itemRepository: Repository<Item>,
   ) { }
 
   // Crear un nuevo item
-  async create(createItemDto: CreateItemDto): Promise<Item> {
-    const newItem = this.itemRepository.create(createItemDto);
-    return await this.itemRepository.save(newItem);
-  }
+
+
+  async create(createItemDto: CreateItemDto) {
+    try {
+      const resultado = await this.itemRepository.save(createItemDto);
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+  async guardarItemNuevos(createItemDto: CreateItemDto) {
+    try {
+
+      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item } });
+
+      if (!existente) {      
+      const resultado = await this.itemRepository.save(createItemDto);
+
+      return this.responseService.success(resultado, "Registrado Correctamente.")      
+      }
+      else {
+
+        return this.responseService.error( "El ítem ya existe. No puede guardar.")      
+      }
+      
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }    
 
   // Obtener todos los items
   //async findAll(): Promise<Item[]> {
@@ -145,16 +171,40 @@ private readonly itemRepository: Repository<Item>,
        
         
   
-        const query = `SELECT * FROM public.item	`;
-  
-        const resultadoSgeo: any[] = await this.itemRepository.query(query);
-        const resultadoSgpu: any[] = await this.externoService.sgpuItemsVigentes();        
-       // const resultadoSgpu: any[] = resultadoUsuarios.data
-  
-        const resultado = resultadoSgpu.map(sgpu => {
-          const itemsNuevos = resultadoSgeo.filter(sgeo => sgeo.codigo_item === sgpu.codigoItem);
-          return { sgpu, sgeo: itemsNuevos };
-        });
+        const query = `SELECT * FROM public.item WHERE id_obra =$1	LIMIT 10`;
+        const params = [data.id_obra];
+        /*const resultadoSgeo: any[] = await this.itemRepository.query(query, params);
+        const resultadoSgpu: any[] = await this.externoService.sgpuItemsVigentes();   
+        
+     
+        const resultado = resultadoSgpu.map(datossgpu => {
+          const itemsNuevos = resultadoSgeo.filter(sgeo => sgeo.codigo_item === datossgpu.codigoItem);
+
+          console.log('resultado', itemsNuevos);  
+          return { datossgpu, sgeo:itemsNuevos };*/
+
+          const resultadoSgeo: any[] = await this.itemRepository.query(query, params);
+          const resultadoSgpu: any[] = await this.externoService.sgpuItemsVigentes();
+          
+          // Obtener solo los elementos de `resultadoSgeo` que no están en `resultadoSgpu`
+          const noEnSgpu = resultadoSgeo.filter(
+            sgeo => !resultadoSgpu.some(sgpu => sgpu.codigoItem === sgeo.codigo_item)
+          );
+          
+          // Obtener solo los elementos de `resultadoSgpu` que no están en `resultadoSgeo`
+          const noEnSgeo = resultadoSgpu.filter(
+            sgpu => !resultadoSgeo.some(sgeo => sgeo.codigo_item === sgpu.codigoItem)
+          );
+          
+          // Unir los resultados si es necesario
+          const resultado = {
+            noEnSgpu, // Elementos en Sgeo que no están en Sgpu
+            noEnSgeo, // Elementos en Sgpu que no están en Sgeo
+          };
+          
+      
+          
+    
         return this.responseService.success(resultado, "Listado Correctamente.")
       } catch (error) {
         return this.responseService.error(error);
