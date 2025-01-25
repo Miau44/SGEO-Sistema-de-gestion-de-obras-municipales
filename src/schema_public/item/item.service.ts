@@ -122,7 +122,10 @@ private readonly itemRepository: Repository<Item>,
     try {
       const query = ` 
 
-      SELECT i.id_item, f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
+      SELECT i.id_item, i.orden_sim,
+      
+      
+      f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
       REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
       REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
       REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
@@ -139,21 +142,19 @@ private readonly itemRepository: Repository<Item>,
     } catch (error) {
       return this.responseService.error(error);
     }
-  }
+  }  
 
   async exportarItems(data: ItemObra) {
     try {
       const query = ` 
       SELECT * FROM public.item WHERE id_obra=$1 AND id_estado=1`;
-      const param =[data.id_obra]
+      const param = [data.id_obra]
       const resultado = await this.itemRepository.query(query, param);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
   }
-
-
 
     //menu asignaciones general
     async listaItemSGPU(data:ItemObra) {
