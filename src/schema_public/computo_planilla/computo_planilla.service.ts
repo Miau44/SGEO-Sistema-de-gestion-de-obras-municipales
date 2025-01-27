@@ -4,14 +4,15 @@ import { UpdateComputoDto } from './dto/update-computo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Computo } from './entities/computo.entity';
 import { ResponseService } from 'src/response.service';
-import { Repository } from 'typeorm';
+import { Any, Repository } from 'typeorm';
 import { ComputoObra } from './dto/computo-obra.dto';
 import { Planilla } from './entities/planilla.entity';
 import { CreatePlanillaDto } from './dto/create-planilla.dto';
 import { ComputoItem } from './dto/computo-Item.dto';
 import { ComputoCriterio } from './entities/computo_criterio.entity';
 import * as XLSX from 'xlsx';
-
+import { ErrorDetalle } from './ErrorDetalle';
+import { ComputoImportarDto } from './dto/computo-importar.dto';
 
 @Injectable()
 export class ComputoPlanillaService {
@@ -60,16 +61,22 @@ export class ComputoPlanillaService {
   async listaItemComputoXObra(data: ComputoObra) {
     try {
       ;
-      let query = `
-      SELECT  s.id_solicitud,  i.id_item, c.id_computo, codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado, numero_veces,
-      largo, ancho, alto, area, volumen, cantidad_planilla, monto_planilla, i.id_obra
-      FROM public.item AS i
-      LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
-      LEFT OUTER JOIN public.planilla AS P ON i.id_item = c.id_item 
-       INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
-        WHERE i.id_obra=$1 AND s.id_solicitud = $2`;
-        const params: any[] = [data.id_obra, data.id_solicitud];
+      let query =
+        /*`
+        SELECT  s.id_solicitud,  i.id_item, c.id_computo, codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado, numero_veces,
+        largo, ancho, alto, area, volumen, cantidad_planilla, monto_planilla, i.id_obra
+        FROM public.item AS i
+        LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
+        LEFT OUTER JOIN public.planilla AS P ON i.id_item = c.id_item 
+         INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
+          WHERE i.id_obra=$1 AND s.id_solicitud = $2`;*/
 
+        ` SELECT  s.id_solicitud,  i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+      FROM public.item AS i
+      LEFT OUTER JOIN public.planilla AS p ON i.id_item = p.id_item 
+      INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
+      WHERE i.id_obra= $1 AND s.id_solicitud = $2 ORDER BY i.orden_sim ASC;`;
+      const params: any[] = [data.id_obra, data.id_solicitud];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -80,8 +87,25 @@ export class ComputoPlanillaService {
   async listaComputoXItem(data: ComputoItem) {
     try {
       ;
-      let query = `
-      SELECT  
+      let query =
+        `SELECT  
+      i.id_item, 
+      i.orden_sim,
+      c.id_computo, 
+      codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+      total_adjudicado, 
+      numero_veces, 
+      tramo, descripcion, 
+      CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
+      CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
+      CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
+      CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
+      CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
+	    parcial, i.id_obra
+      FROM public.item AS i
+      INNER JOIN public.computo  AS c ON i.id_item = c.id_item WHERE i.id_item =$1   `;
+
+      /*`SELECT  
       i.id_item, 
       i.orden_sim,
       c.id_computo, 
@@ -91,8 +115,8 @@ export class ComputoPlanillaService {
       tramo, descripcion, 
       largo, ancho, alto, area, volumen, parcial, i.id_obra
       FROM public.item AS i
-      LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item    
-      WHERE i.id_item =$1`;
+      INNER JOIN public.computo  AS c ON i.id_item = c.id_item    
+      WHERE i.id_item =$1`;*/
       const params: any[] = [data.id_item];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -104,18 +128,34 @@ export class ComputoPlanillaService {
   async descargarComputosMetricos(data: ComputoObra) {
     try {
       ;
-      let query = `
-        SELECT  
+      let query =
+
+        /*`SELECT  
+          '' as nro, 
+          i.id_item, 
+          i.orden_sim AS orden,    
+          i.desc_item  AS nombre,  
+          tramo, descripcion, unidad_medida_sim as unidad,
+          numero_veces as numero, 
+          alto as altura ,ancho, largo,  area,  volumen, parcial
+          FROM public.item AS i
+          LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
+          WHERE i.id_obra =$1 ORDER BY i.orden_sim ASC `;*/
+
+
+
+        ` SELECT  
         '' as nro, 
         i.id_item, 
         i.orden_sim AS orden,    
         i.desc_item  AS nombre,  
-        tramo, descripcion, unidad_medida_sim as unidad,
-        numero_veces as numero, 
-        alto as altura ,ancho, largo,  area,  volumen, parcial
-        FROM public.item AS i
-        LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
-        WHERE i.id_obra =$1 ORDER BY i.orden_sim ASC `;
+         ''  AS  tramo,  '' AS descripcion, unidad_medida_sim as unidad,
+        '' as numero, 
+        '' AS altura ,'' AS ancho, '' AS largo, '' AS  area,  '' AS volumen, '' AS  parcial
+        FROM public.item AS i 
+        WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;
+
+
       const params: any[] = [data.id_obra];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")

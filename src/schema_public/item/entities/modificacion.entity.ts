@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Obra } from '../../obra/entities/obra.entity'; // Relación con Obra
-@Entity('modificacion')
+import { Computo } from 'src/schema_public/computo_planilla/entities/computo.entity';
+@Entity()
 export class Modificacion {
     @PrimaryGeneratedColumn()
     id_modificacion: number;
@@ -53,6 +54,9 @@ export class Modificacion {
    id_estado: number;   
   
 
+    //relacion uno a muchos con la entidad computo
+    @OneToMany(() => Computo, (computomo) => computomo.modificacion, { cascade: true })
+    computomo: Computo[];
 
   
   

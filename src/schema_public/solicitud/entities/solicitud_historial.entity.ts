@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-@Entity()
+import { Solicitud } from "./solicitud.entity";
+@Entity('solicitud_historial')
 
 export class SolicitudHistorial {
 
@@ -36,7 +37,6 @@ export class SolicitudHistorial {
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true })
     fecha_envio: Date  
   
-
     @Column({nullable:true})
     id_usuario_previo: number;    
 
@@ -51,8 +51,13 @@ export class SolicitudHistorial {
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
-    fecha_modificacion: Date    
+    fecha_modificacion: Date 
+    
+   //relacion de muchos a uno con la entidad Solicitud   
 
+    @ManyToOne(() => Solicitud, (solicitud) =>solicitud.solicitudHistorial)
+    @JoinColumn({name:'id_solicitud'})
+    solicitud:Solicitud;
 
 
 

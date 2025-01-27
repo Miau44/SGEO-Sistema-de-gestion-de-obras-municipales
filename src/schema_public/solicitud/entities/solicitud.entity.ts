@@ -1,4 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { SolicitudHistorial } from "./solicitud_historial.entity";
+import { Obra } from "src/schema_public/obra/entities/obra.entity";
 @Entity()
 export class Solicitud {
 
@@ -46,5 +48,17 @@ export class Solicitud {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
+
+    //relacion de uno a muchos con la entidad solicitud_historial
+    @OneToMany(() => SolicitudHistorial,(solhistorial)=> solhistorial.solicitud, {cascade:true} )
+    solicitudHistorial:SolicitudHistorial[]
+
+    //relacion muchos a uno con la entidad obra
+    @ManyToOne(() => Obra, (obra) => obra.solicitud)
+    @JoinColumn({ name: 'id_obra' }) // Indica el nombre de la columna FK
+    obra: Obra;    
+
+
+
 
 }

@@ -1,9 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Designacion } from "src/schema_public/designacion/entities/designacion.entity";
 import { GarantiaSeguro } from "src/schema_public/garantia_seguro/entities/garantia_seguro.entity";
 import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
+import { Solicitud } from "src/schema_public/solicitud/entities/solicitud.entity";
 
 @Entity()
 export class Obra {
@@ -92,8 +93,12 @@ export class Obra {
     memorandum1: Memorandum[];   
 
     // Relación con la entidad Ficha
-    @ManyToOne(() => Ficha, (ficha) => ficha.obras)
+    @OneToOne(() => Ficha, (ficha) => ficha.obras)
     ficha: Ficha;
+
+    //relacion uno a muchos con la entidad solicitud
+    @OneToMany(() => Solicitud, (solicitud) => solicitud.obra, { cascade: true })
+    solicitud: Solicitud[];
 
       
 }

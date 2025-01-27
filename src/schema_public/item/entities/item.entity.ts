@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column,JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Obra } from './../../obra/entities/obra.entity'; // Relación con Obra
+import { Computo } from 'src/schema_public/computo_planilla/entities/computo.entity';
 @Entity('item')
 export class Item {
   @PrimaryGeneratedColumn()
@@ -100,4 +101,10 @@ export class Item {
   @ManyToOne(() => Obra, (obra) => obra.items)
   @JoinColumn({ name: 'id_obra' })
   obra: Obra;
+
+
+//relacion de uno a muchos con computo
+  @OneToMany(() => Computo, (computo) => computo.item, { cascade: true })
+  computo: Computo[];
+
 }

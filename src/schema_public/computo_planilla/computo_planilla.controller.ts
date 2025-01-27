@@ -11,6 +11,7 @@ import { UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadedFile } from '@nestjs/common';
 import { Any } from 'typeorm';
+import { ComputoImportarDto } from './dto/computo-importar.dto';
 
 
 @ApiTags('computo-planilla')
