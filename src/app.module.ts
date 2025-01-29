@@ -33,6 +33,7 @@ import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
 import { CorrelativoModule } from './schema_public/correlativo/correlativo.module';
 import { ItemModule } from './schema_public/item/item.module';
 import { ComputoPlanillaModule } from './schema_public/computo_planilla/computo_planilla.module';
+import { PlanillaModule } from './schema_public/planilla/planilla.module';
 
 
 @Module({
@@ -95,7 +96,8 @@ import { ComputoPlanillaModule } from './schema_public/computo_planilla/computo_
   MemorandumModule,
   CorrelativoModule,
   ItemModule,
-  ComputoPlanillaModule
+  ComputoPlanillaModule,
+  PlanillaModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

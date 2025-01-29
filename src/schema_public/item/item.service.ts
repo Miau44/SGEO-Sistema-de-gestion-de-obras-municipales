@@ -82,7 +82,8 @@ private readonly itemRepository: Repository<Item>,
 
   updateItem(id: number, updateItemDto: UpdateItemDto) {
     try {
-      this.itemRepository.update(+id, updateItemDto);     
+     const resultado = this.itemRepository.update(+id, updateItemDto);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")         
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -267,7 +268,14 @@ async createModificacion(createModDto: CreateModificacionDto) {
   async listaModificacion(data: ItemObra) {
     try {
       ;
-      let query = `SELECT  s.id_solicitud, p.desc_subtipo AS tipo_modificacion,
+      let query = `SELECT s.id_obra,  m.id_modificacion, s.id_solicitud, m.id_tipo_modificacion, 
+                  CASE 
+                  WHEN m.id_tipo_modificacion = 256 THEN 260
+                  WHEN m.id_tipo_modificacion = 257 THEN 259 
+                  ELSE 0 
+                  END AS id_tipo_computo,      
+      
+      p.desc_subtipo AS tipo_modificacion,
       nro_modificacion, es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
       FROM public.modificacion AS m
       INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 

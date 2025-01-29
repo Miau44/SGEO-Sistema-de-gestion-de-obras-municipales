@@ -61,7 +61,9 @@ export class ItemController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+    try{
     return await this.itemService.update(+id, updateItemDto);
+    }catch (error) { }
   }
 
   // Ruta para eliminar un item por id

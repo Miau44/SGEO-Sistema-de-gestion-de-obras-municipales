@@ -1,0 +1,64 @@
+
+import { ApiProperty } from "@nestjs/swagger";
+export class CreateComputoHistoricoDto {
+
+    @ApiProperty()
+    id_computo: number;
+
+    @ApiProperty()
+    id_item: number;
+
+    @ApiProperty()
+    id_modificacion: number;
+      
+    @ApiProperty()
+    tramo: string;
+
+    @ApiProperty()
+    descripcion: string;    
+
+    @ApiProperty()
+    numero_veces: number;    
+
+    @ApiProperty()
+    alto: number;   
+    
+    @ApiProperty()
+    largo: number;    
+
+    @ApiProperty()
+    ancho: number;    
+
+    @ApiProperty()
+    area: number;    
+
+    @ApiProperty()
+    area_total: number;   
+    
+    @ApiProperty()
+    volumen: number;       
+        
+    @ApiProperty()
+    volumen_total: number;      
+        
+    @ApiProperty()
+    parcial: number;         
+
+    @ApiProperty()
+    id_tipo_computo: number;     
+    
+    @ApiProperty()
+    justificacion: string; 
+    
+    @ApiProperty()
+    version: number;         
+        
+    @ApiProperty()
+    id_usuario_registro: number;       
+
+    @ApiProperty()
+    id_estado: number;       
+    
+    
+
+}

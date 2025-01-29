@@ -51,6 +51,9 @@ export class Computo {
     @Column({ type: 'varchar' })
     justificacion: string;
 
+    @Column({nullable:true})
+    version: number;    
+
     ///campos de tabla generales
 
     @Column()
