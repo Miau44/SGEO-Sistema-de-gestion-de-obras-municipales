@@ -10,6 +10,7 @@ import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { Modificacion } from './entities/modificacion.entity';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
+import { ItemEstadoDto } from './dto/item-estado.dto';
 
 
 @Injectable()
@@ -37,7 +38,7 @@ private readonly itemRepository: Repository<Item>,
   async guardarItemNuevos(createItemDto: CreateItemDto) {
     try {
 
-      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item } });
+      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });
 
       if (!existente) {      
       const resultado = await this.itemRepository.save(createItemDto);
@@ -250,6 +251,19 @@ private readonly itemRepository: Repository<Item>,
     
     
 
+  async actualizarEstado(data: ItemEstadoDto) {
+    try {
+      ;
+      let query =
+        ` UPDATE public.item 
+        SET id_estado =$2 WHERE id_item = $1 AND id_estado = 1`;
+      const params: any[] = [data.id_item, data.id_estado];
+      const resultado: any[] = await this.itemRepository.query(query, params);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
 
 //////////modificacion///////////////////
 
