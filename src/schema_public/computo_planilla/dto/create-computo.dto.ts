@@ -4,7 +4,10 @@ export class CreateComputoDto {
 
     @ApiProperty()
     id_item: number;
-  
+
+    @ApiProperty()
+    id_modificacion: number;
+      
     @ApiProperty()
     tramo: string;
 
@@ -42,7 +45,10 @@ export class CreateComputoDto {
     id_tipo_computo: number;     
     
     @ApiProperty()
-    justificacion: string;      
+    justificacion: string; 
+    
+    @ApiProperty()
+    version: number;         
         
     @ApiProperty()
     id_usuario_registro: number;       

@@ -3,13 +3,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ComputoImportarDto {
-    @ApiProperty({ required: false })
+    @ApiProperty()
     id_modificacion: number;
 
-    @ApiProperty({ required: false })
+    @ApiProperty()
     id_tipo_computo: number;    
 
-    @ApiProperty({ required: false })
+    @ApiProperty()
     id_usuario: number;
  
 }

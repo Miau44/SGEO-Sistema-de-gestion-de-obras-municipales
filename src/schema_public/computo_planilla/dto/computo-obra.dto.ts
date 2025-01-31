@@ -9,5 +9,10 @@ export class ComputoObra {
 
     @ApiProperty({ required: false })
     id_solicitud: number;
+
+
+    @ApiProperty({ required: false })
+    id_modificacion: number;
+     
  
 }

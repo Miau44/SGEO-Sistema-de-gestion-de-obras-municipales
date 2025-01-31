@@ -11,6 +11,8 @@ import { Modificacion } from './entities/modificacion.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
+import { ItemEstadoDto } from './dto/item-estado.dto';
+
 
 
 @ApiTags('item')
@@ -61,7 +63,9 @@ export class ItemController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+    try{
     return await this.itemService.update(+id, updateItemDto);
+    }catch (error) { }
   }
 
   // Ruta para eliminar un item por id
@@ -116,6 +120,15 @@ async itemsSGPU(@Body() itemObra: ItemObra) {
   return this.itemService.listaItemSGPU(itemObra);
 }
 
+
+  @Public()
+  @Post('item-actualizar-estado')
+  actualizarJustificacion(@Body() itemEstadoDto: ItemEstadoDto) {
+    try {  
+      return this.itemService.actualizarEstado(itemEstadoDto);
+    } catch (error) {
+    }
+  }
 
 
 /////////////////////////modificacion/////////////////////////

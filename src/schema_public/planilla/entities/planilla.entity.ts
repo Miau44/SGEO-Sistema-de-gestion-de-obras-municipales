@@ -10,27 +10,24 @@ export class Planilla {
     id_modificacion: number;    
 
     @Column()
-    id_tipo_planilla: number;   
-    
-    @Column()
     id_item: number;  
 
-    @Column({ type: 'decimal', precision: 15, scale: 5 })
+    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
     cantidad_planilla: number;
     
-    @Column({ type: 'decimal', precision: 15, scale: 5 })
+    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
     monto_planilla: number;
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', nullable:true })
     tipo_item_modificacion: string;
 
-    @Column({ type: 'decimal', precision: 15, scale: 5 })
+    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
     cantidad_reordenamiento: number;    
 
-    @Column({ type: 'decimal', precision: 15, scale: 5 })
+    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
     total_reordenamiento: number;   
     
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', nullable:true })
     justificacion: string;   
     
     ///campos de tabla generales

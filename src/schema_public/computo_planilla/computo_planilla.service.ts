@@ -6,13 +6,15 @@ import { Computo } from './entities/computo.entity';
 import { ResponseService } from 'src/response.service';
 import { Any, Repository } from 'typeorm';
 import { ComputoObra } from './dto/computo-obra.dto';
-import { Planilla } from './entities/planilla.entity';
-import { CreatePlanillaDto } from './dto/create-planilla.dto';
+
+
 import { ComputoItem } from './dto/computo-Item.dto';
 import { ComputoCriterio } from './entities/computo_criterio.entity';
 import * as XLSX from 'xlsx';
 import { ErrorDetalle } from './ErrorDetalle';
 import { ComputoImportarDto } from './dto/computo-importar.dto';
+import { CreateComputoHistoricoDto } from './dto/create-computo-historico.dto';
+import { version } from 'os';
 
 @Injectable()
 export class ComputoPlanillaService {
@@ -20,8 +22,8 @@ export class ComputoPlanillaService {
   private readonly DECIMAL_PLACES = 5;
   constructor(
     @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,
-    @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
-    @InjectRepository(ComputoCriterio) private criterioRepositorio: Repository<ComputoCriterio>,    
+
+    @InjectRepository(ComputoCriterio) private criterioRepositorio: Repository<ComputoCriterio>,
     private responseService: ResponseService
 
   ) { }
@@ -53,8 +55,14 @@ export class ComputoPlanillaService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} computoPlanilla`;
+  async remove(id: number) {
+    try {
+      const resultado = await this.computoRepositorio.delete(id)
+      return this.responseService.success(id, "Eliminado Correctamente")
+    } catch (error) {
+      return this.responseService.error(error);
+    }    
+
   }
 
 
@@ -130,7 +138,7 @@ export class ComputoPlanillaService {
       ;
       let query =
 
-        /*`SELECT  
+        `SELECT  
           '' as nro, 
           i.id_item, 
           i.orden_sim AS orden,    
@@ -139,12 +147,12 @@ export class ComputoPlanillaService {
           numero_veces as numero, 
           alto as altura ,ancho, largo,  area,  volumen, parcial
           FROM public.item AS i
-          LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
-          WHERE i.id_obra =$1 ORDER BY i.orden_sim ASC `;*/
+         INNER JOIN  public.computo  AS c ON i.id_item = c.id_item 
+          WHERE i.id_obra =$1  AND c.id_modificacion =$2 ORDER BY i.orden_sim ASC `;
 
 
 
-        ` SELECT  
+      /*  ` SELECT  
         '' as nro, 
         i.id_item, 
         i.orden_sim AS orden,    
@@ -153,10 +161,10 @@ export class ComputoPlanillaService {
         '' as numero, 
         '' AS altura ,'' AS ancho, '' AS largo, '' AS  area,  '' AS volumen, '' AS  parcial
         FROM public.item AS i 
-        WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;
+        WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;*/
 
 
-      const params: any[] = [data.id_obra];
+      const params: any[] = [data.id_obra, data.id_modificacion];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -165,62 +173,226 @@ export class ComputoPlanillaService {
   }
 
 
+  async getTipoComputo(tipo_modificacion:number) {
+    try {
+      ;
+      let query =
+        ` SELECT   CASE 
+        WHEN pp.id_subtipo = 256 THEN 260
+        WHEN pp.id_subtipo = 257 THEN 259 
+        ELSE 0 
+        END AS id_tipo_computo
+        FROM  public.parametrica AS pp WHERE id_subtipo IN($1)`;
 
-/////////////////////////////importar archivo excel//////////////////////////////////
-async procesarYGuardarExcel(file: Express.Multer.File): Promise<{ success: boolean; message: string }> {
-  try {
-    // Leer y procesar el archivo Excel
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      const params: any[] = [tipo_modificacion];
+      const resultado: any[] = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
 
-    const procesados = this.procesarDatos(data);
 
-    // Guardar los datos procesados en la base de datos en lotes
-    await this.insertarDatosLotes(procesados, 500);
 
-    return { success: true, message: 'Archivo procesado y datos almacenados correctamente.' };
-  } catch (error:any) {
-    throw new Error(`Error al procesar el archivo Excel: ${error.message}`);
+
+
+  /////////////////////////////importar archivo excel//////////////////////////////////
+  /*async procesarYGuardarExcel(file: Express.Multer.File): Promise<{ success: boolean; message: string }> {
+    try {
+      // Leer y procesar el archivo Excel
+      const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  
+      const procesados   = this.procesarDatos(data);
+  
+      // Guardar los datos procesados en la base de datos en lotes
+      await this.insertarDatosLotes(procesados, 500);
+  
+      return { success: true, message: 'Archivo procesado y datos almacenados correctamente.' };
+    } catch (error:any) {
+      throw new Error(`Error al procesar el archivo Excel: ${error.message}`);
+    }
+  }*/
+
+
+
+
+  async procesarYGuardarExcel(
+    file: Express.Multer.File,
+    body: any): Promise<{ success: boolean; message: string; errores?: ErrorDetalle[] }> {
+    try {
+
+      console.log('id_modificacion service', body.id_modificacion);
+
+      
+      const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      const procesados = this.procesarDatos(data);
+
+     
+      const errores: ErrorDetalle[] = procesados.errores.map((error: string) => {
+        const match = error.match(/fila (\d+): Campo '(\w+)' (.+)/i);
+        return {
+          fila: match ? parseInt(match[1], 10) : null, // `null` si no hay coincidencia
+          campo: match ? match[2] : 'Desconocido',
+          mensaje: match ? match[3] : error,
+        };
+      });
+
+    
+      if (errores.length > 0) {
+        return {
+          success: false,
+          message: 'Archivo procesado con errores.',
+          errores,
+        };
+      }
+      // Guardar los datos procesados
+      await this.insertarDatosLotes(procesados.datosProcesados, body, 500);
+      return { success: true, message: 'Archivo procesado y datos almacenados correctamente.' };
+    } catch (error: any) {
+      throw new Error(`Error al procesar el archivo Excel: ${error.message}`);
+    }
   }
-}
 
-private procesarDatos(data: any[]): any[] {
-  return data.map((row: any) => {
-    Object.keys(row).forEach((key) => {
-      if (typeof row[key] === 'number') {
-        row[key] = this.toFixedNumber(row[key]);
+  private procesarDatos(data: any[]): { errores: string[]; datosProcesados: any[] } {
+    const errores: string[] = [];
+    const datosProcesados = data.map((row: any, index: number) => {
+      const unidad = row.unidad?.toLowerCase() || ''; // Normalizar la unidad a minúsculas
+      const campos = ['altura', 'ancho', 'largo', 'area', 'volumen'];
+
+      try {
+        // Validaciones específicas por unidad
+        switch (unidad) {
+          case 'm': // Validaciones para unidad "m"
+
+            if (this.ensureNumber(row.altura)) {
+              this.validarCamposVacios(row, ['ancho', 'largo', 'area', 'volumen'], index, unidad, errores);
+            } else if (this.ensureNumber(row.ancho)) {
+              this.validarCamposVacios(row, ['altura', 'largo', 'area', 'volumen'], index, unidad, errores);
+            } else if (this.ensureNumber(row.largo)) {
+              this.validarCamposVacios(row, ['altura', 'ancho', 'area', 'volumen'], index, unidad, errores);
+            } else {
+              errores.push(`Fila ${index + 1}: Se debe especificar uno y sólo uno de los campos "altura", "ancho" o "largo" para la unidad "m".`);
+            }
+            break;
+
+          case 'm2': // Validaciones para unidad "m2"
+            const m2Combinaciones = [
+              ['altura', 'ancho'], // Altura y ancho
+              ['ancho', 'largo'],  // Ancho y largo
+              ['altura', 'largo'], // Altura y largo
+              ['area']             // Solo área
+            ];
+
+            if (!this.validarCombinaciones(row, m2Combinaciones)) {
+              errores.push(
+                `Fila ${index + 1}: Para la unidad "m2", se debe especificar una de las siguientes Variaciones: ` +
+                `altura y ancho, ancho y largo, altura y largo, o sólo área.`
+              );
+            }
+            break;
+
+          case 'm3': // Validaciones para unidad "m3"
+            const m3Combinaciones = [
+              ['altura', 'ancho', 'largo'], // Altura, ancho y largo
+              ['largo', 'area'],            // Largo y área
+              ['altura', 'area'],           // Altura y área
+              ['ancho', 'area'],            // Ancho y área
+              ['volumen']                   // Solo volumen
+            ];
+
+            if (!this.validarCombinaciones(row, m3Combinaciones)) {
+              errores.push(
+                `Fila ${index + 1}: Para la unidad "m3", se debe especificar una de las siguientes variaciones: ` +
+                `altura, ancho y largo; largo y área; altura y área; ancho y área; o solo volumen.`
+              );
+            }
+            break;
+
+          default: // Validaciones para unidades adimensionales
+            if (!this.ensureNumber(row.numero)) {
+              errores.push(`Fila ${index + 1}: El campo "numero" es obligatorio para la unidad "${unidad}".`);
+            }
+            this.validarCamposVacios(row, campos, index, unidad, errores);
+            break;
+        }
+
+        
+        Object.keys(row).forEach((key) => {
+          if (typeof row[key] === 'number') {
+            row[key] = this.toFixedNumber(row[key]);
+          }
+        });
+
+        return row; // Fila procesada
+      } catch (error: any) {
+        errores.push(`Fila ${index + 1}: ${error.message}`);
+        return row; // Retornar fila aunque tenga errores
       }
     });
-    return row;
-  });
-}
 
-private toFixedNumber(value: any): number {
-  return parseFloat(Number(value || 0).toFixed(this.DECIMAL_PLACES));
-}
+    return { errores, datosProcesados };
+  }
 
-private async insertarDatosLotes(data: any[], batchSize: number): Promise<void> {
-  try {
-    for (let i = 0; i < data.length; i += batchSize) {
-      const batch = data.slice(i, i + batchSize).map(row => ({
-        id_item: row.id_item || '',
-        tramo: row.tramo || '',
-        descripcion: row.descripcion || '',
-        numero_veces: this.ensureNumber(row.numero),
-        alto: this.ensureNumber(row.altura),
-        largo: this.ensureNumber(row.largo),
-        ancho: this.ensureNumber(row.ancho),
-        area: this.ensureNumber(row.area),
-        area_total: 0,
-        volumen: this.ensureNumber(row.volumen),
-        volumen_total: 0,
-        parcial: 0,
-        id_tipo_computo: 0,
-        justificacion: '',
-        id_usuario_registro: 9820,
-        id_estado: 1,
-      }));
+  private validarCombinaciones(row: any, combinaciones: string[][]): boolean {
+    // Recorremos todas las combinaciones posibles
+    for (const combinacion of combinaciones) {
+      // Verificamos si todos los campos de una combinación están presentes y no vacíos
+      if (combinacion.every(campo => this.ensureNumber(row[campo]))) {
+        return true; // Se encontró una combinación válida
+      }
+    }
+    return false;
+  }
+
+ 
+  private validarCamposVacios(row: any, campos: string[], index: number, unidad: string, errores: string[]): void {
+    campos.forEach((campo) => {
+      if (this.ensureNumber(row[campo])) {
+        errores.push(`Fila ${index + 1}: El campo "${campo}" no debe contener datos para la unidad "${unidad}".`);
+      }
+    });
+  }
+
+  private toFixedNumber(value: any): number {
+    return parseFloat(Number(value || 0).toFixed(this.DECIMAL_PLACES));
+  }
+
+  private async insertarDatosLotes(data: any[], dataadicional: any, batchSize: number): Promise<void> {
+    try {
+      //calcular version
+     const max_version = await this.getMaxVersion(dataadicional.id_modificacion);
+
+      //copiar datos actuales a computo historico     
+      // nueva version = version +1
+      const nueva_version = max_version + 1;      
+      //borrar computos por id_modificacion y tipo de computo
+       await this.deleteXModificacion(dataadicional.id_modificacion)
+
+      for (let i = 0; i < data.length; i += batchSize) {
+        const batch = data.slice(i, i + batchSize).map(row => ({
+          id_item: row.id_item || '',
+          id_modificacion: dataadicional.id_modificacion,
+          tramo: row.tramo || '',
+          descripcion: row.descripcion || '',
+          numero_veces: this.ensureNumber(row.numero),
+          alto: this.ensureNumber(row.altura),
+          largo: this.ensureNumber(row.largo),
+          ancho: this.ensureNumber(row.ancho),
+          area: this.ensureNumber(row.area),
+          area_total: 0,
+          volumen: this.ensureNumber(row.volumen),
+          volumen_total: 0,
+          parcial: 0,
+          id_tipo_computo: dataadicional.id_tipo_computo,
+          justificacion: '',
+          version: nueva_version,
+          id_usuario_registro: dataadicional.id_usuario,
+          id_estado: 1,
+        }));
 
       await this.computoRepositorio.save(batch);
     }
@@ -229,43 +401,35 @@ private async insertarDatosLotes(data: any[], batchSize: number): Promise<void> 
   }
 }
 
-/**
- * Asegura que el valor sea un número, reemplazando valores nulos o vacíos por 0.
- * @param value El valor a validar.
- */
-private ensureNumber(value: any): number {
-  return typeof value === 'number' && !isNaN(value) ? value : 0;
-}
+
+ 
+
+  private ensureNumber(value: any): number {
+    // Convertir el valor a un número si es válido y devolverlo; de lo contrario, devolver 0.
+    const parsedValue = parseFloat(value);
+    return !isNaN(parsedValue) && value !== null && value !== '' ? parsedValue : 0;
+  }
+
+  async getMaxVersion(modificacion: number): Promise<number> {
+    console.log('id_mod getmax', modificacion);    
+    const query = `SELECT COALESCE(MAX(version), 0) AS max_version 
+                  FROM public.computo_historico WHERE id_modificacion =$1;`;
+    const param = [modificacion]
+    const result = await this.computoRepositorio.query(query, param);
+    console.log('result.rows[0]?.max_version', result[0].max_version || 0);
+    return result[0]?.max_version || 0;
+    
+  }
 
 
+  async deleteXModificacion(modificacion: number): Promise<number> {
+    const query = `DELETE FROM public.computo WHERE id_modificacion =$1;`
+    const param =[modificacion]
+    const result = await this.computoRepositorio.query(query, param);
+    return result;
+  }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ///////////////////////////////PLANILLA//////////////////////////////
-  async createPlanilla(createComputoDto: CreatePlanillaDto) {
-    try {
-      const resultado = await this.planillaRepositorio.save(createComputoDto);
-      return this.responseService.success(resultado, "Registrado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }   
 
 
   ////////////////////////////////COMPUTO CRITERIO//////////////////
