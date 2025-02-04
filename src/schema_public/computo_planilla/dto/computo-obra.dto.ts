@@ -5,12 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class ComputoObra {
     @ApiProperty({ required: false })
     id_obra: number;
-
-
-    @ApiProperty({ required: false })
-    id_solicitud: number;
-
-
+    
     @ApiProperty({ required: false })
     id_modificacion: number;
      

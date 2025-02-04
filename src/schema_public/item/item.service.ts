@@ -5,12 +5,13 @@ import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import { ResponseService } from 'src/response.service';
-import { ItemObra } from './dto/item-obra.dto';
+import { ItemObraDto } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { Modificacion } from './entities/modificacion.entity';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { ItemEstadoDto } from './dto/item-estado.dto';
+import { ItemFinalizarDto } from './dto/item-finalizar.dto';
 
 
 @Injectable()
@@ -97,7 +98,7 @@ private readonly itemRepository: Repository<Item>,
   }
 
 
-  async listarItemsXObra(data: ItemObra) {
+  async listarItemsXObra(data: ItemObraDto) {
     try {
       const query = ` 
 
@@ -106,7 +107,8 @@ private readonly itemRepository: Repository<Item>,
       REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
       REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
       REPLACE(to_char(i.p_unitario_adjudicado,'999G999G999G999D99'), ' ', '') as p_unitario_adjudicado,	  
-      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado	  
+      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado,
+    i.finalizado	  
       FROM public.obra AS o
       INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
       INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
@@ -120,7 +122,7 @@ private readonly itemRepository: Repository<Item>,
     }
   }
 
-  async listarItemsXObraXTipo(data: ItemObra) {
+  async listarItemsXObraXTipo(data: ItemObraDto) {
     try {
       const query = ` 
 
@@ -146,7 +148,7 @@ private readonly itemRepository: Repository<Item>,
     }
   }  
 
-  async exportarItems(data: ItemObra) {
+  async exportarItems(data: ItemObraDto) {
     try {
       const query = ` 
       SELECT * FROM public.item WHERE id_obra=$1 AND id_estado=1`;
@@ -158,15 +160,15 @@ private readonly itemRepository: Repository<Item>,
     }
   }
 
-    //menu asignaciones general
-    async listaItemSGPU(data:ItemObra) {
-      try {
-        //externo sistema seguridad
-        // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
-    
-        const options = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+  //menu asignaciones general
+  async listaItemSGPU(data: ItemObraDto) {
+    try {
+      //externo sistema seguridad
+      // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
+
+      const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         /*  body: JSON.stringify(
             estructuraGralDto
           ),*/
@@ -265,21 +267,82 @@ private readonly itemRepository: Repository<Item>,
     }
   }  
 
-//////////modificacion///////////////////
+
+  async finalizarOrdenItem(data: ItemFinalizarDto) {
+    try {
+      let query =
+        ` SELECT  id_item, id_tipo_item,  id_estado FROM public.item 
+        WHERE id_obra =$1 AND id_tipo_item =265 AND id_estado =1`;
+      const params = [data.id_obra];
+      const v_data_items = await this.itemRepository.query(query, params);
+
+      if (!v_data_items.length) { return this.responseService.success("No hay datos para actualizar.") }
+      let v_max_orden = await this.getMaxOrdenItem(data.id_obra) ?? 0; 
+
+      for (const item of v_data_items) {
+        if (!item?.id_item) continue; // Verifica que el item tenga un id válido
+
+        const nuevo_orden = ++v_max_orden; // Incrementar antes de asignar
+
+        if (isNaN(nuevo_orden)) {
+          console.error(`Error: nuevo_orden es NaN para item ${item.id_item}`);
+          continue;
+        }
+
+        await this.updateItem(item.id_item, { orden_sim: nuevo_orden, finalizado: true });
+      }
+
+
+      return this.responseService.success("Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
 
 
 
-async createModificacion(createModDto: CreateModificacionDto) {
-  try {
-    const resultado = await this.modificacionRepo.save(createModDto);
-    return this.responseService.success(resultado, "Guardado Correctamente.")
-  } catch (error) {
-    return this.responseService.error(error);
+
+
   }
-}
 
 
-  async listaModificacion(data: ItemObra) {
+  async getMaxOrdenItem(id_obra: number): Promise<number> {
+    const query = `SELECT COALESCE(MAX(orden_sim), 0) AS max_orden
+                  FROM public.item WHERE id_obra =$1 AND id_estado=1;`;
+    const param = [id_obra]
+    const result = await this.itemRepository.query(query, param);
+    return result[0].max_orden || 0;
+
+  }
+
+
+  async finalizarItem(data: ItemFinalizarDto) {
+    try {
+      let query =
+        ` UPDATE public.item 
+        SET finalizado =true WHERE id_obra = $1 AND id_estado = 1`;
+      const params = [data.id_obra];
+      const resultado = await this.itemRepository.query(query, params);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  
+
+  }
+
+
+  //////////MODIFICACION///////////////////
+  async createModificacion(createModDto: CreateModificacionDto) {
+    try {
+      const resultado = await this.modificacionRepo.save(createModDto);
+      return this.responseService.success(resultado, "Guardado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async listaModificacion(data: ItemObraDto) {
     try {
       ;
       let query = `SELECT s.id_obra,  m.id_modificacion, s.id_solicitud, m.id_tipo_modificacion, 
@@ -290,12 +353,13 @@ async createModificacion(createModDto: CreateModificacionDto) {
                   END AS id_tipo_computo,      
       
       p.desc_subtipo AS tipo_modificacion,
-      nro_modificacion, es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+      co.correlativo as nro_modificacion, es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
       FROM public.modificacion AS m
       INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
       INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
       INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
       INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica where id_tipo =33 ) as p ON m.id_tipo_modificacion= p.id_subtipo 
+LEFT JOIN  public.correlativo  AS co ON m.id_correlativo = co.id_correlativo       
       WHERE m.id_obra =$1`;
       const params: any[] = [data.id_obra];
 

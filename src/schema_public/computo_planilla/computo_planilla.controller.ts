@@ -15,6 +15,7 @@ import { ComputoImportarDto } from './dto/computo-importar.dto';
 import { FormDataInterceptor } from './formData.interceptor';
 import multer from 'multer';
 import { error } from 'console';
+import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 
 @ApiTags('computo-planilla')
 @Controller('computo-planilla')
@@ -57,7 +58,7 @@ export class ComputoPlanillaController {
 
   @Public()
   @Post('computo-lista')
-  listaItem(@Body() computoObraDto: ComputoObra) {
+  listaItem(@Body() computoObraDto: ComputoModificacionDto) {
     try {  
       return this.computoPlanillaService.listaItemComputoXObra(computoObraDto);
     } catch (error) {

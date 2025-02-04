@@ -15,6 +15,7 @@ import { ErrorDetalle } from './ErrorDetalle';
 import { ComputoImportarDto } from './dto/computo-importar.dto';
 import { CreateComputoHistoricoDto } from './dto/create-computo-historico.dto';
 import { version } from 'os';
+import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 
 @Injectable()
 export class ComputoPlanillaService {
@@ -66,26 +67,36 @@ export class ComputoPlanillaService {
   }
 
 
-  async listaItemComputoXObra(data: ComputoObra) {
+  async listaItemComputoXObra(data: ComputoModificacionDto) {
+
+
+
     try {
       ;
-      let query =
-        /*`
-        SELECT  s.id_solicitud,  i.id_item, c.id_computo, codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado, numero_veces,
-        largo, ancho, alto, area, volumen, cantidad_planilla, monto_planilla, i.id_obra
-        FROM public.item AS i
-        LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
-        LEFT OUTER JOIN public.planilla AS P ON i.id_item = c.id_item 
-         INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
-          WHERE i.id_obra=$1 AND s.id_solicitud = $2`;*/
 
-        ` SELECT  s.id_solicitud,  i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+      /*`
+      SELECT  s.id_solicitud,  i.id_item, c.id_computo, codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado, numero_veces,
+      largo, ancho, alto, area, volumen, cantidad_planilla, monto_planilla, i.id_obra
       FROM public.item AS i
-      LEFT OUTER JOIN public.planilla AS p ON i.id_item = p.id_item 
-      INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
-      WHERE i.id_obra= $1 AND s.id_solicitud = $2 ORDER BY i.orden_sim ASC;`;
-      const params: any[] = [data.id_obra, data.id_solicitud];
-      const resultado: any[] = await this.computoRepositorio.query(query, params);
+      LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
+      LEFT OUTER JOIN public.planilla AS P ON i.id_item = c.id_item 
+       INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
+        WHERE i.id_obra=$1 AND s.id_solicitud = $2`;
+
+      ` SELECT  s.id_solicitud,  i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+    FROM public.item AS i
+    LEFT OUTER JOIN public.planilla AS p ON i.id_item = p.id_item 
+    INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
+    WHERE i.id_obra= $1 AND  s.id_solicitud = $2  AND p.id_modificacion = $3 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`;*/
+
+      let query = `
+      SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+      FROM public.item AS i
+      INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
+	  INNER JOIN public.modificacion AS m ON p.id_modificacion = m.id_modificacion
+      WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
+      const params = [data.id_modificacion, data.id_obra];
+      const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -96,14 +107,11 @@ export class ComputoPlanillaService {
     try {
       ;
       let query =
-        `SELECT  
-      i.id_item, 
-      i.orden_sim,
-      c.id_computo, 
+        `  SELECT  
+      m.id_modificacion,
+      i.id_item, i.orden_sim, c.id_computo, 
       codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado, 
-      numero_veces, 
-      tramo, descripcion, 
+      total_adjudicado,  numero_veces,  tramo, descripcion, 
       CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
       CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
       CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
@@ -111,22 +119,14 @@ export class ComputoPlanillaService {
       CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
 	    parcial, i.id_obra
       FROM public.item AS i
-      INNER JOIN public.computo  AS c ON i.id_item = c.id_item WHERE i.id_item =$1   `;
+      INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
+	  INNER JOIN public.modificacion AS m ON c.id_modificacion  = m.id_modificacion 
+	  WHERE i.id_item =$1
+       AND m.id_modificacion = $2
+	  AND i.id_estado=1`;
 
-      /*`SELECT  
-      i.id_item, 
-      i.orden_sim,
-      c.id_computo, 
-      codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado, 
-      numero_veces,
-      tramo, descripcion, 
-      largo, ancho, alto, area, volumen, parcial, i.id_obra
-      FROM public.item AS i
-      INNER JOIN public.computo  AS c ON i.id_item = c.id_item    
-      WHERE i.id_item =$1`;*/
-      const params: any[] = [data.id_item];
-      const resultado: any[] = await this.computoRepositorio.query(query, params);
+      const params = [data.id_item, data.id_modificacion];
+      const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -137,31 +137,47 @@ export class ComputoPlanillaService {
     try {
       ;
       let query =
-
         `SELECT  
-          '' as nro, 
-          i.id_item, 
-          i.orden_sim AS orden,    
-          i.desc_item  AS nombre,  
-          tramo, descripcion, unidad_medida_sim as unidad,
-          numero_veces as numero, 
-          alto as altura ,ancho, largo,  area,  volumen, parcial
-          FROM public.item AS i
-         INNER JOIN  public.computo  AS c ON i.id_item = c.id_item 
-          WHERE i.id_obra =$1  AND c.id_modificacion =$2 ORDER BY i.orden_sim ASC `;
+      '' as nro, 
+      i.id_item, 
+      i.orden_sim AS orden,    
+      i.desc_item  AS nombre,  
+      tramo, descripcion, unidad_medida_sim as unidad,
+      numero_veces as numero, 
+    CASE WHEN alto = 0 THEN ''  ELSE alto::TEXT END AS  altura ,
+	  CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,
+	  CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,
+	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
+	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
+        CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial	
+      FROM public.item AS i
+      LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion = $2
+      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
 
-
-
-      /*  ` SELECT  
-        '' as nro, 
-        i.id_item, 
-        i.orden_sim AS orden,    
-        i.desc_item  AS nombre,  
-         ''  AS  tramo,  '' AS descripcion, unidad_medida_sim as unidad,
-        '' as numero, 
-        '' AS altura ,'' AS ancho, '' AS largo, '' AS  area,  '' AS volumen, '' AS  parcial
-        FROM public.item AS i 
-        WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;*/
+      /*   `SELECT  
+           '' as nro, 
+           i.id_item, 
+           i.orden_sim AS orden,    
+           i.desc_item  AS nombre,  
+           tramo, descripcion, unidad_medida_sim as unidad,
+           numero_veces as numero, 
+           alto as altura ,ancho, largo,  area,  volumen, parcial
+           FROM public.item AS i
+          INNER JOIN  public.computo  AS c ON i.id_item = c.id_item 
+           WHERE i.id_obra =$1  AND c.id_modificacion =$2  AND i.id_estado=1 ORDER BY i.orden_sim ASC `;
+ 
+ 
+ 
+         ` SELECT  
+         '' as nro, 
+         i.id_item, 
+         i.orden_sim AS orden,    
+         i.desc_item  AS nombre,  
+          ''  AS  tramo,  '' AS descripcion, unidad_medida_sim as unidad,
+         '' as numero, 
+         '' AS altura ,'' AS ancho, '' AS largo, '' AS  area,  '' AS volumen, '' AS  parcial
+         FROM public.item AS i 
+         WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;*/
 
 
       const params: any[] = [data.id_obra, data.id_modificacion];
@@ -197,23 +213,6 @@ export class ComputoPlanillaService {
 
 
   /////////////////////////////importar archivo excel//////////////////////////////////
-  /*async procesarYGuardarExcel(file: Express.Multer.File): Promise<{ success: boolean; message: string }> {
-    try {
-      // Leer y procesar el archivo Excel
-      const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  
-      const procesados   = this.procesarDatos(data);
-  
-      // Guardar los datos procesados en la base de datos en lotes
-      await this.insertarDatosLotes(procesados, 500);
-  
-      return { success: true, message: 'Archivo procesado y datos almacenados correctamente.' };
-    } catch (error:any) {
-      throw new Error(`Error al procesar el archivo Excel: ${error.message}`);
-    }
-  }*/
 
 
 
@@ -275,7 +274,7 @@ export class ComputoPlanillaService {
             } else if (this.ensureNumber(row.largo)) {
               this.validarCamposVacios(row, ['altura', 'ancho', 'area', 'volumen'], index, unidad, errores);
             } else {
-              errores.push(`Fila ${index + 1}: Se debe especificar uno y sólo uno de los campos "altura", "ancho" o "largo" para la unidad "m".`);
+              errores.push(`Fila ${index + 2}: Se debe especificar uno y sólo uno de los campos "altura", "ancho" o "largo" para la unidad "m".`);
             }
             break;
 
@@ -289,7 +288,7 @@ export class ComputoPlanillaService {
 
             if (!this.validarCombinaciones(row, m2Combinaciones)) {
               errores.push(
-                `Fila ${index + 1}: Para la unidad "m2", se debe especificar una de las siguientes Variaciones: ` +
+                `Fila ${index + 2}: Para la unidad "m2", se debe especificar una de las siguientes Variaciones: ` +
                 `altura y ancho, ancho y largo, altura y largo, o sólo área.`
               );
             }
@@ -306,7 +305,7 @@ export class ComputoPlanillaService {
 
             if (!this.validarCombinaciones(row, m3Combinaciones)) {
               errores.push(
-                `Fila ${index + 1}: Para la unidad "m3", se debe especificar una de las siguientes variaciones: ` +
+                `Fila ${index + 2}: Para la unidad "m3", se debe especificar una de las siguientes variaciones: ` +
                 `altura, ancho y largo; largo y área; altura y área; ancho y área; o solo volumen.`
               );
             }
@@ -314,7 +313,7 @@ export class ComputoPlanillaService {
 
           default: // Validaciones para unidades adimensionales
             if (!this.ensureNumber(row.numero)) {
-              errores.push(`Fila ${index + 1}: El campo "numero" es obligatorio para la unidad "${unidad}".`);
+              errores.push(`Fila ${index + 2}: El campo "numero" es obligatorio para la unidad "${unidad}".`);
             }
             this.validarCamposVacios(row, campos, index, unidad, errores);
             break;
@@ -373,26 +372,36 @@ export class ComputoPlanillaService {
        await this.deleteXModificacion(dataadicional.id_modificacion)
 
       for (let i = 0; i < data.length; i += batchSize) {
-        const batch = data.slice(i, i + batchSize).map(row => ({
-          id_item: row.id_item || '',
-          id_modificacion: dataadicional.id_modificacion,
-          tramo: row.tramo || '',
-          descripcion: row.descripcion || '',
-          numero_veces: this.ensureNumber(row.numero),
-          alto: this.ensureNumber(row.altura),
-          largo: this.ensureNumber(row.largo),
-          ancho: this.ensureNumber(row.ancho),
-          area: this.ensureNumber(row.area),
-          area_total: 0,
-          volumen: this.ensureNumber(row.volumen),
-          volumen_total: 0,
-          parcial: 0,
-          id_tipo_computo: dataadicional.id_tipo_computo,
-          justificacion: '',
-          version: nueva_version,
-          id_usuario_registro: dataadicional.id_usuario,
-          id_estado: 1,
-        }));
+        const batch = data.slice(i, i + batchSize).map(row => {
+          const noVeces = row.numero || 1;
+          const aLargo = row.altura || 1;
+          const bAncho = row.largo || 1;
+          const cAlto = row.ancho || 1;
+          const dArea = row.area || 1;
+          const eVolumen = row.volumen || 1;
+          const calculo_parcial = noVeces * aLargo * bAncho * cAlto * dArea * eVolumen;
+
+          return {
+            id_item: row.id_item || '',
+            id_modificacion: dataadicional.id_modificacion,
+            tramo: row.tramo || '',
+            descripcion: row.descripcion || '',
+            numero_veces: this.ensureNumber(row.numero),
+            alto: this.ensureNumber(row.altura),
+            largo: this.ensureNumber(row.largo),
+            ancho: this.ensureNumber(row.ancho),
+            area: this.ensureNumber(row.area),
+            area_total: 0,
+            volumen: this.ensureNumber(row.volumen),
+            volumen_total: 0,
+            parcial: calculo_parcial,
+            id_tipo_computo: dataadicional.id_tipo_computo,
+            justificacion: '',
+            version: nueva_version,
+            id_usuario_registro: dataadicional.id_usuario,
+            id_estado: 1,
+          };
+        });
 
       await this.computoRepositorio.save(batch);
     }

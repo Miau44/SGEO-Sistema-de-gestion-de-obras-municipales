@@ -16,8 +16,8 @@ export class Modificacion {
     id_tipo_modificacion: number;
 
     @Column()
-    nro_modificacion: number;
-    
+    id_correlativo: number;
+
     @Column()
     dias_variacion: number;
 
