@@ -5,13 +5,14 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
-import { ItemObra } from './dto/item-obra.dto';
+import { ItemObraDto } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 import { Modificacion } from './entities/modificacion.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ItemEstadoDto } from './dto/item-estado.dto';
+import { ItemFinalizarDto } from './dto/item-finalizar.dto';
 
 
 
@@ -77,13 +78,13 @@ export class ItemController {
 
 @Public()
   @Post('items-obra')
-  async itemXObra(@Body() itemObra: ItemObra) {
+  async itemXObra(@Body() itemObra: ItemObraDto) {
     return await this.itemService.listarItemsXObra(itemObra);
   }
 
   @Public()
   @Post('items-obra-x-tipo')
-  async itemXObraXTipo(@Body() itemObra: ItemObra) {
+  async itemXObraXTipo(@Body() itemObra: ItemObraDto) {
     return await this.itemService.listarItemsXObraXTipo(itemObra);
   }
 
@@ -102,7 +103,7 @@ export class ItemController {
 //exportar items para monto adjudicado
   @Public()
   @Post('exportar-items')
-  async exportarItems(@Body() itemObra: ItemObra) {
+  async exportarItems(@Body() itemObra: ItemObraDto) {
     return await this.itemService.exportarItems(itemObra);
   }  
 
@@ -116,7 +117,7 @@ async updateItemBloque(@Body() item: ItemAdjudicadoDto[]) {
 
 @Public()
 @Post('/items-sgpu')
-async itemsSGPU(@Body() itemObra: ItemObra) {
+async itemsSGPU(@Body() itemObra: ItemObraDto) {
   return this.itemService.listaItemSGPU(itemObra);
 }
 
@@ -131,7 +132,26 @@ async itemsSGPU(@Body() itemObra: ItemObra) {
   }
 
 
-/////////////////////////modificacion/////////////////////////
+  @Public()
+  @Post('item-finalizar-orden')
+finalizarOrdenItem(@Body() itemEstadoDto: ItemFinalizarDto) {
+    try {  
+      return this.itemService.finalizarOrdenItem(itemEstadoDto);
+    } catch (error) {
+    }
+  }
+
+
+  @Public()
+  @Post('item-finalizar')
+  finalizarItem(@Body() itemEstadoDto: ItemFinalizarDto) {
+    try {  
+      return this.itemService.finalizarItem(itemEstadoDto);
+    } catch (error) {
+    }
+  }  
+
+/////////////////////////MODIFICACION/////////////////////////
 
 @Post('modificacion-create')
 @HttpCode(HttpStatus.CREATED)
@@ -146,7 +166,7 @@ async createModificacion(@Body() createModificacion: CreateModificacionDto) {
 
 @Public()
 @Post('modificacion-lista')
-listaPersonas(@Body() documentoDto: ItemObra) {
+listaPersonas(@Body() documentoDto: ItemObraDto) {
   try {  
     return this.itemService.listaModificacion(documentoDto);
   } catch (error) {

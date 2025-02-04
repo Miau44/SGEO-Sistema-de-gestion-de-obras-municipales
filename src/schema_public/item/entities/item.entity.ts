@@ -82,6 +82,8 @@ export class Item {
   @Column({ nullable: true })
   estado_pago: number;
 
+  @Column({ nullable:true })
+  finalizado: boolean;
 
   ///campos de tabla generales
   @Column()
