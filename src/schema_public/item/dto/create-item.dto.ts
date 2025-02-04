@@ -74,6 +74,9 @@ export class CreateItemDto {
   estado_pago: number;
 
   @ApiProperty()
+   finalizado: boolean;  
+
+  @ApiProperty()
   id_usuario_registro: number;
 
   @ApiProperty()
