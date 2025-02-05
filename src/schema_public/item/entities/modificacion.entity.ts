@@ -18,6 +18,10 @@ export class Modificacion {
     @Column()
     id_correlativo: number;
 
+
+    @Column({nullable:true})
+    id_correlativo_general: number;    
+
     @Column()
     dias_variacion: number;
 

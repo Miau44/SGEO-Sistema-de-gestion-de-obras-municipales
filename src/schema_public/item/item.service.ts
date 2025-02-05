@@ -102,7 +102,7 @@ private readonly itemRepository: Repository<Item>,
     try {
       const query = ` 
 
-      SELECT i.id_item, f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
+      SELECT i.id_item, i.orden_sim, f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
       REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
       REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
       REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
@@ -134,7 +134,7 @@ private readonly itemRepository: Repository<Item>,
       REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
       REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
       REPLACE(to_char(i.p_unitario_adjudicado,'999G999G999G999D99'), ' ', '') as p_unitario_adjudicado,	  
-      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado	  
+      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado	, i.finalizado  
       FROM public.obra AS o
       INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
       INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
@@ -353,13 +353,16 @@ private readonly itemRepository: Repository<Item>,
                   END AS id_tipo_computo,      
       
       p.desc_subtipo AS tipo_modificacion,
-      co.correlativo as nro_modificacion, es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+      co.correlativo as nro_modificacion,
+      co.correlativo AS nro_correlativo,
+      es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
       FROM public.modificacion AS m
       INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
       INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
       INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
       INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica where id_tipo =33 ) as p ON m.id_tipo_modificacion= p.id_subtipo 
-LEFT JOIN  public.correlativo  AS co ON m.id_correlativo = co.id_correlativo       
+LEFT JOIN  public.correlativo  AS co ON m.id_correlativo = co.id_correlativo   
+LEFT JOIN  public.correlativo  AS cog ON m.id_correlativo_general = cog.id_correlativo      
       WHERE m.id_obra =$1`;
       const params: any[] = [data.id_obra];
 
