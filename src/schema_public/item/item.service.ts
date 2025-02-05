@@ -354,7 +354,7 @@ private readonly itemRepository: Repository<Item>,
       
       p.desc_subtipo AS tipo_modificacion,
       co.correlativo as nro_modificacion,
-      co.correlativo_general AS nro_correlativo,
+      co.correlativo AS nro_correlativo,
       es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
       FROM public.modificacion AS m
       INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
