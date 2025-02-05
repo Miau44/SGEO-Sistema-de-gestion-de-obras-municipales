@@ -138,7 +138,6 @@ export class ComputoPlanillaService {
       ;
       let query =
         `SELECT  
-      '' as nro, 
       i.id_item, 
       i.orden_sim AS orden,    
       i.desc_item  AS nombre,  
@@ -149,9 +148,11 @@ export class ComputoPlanillaService {
 	  CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,
 	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
 	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
-        CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial	
+        CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
+        p.justificacion	
       FROM public.item AS i
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion = $2
+     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion = $2      
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
 
       /*   `SELECT  
