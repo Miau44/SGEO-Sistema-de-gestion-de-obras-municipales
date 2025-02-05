@@ -15,7 +15,10 @@ export class CreateModificacionDto {
     id_tipo_informe: number;      
     
     @ApiProperty()
-    nro_modificacion: number;      
+    id_correlativo: number;      
+
+    @ApiProperty()
+    id_correlativo_general: number;   
 
     @ApiProperty()
     dias_variacion: number;     

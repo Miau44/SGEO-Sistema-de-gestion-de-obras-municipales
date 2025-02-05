@@ -30,8 +30,14 @@ export class CorrelativoService {
       //return productCount;
       let numero_correlativo =  this.countNumber(count+1,0)
       createCorrelativoDto.correlativo = numero_correlativo.toString();
-      return this.coorrelativoRepo.save(createCorrelativoDto);
-    } 
+      const resultado = await  this.coorrelativoRepo.save(createCorrelativoDto);
+
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error: any) {
+      return this.responseService.error(error);
+    }
+
+    
 
 
     countNumber(number: any, width: number): string {
