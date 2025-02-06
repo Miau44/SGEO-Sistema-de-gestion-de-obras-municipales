@@ -8,6 +8,8 @@ export class Designacion {
     @PrimaryGeneratedColumn()
     id_designacion: number;
 
+    @Column({nullable:true})
+    id_tipo_solicitud: number;     
     @Column()
     id_persona: number; 
 
@@ -19,8 +21,8 @@ export class Designacion {
     @Column({nullable:true})
     id_solicitud: number; 
 
-    @Column()
-    id_correlativo_memo: number;   
+    @Column({nullable:true})
+    correlativo: number;   
         
     @Column({nullable:true})
     fecha_baja: Date;  

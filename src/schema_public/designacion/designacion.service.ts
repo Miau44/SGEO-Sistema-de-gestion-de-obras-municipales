@@ -61,7 +61,7 @@ export class DesignacionService {
           "id_estado": 1
         };
         const v_obra = await this.create_obra(data_obra)
-        createDesignacionDto.id_obra = v_obra.data.id_obra;*/
+        createDesignacionDto.id_obra = v_obra.data.id_obra;
         let id_ficha = createDesignacionDto.id_ficha;
         const v_id_obra = await this.obraRepositorio.findOne({ where: { id_ficha } });
       if (v_id_obra?.id_obra) { createDesignacionDto.id_obra = v_id_obra.id_obra; }
@@ -80,6 +80,9 @@ export class DesignacionService {
       await this.update_obra_estado(2, v_id_correlativo_memo.id_obra);// ESTADO 2 SOLICITADO
       return this.responseService.success(resultado, "Guardado Correctamente.")
       /*  }*/
+
+      const resultado = await  this.DesigRepositorio.save(createDesignacionDto);
+      return this.responseService.success(resultado, "Registrado Correctamente.")
 
     } catch (error) {
       return this.responseService.error(error);
