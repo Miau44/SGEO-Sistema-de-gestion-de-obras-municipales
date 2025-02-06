@@ -1,6 +1,7 @@
 
+import { Informe } from "src/schema_public/informe/entities/informe.entity";
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
 export class Correlativo {
 
@@ -29,6 +30,8 @@ export class Correlativo {
     fecha_modificacion: Date 
     
     @OneToMany(type => Memorandum, memoriand => memoriand.correlativ)
-    correla: Memorandum[];  
-
+    correla: Memorandum[]; 
+    
+    @OneToOne(() => Informe, (informe) => informe.correlativo)
+    informe: Informe;
 }

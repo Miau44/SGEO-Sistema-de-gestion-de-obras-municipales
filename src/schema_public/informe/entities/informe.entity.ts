@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Correlativo } from "src/schema_public/correlativo/entities/correlativo.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
 export class Informe {
 
@@ -7,6 +8,9 @@ export class Informe {
 
     @Column({nullable:true})
     id_obra: number;
+
+    @Column({nullable:true})
+    id_correlativo:number;
 
     @Column()
     id_tipo_informe: number;
@@ -25,9 +29,6 @@ export class Informe {
 
     @Column()
     recomendacion: string;
-    
-    @Column({nullable:true})
-    id_correlativo: number;
 
     @Column("json", { 
         nullable: true 
@@ -44,5 +45,9 @@ export class Informe {
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
-    fecha_modificacion: Date        
+    fecha_modificacion: Date
+    
+    @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
+    @JoinColumn({ name: 'id_correlativo' }) // Este es el lado propietario de la relación
+    correlativo: Correlativo;
 }

@@ -6,7 +6,10 @@ export class CreateInformeDto {
     id_obra: number;   
 
     @ApiProperty()
-    id_tipo_informe: number;      
+    id_tipo_informe: number;  
+    
+    @ApiProperty()
+    id_correlativo: number;
 
     @ApiProperty()
     antecedentes: string; 
