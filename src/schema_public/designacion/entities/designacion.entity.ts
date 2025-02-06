@@ -19,7 +19,7 @@ export class Designacion {
     @Column({nullable:true})
     id_solicitud: number; 
 
-    @Column()
+    @Column({nullable: true})
     id_correlativo_memo: number;   
         
     @Column({nullable:true})
