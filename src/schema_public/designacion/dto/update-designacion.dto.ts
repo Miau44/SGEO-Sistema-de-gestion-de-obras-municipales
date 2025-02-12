@@ -6,6 +6,9 @@ import { ApiProperty } from "@nestjs/swagger";
 export class UpdateDesignacionDto {
 
     @ApiProperty()
+    id_tipo_solicitud:number;
+
+    @ApiProperty()
     id_obra: number;
 
     @ApiProperty()

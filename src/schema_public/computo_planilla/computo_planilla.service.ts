@@ -16,6 +16,10 @@ import { ComputoImportarDto } from './dto/computo-importar.dto';
 import { CreateComputoHistoricoDto } from './dto/create-computo-historico.dto';
 import { version } from 'os';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
+import { Planilla } from '../planilla/entities/planilla.entity';
+import { Item } from '../item/entities/item.entity';
+import { PlanillaService } from '../planilla/planilla.service';
+import { ComputoResumenDto } from './dto/computo-resumen.dto';
 
 @Injectable()
 export class ComputoPlanillaService {
@@ -23,9 +27,11 @@ export class ComputoPlanillaService {
   private readonly DECIMAL_PLACES = 5;
   constructor(
     @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,
-
     @InjectRepository(ComputoCriterio) private criterioRepositorio: Repository<ComputoCriterio>,
-    private responseService: ResponseService
+    @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
+
+    private responseService: ResponseService,
+    private planillaService: PlanillaService
 
   ) { }
 
@@ -72,23 +78,7 @@ export class ComputoPlanillaService {
 
 
     try {
-      ;
-
-      /*`
-      SELECT  s.id_solicitud,  i.id_item, c.id_computo, codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado, numero_veces,
-      largo, ancho, alto, area, volumen, cantidad_planilla, monto_planilla, i.id_obra
-      FROM public.item AS i
-      LEFT OUTER JOIN public.computo  AS c ON i.id_item = c.id_item 
-      LEFT OUTER JOIN public.planilla AS P ON i.id_item = c.id_item 
-       INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
-        WHERE i.id_obra=$1 AND s.id_solicitud = $2`;
-
-      ` SELECT  s.id_solicitud,  i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
-    FROM public.item AS i
-    LEFT OUTER JOIN public.planilla AS p ON i.id_item = p.id_item 
-    INNER JOIN public.solicitud AS  s ON  i.id_obra = s.id_obra      
-    WHERE i.id_obra= $1 AND  s.id_solicitud = $2  AND p.id_modificacion = $3 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`;*/
-
+      
       let query = `
       SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
       FROM public.item AS i
@@ -154,32 +144,6 @@ export class ComputoPlanillaService {
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion = $2      
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
-
-      /*   `SELECT  
-           '' as nro, 
-           i.id_item, 
-           i.orden_sim AS orden,    
-           i.desc_item  AS nombre,  
-           tramo, descripcion, unidad_medida_sim as unidad,
-           numero_veces as numero, 
-           alto as altura ,ancho, largo,  area,  volumen, parcial
-           FROM public.item AS i
-          INNER JOIN  public.computo  AS c ON i.id_item = c.id_item 
-           WHERE i.id_obra =$1  AND c.id_modificacion =$2  AND i.id_estado=1 ORDER BY i.orden_sim ASC `;
- 
- 
- 
-         ` SELECT  
-         '' as nro, 
-         i.id_item, 
-         i.orden_sim AS orden,    
-         i.desc_item  AS nombre,  
-          ''  AS  tramo,  '' AS descripcion, unidad_medida_sim as unidad,
-         '' as numero, 
-         '' AS altura ,'' AS ancho, '' AS largo, '' AS  area,  '' AS volumen, '' AS  parcial
-         FROM public.item AS i 
-         WHERE i.id_obra =1131 ORDER BY i.orden_sim ASC`;*/
-
 
       const params: any[] = [data.id_obra, data.id_modificacion];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
@@ -275,16 +239,17 @@ export class ComputoPlanillaService {
             } else if (this.ensureNumber(row.largo)) {
               this.validarCamposVacios(row, ['altura', 'ancho', 'area', 'volumen'], index, unidad, errores);
             } else {
-              errores.push(`Fila ${index + 2}: Se debe especificar uno y sólo uno de los campos "altura", "ancho" o "largo" para la unidad "m".`);
+              errores.push(`Fila ${index + 2}: Para la unidad "m", se debe especificar uno y sólo uno de los campos "altura" o "ancho" o "largo".`);
             }
             break;
 
           case 'm2': // Validaciones para unidad "m2"
             const m2Combinaciones = [
+              ['numero'],             // Solo numero
               ['altura', 'ancho'], // Altura y ancho
               ['ancho', 'largo'],  // Ancho y largo
               ['altura', 'largo'], // Altura y largo
-              ['area']             // Solo área
+              ['area'],             // Solo área
             ];
 
             if (!this.validarCombinaciones(row, m2Combinaciones)) {
@@ -297,6 +262,7 @@ export class ComputoPlanillaService {
 
           case 'm3': // Validaciones para unidad "m3"
             const m3Combinaciones = [
+              ['numero'],             // Solo numero              
               ['altura', 'ancho', 'largo'], // Altura, ancho y largo
               ['largo', 'area'],            // Largo y área
               ['altura', 'area'],           // Altura y área
@@ -361,19 +327,41 @@ export class ComputoPlanillaService {
     return parseFloat(Number(value || 0).toFixed(this.DECIMAL_PLACES));
   }
 
-  private async insertarDatosLotes(data: any[], dataadicional: any, batchSize: number): Promise<void> {
+
+  private async insertarJustificacion(datosExcel: any[]): Promise<void> {
+    try {
+      const resumen = datosExcel.reduce((acc, item) => {
+        acc.set(item.id_item, { id_item: item.id_item, justificacion: item.justificacion });
+        return acc;
+      }, new Map<number, { id_item: number; justificacion: string }>());
+
+      const resultado: { id_item: number; justificacion: string }[] = Array.from(resumen.values());
+
+      console.log('resultado-resumen', resultado);
+
+      for (const item of resultado) {
+        await this.planillaService.actualizarJustificacionXItem({id_item: item.id_item, justificacion: item.justificacion, id_modificacion: item.id_item});
+      }
+    } catch (error: any) {
+      throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
+    }
+  }
+
+
+  private async insertarDatosLotes(datosExcel: any[], dataadicional: any, batchSize: number): Promise<void> {
     try {
       //calcular version
-     const max_version = await this.getMaxVersion(dataadicional.id_modificacion);
-
-      //copiar datos actuales a computo historico     
+      const max_version = await this.getMaxVersion(dataadicional.id_modificacion);
+      //copiar datos actuales a computo historico      
+      await this.copiarComputoaHistorico(dataadicional)    
+      
       // nueva version = version +1
       const nueva_version = max_version + 1;      
       //borrar computos por id_modificacion y tipo de computo
        await this.deleteXModificacion(dataadicional.id_modificacion)
 
-      for (let i = 0; i < data.length; i += batchSize) {
-        const batch = data.slice(i, i + batchSize).map(row => {
+      for (let i = 0; i < datosExcel.length; i += batchSize) {
+        const batch = datosExcel.slice(i, i + batchSize).map(row => {
           const noVeces = row.numero || 1;
           const aLargo = row.altura || 1;
           const bAncho = row.largo || 1;
@@ -404,12 +392,14 @@ export class ComputoPlanillaService {
           };
         });
 
-      await this.computoRepositorio.save(batch);
+        await this.computoRepositorio.save(batch);
+      }     
+      await this.insertarJustificacion(datosExcel);
+
+    } catch (error: any) {
+      throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
     }
-  } catch (error: any) {
-    throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
   }
-}
 
 
  
@@ -418,6 +408,31 @@ export class ComputoPlanillaService {
     // Convertir el valor a un número si es válido y devolverlo; de lo contrario, devolver 0.
     const parsedValue = parseFloat(value);
     return !isNaN(parsedValue) && value !== null && value !== '' ? parsedValue : 0;
+  }
+
+  async copiarComputoaHistorico(data:any) {
+    try {
+      let query =
+        `           
+            INSERT INTO public.computo_historico(id_modificacion, data_json,  version,  id_usuario_registro,
+            id_estado)
+
+            SELECT  $1 as id_modificacion, 
+            jsonb_agg(jsonb_build_object('id_computo', id_computo, 'id_item' , id_item,  'tramo',  tramo, 'descripcion', descripcion, 'numero_veces', numero_veces,
+            'alto', alto, 'largo',  largo, 'ancho', ancho, 'area', area, 'area_total',  area_total,  'volumen', volumen, 
+            'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion', justificacion, 
+            'id_usuario_registro', id_usuario_registro, 'fecha_registro', fecha_registro, 'fecha_modificacion', fecha_modificacion, 
+            'id_estado', id_estado)) as data_json,
+            version , $2, 1
+            FROM public.computo WHERE id_modificacion= $1
+            GROUP BY id_modificacion, version          
+          `;
+      const params: any[] = [data.id_modificacion, data.id_usuario,];
+      const resultado: any[] = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   async getMaxVersion(modificacion: number): Promise<number> {
@@ -439,6 +454,21 @@ export class ComputoPlanillaService {
     return result;
   }
 
+
+
+  async listaResumenXModifiacion(data:ComputoResumenDto) {
+    try {
+      let query =
+        `           
+             SELECT * FROM public.sp_resumen_x_modificacion() WHERE modificacion =$1      
+          `;
+      const params: any[] = [data.id_modificacion];
+      const resultado: any[] = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 
 

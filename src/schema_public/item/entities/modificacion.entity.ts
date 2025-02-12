@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinColumn } from 'typeorm';
 import { Obra } from '../../obra/entities/obra.entity'; // Relación con Obra
 import { Computo } from 'src/schema_public/computo_planilla/entities/computo.entity';
+import { Planilla } from 'src/schema_public/planilla/entities/planilla.entity';
+import { Correlativo } from 'src/schema_public/correlativo/entities/correlativo.entity';
 @Entity()
 export class Modificacion {
     @PrimaryGeneratedColumn()
@@ -15,7 +17,7 @@ export class Modificacion {
     @Column()
     id_tipo_modificacion: number;
 
-    @Column()
+    @Column({nullable:true})
     id_correlativo: number;
 
 
@@ -61,11 +63,15 @@ export class Modificacion {
     //relacion uno a muchos con la entidad computo
     @OneToMany(() => Computo, (computomo) => computomo.modificacion, { cascade: true })
     computomo: Computo[];
+    
+    //relacion uno a muchos con la entidad computo
+    @OneToMany(() => Planilla, (planimo) => planimo.modificacion, { cascade: true })
+    planimo: Planilla[];
 
-  
-  
-  
-
+    // Relación muchos a uno con la entidad correltivo
+    @ManyToMany(() => Correlativo, (correlativomo) => correlativomo.modificacion)
+    @JoinColumn({ name: 'id_correlativo' }) // Indica el nombre de la columna FK
+    correlativomo: Correlativo;
 
 
 }

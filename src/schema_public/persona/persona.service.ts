@@ -377,10 +377,10 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
       ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, cm.correlativo_memo
+      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
-      INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+      --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
       INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
@@ -392,7 +392,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
    WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
       AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
       AND sd.id_estado =1
-      ORDER BY dp.permisos,cm.correlativo_memo ASC; `;     
+      ORDER BY dp.permisos, sd.correlativo ASC; `;
       const resultado = await this.personaRepo.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
