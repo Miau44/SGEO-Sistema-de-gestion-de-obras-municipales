@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Modificacion } from 'src/schema_public/item/entities/modificacion.entity';
 
 @Entity()
 export class Planilla {
@@ -44,6 +45,10 @@ export class Planilla {
     @Column()
     id_estado: number;
     
+    // Relación muchos a uno con la entidad modificacion
+    @ManyToOne(() => Modificacion, (modificacion) => modificacion.planimo)
+    @JoinColumn({ name: 'id_modificacion' }) // Indica el nombre de la columna FK
+    modificacion: Modificacion;
 
 
 }

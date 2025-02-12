@@ -16,6 +16,7 @@ import { FormDataInterceptor } from './formData.interceptor';
 import multer from 'multer';
 import { error } from 'console';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
+import { ComputoResumenDto } from './dto/computo-resumen.dto';
 
 @ApiTags('computo-planilla')
 @Controller('computo-planilla')
@@ -90,16 +91,22 @@ export class ComputoPlanillaController {
     }
   }  
 
+  @Public()
+  @Post('resumen')
+  resumenXModificacion(@Body() computoDto: ComputoResumenDto) {
+    try {  
+      return this.computoPlanillaService.listaResumenXModifiacion(computoDto);
+    } catch (error) {
+    }
+  }  
+  
   @Post('computo-importar-excel')
   @UseInterceptors(FileInterceptor('file'))
   async importarExcel(@UploadedFile() file: Express.Multer.File, 
   @Body() body: {id_usuario: 'id_usuario', id_modificacion:'id_modificacion', id_tipo_computo:'id_tipo_computo'},)
   { 
-
     try {
- 
-      console.log('body', body.id_modificacion);
-      
+
       if (!file) {
         throw new HttpException('No se ha subido ningún archivo', HttpStatus.BAD_REQUEST);
       }
