@@ -5,9 +5,6 @@ export class CreateDesignacionDto {
     id_tipo_solicitud: number;
 
     @ApiProperty()
-    id_ficha:number
-
-    @ApiProperty()
     id_persona: number;
 
     @ApiProperty()
@@ -17,10 +14,7 @@ export class CreateDesignacionDto {
     id_solicitud: number;    
 
     @ApiProperty()
-    correlativo_memo: number;
-
-    @ApiProperty()
-    id_correlativo_memo: number;
+    correlativo: number;
 
     @ApiProperty()
     fecha_baja: Date;
@@ -34,11 +28,11 @@ export class CreateDesignacionDto {
     @ApiProperty()
     estado_designacion: number;
 
-   /* @ApiProperty()
-    id_reemplazzo: number;
+    @ApiProperty()
+    id_reemplazo: number;
         
     @ApiProperty()
-    fecha_reemplazo: Date;  */  
+    fecha_reemplazo: Date;   
         
     @ApiProperty()
     usuario_registro: number;

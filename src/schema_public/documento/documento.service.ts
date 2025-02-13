@@ -86,6 +86,74 @@ export class DocumentoService {
       );
     }
   }
+
+
+  //variables para la visualizacion de 
+  id_obra: number;
+  id_tipo_documento: number[]; 
+
+
+//servico para listar y visualizar los documentos pdf (para borrar)
+/**
+ * modificar esto este servicio TEMPORAL, ya que no esta del todo bien, esto es para listar los documetnos 
+ * en la parte de seguimiento por obra
+ */
+ async obtenerDocsPdfxObra(idObra: number): Promise<any[]> {
+  try {
+    if (!idObra) {
+      throw new Error('id_obra es requerido');
+    }
+
+    const query = `
+      SELECT 
+        o.id_obra,
+        f.desc_carpeta AS nombre_obra,
+        json_agg(
+          json_build_object(
+            'id_tipo_documento', d.id_tipo_documento,
+            'documentos', (
+              SELECT json_agg(
+                json_build_object(
+                  'id_documento', doc.id_documento,
+                  'ruta_documento', doc.ruta_documento,
+                  'usuario_registro', doc.usuario_registro,
+                  'observacion', doc.observacion
+                )
+              )
+              FROM documento doc
+              WHERE doc.id_obra = d.id_obra
+              AND doc.id_tipo_documento = d.id_tipo_documento
+              AND doc.ruta_documento IS NOT NULL
+            )
+          )
+        ) AS tipos_documentos
+        FROM documento d
+        JOIN obra o ON d.id_obra = o.id_obra
+        JOIN ficha f ON o.id_ficha = f.id_ficha
+        WHERE d.id_obra = $1 
+        GROUP BY o.id_obra, f.desc_carpeta;
+      `;
+
+      // Parámetros de la consulta
+      const params = [idObra];
+
+      const result: { id_obra: number; nombre_obra: string; tipos_documentos: any[] }[] =
+        await this.documentoRepositorio.query(query, params);
+
+      // 🔹 Filtrar obras sin documentos después de la consulta
+      return result.filter((obra) =>
+        Array.isArray(obra.tipos_documentos)
+          ? obra.tipos_documentos.some(
+              (tipo: { documentos: any[] }) => Array.isArray(tipo.documentos) && tipo.documentos.length > 0
+            )
+          : false
+      );
+    } catch (error) {
+      console.error('Error en obtenerDocsPdfxObra:', (error as Error).message);
+      throw error;
+    }
+  }
+
   
   
   async documentosXObra(data:DocumentoObraDto) {

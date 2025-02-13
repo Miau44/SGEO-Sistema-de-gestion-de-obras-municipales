@@ -109,6 +109,20 @@ export class DocumentoController {
     return { documentos: resultados };
   }
 
+ //modificar esto este servicio que LISTA DPCUMENTOS (SEGUIMIENTO OBRAS) ya que esta mal, pero funcional
+ @Post('pdf-por-obra')
+ @ApiBody({
+   schema: {
+     type: 'object',
+     properties: {
+       id_obra: { type: 'number', example: 1131 }
+     },
+   },
+ })
+ async obtenerDocsPdf(@Body() body: any): Promise<any[]> {
+   const { id_obra } = body;
+   return this.documentoService.obtenerDocsPdfxObra(id_obra);
+ }
 
   @Public()
   @Post('listar')

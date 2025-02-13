@@ -1,6 +1,7 @@
 
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Modificacion } from "src/schema_public/item/entities/modificacion.entity";
 @Entity()
 export class Correlativo {
 
@@ -30,5 +31,11 @@ export class Correlativo {
     
     @OneToMany(type => Memorandum, memoriand => memoriand.correlativ)
     correla: Memorandum[];  
+
+    // Relación muchos a uno con la entidad modificacion
+    @ManyToMany(() => Modificacion, (modificacion) => modificacion.correlativomo)
+    @JoinColumn({ name: 'id_correlativo' }) // Indica el nombre de la columna FK
+    modificacion: Modificacion;
+
 
 }

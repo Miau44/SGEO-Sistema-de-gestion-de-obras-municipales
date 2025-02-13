@@ -81,13 +81,9 @@ export class ExternoService {
           "sistema": "SGEO"
         })*/
       };
-      console.log('este es el console', url, options);
+      
       const response = await fetch(url!, options);
       const resultado = await response.json();
-
-      console.log('resultado', resultado);
-      
-
 
       if (resultado) {
         return resultado;

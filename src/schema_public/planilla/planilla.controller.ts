@@ -7,7 +7,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { copiarItemDto } from './dto/planilla-item.dto';
 import { error } from 'console';
 import { actualizarJustificacionDto } from './dto/actualizar-justificacion.dto';
-
+import { actualizarPlanillaDto } from './dto/actualizar-planilla.dto';
 @ApiTags('planilla')
 @Controller('planilla')
 export class PlanillaController {
@@ -59,5 +59,14 @@ export class PlanillaController {
     } catch (error) {
     }
   }
+
+  @Public()
+  @Post('actualizar-planilla')
+  actualizarPlanilla(@Body() data: actualizarPlanillaDto) {
+    try {  
+      return this.planillaService.actualizarPlanilla(data);
+    } catch (error) {
+    }
+  }  
 
 }

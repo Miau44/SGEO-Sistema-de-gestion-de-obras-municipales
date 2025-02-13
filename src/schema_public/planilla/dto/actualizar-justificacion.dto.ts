@@ -7,4 +7,7 @@ export class actualizarJustificacionDto {
     @ApiProperty()
     justificacion: string;
 
+    @ApiProperty()
+    id_modificacion: number;
+
 }

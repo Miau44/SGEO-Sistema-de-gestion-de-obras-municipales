@@ -8,10 +8,10 @@ export class ComputoHistorico {
     id_computo_historico: number;
 
     @Column()
-    id_computo: number;
+    id_modificacion: number;    
 
-    @Column()
-    id_modificacion: number;
+   /* @Column()
+    id_computo: number;
 
     @Column({ nullable: true })
     id_tipo_computo: number;
@@ -54,6 +54,13 @@ export class ComputoHistorico {
 
     @Column({ type: 'varchar' })
     justificacion: string;
+    
+*/
+
+@Column("json", { 
+  nullable: true 
+})
+data_json: string;
 
     @Column()
     version: number;
