@@ -11,15 +11,18 @@ import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { Designacion } from './entities/designacion.entity';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_ue.entity';
+import { ObraService } from '../obra/obra.service';
+import { SolicitudService } from '../solicitud/solicitud.service';
+import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 
 
 @Module({
   imports: [ ConfigModule.forRoot({
     isGlobal: true
   }),
-  TypeOrmModule.forFeature([Designacion, Obra, Correlativo, Solicitud, PersonapermisoUe])],
+  TypeOrmModule.forFeature([Designacion, Obra, Correlativo, Solicitud, PersonapermisoUe, SolicitudHistorial])],
 
   controllers: [DesignacionController],
-  providers: [DesignacionService, ResponseService],
+  providers: [DesignacionService, ResponseService, ObraService, SolicitudService, ], 
 })
 export class DesignacionModule {}

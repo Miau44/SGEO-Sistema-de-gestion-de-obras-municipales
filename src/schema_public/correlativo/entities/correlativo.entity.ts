@@ -14,7 +14,7 @@ export class Correlativo {
     @Column({nullable:true})
     id_tipo_documento:number;
 
-    @Column()
+    @Column({nullable:true})
     correlativo: string;   
     
     @Column()

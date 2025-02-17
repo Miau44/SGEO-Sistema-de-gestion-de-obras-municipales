@@ -164,7 +164,7 @@ export class DocumentoService {
     d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento, d.observacion
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1	`;
+    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1 	`;
     if(data.anticipo){
       query += ` WHERE   td.id_tipo_documento IN(20,31)  ORDER BY td.id_tipo_documento ASC`;
     } else {

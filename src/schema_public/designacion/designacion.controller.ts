@@ -60,11 +60,19 @@ export class DesignacionController {
     return this.designacionService.actualizarAprobar(+id_obra, estadoODDto);
   }  */
 
-  @Public()
+  /*@Public()
   @Patch('aprobar/:id_designacion')
   actualizarAprobar(@Param('id_designacion') id_designacion: string, @Body() actEstadoDto: EstadoObraDesigDto) {
-    return this.designacionService.aprobarDesignacion(+id_designacion, actEstadoDto);
+    return this.designacionService.aprobarDesignacionbien(+id_designacion, actEstadoDto);
+  }*/
+
+  @Public()
+  @Post('aprobar-designacion')
+  actualizarAprobarDessignacion(@Body() actEstadoDto: EstadoObraDesigDto) {
+    return this.designacionService.aprobarDesignacion( actEstadoDto);
   }
+
+
 
   @Public()
   @Get('rechazar/:id_designacion/:obra')
