@@ -16,6 +16,7 @@ import { RolDto } from './dto/rolDTO.dto';
 import { Any } from 'typeorm';
 import { PersonasEstadoDto } from './dto/personas-estado.dto';
 import { ListaEstructuraDto } from './dto/listaEstructura.dto';
+import { PersonaSolcitudDto } from './dto/persona-solicitud.dto';
 
 @ApiTags('persona')
 @Controller('persona')
@@ -131,6 +132,13 @@ listaPersonasDesignadas(@Body() estadoDto: PersonasEstadoDto) {
   }
 }
 
+@Post('listapersonas-solicitud')
+listaPersonasXSolicitud(@Body() estadoDto: PersonaSolcitudDto) {
+  try {  
+    return this.personaService.listaPersonasXSolicitudyEstado(estadoDto);
+  } catch (error) {
+  }
+}
 
 
 

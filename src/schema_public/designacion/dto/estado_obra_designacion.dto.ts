@@ -1,13 +1,27 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { SubDesignacionDto } from "./subdto-designacion.dto";
 
 export class EstadoObraDesigDto {
+
+    /*@ApiProperty()
+    id_solicitud : number; */
+
+ 
+ @ApiProperty({ 
+        type: [SubDesignacionDto], 
+        description: 'Array de objetos con ID y número' 
+      })
+      designacion: SubDesignacionDto[];    
     
     @ApiProperty()
-    estado_designacion: number;
-
+    id_solicitud : number;   
+      
     @ApiProperty()
     id_obra: number;    
 
     @ApiProperty()
-    estado_general: number;
+    id_estado_flujo : number;       
+
+   /* @ApiProperty()
+    desccodue: number;*/
 }

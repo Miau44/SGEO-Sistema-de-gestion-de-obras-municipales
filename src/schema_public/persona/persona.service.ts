@@ -14,6 +14,7 @@ import { log } from 'console';
 import { RolDto } from './dto/rolDTO.dto';
 import { PersonasEstadoDto } from './dto/personas-estado.dto';
 import { ListaEstructuraDto } from './dto/listaEstructura.dto';
+import { PersonaSolcitudDto } from './dto/persona-solicitud.dto';
 
 
 @Injectable()
@@ -399,6 +400,40 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       return this.responseService.error(error);
     }
   }
+
+
+  //personas SI solicitadas/designadas
+  async listaPersonasXSolicitudyEstado(data: PersonaSolcitudDto) {
+    try {
+      const query = `
+  SELECT sd.id_solicitud, p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+      p.segundo_apellido , 
+      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
+      ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion
+      FROM persona as  p
+      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+      INNER JOIN obra as o  ON sd.id_obra = o.id_obra
+      INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
+      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+      WHERE  gestion =2024 GROUP BY desc_cod_da,nombre_da, gestion)  
+      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
+    INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
+	 AS dp ON 	sd.id_persona = dp.idpersona
+   WHERE   sd.id_solicitud = ${data.id_solicitud} AND  sd.estado_designacion IN(${data.id_estado_designacion}) 
+      AND sd.id_estado =1 
+      ORDER BY dp.permisos, sd.correlativo ASC; `;
+      const resultado = await this.personaRepo.query(query);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+
 
 async estructuraXPermisos(permisoDto: ListaEstructuraDto) {
   try {

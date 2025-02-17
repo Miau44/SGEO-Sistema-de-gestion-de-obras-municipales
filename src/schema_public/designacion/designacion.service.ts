@@ -15,21 +15,23 @@ import { ReemplazoDto } from './dto/reemplazo.dto';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_ue.entity';
 import { GenerarDto } from './dto/generar.dto';
+import { ObraService } from '../obra/obra.service';
+import { SolicitudService } from '../solicitud/solicitud.service';
 
 
 @Injectable()
 export class DesignacionService {
 
   constructor(
-  @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
-  @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
-  @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
-  @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
-  @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
+    @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
+    @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
+    @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
+    @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
+    @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
 
-
-
-    private responseService: ResponseService
+    private responseService: ResponseService,
+    private obraService: ObraService,
+    private serviceSolicitud: SolicitudService
 
   ) { }
 
@@ -186,14 +188,14 @@ export class DesignacionService {
     }
   }
 
-  async update_designacion_estado(estado_designacion: number, id_designacion:number) {
+  async update_designacion_estado(id_designacion: number) {
     try {
       const query2 = `
       UPDATE  public.designacion
-      SET "estado_designacion" =$1
-      WHERE id_designacion =$2`;
-      const params3 = [estado_designacion, id_designacion];  
-      await this.DesigRepositorio.query(query2, params3);  
+      SET "estado_designacion" = 99
+      WHERE id_designacion =$1  `;
+      const params3 = [id_designacion];
+      await this.DesigRepositorio.query(query2, params3);
       return {
         statusCode: 200,
         message: true,
@@ -205,17 +207,88 @@ export class DesignacionService {
         message: false,
       };
     }
-  }  
+  }
 
- async aprobarDesignacion(id_designacion: number, estadoDto:EstadoObraDesigDto) {
-  try {
 
-  const res =await  this.update_designacion_estado(estadoDto.estado_designacion, id_designacion);   
-  if(res)
-  await   this.update_obra_estado(estadoDto.estado_general, estadoDto.id_obra);
-  return this.responseService.success(res, "Guardado Correctamente.")
+  async update_solicitud_estado(estado_designacion: number, id_solicitud: number, id_estado_general: number) {
 
+    try {
+      const query2 = `
+      UPDATE  public.solicitud
+      SET "id_estado_solicitud" =$1,
+       "id_estado_general" =$3
+      WHERE id_solicitud =$2`;
+      const params3 = [estado_designacion, id_solicitud, id_estado_general];
+      await this.DesigRepositorio.query(query2, params3);
+      return {
+        statusCode: 200,
+        message: true,
+        data: "Se actualizaron datos",
+      };
     } catch (error) {
+      return {
+        statusCode: 500,
+        message: false,
+      };
+    }
+  }
+
+
+
+
+
+
+  async aprobarDesignacion(AprobarDto: EstadoObraDesigDto) {
+    try {
+      for (let i = 0; i < AprobarDto.designacion.length; i++) {    // Actualizar estado de designación y solicitud
+        const actualizarEstado = async () => {
+          const datadesignacion = { "estado_designacion": 99, "correlativo" : AprobarDto.designacion[i].correlativo}
+          const estado_designacion = await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion)
+
+          const datasolicitud = { "id_estado_solicitud": 4, "id_estado_general": AprobarDto.id_estado_flujo }
+          await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud)
+        }
+        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra)
+        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
+
+        const respuestagenera: any = await this.generarSoloSolicitud(AprobarDto.id_obra)
+
+        if (respuestagenera) {
+          const usuarioDestinoQuery = `
+        SELECT idusuario FROM public.sp_permisos_xpersona_filas() WHERE idpermiso IN (85,86)
+        AND desccodue = ${desc_cod_ue}`;
+          const params4 = [desc_cod_ue];
+          const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
+          if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+
+            return {
+              statusCode: 500,
+              message: false,
+              error: "Error: No se encontró un usuario destino válido.",
+            };
+          }
+          await actualizarEstado();
+          const usuario = usuarioDestinoResult[0].idusuario;
+          const data_solicitud = {
+            id_tipo_solicitud: 114,
+            id_estado_solicitud: 2,
+            id_obra: AprobarDto.id_obra,
+            id_estado_general: 12,
+            id_usuario: usuario,
+            proveido: "SOLICITUD GENERADA POR SISTEMA",
+            usuario_registro: 0,
+            id_estado_registro: 1,
+          };
+
+          const resultado = await this.solicitudRepocitorio.save(data_solicitud);
+        }
+        else {
+          await actualizarEstado()
+        };
+      }
+      return this.responseService.success("Solicitud generada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
       return this.responseService.error(error);
     }
   }  
@@ -245,16 +318,16 @@ export class DesignacionService {
       const query1 = `
       DELETE FROM public.designacion   
       WHERE id_designacion = $1`;
-      const params = [ id_designacion];  
-      await this.DesigRepositorio.query(query1, params);  
+      const params = [id_designacion];
+      const resultado = await this.DesigRepositorio.query(query1, params);
 
-      const query2 = `
+      /*const query2 = `
         DELETE FROM correlativo_memo  cm
       WHERE id_correlativo_memo IN(
       SELECT cm.id_correlativo_memo FROM correlativo_memo AS cm
       INNER JOIN designacion AS d ON cm.id_correlativo_memo = d.id_correlativo_memo WHERE d.id_designacion = $1) `;
-      const params2 = [ id_designacion];  
-    const resultado =  await this.DesigRepositorio.query(query2, params2); 
+      const params2 = [id_designacion];
+      const resultado = await this.DesigRepositorio.query(query2, params2);
 
       const query3 = `
       UPDATE  obra  as o
@@ -264,6 +337,7 @@ export class DesignacionService {
       INNER JOIN designacion AS d ON o.id_obra = d.id_obra WHERE d.id_designacion = $1) `;
       const params3 = [id_designacion];
       await this.DesigRepositorio.query(query3, params3);
+      */
       await this.deleteDesignacionestadoXPersona(id_obra);
 
       return this.responseService.success(resultado, "Guardado Correctamente.")
@@ -349,16 +423,38 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
         id_obra: data.idobra,
         id_estado_general: 12,
         id_usuario: usuario,
-        proveido: "string",
+        proveido: "SOLICITUD GENERADA POR SISTEMA",
         usuario_registro: 0,
         id_estado_registro: 1,
       };
 
-    const resultado =  await this.solicitudRepocitorio.save(data_solicitud);
+      const resultado = await this.solicitudRepocitorio.save(data_solicitud);
 
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
   }
+
+
+  async generarSoloSolicitud(id_obra: number) {
+    try {
+      const query = `
+        SELECT id_obra 
+        FROM solicitud 
+        WHERE id_obra = $1 
+        AND id_estado_general IN (10, 11) 
+        GROUP BY id_obra 
+        HAVING COUNT(DISTINCT id_estado_general) = 2`;
+        
+      const result = await this.DesigRepositorio.query(query, [id_obra]);
+  
+      return result.length > 0;
+      
+    } catch (error) {
+      console.error('Error en generar:', error);
+      return false;
+    }
+  }
+
 }
