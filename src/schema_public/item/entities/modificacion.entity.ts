@@ -55,6 +55,8 @@ export class Modificacion {
  
    @UpdateDateColumn({ type: 'timestamp'})
    fecha_modificacion: Date;
+
+   
  
    @Column()
    id_estado: number;   
