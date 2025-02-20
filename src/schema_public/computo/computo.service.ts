@@ -22,7 +22,7 @@ import { PlanillaService } from '../planilla/planilla.service';
 import { ComputoResumenDto } from './dto/computo-resumen.dto';
 
 @Injectable()
-export class ComputoPlanillaService {
+export class ComputoService {
 
   private readonly DECIMAL_PLACES = 5;
   constructor(
@@ -43,7 +43,7 @@ export class ComputoPlanillaService {
     } catch (error) {
       return this.responseService.error(error);
     }
-  }  
+  }
 
   findAll() {
     return `This action returns all computoPlanilla`;
@@ -68,7 +68,7 @@ export class ComputoPlanillaService {
       return this.responseService.success(id, "Eliminado Correctamente")
     } catch (error) {
       return this.responseService.error(error);
-    }    
+    }
 
   }
 
@@ -79,13 +79,25 @@ export class ComputoPlanillaService {
 
     try {
       
-      let query = `
+     /* let query = `
       SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
       FROM public.item AS i
       INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
 	  INNER JOIN public.modificacion AS m ON p.id_modificacion = m.id_modificacion
-      WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
-      const params = [data.id_modificacion, data.id_obra];
+      WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`*/
+
+
+    let query = `
+      SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+      FROM public.item AS i
+      LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
+      INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
+      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
+      
+      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;;`
+
+      const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -96,7 +108,7 @@ export class ComputoPlanillaService {
   async listaComputoXItem(data: ComputoItem) {
     try {
       ;
-      let query =
+   /*   let query =
         `  SELECT  
       m.id_modificacion,
       i.id_item, i.orden_sim, c.id_computo, 
@@ -113,9 +125,25 @@ export class ComputoPlanillaService {
 	  INNER JOIN public.modificacion AS m ON c.id_modificacion  = m.id_modificacion 
 	  WHERE i.id_item =$1
        AND m.id_modificacion = $2
-	  AND i.id_estado=1`;
+	  AND i.id_estado=1`;*/
+  let query =` SELECT  
+    m.id_modificacion_pago,
+    i.id_item, i.orden_sim, c.id_computo, 
+    codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+    total_adjudicado,  numero_veces,  tramo, descripcion, 
+    CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
+    CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
+    CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
+    CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
+    CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
+    parcial, i.id_obra FROM public.item AS i
+    INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
+    INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
+    WHERE i.id_item =$1
+    AND m.id_modificacion_pago = $2
+    AND i.id_estado=1`;
 
-      const params = [data.id_item, data.id_modificacion];
+      const params = [data.id_item, data.id_modificacion_pago];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -139,13 +167,13 @@ export class ComputoPlanillaService {
 	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
 	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
         CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
-        p.justificacion	
+        p.justificacion_sup	
       FROM public.item AS i
-      LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion = $2
-     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion = $2      
+      LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
+     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2      
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
 
-      const params: any[] = [data.id_obra, data.id_modificacion];
+      const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -154,7 +182,7 @@ export class ComputoPlanillaService {
   }
 
 
-  async getTipoComputo(tipo_modificacion:number) {
+  async getTipoComputo(tipo_modificacion: number) {
     try {
       ;
       let query =
@@ -171,31 +199,23 @@ export class ComputoPlanillaService {
     } catch (error) {
       return this.responseService.error(error);
     }
-  }  
-
-
-
+  }
 
 
   /////////////////////////////importar archivo excel//////////////////////////////////
-
-
-
-
   async procesarYGuardarExcel(
     file: Express.Multer.File,
     body: any): Promise<{ success: boolean; message: string; errores?: ErrorDetalle[] }> {
     try {
 
       console.log('id_modificacion service', body.id_modificacion);
-
-      
+      // Leer y procesar el archivo Excel
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       const procesados = this.procesarDatos(data);
 
-     
+      // Construir los errores si existen
       const errores: ErrorDetalle[] = procesados.errores.map((error: string) => {
         const match = error.match(/fila (\d+): Campo '(\w+)' (.+)/i);
         return {
@@ -205,7 +225,7 @@ export class ComputoPlanillaService {
         };
       });
 
-    
+      // Retornar errores si existen
       if (errores.length > 0) {
         return {
           success: false,
@@ -213,9 +233,14 @@ export class ComputoPlanillaService {
           errores,
         };
       }
+
       // Guardar los datos procesados
       await this.insertarDatosLotes(procesados.datosProcesados, body, 500);
       return { success: true, message: 'Archivo procesado y datos almacenados correctamente.' };
+
+
+
+
     } catch (error: any) {
       throw new Error(`Error al procesar el archivo Excel: ${error.message}`);
     }
@@ -286,7 +311,7 @@ export class ComputoPlanillaService {
             break;
         }
 
-        
+        // Normalizar valores numéricos para los datos procesados
         Object.keys(row).forEach((key) => {
           if (typeof row[key] === 'number') {
             row[key] = this.toFixedNumber(row[key]);
@@ -311,10 +336,12 @@ export class ComputoPlanillaService {
         return true; // Se encontró una combinación válida
       }
     }
-    return false;
+    return false; // Ninguna combinación válida encontrada
   }
 
- 
+  /**
+   * Valida que los campos indicados estén vacíos y agrega errores al array.
+   */
   private validarCamposVacios(row: any, campos: string[], index: number, unidad: string, errores: string[]): void {
     campos.forEach((campo) => {
       if (this.ensureNumber(row[campo])) {
@@ -356,9 +383,9 @@ export class ComputoPlanillaService {
       await this.copiarComputoaHistorico(dataadicional)    
       
       // nueva version = version +1
-      const nueva_version = max_version + 1;      
+      const nueva_version = max_version + 1;
       //borrar computos por id_modificacion y tipo de computo
-       await this.deleteXModificacion(dataadicional.id_modificacion)
+      await this.deleteXModificacion(dataadicional.id_modificacion)
 
       for (let i = 0; i < datosExcel.length; i += batchSize) {
         const batch = datosExcel.slice(i, i + batchSize).map(row => {
@@ -401,8 +428,13 @@ export class ComputoPlanillaService {
     }
   }
 
-
- 
+  /**
+   * Asegura que el valor sea un número, reemplazando valores nulos o vacíos por 0.
+   * @param value El valor a validar.
+   */
+  /*private ensureNumber(value: any): number {
+    return typeof value === 'number' && !isNaN(value) ? value : 0;
+  }*/
 
   private ensureNumber(value: any): number {
     // Convertir el valor a un número si es válido y devolverlo; de lo contrario, devolver 0.
@@ -414,18 +446,18 @@ export class ComputoPlanillaService {
     try {
       let query =
         `           
-            INSERT INTO public.computo_historico(id_modificacion, data_json,  version,  id_usuario_registro,
+            INSERT INTO public.computo_historico(id_modificacion_pago, data_json,  version,  id_usuario_registro,
             id_estado)
 
-            SELECT  $1 as id_modificacion, 
+            SELECT  $1 as id_modificacion_pago, 
             jsonb_agg(jsonb_build_object('id_computo', id_computo, 'id_item' , id_item,  'tramo',  tramo, 'descripcion', descripcion, 'numero_veces', numero_veces,
             'alto', alto, 'largo',  largo, 'ancho', ancho, 'area', area, 'area_total',  area_total,  'volumen', volumen, 
             'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion', justificacion, 
             'id_usuario_registro', id_usuario_registro, 'fecha_registro', fecha_registro, 'fecha_modificacion', fecha_modificacion, 
             'id_estado', id_estado)) as data_json,
             version , $2, 1
-            FROM public.computo WHERE id_modificacion= $1
-            GROUP BY id_modificacion, version          
+            FROM public.computo WHERE id_modificacion_pago= $1
+            GROUP BY id_modificacion_pago, version          
           `;
       const params: any[] = [data.id_modificacion, data.id_usuario,];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
@@ -436,20 +468,20 @@ export class ComputoPlanillaService {
   }
 
   async getMaxVersion(modificacion: number): Promise<number> {
-    console.log('id_mod getmax', modificacion);    
+    console.log('id_mod getmax', modificacion);
     const query = `SELECT COALESCE(MAX(version), 0) AS max_version 
-                  FROM public.computo_historico WHERE id_modificacion =$1;`;
+                  FROM public.computo_historico WHERE id_modificacion_pago =$1;`;
     const param = [modificacion]
     const result = await this.computoRepositorio.query(query, param);
     console.log('result.rows[0]?.max_version', result[0].max_version || 0);
     return result[0]?.max_version || 0;
-    
+
   }
 
 
   async deleteXModificacion(modificacion: number): Promise<number> {
-    const query = `DELETE FROM public.computo WHERE id_modificacion =$1;`
-    const param =[modificacion]
+    const query = `DELETE FROM public.computo WHERE id_modificacion_pago =$1;`
+    const param = [modificacion]
     const result = await this.computoRepositorio.query(query, param);
     return result;
   }
@@ -462,7 +494,7 @@ export class ComputoPlanillaService {
         `           
              SELECT * FROM public.sp_resumen_x_modificacion() WHERE modificacion =$1      
           `;
-      const params: any[] = [data.id_modificacion];
+      const params: any[] = [data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -474,13 +506,15 @@ export class ComputoPlanillaService {
 
   ////////////////////////////////COMPUTO CRITERIO//////////////////
 
-  async  findAllCriterio() {
+  async findAllCriterio() {
     try {
       const resultado = await this.criterioRepositorio.find()
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
+  }
 
-  }  
+
+
 }

@@ -7,10 +7,11 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { ItemObraDto } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
-import { Modificacion } from './entities/modificacion.entity';
+
+import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pago.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
-import { CreateModificacionDto } from './dto/create-modificacion.dto';
+
 import { ItemEstadoDto } from './dto/item-estado.dto';
 import { ItemFinalizarDto } from './dto/item-finalizar.dto';
 
@@ -20,7 +21,7 @@ import { ItemFinalizarDto } from './dto/item-finalizar.dto';
 @Controller('items')
 export class ItemController {
   constructor(
-    @InjectRepository(Modificacion) private modificacionRepository: Repository<Modificacion>,
+
     private readonly itemService: ItemService) { }
 
   // Ruta para crear un nuevo item
@@ -151,27 +152,7 @@ finalizarOrdenItem(@Body() itemEstadoDto: ItemFinalizarDto) {
     }
   }  
 
-/////////////////////////MODIFICACION/////////////////////////
 
-@Post('modificacion-create')
-@HttpCode(HttpStatus.CREATED)
-async createModificacion(@Body() createModificacion: CreateModificacionDto) {
-  try {
-  return await this.itemService.createModificacion(createModificacion);
-} catch (error) {
-}
-}
-
-
-
-@Public()
-@Post('modificacion-lista')
-listaPersonas(@Body() documentoDto: ItemObraDto) {
-  try {  
-    return this.itemService.listaModificacion(documentoDto);
-  } catch (error) {
-  }
-}
 
 
 

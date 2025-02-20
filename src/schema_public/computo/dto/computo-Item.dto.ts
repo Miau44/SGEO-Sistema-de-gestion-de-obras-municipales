@@ -5,6 +5,7 @@ export class ComputoItem{
     id_item: number;
 
     @ApiProperty()
-    id_modificacion: number;    
+    id_modificacion_pago: number;    
+
 
 }
