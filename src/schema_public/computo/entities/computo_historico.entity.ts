@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
-import { Item } from 'src/schema_public/item/entities/item.entity'; //relacion con item
-import { Modificacion } from 'src/schema_public/item/entities/modificacion.entity';
+
 @Entity('')
 export class ComputoHistorico {
 
@@ -8,7 +7,7 @@ export class ComputoHistorico {
     id_computo_historico: number;
 
     @Column()
-    id_modificacion: number;    
+    id_modificacion_pago: number;    
 
    /* @Column()
     id_computo: number;
@@ -66,7 +65,6 @@ data_json: string;
     version: number;
 
     ///campos de tabla generales
-
     @Column()
     id_usuario_registro: number;
 

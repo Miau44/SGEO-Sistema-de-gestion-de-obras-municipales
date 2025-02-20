@@ -1,12 +1,15 @@
 
 import { ApiProperty } from "@nestjs/swagger";
-export class CreateComputoDto {
+export class CreateComputoHistoricoDto {
+
+    @ApiProperty()
+    id_computo: number;
 
     @ApiProperty()
     id_item: number;
 
     @ApiProperty()
-    id_modificacion: number;
+    id_modificacion_pago: number;
       
     @ApiProperty()
     tramo: string;

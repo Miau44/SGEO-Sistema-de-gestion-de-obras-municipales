@@ -52,11 +52,11 @@ export class PlanillaService {
     try {
       ;
       let query =
-        ` INSERT INTO public.planilla (id_modificacion, id_item, monto_planilla, id_usuario_registro, id_estado)
-        SELECT $1 as id_modificacion, id_item, total_adjudicado, $3, 1 FROM public.item WHERE id_obra =$2 AND id_estado =1`;
-      const params: any[] = [data.id_modificacion, data.id_obra, data.id_usuario_registro,];
+        ` INSERT INTO public.planilla (id_modificacion_pago, id_item, monto_planilla, id_usuario_registro, id_estado)
+        SELECT $1 as id_modificacion_pago, id_item, total_adjudicado, $3, 1 FROM public.item WHERE id_obra =$2 AND id_estado =1`;
+      const params: any[] = [data.id_modificacion_pago, data.id_obra, data.id_usuario_registro,];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+      return this.responseService.success(resultado, "Creado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -68,7 +68,7 @@ export class PlanillaService {
       ;
       let query =
         ` UPDATE public.planilla 
-        SET justificacion =$2 WHERE id_item = $1 AND id_estado = 1`;
+        SET justificacion_sup =$2 WHERE id_item = $1 AND id_estado = 1`;
       const params: any[] = [data.id_item, data.justificacion];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
@@ -88,7 +88,7 @@ export class PlanillaService {
         monto_planilla = subc.monto_planilla,
         cantidad_reordenamiento = subc.cantidad_reordenamiento
         FROM (
-        SELECT  i.id_item, p.id_modificacion,  SUM(parcial) as cantidad_planilla, 
+        SELECT  i.id_item, p.id_modificacion_pago,  SUM(parcial) as cantidad_planilla, 
         (SUM(parcial) * SUM(total_adjudicado)) AS monto_planilla, 
         SUM(CASE WHEN parcial >= 0 THEN parcial ELSE 0 END) AS incremento,
         SUM(CASE WHEN parcial < 0 THEN parcial ELSE 0 END) AS decremento,	
@@ -97,12 +97,12 @@ export class PlanillaService {
         FROM public.computo AS c 
         INNER JOIN public.item AS i ON c.id_item = i.id_item
         INNER JOIN public.planilla AS p  ON i.id_item = p.id_item
-        WHERe  p.id_modificacion =$1 AND i.id_estado =1
-        GROUP BY i.id_item, p.id_modificacion) AS subc
-        WHERE p.id_item = subc.id_item AND p.id_modificacion = subc.id_modificacion
+        WHERe  p.id_modificacion_pago =$1 AND i.id_estado =1
+        GROUP BY i.id_item, p.id_modificacion_pago) AS subc
+        WHERE p.id_item = subc.id_item AND p.id_modificacion_pago = subc.id_modificacion_pago
 `;
 
-      const params: any[] = [data.id_modificacion];
+      const params: any[] = [data.id_modificacion_pago];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

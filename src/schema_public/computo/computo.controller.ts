@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
-import { ComputoPlanillaService } from './computo_planilla.service';
+import { ComputoService } from './computo.service';
 import { CreateComputoDto } from './dto/create-computo.dto';
 import { UpdateComputoDto } from './dto/update-computo.dto';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -18,40 +18,40 @@ import { error } from 'console';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 import { ComputoResumenDto } from './dto/computo-resumen.dto';
 
-@ApiTags('computo-planilla')
-@Controller('computo-planilla')
-export class ComputoPlanillaController {
-  constructor(private readonly computoPlanillaService: ComputoPlanillaService) {}
+@ApiTags('computo')
+@Controller('computo')
+export class ComputoController {
+  constructor(private readonly computoService: ComputoService) {}
 
   @Public()
   @Post('create-computo')
   async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
-    return this.computoPlanillaService.create(createComputoPlanillaDto);
+    return this.computoService.create(createComputoPlanillaDto);
   }
 
   @Public()    
   @Get()
   findAll() {
-    return this.computoPlanillaService.findAll();
+    return this.computoService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.computoPlanillaService.findOne(+id);
+    return this.computoService.findOne(+id);
   }
 
   @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateComputoPlanillaDto: UpdateComputoDto) {
     try{
-    return this.computoPlanillaService.update(+id, updateComputoPlanillaDto);
+    return this.computoService.update(+id, updateComputoPlanillaDto);
     }catch {error}
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     try{    
-    return this.computoPlanillaService.remove(+id);
+    return this.computoService.remove(+id);
   }catch {error}    
   }
 
@@ -61,7 +61,7 @@ export class ComputoPlanillaController {
   @Post('computo-lista')
   listaItem(@Body() computoObraDto: ComputoModificacionDto) {
     try {  
-      return this.computoPlanillaService.listaItemComputoXObra(computoObraDto);
+      return this.computoService.listaItemComputoXObra(computoObraDto);
     } catch (error) {
     }
   }
@@ -70,7 +70,7 @@ export class ComputoPlanillaController {
   @Post('computo-x-item')
   listaComputoItem(@Body() computoItemDto: ComputoItem) {
     try {  
-      return this.computoPlanillaService.listaComputoXItem(computoItemDto);
+      return this.computoService.listaComputoXItem(computoItemDto);
     } catch (error) {
     }
   }
@@ -78,7 +78,7 @@ export class ComputoPlanillaController {
   @Public()
   @Get('tipo_computo/:id')
   getTipoComputo(@Param('id') id: string) {
-    return this.computoPlanillaService.getTipoComputo(+id);
+    return this.computoService.getTipoComputo(+id);
   }
 
 
@@ -86,16 +86,16 @@ export class ComputoPlanillaController {
   @Post('computo-exportar-excel')
   exportarComputos(@Body() computoObra: ComputoObra) {
     try {  
-      return this.computoPlanillaService.descargarComputosMetricos(computoObra);
+      return this.computoService.descargarComputosMetricos(computoObra);
     } catch (error) {
     }
-  }  
+  } 
 
   @Public()
   @Post('resumen')
   resumenXModificacion(@Body() computoDto: ComputoResumenDto) {
     try {  
-      return this.computoPlanillaService.listaResumenXModifiacion(computoDto);
+      return this.computoService.listaResumenXModifiacion(computoDto);
     } catch (error) {
     }
   }  
@@ -110,7 +110,7 @@ export class ComputoPlanillaController {
       if (!file) {
         throw new HttpException('No se ha subido ningún archivo', HttpStatus.BAD_REQUEST);
       }
-      const resultado = await this.computoPlanillaService.procesarYGuardarExcel(file, body);
+      const resultado = await this.computoService.procesarYGuardarExcel(file, body);
 
       if (!resultado.success) {
         return {
@@ -139,7 +139,7 @@ export class ComputoPlanillaController {
         throw new HttpException('No se ha subido ningún archivo', HttpStatus.BAD_REQUEST);
       }
       // Procesar el archivo
-      const resultado = await this.computoPlanillaService.procesarYGuardarExcel(file);
+      const resultado = await this.computoService.procesarYGuardarExcel(file);
       return {
         success: true,
         message: 'Archivo procesado correctamente.',
@@ -164,7 +164,7 @@ export class ComputoPlanillaController {
   @Get('criterio-lista')
   findAllCriterio() {
     try {
-      return this.computoPlanillaService.findAllCriterio();
+      return this.computoService.findAllCriterio();
     } catch (error) {
     }    
   }  

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ComputoPlanillaService } from './computo_planilla.service';
-import { ComputoPlanillaController } from './computo_planilla.controller';
+import { ComputoService } from './computo.service';
+import { ComputoController } from './computo.controller';
 import { ResponseService } from 'src/response.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Computo } from './entities/computo.entity';
@@ -15,7 +15,7 @@ import { ComputoCriterio } from './entities/computo_criterio.entity';
   imports: [ 
     TypeOrmModule.forFeature([Computo,  ComputoCriterio, Planilla])],  
 
-  controllers: [ComputoPlanillaController],
-  providers: [ComputoPlanillaService, ResponseService, PlanillaService],
+  controllers: [ComputoController],
+  providers: [ComputoService, ResponseService, PlanillaService],
 })
-export class ComputoPlanillaModule {}
+export class ComputoModule {}

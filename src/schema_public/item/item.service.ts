@@ -7,8 +7,6 @@ import { Item } from './entities/item.entity';
 import { ResponseService } from 'src/response.service';
 import { ItemObraDto } from './dto/item-obra.dto';
 import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
-import { CreateModificacionDto } from './dto/create-modificacion.dto';
-import { Modificacion } from './entities/modificacion.entity';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { ItemEstadoDto } from './dto/item-estado.dto';
 import { ItemFinalizarDto } from './dto/item-finalizar.dto';
@@ -19,7 +17,7 @@ export class ItemService {
   constructor(
     @InjectRepository(Item)
 private readonly itemRepository: Repository<Item>,
-@InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
+
     private responseService: ResponseService,
     private externoService: ExternoService
   ) { }
@@ -331,46 +329,5 @@ private readonly itemRepository: Repository<Item>,
   }
 
 
-  //////////MODIFICACION///////////////////
-  async createModificacion(createModDto: CreateModificacionDto) {
-    try {
-      const resultado = await this.modificacionRepo.save(createModDto);
-      return this.responseService.success(resultado, "Guardado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }
-
-
-  async listaModificacion(data: ItemObraDto) {
-    try {
-      ;
-      let query = `SELECT s.id_obra,  m.id_modificacion, s.id_solicitud, m.id_tipo_modificacion, 
-                  CASE 
-                  WHEN m.id_tipo_modificacion = 256 THEN 260
-                  WHEN m.id_tipo_modificacion = 257 THEN 259 
-                  ELSE 0 
-                  END AS id_tipo_computo,      
-      
-      p.desc_subtipo AS tipo_modificacion,
-      co.correlativo as nro_modificacion,
-      cog.correlativo AS nro_correlativo,
-      es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
-      FROM public.modificacion AS m
-      INNER JOIN public.solicitud AS s ON m.id_solicitud = s.id_solicitud 
-      INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
-      INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
-      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica where id_tipo =33 ) as p ON m.id_tipo_modificacion= p.id_subtipo 
-LEFT JOIN  public.correlativo  AS co ON m.id_correlativo = co.id_correlativo   
-LEFT JOIN  public.correlativo  AS cog ON m.id_correlativo_general = cog.id_correlativo      
-      WHERE m.id_obra =$1`;
-      const params: any[] = [data.id_obra];
-
-      const resultado: any[] = await this.modificacionRepo.query(query, params);
-      return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }
-
+ 
 }

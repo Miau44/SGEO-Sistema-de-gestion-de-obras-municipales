@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Modificacion } from 'src/schema_public/item/entities/modificacion.entity';
+import { ModificacionPago } from 'src/schema_public/modificacion_pago/entities/modificacion_pago.entity';
 
 @Entity()
 export class Planilla {
@@ -8,7 +8,7 @@ export class Planilla {
     id_planilla: number;
 
     @Column()
-    id_modificacion: number;    
+    id_modificacion_pago: number;    
 
     @Column()
     id_item: number;  
@@ -29,8 +29,14 @@ export class Planilla {
     total_reordenamiento: number;   
     
     @Column({ type: 'varchar', nullable:true })
-    justificacion: string;   
+    justificacion_sup: string;   
     
+    @Column({ type: 'varchar', nullable:true })
+    observacion_fis: string;   
+
+    @Column({default:false})
+    estado_observacion_fis: boolean;      
+        
     ///campos de tabla generales
 
     @Column()
@@ -45,10 +51,10 @@ export class Planilla {
     @Column()
     id_estado: number;
     
-    // Relación muchos a uno con la entidad modificacion
-    @ManyToOne(() => Modificacion, (modificacion) => modificacion.planimo)
-    @JoinColumn({ name: 'id_modificacion' }) // Indica el nombre de la columna FK
-    modificacion: Modificacion;
+   // Relación muchos a uno con la entidad modificacion
+    @ManyToOne(() => ModificacionPago, (modificacion) => modificacion.planimo)
+    @JoinColumn({ name: 'id_modificacion_pago' }) // Indica el nombre de la columna FK
+    modificacion: ModificacionPago;
 
 
 }

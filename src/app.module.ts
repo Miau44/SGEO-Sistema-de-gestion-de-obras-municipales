@@ -32,8 +32,10 @@ import { MemorandumModule } from './schema_public/memorandum/memorandum.module';
 import { SolicitudGateway } from './schema_public/solicitud/solicitud.gateway';
 import { CorrelativoModule } from './schema_public/correlativo/correlativo.module';
 import { ItemModule } from './schema_public/item/item.module';
-import { ComputoPlanillaModule } from './schema_public/computo_planilla/computo_planilla.module';
+import { ComputoModule } from './schema_public/computo/computo.module';
 import { PlanillaModule } from './schema_public/planilla/planilla.module';
+import { ModificacionPagoModule } from './schema_public/modificacion_pago/modificacion_pago.module';
+
 
 
 @Module({
@@ -96,8 +98,9 @@ import { PlanillaModule } from './schema_public/planilla/planilla.module';
   MemorandumModule,
   CorrelativoModule,
   ItemModule,
-  ComputoPlanillaModule,
-  PlanillaModule
+  ComputoModule,
+  PlanillaModule,
+  ModificacionPagoModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

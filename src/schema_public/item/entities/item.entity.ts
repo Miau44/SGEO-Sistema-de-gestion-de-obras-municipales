@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column,JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Obra } from './../../obra/entities/obra.entity'; // Relación con Obra
-import { Computo } from 'src/schema_public/computo_planilla/entities/computo.entity';
+import { Computo } from 'src/schema_public/computo/entities/computo.entity';
 @Entity('item')
 export class Item {
   @PrimaryGeneratedColumn()

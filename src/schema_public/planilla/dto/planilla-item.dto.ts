@@ -5,7 +5,7 @@ export class copiarItemDto {
     id_obra: number;
 
     @ApiProperty()
-    id_modificacion: number;
+    id_modificacion_pago: number;
 
     @ApiProperty()
     id_usuario_registro: number;
