@@ -2,9 +2,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SubDesignacionDto {
-  @ApiProperty({ description: 'ID del item', example: 1 })
+  @ApiProperty({ description: 'ID de designacion', example: 0 })
   id_designacion: number;
 
-  @ApiProperty({ description: 'Número del item', example: 2 })
+  @ApiProperty({ description: 'Número coorelativo', example: 0 })
   correlativo: number;
 }

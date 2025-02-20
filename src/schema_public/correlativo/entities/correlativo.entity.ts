@@ -1,7 +1,7 @@
 
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Modificacion } from "src/schema_public/item/entities/modificacion.entity";
+import { ModificacionPago } from "src/schema_public/modificacion_pago/entities/modificacion_pago.entity";
 @Entity()
 export class Correlativo {
 
@@ -14,7 +14,7 @@ export class Correlativo {
     @Column({nullable:true})
     id_tipo_documento:number;
 
-    @Column({nullable:true})
+    @Column()
     correlativo: string;   
     
     @Column()
@@ -33,9 +33,9 @@ export class Correlativo {
     correla: Memorandum[];  
 
     // Relación muchos a uno con la entidad modificacion
-    @ManyToMany(() => Modificacion, (modificacion) => modificacion.correlativomo)
+    @ManyToMany(() => ModificacionPago, (modificacion) => modificacion.correlativomo)
     @JoinColumn({ name: 'id_correlativo' }) // Indica el nombre de la columna FK
-    modificacion: Modificacion;
+    modificacion: ModificacionPago;
 
 
 }

@@ -5,7 +5,6 @@ import { And, Any, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { Obra } from '../obra/entities/obra.entity';
-//import { CorrelativoMemo } from '../correlativo_memo/entities/correlativo_memo.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { log } from 'console';
 import { Designacion } from './entities/designacion.entity';
