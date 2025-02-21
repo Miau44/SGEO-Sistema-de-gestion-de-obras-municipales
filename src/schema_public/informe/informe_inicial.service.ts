@@ -26,8 +26,13 @@ export class InformeService {
 
   async create(createInformeDto: CreateInformeDto) {
     try {
-      const resultado = await this.informeRepositorio.save(createInformeDto);
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+      // Guardar directamente el array de objetos JSON en la base de datos
+      const resultado = await this.informeRepositorio.save({
+        ...createInformeDto,
+        id_documento: createInformeDto.id_documento, // No necesitas transformarlo
+      });
+
+      return this.responseService.success(resultado, "Registrado Correctamente.");
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -53,13 +58,22 @@ export class InformeService {
     }
   }
 
-  update(id: number, updateInformeDto: UpdateInformeDto) {
+  async update(id: number, updateInformeDto: UpdateInformeDto) {
     try {
-      return this.informeRepositorio.update(+id, updateInformeDto);
+        const updateData: any = { ...updateInformeDto };
+
+        // 🔹 Si `id_documento` es un array, lo convertimos a JSON
+        if (Array.isArray(updateData.id_documento)) {
+            updateData.id_documento = JSON.stringify(updateData.id_documento);
+        }
+
+        const resultado = await this.informeRepositorio.update(id, updateData);
+        return this.responseService.success(resultado, "Actualizado Correctamente.");
     } catch (error) {
-      return this.responseService.error(error);
+        return this.responseService.error(error);
     }
-  }
+}
+
 
   remove(id: number) {
     return `This action removes a #${id} informeInicial`;

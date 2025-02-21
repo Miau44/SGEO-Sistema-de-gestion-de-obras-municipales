@@ -85,8 +85,8 @@ export class DocumentoController {
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        'marvel',
-        'marvel123',
+        '123',
+        'tre123',
         'rita.flores'
       );
 

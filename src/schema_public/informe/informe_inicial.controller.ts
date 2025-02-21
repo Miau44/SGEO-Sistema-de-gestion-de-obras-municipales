@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { InformeService } from './informe_inicial.service';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
@@ -20,10 +20,8 @@ export class InformeController {
 
   @Public()
   @Post()
-  create(@Body() createInformeDto: CreateInformeDto) {
-    try {
+  async create(@Body() createInformeDto: CreateInformeDto) {
       return this.informeService.create(createInformeDto);
-    } catch (error) { }
   }
 
   @Public()

@@ -10,13 +10,15 @@ import { ItemAdjudicadoDto } from './dto/update-item-adjudicado.dto';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { ItemEstadoDto } from './dto/item-estado.dto';
 import { ItemFinalizarDto } from './dto/item-finalizar.dto';
+import { CreateModificacionDto } from '../modificacion_pago/dto/create-modificacion.dto';
+import { Modificacion } from '../modificacion_pago/entities/modificacion.entity';
 
 
 @Injectable()
 export class ItemService {
   constructor(
     @InjectRepository(Item)
-private readonly itemRepository: Repository<Item>,
+    private readonly itemRepository: Repository<Item>,
 
     private responseService: ResponseService,
     private externoService: ExternoService
@@ -327,7 +329,4 @@ private readonly itemRepository: Repository<Item>,
   
 
   }
-
-
- 
 }

@@ -14,6 +14,22 @@ export class CreateInformeDto {
     @ApiProperty()
     antecedentes: string; 
 
+    @ApiProperty({
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id_documento: { type: 'number' }
+        }
+      },
+      description: 'Lista de IDs de documentos en formato JSON',
+      example: [
+        { id_documento: 630 },
+        { id_documento: 631 }
+      ]
+    })
+    id_documento: { id_documento: number }[];
+
     @ApiProperty()
     analisis: string;    
 
@@ -25,6 +41,9 @@ export class CreateInformeDto {
 
     @ApiProperty()
     recomendacion: string;   
+
+    @ApiProperty()
+    anexos: string;   
 
   /*  @ApiProperty({type: 'object'})
     informe_inicial: string;*/
