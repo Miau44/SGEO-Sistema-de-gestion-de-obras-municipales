@@ -50,8 +50,7 @@ export class Computo {
     parcial: number;
 
     @Column({ type: 'varchar', nullable:true })
-    observacion_fis: string;
-
+    observacion_fiscal: string;
 
     @Column({nullable:true})
     version: number;    

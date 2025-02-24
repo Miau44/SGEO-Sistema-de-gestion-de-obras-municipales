@@ -359,10 +359,18 @@ export class DesignacionService {
     INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON p.id_persona = dp.idpersona		
     WHERE d.id_obra = $1 AND dp.idpermisod IN($2 ) `;*/
 
-   const query1 = `
+    /*  const query1 = `
     SELECT COALESCE(MAX(correlativo_memo),0) AS max_correlativo FROM designacion AS d
     INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
     INNER JOIN correlativo_memo AS  cm ON d.id_correlativo_memo= cm.id_correlativo_memo
+    INNER JOIN LATERAL ( SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona		
+    WHERE d.id_obra = $1 AND dp.idpermiso IN($2  )`;*/
+
+
+
+    const query1 = `
+    SELECT COALESCE(MAX(correlativo),0) AS max_correlativo FROM designacion AS d
+    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
     INNER JOIN LATERAL ( SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona		
     WHERE d.id_obra = $1 AND dp.idpermiso IN($2  )`;
       const params = [correlativoDto.id_obra, correlativoDto.id_permiso];
