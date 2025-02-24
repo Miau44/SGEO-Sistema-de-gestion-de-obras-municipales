@@ -89,13 +89,13 @@ export class ComputoService {
 
     let query = `
       SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
+      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_sup, observacion_fis, estado_observacion_fis
       FROM public.item AS i
       LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
       INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
       
-      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;;`
+      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.computoRepositorio.query(query, params);
