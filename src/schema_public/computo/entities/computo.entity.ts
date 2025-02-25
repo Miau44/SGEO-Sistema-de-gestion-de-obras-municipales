@@ -49,11 +49,11 @@ export class Computo {
     @Column({ type: 'decimal', precision: 15, scale: 5 })
     parcial: number;
 
-    @Column({ type: 'varchar', nullable:true })
-    observacion_fiscal: string;
-
     @Column({nullable:true})
-    version: number;    
+    version: number;  
+    
+    @Column({ type: 'varchar', nullable:true })
+    observacion_fiscal: string;    
 
     ///campos de tabla generales
     @Column()

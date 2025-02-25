@@ -87,9 +87,9 @@ export class ComputoService {
       WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`*/
 
 
-    let query = `
-      SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_sup, observacion_fis, estado_observacion_fis
+    let query = ` 
+      SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis
       FROM public.item AS i
       LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
@@ -126,7 +126,7 @@ export class ComputoService {
 	  WHERE i.id_item =$1
        AND m.id_modificacion = $2
 	  AND i.id_estado=1`;*/
-  let query =` SELECT  
+  let query =` SELECT   c.id_computo,
     m.id_modificacion_pago,
     i.id_item, i.orden_sim, c.id_computo, 
     codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
@@ -136,7 +136,7 @@ export class ComputoService {
     CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
     CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
     CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
-    parcial, i.id_obra FROM public.item AS i
+    parcial,  observacion_fiscal, i.id_obra FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
     WHERE i.id_item =$1
@@ -167,7 +167,7 @@ export class ComputoService {
 	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
 	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
         CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
-        p.justificacion_sup	
+        p.justificacion_supervisor	
       FROM public.item AS i
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2      
@@ -367,7 +367,7 @@ export class ComputoService {
       console.log('resultado-resumen', resultado);
 
       for (const item of resultado) {
-        await this.planillaService.actualizarJustificacionXItem({id_item: item.id_item, justificacion: item.justificacion, id_modificacion: item.id_item});
+        await this.planillaService.actualizarJustificacionXItem({id_item: item.id_item, justificacion: item.justificacion, id_modificacion_pago: item.id_item});
       }
     } catch (error: any) {
       throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
@@ -399,7 +399,7 @@ export class ComputoService {
 
           return {
             id_item: row.id_item || '',
-            id_modificacion: dataadicional.id_modificacion,
+            id_modificacion_pago: dataadicional.id_modificacion,
             tramo: row.tramo || '',
             descripcion: row.descripcion || '',
             numero_veces: this.ensureNumber(row.numero),
@@ -411,9 +411,9 @@ export class ComputoService {
             volumen: this.ensureNumber(row.volumen),
             volumen_total: 0,
             parcial: calculo_parcial,
-            id_tipo_computo: dataadicional.id_tipo_computo,
-            justificacion: '',
+           // id_tipo_computo: dataadicional.id_tipo_computo,
             version: nueva_version,
+            observacion_fiscal: '',
             id_usuario_registro: dataadicional.id_usuario,
             id_estado: 1,
           };
@@ -452,7 +452,7 @@ export class ComputoService {
             SELECT  $1 as id_modificacion_pago, 
             jsonb_agg(jsonb_build_object('id_computo', id_computo, 'id_item' , id_item,  'tramo',  tramo, 'descripcion', descripcion, 'numero_veces', numero_veces,
             'alto', alto, 'largo',  largo, 'ancho', ancho, 'area', area, 'area_total',  area_total,  'volumen', volumen, 
-            'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion', justificacion, 
+            'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion_supervisor', justificacion_supervisor, 
             'id_usuario_registro', id_usuario_registro, 'fecha_registro', fecha_registro, 'fecha_modificacion', fecha_modificacion, 
             'id_estado', id_estado)) as data_json,
             version , $2, 1
@@ -492,7 +492,7 @@ export class ComputoService {
     try {
       let query =
         `           
-             SELECT * FROM public.sp_resumen_x_modificacion() WHERE modificacion =$1      
+             SELECT * FROM public.sp_modificacion_x_resumen() WHERE id_modificacion_pago =$1      
           `;
       const params: any[] = [data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);

@@ -68,8 +68,8 @@ export class PlanillaService {
       ;
       let query =
         ` UPDATE public.planilla 
-        SET justificacion_sup =$2 WHERE id_item = $1 AND id_estado = 1`;
-      const params: any[] = [data.id_item, data.justificacion];
+        SET justificacion_supervisor =$2 WHERE id_item = $1 AND id_estado = 1 AND id_modificacion_pago= $3`;
+      const params: any[] = [data.id_item, data.justificacion, data.id_modificacion_pago];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {

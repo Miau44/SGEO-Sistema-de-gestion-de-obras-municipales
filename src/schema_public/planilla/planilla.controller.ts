@@ -69,4 +69,15 @@ export class PlanillaController {
     }
   }  
 
+
+  /*@Public()
+  @Post('editar-item-observacion')
+  actualizarObservacion(@Body() copiarItemDto: actualizarJustificacionDto) {
+    try {  
+      return this.planillaService.actualizarObservacion(copiarItemDto);
+    } catch (error) {
+    }
+  }*/
+
+
 }

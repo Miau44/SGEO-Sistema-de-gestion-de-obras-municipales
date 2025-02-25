@@ -80,7 +80,8 @@ export class ModificacionPagoService {
       const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,
-        "id_tipo_documento": dto.tipo,
+//        "id_tipo_documento": dto.tipo,
+        "id_tipo_documento": 1,
         "correlativo": "",
         "usuario_registro": dto.id_usuario,
         "id_estado": 1
@@ -166,7 +167,7 @@ if(respuesta_modpago){
   async listaModificacion(data: listaModDto) {
     try {
       ;
-      let query = `SELECT s.id_obra,  mp.id_modificacion_pago, s.id_solicitud,   
+      let query = `SELECT s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
  tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
      desc_subtipo AS tipo_modificacion,
       co.correlativo as nro_modificacion,
@@ -178,6 +179,7 @@ if(respuesta_modpago){
       INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
       INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
 	  INNER JOIN public.tipo_modificacion_pago AS tmp ON mp.id_tipo_mod_pago = tmp.id_tipo_mod_pago
+	  INNER JOIN public.vista_datos_ficha_obra AS vo ON mp.id_obra = vo.id_obra
 LEFT JOIN  public.correlativo  AS co ON mp.id_correlativo_tipo = co.id_correlativo   
 LEFT JOIN  public.correlativo  AS cog ON mp.id_correlativo_subtipo = cog.id_correlativo       
       WHERE mp.id_obra =$1`;

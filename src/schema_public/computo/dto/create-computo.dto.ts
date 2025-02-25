@@ -42,13 +42,10 @@ export class CreateComputoDto {
     parcial: number;         
 
     @ApiProperty()
-    id_tipo_computo: number;     
+    version: number;    
     
-    @ApiProperty()
-    justificacion: string; 
-    
-    @ApiProperty()
-    version: number;         
+    @ApiProperty()    
+    observacion_fiscal : string;      
         
     @ApiProperty()
     id_usuario_registro: number;       
