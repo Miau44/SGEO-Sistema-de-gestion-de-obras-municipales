@@ -45,6 +45,9 @@ export class CreateInformeDto {
     @ApiProperty()
     anexos: string;   
 
+    @ApiProperty()
+    id_solicitud: number;
+
   /*  @ApiProperty({type: 'object'})
     informe_inicial: string;*/
     

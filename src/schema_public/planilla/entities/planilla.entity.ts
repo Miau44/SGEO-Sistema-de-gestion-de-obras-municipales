@@ -29,13 +29,13 @@ export class Planilla {
     total_reordenamiento: number;   
     
     @Column({ type: 'varchar', nullable:true })
-    justificacion_sup: string;   
+    justificacion_supervisor: string;   
     
     @Column({ type: 'varchar', nullable:true })
-    observacion_fis: string;   
+    observacion_fiscal: string;   
 
     @Column({default:false})
-    estado_observacion_fis: boolean;      
+    estado_observacion_fis: boolean;     
         
     ///campos de tabla generales
 

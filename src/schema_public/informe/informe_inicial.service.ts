@@ -1,8 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Any, Not, Repository } from 'typeorm';
+import { And, Any, DataSource, Not, Repository } from 'typeorm';
 import { Informe } from './entities/informe.entity';
 import { ResponseService } from 'src/response.service';
 import { ListaInformeDto } from './dto/lista-informe.dto';
@@ -12,6 +12,7 @@ import { UpdateInformeInicialDto } from './dto/update-informe-inicial.dto';
 import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
 import { InformeActividadesDto } from './dto/informe-actividades.dto';
+import { Documento } from '../documento/entities/documento.entity';
 
 
 
@@ -22,6 +23,8 @@ export class InformeService {
     @InjectRepository(Informe) private informeRepositorio: Repository<Informe>,
     private responseService: ResponseService,
     @InjectRepository(InformeInicial) private infInicialRepositorio: Repository<InformeInicial>,
+    private readonly dataSource: DataSource,
+    @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
   ) { }
 
   async create(createInformeDto: CreateInformeDto) {
@@ -282,6 +285,33 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         id_informe,
         documentos: documentosJson,
     };
+  }
+
+  /**
+   * Obtener los datos del formulario
+   */
+  async obtenerDatosFormulario(idSolicitud: number, idModificacion: number) {
+    const query = `SELECT * FROM sp_obtener_datos_formulario($1, $2)`;
+    const result = await this.dataSource.query(query, [idSolicitud, idModificacion]);
+
+    return result.length ? result[0] : null; // Retorna el primer resultado o null si no hay datos
 }
 
+  /**
+   * Actualizar los datos del formulario 
+   */
+  async actualizarFormulario(idModificacion: number, idInforme: number, datosFormulario: any) {
+    const { plazo, antecedentes, justificacion, modificacionPlazo, textoAnexos, id_documento } = datosFormulario;
+  
+    const query = `SELECT public.sp_actualizar_datos_formulario($1, $2, $3, $4, $5, $6, $7, $8)`;
+  
+    await this.dataSource.query(query, [
+      idModificacion, idInforme,
+      plazo, antecedentes, justificacion,
+      modificacionPlazo, textoAnexos, JSON.stringify(id_documento) // Convierte el JSON a string para evitar errores
+    ]);
+  
+    return { message: 'Formulario actualizado correctamente' };
+  }
+ 
 }

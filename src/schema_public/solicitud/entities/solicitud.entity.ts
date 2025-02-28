@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { SolicitudHistorial } from "./solicitud_historial.entity";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
+import { Informe } from "src/schema_public/informe/entities/informe.entity";
 @Entity()
 export class Solicitud {
 
@@ -59,6 +60,9 @@ export class Solicitud {
     obra: Obra;    
 
 
+    //modificarlo para informe
+    @OneToMany(type => Informe, minform => minform.informe)
+    informe: Informe[];  
 
 
 }

@@ -1,4 +1,6 @@
+import { Col } from "sequelize/types/utils";
 import { Correlativo } from "src/schema_public/correlativo/entities/correlativo.entity";
+import { Solicitud } from "src/schema_public/solicitud/entities/solicitud.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 @Entity()
 export class Informe {
@@ -33,6 +35,9 @@ export class Informe {
     @Column("json", { nullable: true })
     id_documento: { id_documento: number }[];
 
+    @Column({nullable: true})
+    id_solicitud: number;
+
     @Column()
     usuario_registro: number;
 
@@ -51,4 +56,9 @@ export class Informe {
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
     correlativo: Correlativo;
+
+    //modificar esto para solicitud
+    @ManyToOne(() => Solicitud, (inform) => inform.informe)
+    @JoinColumn({ name: 'id_solicitud' })
+    informe: Solicitud;
 }

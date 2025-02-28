@@ -25,6 +25,9 @@ export class Documento {
 
     @Column({ default: 1 })
     id_estado: number;
+
+    @Column({nullable:true})
+    nombre_documento: string;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
     fecha_registro: Date
