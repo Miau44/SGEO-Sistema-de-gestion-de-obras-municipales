@@ -7,5 +7,14 @@ export class ItemFinalizarDto {
     id_obra: number;
 
 
+    @ApiProperty({ required: false })
+    id_modificacion_pago: number;
+    
+    @ApiProperty({ required: false })
+    id_usuario_registro: number ;    
+
+
+
+
     
 }
