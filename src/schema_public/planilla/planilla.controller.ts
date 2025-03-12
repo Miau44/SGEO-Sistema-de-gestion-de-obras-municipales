@@ -69,6 +69,24 @@ export class PlanillaController {
     }
   }  
 
+  @Public()
+  @Post('actualizar-planilla-item')
+  actualizarPlanillaXItem(@Body() data: actualizarPlanillaDto) {
+    try {  
+      return this.planillaService.actualizarPlanillaXIditem(data);
+    } catch (error) {
+    }
+  }  
+
+
+  @Public()
+  @Post('lista-planilla')
+listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
+    try {  
+      return this.planillaService.listaPlanillaXItemXModpago(listaDto);
+    } catch (error) {
+    }
+  }  
 
   /*@Public()
   @Post('editar-item-observacion')

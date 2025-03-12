@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { SolicitudHistorial } from "./solicitud_historial.entity";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
+import { Informe } from "src/schema_public/informe/entities/informe.entity";
 @Entity()
 export class Solicitud {
 
@@ -56,8 +57,12 @@ export class Solicitud {
     //relacion muchos a uno con la entidad obra
     @ManyToOne(() => Obra, (obra) => obra.solicitud)
     @JoinColumn({ name: 'id_obra' }) // Indica el nombre de la columna FK
-    obra: Obra;    
+    obra: Obra; 
+    
+//entidad de solicitud
 
+@OneToMany(type => Informe, minform => minform.informe)
+    informe: Informe[];      
 
 
 
