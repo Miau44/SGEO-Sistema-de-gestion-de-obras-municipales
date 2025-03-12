@@ -42,19 +42,19 @@ export class Item {
 
 
 //datos adjudicacion
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
+  @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
   p_unitario_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true })
+  @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
   total_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  @Column({ type: 'decimal', precision: 15, scale: 2, nullable:true})
   cantidad_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  @Column({ type: 'decimal', precision: 15, scale: 2, nullable:true})
   total_modificacion: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 , nullable:true})
+  @Column({ type: 'decimal', precision: 15, scale: 2 , nullable:true})
   p_unitario_modificacion: number;
 
   @Column({nullable: true })

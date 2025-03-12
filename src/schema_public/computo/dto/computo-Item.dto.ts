@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ComputoItem{
+export class ComputoItemDto{
     @ApiProperty()
     id_item: number;
 

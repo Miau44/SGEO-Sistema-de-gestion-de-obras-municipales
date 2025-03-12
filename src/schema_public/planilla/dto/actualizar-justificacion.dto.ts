@@ -8,6 +8,6 @@ export class actualizarJustificacionDto {
     justificacion: string;
 
     @ApiProperty()
-    id_modificacion: number;
+    id_modificacion_pago: number;
 
 }

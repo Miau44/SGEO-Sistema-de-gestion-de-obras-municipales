@@ -25,7 +25,13 @@ export class CreatePlanillaDto {
     total_reordenamiento: number;   
     
     @ApiProperty()
-    justificacion: string;   
+    justificacion_supervisor: string;   
+
+    @ApiProperty()
+    observacion_fiscal: string;       
+
+    @ApiProperty()
+    estado_observacion_fis: boolean;       
     
     @ApiProperty()
     id_usuario_registro: number;   

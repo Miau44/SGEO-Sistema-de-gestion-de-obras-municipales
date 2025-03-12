@@ -1,7 +1,8 @@
 
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ModificacionPago } from "src/schema_public/modificacion_pago/entities/modificacion_pago.entity";
+import { Informe } from "src/schema_public/informe/entities/informe.entity";
 @Entity()
 export class Correlativo {
 
@@ -37,5 +38,8 @@ export class Correlativo {
     @JoinColumn({ name: 'id_correlativo' }) // Indica el nombre de la columna FK
     modificacion: ModificacionPago;
 
+// correlativo entity
+@OneToOne(() => Informe, (informe) => informe.correlativo)
+    informe: Informe;    
 
 }
