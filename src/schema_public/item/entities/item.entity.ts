@@ -37,50 +37,36 @@ export class Item {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total_item_sim: number;
 
-  @Column({ type: 'varchar', nullable:true })
+  @Column({ type: 'varchar', nullable: true })
   fuente_financiamiento_sim: string;
 
+  //nuevo o de ce¡
+  @Column({ nullable: true })
+  id_tipo_item: number;
 
-//datos adjudicacion
-  @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+  //datos adjudicacion
+  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   p_unitario_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   total_adjudicado: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable:true})
-  cantidad_modificacion: number;
+  //datos_modificacion
+  @Column({ type: 'decimal', precision: 15, scale: 5, nullable: true })
+  cantidad_autorizada: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable:true})
-  total_modificacion: number;
-
-  @Column({ type: 'decimal', precision: 15, scale: 2 , nullable:true})
-  p_unitario_modificacion: number;
-
-  @Column({nullable: true })
-  id_tipo_modificacion: number;
+  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
+  total_autorizado: number;
 
   @Column({ nullable: true })
-  numero_modificacion: number;
-
-  @Column({nullable: true })
-  id_tipo_item: number;  
+  id_modificacion_pago: number;
 
   //datos pago
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   cantidad_pago_aprobado: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable:true})
+  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   monto_pago_aprobado: number;
-
-  @Column({ nullable: true })
-  nro_pago: number;
-
-  @Column({ nullable: true })
-  tipo_pago: number;
-
-  @Column({ nullable: true })
-  estado_pago: number;
 
   @Column({ nullable:true })
   finalizado: boolean;

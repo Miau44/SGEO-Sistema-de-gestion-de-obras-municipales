@@ -378,13 +378,15 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
       ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion
+      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
       --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
       INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =10 )  as est ON  sd.estado_designacion = est.id_subtipo
+	  
       INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
       WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
