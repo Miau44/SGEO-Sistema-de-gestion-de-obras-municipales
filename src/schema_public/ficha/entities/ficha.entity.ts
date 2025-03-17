@@ -21,7 +21,7 @@ export class Ficha {
     @Column()
     cod_estado_carpeta: number;
 
-    @Column({type:'timestamp without time zone'})
+    @Column()
     fecha_validacion_carpeta: Date;    
 
     @Column("decimal",{ precision: 10, scale: 2 })
@@ -76,5 +76,21 @@ export class Ficha {
     @OneToMany(() => Obra, (obra) => obra.ficha)
     obras: Obra[];
 
+    @Column({nullable:true})
+    url_adjuntos: string;
+
+    @Column({nullable:true})
+    programa:string;
+
+    @Column({nullable:true})
+    proyecto: string;    
+
+    @Column({nullable:true})
+    actividad: string;
     
+    @Column({nullable:true})
+    cod_sisin: string;
+
+    @Column({nullable:true})
+    estado_carpeta: string;
 }

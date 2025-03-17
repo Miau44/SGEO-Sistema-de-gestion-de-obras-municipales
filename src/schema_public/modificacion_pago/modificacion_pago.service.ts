@@ -169,10 +169,11 @@ if(respuesta_modpago){
       ;
       let query = `SELECT s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
  tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
-     desc_subtipo AS tipo_modificacion,
+     tmp.desc_subtipo AS tipo_modificacion,
       co.correlativo as nro_modificacion,
       cog.correlativo AS nro_correlativo,
       es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+      ,param.detalle AS porcentaje_permitido
       FROM public.modificacion_pago AS mp
       INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
       INNER JOIN public.solicitud AS s ON mp.id_solicitud = s.id_solicitud 
@@ -181,8 +182,10 @@ if(respuesta_modpago){
 	  INNER JOIN public.tipo_modificacion_pago AS tmp ON mp.id_tipo_mod_pago = tmp.id_tipo_mod_pago
 	  INNER JOIN public.vista_datos_ficha_obra AS vo ON mp.id_obra = vo.id_obra
 LEFT JOIN  public.correlativo  AS co ON mp.id_correlativo_tipo = co.id_correlativo   
-LEFT JOIN  public.correlativo  AS cog ON mp.id_correlativo_subtipo = cog.id_correlativo       
-      WHERE mp.id_obra =$1`;
+LEFT JOIN  public.correlativo  AS cog ON mp.id_correlativo_subtipo = cog.id_correlativo
+LEFT JOIN (select * from parametrica where id_tipo =33) AS param ON param.id_subtipo = tmp.id_correlativo_subtipo
+
+      WHERE mp.id_obra =$1 ORDER BY co.correlativo ASC`;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.modPagoRepositorio.query(query, params);

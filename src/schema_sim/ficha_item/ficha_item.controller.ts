@@ -14,12 +14,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class FichaItemController {
   constructor(private readonly ficha_itemService: ficha_itemService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  //@UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Crear una nueva Ficha y Obra' })
   @Post()
   //@ApiResponse({ status: 201, description: 'Ficha and Obra created successfully.' })
   async create(@Body() body: CreateFichaItemDto) {
-
+        console.log(body);
+        
         const createFichaDto: CreateFichaDto = {
             desc_cod_ue: body.desc_cod_ue,
             nombre_ue: body.nombre_ue,
@@ -39,9 +40,11 @@ export class FichaItemController {
             desc_macrodistrito_carpeta: body.desc_macrodistrito_carpeta,
             id_tipo_obra: body.id_tipo_obra,
             id_modalidad: body.id_modalidad,
-            usuario_registro: 0, //Asignar el usuario de registro según tu lógica
+            usuario_registro: 1321, //Asignar el usuario de registro según tu lógica
             id_estado: 1, //Asignar el estado según tu lógica
+            id_carpeta:body.id_carpeta,
         };
+        console.log(createFichaDto);
 
         const createObraDto: CreateObraDto = {
             id_tipo_obra : body.id_tipo_obra,
@@ -51,11 +54,12 @@ export class FichaItemController {
             procede:0,
             fecha_pago_anticipo: null,
             usuario_registro:0,
-            id_estado:1
+            id_estado:1,
+            id_estado_general:1
         };
         
     try {
-        await this.ficha_itemService.importarFicha(createFichaDto,createObraDto,body.item_st,body.documentos_st); 
+        await this.ficha_itemService.importarFicha(createFichaDto,createObraDto,body.items_st,body.documentos_st); 
         return { message: 'Ficha, Obra, Items y Documentos creados exitosamente' };
     } catch (error) {
         if (error instanceof QueryFailedError) {
@@ -70,7 +74,7 @@ export class FichaItemController {
           } else {
             console.error('Error general:', error);
             return {
-              message: 'Ha ocurrido un error inesperado',
+              message: 'Ha ocurrido un error inesperado', error,
               details: error
             };
           }

@@ -49,8 +49,10 @@ export class PersonaController {
 
   @Patch(':id')
   update(@Param('id') id_persona: string, @Body() updatePersonaDto: UpdatePersonaDto) {
+    try {
     return this.personaService.update(+id_persona, updatePersonaDto);
-  }
+  }   catch (error) {
+  }}
 
   @Delete(':id')
   remove(@Param('id') id_persona: string) {

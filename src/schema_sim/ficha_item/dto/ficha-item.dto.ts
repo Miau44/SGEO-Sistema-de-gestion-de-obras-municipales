@@ -17,6 +17,9 @@ export class CreateFichaItemDto {
     correlativo_carpeta: number;
     
     @ApiProperty()
+    id_carpeta: number;
+
+    @ApiProperty()  // carpeta
     desc_carpeta: string;
     
     @ApiProperty()
@@ -57,9 +60,9 @@ export class CreateFichaItemDto {
 
     @ApiProperty()
     id_modalidad: number;
-
+//==============================================
     @ApiProperty() 
-    item_st: string;
+    items_st: string;
 
     @ApiProperty() 
     documentos_st: string;

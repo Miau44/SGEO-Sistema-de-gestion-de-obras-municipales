@@ -34,6 +34,10 @@ export class CreateItemDto {
   @ApiProperty()
   fuente_financiamiento_sim: string;
 
+
+  @ApiProperty()
+  id_tipo_item: number;    
+
   @ApiProperty()
   p_unitario_adjudicado: number;
 
@@ -41,22 +45,13 @@ export class CreateItemDto {
   total_adjudicado: number;
 
   @ApiProperty()
-  cantidad_modificacion: number;
+  cantidad_autorizada: number;
 
   @ApiProperty()
-  total_modificacion: number;
+  total_autorizado: number;
 
   @ApiProperty()
-  p_unitario_modificacion: number;
-
-  @ApiProperty()
-  id_tipo_modificacion: number;
-
-  @ApiProperty()
-  numero_modificacion: number;
-
-  @ApiProperty()
-  id_tipo_item: number;  
+  id_modificacion_pago: number;
 
   @ApiProperty()
   cantidad_pago_aprobado: number;
@@ -64,14 +59,6 @@ export class CreateItemDto {
   @ApiProperty()
   monto_pago_aprobado: number;
 
-  @ApiProperty()
-  nro_pago: number;
-
-  @ApiProperty()
-  tipo_pago: number;
-
-  @ApiProperty()
-  estado_pago: number;
 
   @ApiProperty()
    finalizado: boolean;  
