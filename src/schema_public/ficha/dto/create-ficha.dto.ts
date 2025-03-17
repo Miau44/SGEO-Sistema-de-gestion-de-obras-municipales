@@ -62,5 +62,6 @@ export class CreateFichaDto {
     @ApiProperty()
     id_estado: number;
     
-
+    @ApiProperty()
+    id_carpeta: number;
 }
