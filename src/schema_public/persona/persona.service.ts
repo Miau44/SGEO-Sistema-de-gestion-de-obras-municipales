@@ -1,4 +1,4 @@
-import { Injectable, } from '@nestjs/common';
+import { Get, Injectable, } from '@nestjs/common';
 import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -413,6 +413,35 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   }
 
 
+
+  //nuevo servicio Mike
+  async filtrarSupervisoresNoDesignados(
+    asignadosSupervisores: any[], 
+    supervisoresAprobadosList: any[]
+  ) {
+    try {
+      if (!Array.isArray(asignadosSupervisores) || !Array.isArray(supervisoresAprobadosList)) {
+        return this.responseService.error("Los parámetros deben ser arrays válidos.");
+      }
+  
+      // Filtrar los supervisores que están en asignados pero NO en designados
+      const supervisoresNoDesignados = asignadosSupervisores.filter((asignado) => {
+        return !supervisoresAprobadosList.some(
+          (designado) => Number(designado.id_persona) === Number(asignado.id_persona)
+        );
+      });
+  
+      return this.responseService.success(supervisoresNoDesignados, "Supervisores no designados filtrados correctamente.");
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
+  
+  
+  
+
+  
   //personas SI solicitadas/designadas
   async listaPersonasXSolicitudyEstado(data: PersonaSolcitudDto) {
     try {

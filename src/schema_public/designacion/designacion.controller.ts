@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { DesignacionService } from './designacion.service';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
@@ -72,7 +72,13 @@ export class DesignacionController {
     return this.designacionService.aprobarDesignacion( actEstadoDto);
   }
 
+//mike
 
+@Public()
+@Post('aprobar-designacionR')
+actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
+  return this.designacionService.aprobarDesignacionR( actEstadoDto);
+}
 
   @Public()
   @Get('rechazar/:id_designacion/:obra')
@@ -106,5 +112,11 @@ export class DesignacionController {
     }
   }
 
+
+  //mike
+  @Patch('reemplazarM/:id')
+  async reemplazarDesignacion(@Param('id', ParseIntPipe) idDesignacionNueva: number) {
+    return await this.designacionService.reemplazarDesignacion(idDesignacionNueva);
+  }
  
 }

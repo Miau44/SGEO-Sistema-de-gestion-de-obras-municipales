@@ -170,6 +170,13 @@ listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
   }
 }
 
+//controlador m ike
+@Post('supervisores/no-designados')
+async obtenerSupervisoresNoDesignados(@Body() body: { asignadosSupervisores: any[], supervisoresAprobadosList: any[] }) {
+  return this.personaService.filtrarSupervisoresNoDesignados(body.asignadosSupervisores, body.supervisoresAprobadosList);
+}
+
+
  /* @Public()
   @Post('listapersonas-nodesignadas')
   listaPersonasNoDesignadas(@Body() rolDto: RolDto) {
