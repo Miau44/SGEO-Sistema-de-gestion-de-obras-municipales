@@ -379,9 +379,18 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
       ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
       ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
+      , per_reem.persona_a_reemplazar
       FROM persona as  p
       INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
       --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+
+    LEFT JOIN (SELECT de.id_designacion, pro.detalle || '' ||  pe.nombre || ' ' || pe.primer_apellido || ' ' || pe.segundo_apellido AS persona_a_reemplazar
+		FROM designacion de
+		INNER JOIN (SELECT id_designacion, id_persona  FROM designacion ) as des ON de.id_reemplazo = des.id_designacion 
+		INNER JOIN persona  AS pe ON des.id_persona = pe.id_persona
+		INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM public.parametrica  WHERE id_tipo =2 AND id_estado=1 )  as pro ON  pe.id_profesion = pro.id_subtipo) AS per_reem
+		ON sd.id_designacion = per_reem.id_designacion 
+
       INNER JOIN obra as o  ON sd.id_obra = o.id_obra
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
       INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
