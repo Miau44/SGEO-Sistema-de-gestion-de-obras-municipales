@@ -6,6 +6,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {  CreateMaestroDto } from './dto/create-maestro.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
+import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
  
 
 
@@ -51,5 +52,17 @@ export class ModificacionPagoController {
       return this.modificacionPagoService.listaModificacion(documentoDto);
     } catch (error) {
     }
+  }  
+
+
+
+  @Public()
+  @Post('modificacion-validacion')
+  async validar(@Body() validar: ValidarModificacionDto) {
+    try {  
+    return this.modificacionPagoService.validarModificacion(validar);
+
+  } catch (error) {
+  }    
   }  
 }

@@ -76,14 +76,6 @@ export class ComputoService {
   async listaItemComputoXObra(data: ComputoModificacionDto) {
     try {
 
-      /* let query = `
-       SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
-       FROM public.item AS i
-       INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
-     INNER JOIN public.modificacion AS m ON p.id_modificacion = m.id_modificacion
-       WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`*/
-
-
       let query = ` 
       SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, i.cantidad_sim,      
        public.formato_numerico(cantidad_planilla,5) as cantidad_planilla, monto_planilla,      
@@ -92,12 +84,15 @@ export class ComputoService {
 	    public.formato_numerico(i.cantidad_autorizada,2) AS cantidad_autorizada, 
 	    public.formato_numerico(cantidad_reordenamiento,5) as reordenamiento,
       public.formato_numerico(total_reordenamiento,5) as total_reordenamiento,       
-      i.id_obra, p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis
+      i.id_obra, 
+      --p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis,
+	  mp.id_solicitud, sh.id_solicitud_historial	  
       FROM public.item AS i
       LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
-      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
-      
+      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago 
+      LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
+      AS sh ON mp.id_solicitud = sh.id_solicitud       
       WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
@@ -114,11 +109,15 @@ export class ComputoService {
 
       let query = ` 
       SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis
-      FROM public.item AS i
-      LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
-      INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
-      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago      
+    total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis
+    ,mp.id_solicitud
+    , sh.id_solicitud_historial	  
+    FROM public.item AS i
+    INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
+    INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
+    INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago  	
+    LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
+    AS sh ON mp.id_solicitud = sh.id_solicitud     
       WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 
       AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
       ORDER BY i.orden_sim ASC;`
@@ -192,6 +191,7 @@ export class ComputoService {
       ;
       let query =
         `SELECT  
+        p.id_modificacion_pago as modificacion,
       i.id_item, 
       i.orden_sim AS orden,    
       i.desc_item  AS nombre,  
@@ -394,16 +394,26 @@ export class ComputoService {
   private async insertarJustificacion(datosExcel: any[]): Promise<void> {
     try {
       const resumen = datosExcel.reduce((acc, item) => {
-        acc.set(item.id_item, { id_item: item.id_item, justificacion: item.justificacion });
+        acc.set(item.id_item, {
+          id_item: item.id_item,
+          id_modificacion_pago: item.modificacion,
+          justificacion_supervisor: item.justificacion_supervisor
+        });
         return acc;
-      }, new Map<number, { id_item: number; justificacion: string }>());
+      }, new Map<number, { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }>());
+      const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
+      //console.log('resultado-resumen', resultado);
+      for (const itemres of resultado) {
+        // console.log('imprimir item', itemres);
 
-      const resultado: { id_item: number; justificacion: string }[] = Array.from(resumen.values());
 
-      console.log('resultado-resumen', resultado);
+        await this.planillaService.actualizarJustificacionXItem({
+          id_item: itemres.id_item,
+          id_modificacion_pago: itemres.id_modificacion_pago,
+          justificacion_supervisor: itemres.justificacion_supervisor,
+          id_usuario_registro: 9820
 
-      for (const item of resultado) {
-        await this.planillaService.actualizarJustificacionXItem({id_item: item.id_item, justificacion: item.justificacion, id_modificacion_pago: item.id_item});
+        });
       }
     } catch (error: any) {
       throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
@@ -422,6 +432,8 @@ export class ComputoService {
       const nueva_version = max_version + 1;
       //borrar computos por id_modificacion y tipo de computo
       await this.deleteXModificacion(dataadicional.id_modificacion)
+
+      await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
 
       for (let i = 0; i < datosExcel.length; i += batchSize) {
         const batch = datosExcel.slice(i, i + batchSize).map(row => {
@@ -456,7 +468,13 @@ export class ComputoService {
         });
 
         await this.computoRepositorio.save(batch);
-      }     
+      }
+      const datos = {
+        id_modificacion_pago: dataadicional.id_modificacion,
+        id_item: 0
+      }
+      //actualizar toda la planilla
+      await this.planillaService.actualizarPlanilla(datos);
       await this.insertarJustificacion(datosExcel);
 
     } catch (error: any) {
@@ -526,8 +544,7 @@ export class ComputoService {
 
   async listaResumenXModifiacion(data:ComputoResumenDto) {
     try {
-      let query =
-        `           
+      let query = `           
              SELECT * FROM public.sp_modificacion_x_resumen() WHERE id_modificacion_pago =$1      
           `;
       const params: any[] = [data.id_modificacion_pago];
