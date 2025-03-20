@@ -8,6 +8,8 @@ import { copiarItemDto } from './dto/planilla-item.dto';
 import { error } from 'console';
 import { actualizarJustificacionDto } from './dto/actualizar-justificacion.dto';
 import { actualizarPlanillaDto } from './dto/actualizar-planilla.dto';
+import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
+
 @ApiTags('planilla')
 @Controller('planilla')
 export class PlanillaController {
@@ -88,6 +90,17 @@ listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
     }
   }  
 
+
+    @Public()
+    @Post('planilla-finalizar')
+    finalizarItem(@Body() itemEstadoDto: FinalizarPlanillaDto) {
+      try {  
+        return this.planillaService.finalizarPlanilla(itemEstadoDto);
+      } catch (error) {
+      }
+    }  
+
+    
   /*@Public()
   @Post('editar-item-observacion')
   actualizarObservacion(@Body() copiarItemDto: actualizarJustificacionDto) {

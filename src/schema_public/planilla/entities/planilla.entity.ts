@@ -27,17 +27,22 @@ export class Planilla {
 
     @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     total_reordenamiento: number;   
-    
-    @Column({ type: 'varchar', nullable:true })
+      
+
+   /* @Column("json", {nullable:true })
     justificacion_supervisor: string;   
     
-    @Column({ type: 'varchar', nullable:true })
+    @Column("json", { nullable:true })
     observacion_fiscal: string;   
 
     @Column({default:false})
-    estado_observacion_fis: boolean;      
-        
-    ///campos de tabla generales
+    estado_observacion_fis: boolean;              
+    ///campos de tabla generales*/
+
+
+    @Column({ nullable: true })
+    finalizado: boolean;
+  
 
     @Column()
     id_usuario_registro: number;

@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
-import { And, Any, Not, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { And, Any, DataSource, Not, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { Obra } from '../obra/entities/obra.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
@@ -16,6 +16,7 @@ import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_u
 import { GenerarDto } from './dto/generar.dto';
 import { ObraService } from '../obra/obra.service';
 import { SolicitudService } from '../solicitud/solicitud.service';
+import { Persona } from '../persona/entities/persona.entity';
 
 
 @Injectable()
@@ -30,8 +31,8 @@ export class DesignacionService {
 
     private responseService: ResponseService,
     private obraService: ObraService,
-    private serviceSolicitud: SolicitudService
-
+    private serviceSolicitud: SolicitudService,
+    @InjectDataSource() private readonly dataSource: DataSource
   ) { }
 
   async create(createDesignacionDto: CreateDesignacionDto) {
@@ -292,6 +293,64 @@ export class DesignacionService {
     }
   }  
 
+
+  async aprobarDesignacionR(AprobarDto: EstadoObraDesigDto) {
+    try {
+      for (let i = 0; i < AprobarDto.designacion.length; i++) {    // Actualizar estado de designación y solicitud
+        const actualizarEstado = async () => {
+          const datadesignacion = { "estado_designacion": 102, "correlativo" : AprobarDto.designacion[i].correlativo}
+          const estado_designacion = await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion)
+
+          const datasolicitud = { "id_estado_solicitud": 4, "id_estado_general": AprobarDto.id_estado_flujo }
+          await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud)
+        }
+        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra)
+        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
+
+        const respuestagenera: any = await this.generarSoloSolicitud(AprobarDto.id_obra)
+
+        if (respuestagenera) {
+          const usuarioDestinoQuery = `
+        SELECT idusuario FROM public.sp_permisos_xpersona_filas() WHERE idpermiso IN (85,86)
+        AND desccodue = ${desc_cod_ue}`;
+          const params4 = [desc_cod_ue];
+          const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
+          if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+
+            return {
+              statusCode: 500,
+              message: false,
+              error: "Error: No se encontró un usuario destino válido.",
+            };
+          }
+          await actualizarEstado();
+          const usuario = usuarioDestinoResult[0].idusuario;
+          const data_solicitud = {
+            id_tipo_solicitud: 114,
+            id_estado_solicitud: 2,
+            id_obra: AprobarDto.id_obra,
+            id_estado_general: 12,
+            id_usuario: usuario,
+            proveido: "SOLICITUD GENERADA POR SISTEMA",
+            usuario_registro: 0,
+            id_estado_registro: 1,
+          };
+
+          const resultado = await this.solicitudRepocitorio.save(data_solicitud);
+        }
+        else {
+          await actualizarEstado()
+        };
+      }
+      return this.responseService.success("Solicitud generada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
+  }  
+
+
+
   async deleteDesignacionestadoXPersona(id_obra: number) {
     try {
       const query1 = `
@@ -464,4 +523,49 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     }
   }
 
+
+  //mike
+  async reemplazarDesignacion(idDesignacionNueva: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+  
+    try {
+      // 1. Buscar el id_designacion original
+      const designacionOriginal = await queryRunner.manager.findOne(Designacion, {
+        where: { id_reemplazo: idDesignacionNueva }
+      });
+  
+      if (!designacionOriginal) {
+        throw new NotFoundException('No se encontró la designación a reemplazar');
+      }
+  
+      // 2. Actualizar estado_designacion y fecha_reemplazo
+      await queryRunner.manager.update(Designacion, designacionOriginal.id_designacion, {
+        estado_designacion: 105,
+        fecha_reemplazo: new Date(),
+      });
+  
+      // 3. Obtener datos de la persona relacionada
+      const persona = await queryRunner.manager.findOne(Persona, {
+        where: { id_persona: designacionOriginal.id_persona }
+      });
+  
+      await queryRunner.commitTransaction();
+      
+      return {
+        mensaje: 'Reemplazo realizado con éxito',
+        designacionReemplazada: designacionOriginal,
+        persona: persona
+      };
+  
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('Error al reemplazar la designación');
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  
 }

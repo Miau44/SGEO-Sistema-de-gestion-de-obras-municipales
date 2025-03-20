@@ -52,7 +52,7 @@ export class Computo {
     @Column({nullable:true})
     version: number;  
     
-    @Column({ type: 'varchar', nullable:true })
+    @Column("json", {nullable:true })
     observacion_fiscal: string;    
 
     ///campos de tabla generales

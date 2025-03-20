@@ -5,7 +5,7 @@ import { Solicitud } from "./solicitud.entity";
 export class SolicitudHistorial {
 
     @PrimaryGeneratedColumn()
-    id_historial: number;
+    id_solicitud_historial: number;
 
     @Column()
     id_solicitud:number;   
