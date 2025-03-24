@@ -1,6 +1,6 @@
 import { Controller, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Any, Repository } from 'typeorm';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
@@ -13,15 +13,20 @@ import { ItemFinalizarDto } from './dto/item-finalizar.dto';
 import { CreateModificacionDto } from '../modificacion_pago/dto/create-modificacion.dto';
 import { Modificacion } from '../modificacion_pago/entities/modificacion.entity';
 
+import { FormatoNumericoUtil } from 'src/common/utils/formato-numerico.utils';
+import { PlanillaService } from '../planilla/planilla.service';
 
 @Injectable()
 export class ItemService {
   constructor(
     @InjectRepository(Item)
     private readonly itemRepository: Repository<Item>,
+    //    @InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
 
     private responseService: ResponseService,
-    private externoService: ExternoService
+    private externoService: ExternoService,
+    private planillaService: PlanillaService
+
   ) { }
 
   // Crear un nuevo item
@@ -78,14 +83,19 @@ export class ItemService {
 
   // Actualizar un item por id
   async update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
+
     await this.itemRepository.update(id, updateItemDto);
     return this.findOne(id);  // Devolver el item actualizado
+
   }
 
-  updateItem(id: number, updateItemDto: UpdateItemDto) {
+  async updateItem(id: number, updateItemDto: UpdateItemDto) {
     try {
-     const resultado = this.itemRepository.update(+id, updateItemDto);
-      return this.responseService.success(resultado, "Actualizado Correctamente.")         
+
+     
+
+      const resultado = await this.itemRepository.update(+id, updateItemDto);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -102,12 +112,19 @@ export class ItemService {
     try {
       const query = ` 
 
-      SELECT i.id_item, i.orden_sim, f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
-      REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
+      SELECT i.id_item, i.orden_sim,  i.codigo_item, i.unidad_medida_sim, i.desc_item, 
+     /* REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
       REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
       REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
       REPLACE(to_char(i.p_unitario_adjudicado,'999G999G999G999D99'), ' ', '') as p_unitario_adjudicado,	  
-      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado,
+      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado,*/
+
+      formato_numerico(i.cantidad_sim,2) as cantidad_sim,	 
+      formato_numerico(i.p_unitario_sim,2) as p_unitario_sim,	
+      formato_numerico(i.total_item_sim,2) as total_item_sim,	 
+      formato_numerico(i.p_unitario_adjudicado, 5) as p_unitario_adjudicado,	
+      formato_numerico(i.total_adjudicado, 5) as total_adjudicado,	 
+
     i.finalizado	  
       FROM public.obra AS o
       INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
@@ -126,15 +143,13 @@ export class ItemService {
     try {
       const query = ` 
 
-      SELECT i.id_item, i.orden_sim,
-      
-      
+      SELECT i.id_item, i.orden_sim,            
       f.desc_carpeta, i.codigo_item, i.unidad_medida_sim, i.desc_item, 
-      REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
-      REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
-      REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
-      REPLACE(to_char(i.p_unitario_adjudicado,'999G999G999G999D99'), ' ', '') as p_unitario_adjudicado,	  
-      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado	, i.finalizado  
+      public.formato_numerico(i.cantidad_sim,2) as cantidad_sim,	 
+      public.formato_numerico(i.p_unitario_sim,2) as p_unitario_sim,	  
+      public.formato_numerico(i.total_item_sim,2) as total_item_sim,	  
+     public.formato_numerico(i.p_unitario_adjudicado,5) as p_unitario_adjudicado,	  
+      public.formato_numerico(i.total_adjudicado,5) as total_adjudicado	, i.finalizado   
       FROM public.obra AS o
       INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
       INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
@@ -219,27 +234,38 @@ export class ItemService {
     }
 
 
-  //actualizar items monto adjudicado
+  //actualizar items monto adjudicado en bloque
   async updateItemBloque(registros: ItemAdjudicadoDto[]) {
-    const registrosValidados = registros
-    .filter((registro) => registro.p_unitario_adjudicado >= 0)
-    .map((registro) => ({
-      ...registro,
-      monto: this.formatMonto(registro.p_unitario_adjudicado), // Asegurarse de que el campo `monto` tenga 5 decimales
-    }));
+    try {
+      if (!Array.isArray(registros) || registros.length === 0) {
+        return this.responseService.error('No hay registros para procesar.');
+      }
 
-    for (const registro of registros) {
-    const existente = await this.itemRepository.findOne({ where: { id_item: registro.id_item } });
+      const resultados = [];
 
-    if (existente) {
-      // Actualizar el registro existente
-      await this.itemRepository.update({ id_item: registro.id_item }, registro);
-    } else {
-      // Si no existe, puedes decidir si ignorarlo o insertarlo como un nuevo registro
-      console.warn(`Registro con id_item ${registro.id_item} no encontrado.`);
+      for (const registro of registros) {
+        try {
+          const data = {
+            p_unitario_adjudicado: FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0'),
+            total_adjudicado: FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0'),
+          };
+
+          const resultado = await this.itemRepository.update({ id_item: registro.id_item }, data);
+
+          if (typeof resultado.affected === 'number' && resultado.affected > 0) {
+            resultados.push({ id_item: registro.id_item, estado: 'Actualizado', data });
+          } else {
+            resultados.push({ id_item: registro.id_item, estado: 'No encontrado o sin cambios' });
+          }
+        } catch (error: any) {
+          resultados.push({ id_item: registro.id_item, estado: 'Error', error: error.message });
+        }
+      }
+
+      return this.responseService.success(resultados, 'Proceso completado.');
+    } catch (error) {
+      return this.responseService.error(error);
     }
-  }
-
   }
 
   private formatMonto(monto: string | number): string {
@@ -290,9 +316,15 @@ export class ItemService {
         }
 
         await this.updateItem(item.id_item, { orden_sim: nuevo_orden, finalizado: true });
+        const datos = {
+          id_item: item.id_item,
+          id_modificacion_pago: data.id_modificacion_pago,
+          id_usuario_registro: data.id_usuario_registro
+
+        }
+
+        await this.planillaService.copiarItemXItem(datos)
       }
-
-
       return this.responseService.success("Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -329,4 +361,6 @@ export class ItemService {
   
 
   }
+
+
 }

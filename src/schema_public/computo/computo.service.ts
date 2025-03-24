@@ -8,7 +8,7 @@ import { Any, Repository } from 'typeorm';
 import { ComputoObra } from './dto/computo-obra.dto';
 
 
-import { ComputoItem } from './dto/computo-Item.dto';
+import { ComputoItemDto } from './dto/computo-Item.dto';
 import { ComputoCriterio } from './entities/computo_criterio.entity';
 import * as XLSX from 'xlsx';
 import { ErrorDetalle } from './ErrorDetalle';
@@ -74,27 +74,25 @@ export class ComputoService {
 
 
   async listaItemComputoXObra(data: ComputoModificacionDto) {
-
-
-
     try {
-      
-     /* let query = `
-      SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado, total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra
-      FROM public.item AS i
-      INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
-	  INNER JOIN public.modificacion AS m ON p.id_modificacion = m.id_modificacion
-      WHERE i.id_obra= $2   AND m.id_modificacion = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`*/
 
-
-    let query = `
-      SELECT   i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_sup, observacion_fis, estado_observacion_fis
+      let query = ` 
+      SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, i.cantidad_sim,      
+       public.formato_numerico(cantidad_planilla,5) as cantidad_planilla, monto_planilla,      
+      public.formato_numerico(p_unitario_adjudicado,5) as p_unitario_adjudicado,	
+      public.formato_numerico(total_adjudicado,5) as total_adjudicado,       
+	    public.formato_numerico(i.cantidad_autorizada,2) AS cantidad_autorizada, 
+	    public.formato_numerico(cantidad_reordenamiento,5) as reordenamiento,
+      public.formato_numerico(total_reordenamiento,5) as total_reordenamiento,       
+      i.id_obra, 
+      --p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis,
+	  mp.id_solicitud, sh.id_solicitud_historial	  
       FROM public.item AS i
       LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
-      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
-      
+      INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago 
+      LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
+      AS sh ON mp.id_solicitud = sh.id_solicitud       
       WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
@@ -105,7 +103,35 @@ export class ComputoService {
     }
   }
 
-  async listaComputoXItem(data: ComputoItem) {
+
+  async listaItemComputoXObraFiscal(data: ComputoModificacionDto) {
+    try {
+
+      let query = ` 
+      SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+    total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis
+    ,mp.id_solicitud
+    , sh.id_solicitud_historial	  
+    FROM public.item AS i
+    INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
+    INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
+    INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago  	
+    LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
+    AS sh ON mp.id_solicitud = sh.id_solicitud     
+      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 
+      AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
+      ORDER BY i.orden_sim ASC;`
+
+      const params = [data.id_modificacion_pago, data.id_obra];
+      const resultado = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async listaComputoXItem(data: ComputoItemDto) {
     try {
       ;
    /*   let query =
@@ -126,17 +152,26 @@ export class ComputoService {
 	  WHERE i.id_item =$1
        AND m.id_modificacion = $2
 	  AND i.id_estado=1`;*/
-  let query =` SELECT  
+  let query =` SELECT   c.id_computo,
     m.id_modificacion_pago,
     i.id_item, i.orden_sim, c.id_computo, 
     codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
     total_adjudicado,  numero_veces,  tramo, descripcion, 
+
     CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
     CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
     CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
     CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
-    CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
-    parcial, i.id_obra FROM public.item AS i
+    CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	parcial,
+    
+	 /*public.formato_numerico_computo(largo,5) as largo,
+	 public.formato_numerico_computo(ancho,5) AS ancho,
+	 public.formato_numerico_computo(alto,5) AS alto,
+	 public.formato_numerico_computo(area,5) AS area,
+	 public.formato_numerico_computo(volumen,5) AS volumen,
+	 public.formato_numerico_computo(parcial,5) AS parcial,	*/
+
+    observacion_fiscal, i.id_obra FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
     WHERE i.id_item =$1
@@ -156,6 +191,7 @@ export class ComputoService {
       ;
       let query =
         `SELECT  
+        p.id_modificacion_pago as modificacion,
       i.id_item, 
       i.orden_sim AS orden,    
       i.desc_item  AS nombre,  
@@ -167,7 +203,7 @@ export class ComputoService {
 	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
 	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
         CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
-        p.justificacion_sup	
+        p.justificacion_supervisor	
       FROM public.item AS i
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2      
@@ -358,16 +394,26 @@ export class ComputoService {
   private async insertarJustificacion(datosExcel: any[]): Promise<void> {
     try {
       const resumen = datosExcel.reduce((acc, item) => {
-        acc.set(item.id_item, { id_item: item.id_item, justificacion: item.justificacion });
+        acc.set(item.id_item, {
+          id_item: item.id_item,
+          id_modificacion_pago: item.modificacion,
+          justificacion_supervisor: item.justificacion_supervisor
+        });
         return acc;
-      }, new Map<number, { id_item: number; justificacion: string }>());
+      }, new Map<number, { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }>());
+      const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
+      //console.log('resultado-resumen', resultado);
+      for (const itemres of resultado) {
+        // console.log('imprimir item', itemres);
 
-      const resultado: { id_item: number; justificacion: string }[] = Array.from(resumen.values());
 
-      console.log('resultado-resumen', resultado);
+        await this.planillaService.actualizarJustificacionXItem({
+          id_item: itemres.id_item,
+          id_modificacion_pago: itemres.id_modificacion_pago,
+          justificacion_supervisor: itemres.justificacion_supervisor,
+          id_usuario_registro: 9820
 
-      for (const item of resultado) {
-        await this.planillaService.actualizarJustificacionXItem({id_item: item.id_item, justificacion: item.justificacion, id_modificacion: item.id_item});
+        });
       }
     } catch (error: any) {
       throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
@@ -387,6 +433,8 @@ export class ComputoService {
       //borrar computos por id_modificacion y tipo de computo
       await this.deleteXModificacion(dataadicional.id_modificacion)
 
+      await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
+
       for (let i = 0; i < datosExcel.length; i += batchSize) {
         const batch = datosExcel.slice(i, i + batchSize).map(row => {
           const noVeces = row.numero || 1;
@@ -399,7 +447,7 @@ export class ComputoService {
 
           return {
             id_item: row.id_item || '',
-            id_modificacion: dataadicional.id_modificacion,
+            id_modificacion_pago: dataadicional.id_modificacion,
             tramo: row.tramo || '',
             descripcion: row.descripcion || '',
             numero_veces: this.ensureNumber(row.numero),
@@ -411,16 +459,22 @@ export class ComputoService {
             volumen: this.ensureNumber(row.volumen),
             volumen_total: 0,
             parcial: calculo_parcial,
-            id_tipo_computo: dataadicional.id_tipo_computo,
-            justificacion: '',
+           // id_tipo_computo: dataadicional.id_tipo_computo,
             version: nueva_version,
+            observacion_fiscal: '',
             id_usuario_registro: dataadicional.id_usuario,
             id_estado: 1,
           };
         });
 
         await this.computoRepositorio.save(batch);
-      }     
+      }
+      const datos = {
+        id_modificacion_pago: dataadicional.id_modificacion,
+        id_item: 0
+      }
+      //actualizar toda la planilla
+      await this.planillaService.actualizarPlanilla(datos);
       await this.insertarJustificacion(datosExcel);
 
     } catch (error: any) {
@@ -452,7 +506,7 @@ export class ComputoService {
             SELECT  $1 as id_modificacion_pago, 
             jsonb_agg(jsonb_build_object('id_computo', id_computo, 'id_item' , id_item,  'tramo',  tramo, 'descripcion', descripcion, 'numero_veces', numero_veces,
             'alto', alto, 'largo',  largo, 'ancho', ancho, 'area', area, 'area_total',  area_total,  'volumen', volumen, 
-            'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion', justificacion, 
+            'volumen_total', volumen_total, 'parcial',  parcial, 'justificacion_supervisor', justificacion_supervisor, 
             'id_usuario_registro', id_usuario_registro, 'fecha_registro', fecha_registro, 'fecha_modificacion', fecha_modificacion, 
             'id_estado', id_estado)) as data_json,
             version , $2, 1
@@ -490,9 +544,8 @@ export class ComputoService {
 
   async listaResumenXModifiacion(data:ComputoResumenDto) {
     try {
-      let query =
-        `           
-             SELECT * FROM public.sp_resumen_x_modificacion() WHERE modificacion =$1      
+      let query = `           
+             SELECT * FROM public.sp_modificacion_x_resumen() WHERE id_modificacion_pago =$1      
           `;
       const params: any[] = [data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
@@ -502,6 +555,25 @@ export class ComputoService {
     }
   }
 
+
+
+
+  async validarObservacion(data: ComputoItemDto): Promise<{ tieneObservacion: boolean, registros: any[] }> {
+    const query = `SELECT id_item, observacion_fiscal, id_modificacion_pago FROM public.computo  WHERE  id_item =$1 AND id_modificacion_pago =$2 `;
+    const params = [data.id_item, data.id_modificacion_pago];
+
+    const result = await this.computoRepositorio.query(query, params);
+    const rows = result ?? [] // ✅ Si rows es undefined, asigna un array vacío    
+    // Verificar si al menos una observación tiene un valor no vacío
+    const tieneObservacion = rows.length > 0 && rows.some((row: { observacion_fiscal: string }) =>
+      typeof row.observacion_fiscal === 'string' && row.observacion_fiscal.trim() !== ''
+    )
+    return { tieneObservacion, registros: rows };
+    
+  } catch(error: any) {
+    console.error('Error en la consulta:', error);
+    return { tieneObservacion: false, registros: [] }; // ✅ Manejar errores correctamente
+  }
 
 
   ////////////////////////////////COMPUTO CRITERIO//////////////////

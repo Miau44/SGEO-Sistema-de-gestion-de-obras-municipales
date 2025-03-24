@@ -49,11 +49,11 @@ export class Computo {
     @Column({ type: 'decimal', precision: 15, scale: 5 })
     parcial: number;
 
-    @Column({ type: 'varchar', nullable:true })
-    observacion_fis: string;
-
     @Column({nullable:true})
-    version: number;    
+    version: number;  
+    
+    @Column("json", {nullable:true })
+    observacion_fiscal: string;    
 
     ///campos de tabla generales
     @Column()
@@ -70,13 +70,13 @@ export class Computo {
 
 
     // Relación muchos a uno con Item
-    @ManyToOne(() => Item, (item) => item.computo)
+    @ManyToOne(() => Item, (item:Item) => item.computo)
     @JoinColumn({ name: 'id_item' }) // Indica el nombre de la columna FK
     item: Item;
 
 
    // Relación muchos a uno con la entidad modificacion
-    @ManyToOne(() => ModificacionPago, (modificacionpago) => modificacionpago.computomo)
+    @ManyToOne(() => ModificacionPago, (modificacionpago:ModificacionPago) => modificacionpago.computomo)
     @JoinColumn({ name: 'id_modificacion_pago' }) // Indica el nombre de la columna FK
     modificacionpago: ModificacionPago;
 

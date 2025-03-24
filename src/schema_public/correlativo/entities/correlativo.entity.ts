@@ -38,6 +38,9 @@ export class Correlativo {
     @JoinColumn({ name: 'id_correlativo' }) // Indica el nombre de la columna FK
     modificacion: ModificacionPago;
 
+// correlativo entity
+@OneToOne(() => Informe, (informe) => informe.correlativo)
+    informe: Informe;    
 
     @OneToOne(() => Informe, (informe) => informe.correlativo)
     informe: Informe;

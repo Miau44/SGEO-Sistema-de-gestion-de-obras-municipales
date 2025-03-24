@@ -57,8 +57,12 @@ export class Solicitud {
     //relacion muchos a uno con la entidad obra
     @ManyToOne(() => Obra, (obra) => obra.solicitud)
     @JoinColumn({ name: 'id_obra' }) // Indica el nombre de la columna FK
-    obra: Obra;    
+    obra: Obra; 
+    
+//entidad de solicitud
 
+@OneToMany(type => Informe, minform => minform.informe)
+    informe: Informe[];      
 
     //modificarlo para informe
     @OneToMany(type => Informe, minform => minform.informe)

@@ -6,7 +6,7 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ComputoObra } from './dto/computo-obra.dto';
 
-import { ComputoItem } from './dto/computo-Item.dto';
+import { ComputoItemDto } from './dto/computo-Item.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadedFile } from '@nestjs/common';
@@ -67,8 +67,17 @@ export class ComputoController {
   }
 
   @Public()
+  @Post('computo-lista-fiscal')
+  listaItemFiscal(@Body() computoObraDto: ComputoModificacionDto) {
+    try {  
+      return this.computoService.listaItemComputoXObraFiscal(computoObraDto);
+    } catch (error) {
+    }
+  }  
+
+  @Public()
   @Post('computo-x-item')
-  listaComputoItem(@Body() computoItemDto: ComputoItem) {
+  listaComputoItem(@Body() computoItemDto: ComputoItemDto) {
     try {  
       return this.computoService.listaComputoXItem(computoItemDto);
     } catch (error) {
@@ -132,6 +141,12 @@ export class ComputoController {
     }
   }
   
+
+  @Post('tiene-observacion')
+  async validarObservacion(@Body() computoDto: ComputoItemDto) {
+    return this.computoService.validarObservacion(computoDto);
+  }  
+
  /* @UseInterceptors(FileInterceptor('file'))
   async importarExcel(@UploadedFile() file: Express.Multer.File) {
     try {

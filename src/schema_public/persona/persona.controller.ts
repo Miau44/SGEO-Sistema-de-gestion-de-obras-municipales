@@ -49,8 +49,10 @@ export class PersonaController {
 
   @Patch(':id')
   update(@Param('id') id_persona: string, @Body() updatePersonaDto: UpdatePersonaDto) {
+    try {
     return this.personaService.update(+id_persona, updatePersonaDto);
-  }
+  }   catch (error) {
+  }}
 
   @Delete(':id')
   remove(@Param('id') id_persona: string) {
@@ -167,6 +169,13 @@ listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
   } catch (error) {
   }
 }
+
+//controlador m ike
+@Post('supervisores/no-designados')
+async obtenerSupervisoresNoDesignados(@Body() body: { asignadosSupervisores: any[], supervisoresAprobadosList: any[] }) {
+  return this.personaService.filtrarSupervisoresNoDesignados(body.asignadosSupervisores, body.supervisoresAprobadosList);
+}
+
 
  /* @Public()
   @Post('listapersonas-nodesignadas')

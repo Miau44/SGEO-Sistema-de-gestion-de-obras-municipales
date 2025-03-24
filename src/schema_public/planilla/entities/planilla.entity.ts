@@ -13,20 +13,24 @@ export class Planilla {
     @Column()
     id_item: number;  
 
-    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     cantidad_planilla: number;
     
-    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     monto_planilla: number;
 
     @Column({ type: 'varchar', nullable:true })
     tipo_item_modificacion: string;
 
-    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     cantidad_reordenamiento: number;    
 
-    @Column({ type: 'decimal', precision: 15, scale: 5, nullable:true })
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     total_reordenamiento: number;   
+      
+
+   /* @Column("json", {nullable:true })
+    justificacion_supervisor: string;   
     
     @Column({ type: 'varchar', nullable:true })
     justificacion_supervisor: string;   
@@ -55,6 +59,6 @@ export class Planilla {
     @ManyToOne(() => ModificacionPago, (modificacion) => modificacion.planimo)
     @JoinColumn({ name: 'id_modificacion_pago' }) // Indica el nombre de la columna FK
     modificacion: ModificacionPago;
-
+*/
 
 }

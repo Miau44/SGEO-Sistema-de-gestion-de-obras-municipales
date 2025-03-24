@@ -7,6 +7,7 @@ import {  CreateMaestroDto } from './dto/create-maestro.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
+import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
  
 
 
@@ -91,4 +92,15 @@ export class ModificacionPagoController {
 
 
 
+
+
+  @Public()
+  @Post('modificacion-validacion')
+  async validar(@Body() validar: ValidarModificacionDto) {
+    try {  
+    return this.modificacionPagoService.validarModificacion(validar);
+
+  } catch (error) {
+  }    
+  }  
 }
