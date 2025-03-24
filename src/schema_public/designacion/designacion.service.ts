@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
-import { And, Any, DataSource, Not, Repository } from 'typeorm';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { And, Any, Connection, DataSource, In, Not, Repository } from 'typeorm';
+import { InjectConnection, InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { Obra } from '../obra/entities/obra.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
@@ -23,7 +23,7 @@ import { Persona } from '../persona/entities/persona.entity';
 export class DesignacionService {
 
   constructor(
-    @InjectRepository(Designacion) private DesigRepositorio: Repository<Designacion>,
+    @InjectRepository(Designacion) private readonly DesigRepositorio: Repository<Designacion>,
     @InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
     @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
     @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
@@ -32,9 +32,15 @@ export class DesignacionService {
     private responseService: ResponseService,
     private obraService: ObraService,
     private serviceSolicitud: SolicitudService,
-    @InjectDataSource() private readonly dataSource: DataSource
+    @InjectDataSource() private readonly dataSource: DataSource,
+    @InjectConnection() private readonly connection: Connection,
   ) { }
 
+
+  //funciones mike para rechazo
+ 
+
+  
   async create(createDesignacionDto: CreateDesignacionDto) {
     try {
       //inicio 
@@ -565,6 +571,42 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  
+  async rechazarSolicitudes2(estado_designacion: number, id_tipo_solicitud: number) {
+    try {
+      await this.dataSource.query(
+        `SELECT rechazar_solicitudes2($1, $2)`, 
+        [estado_designacion, id_tipo_solicitud]
+      );
+  
+      return {
+        statusCode: 200,
+        message: 'Solicitudes rechazadas correctamente.',
+      };
+    } catch (error) {
+      // Convertimos error a tipo "Error" para acceder a message
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+  
+      console.error('Error en rechazarSolicitudes:', errorMessage);
+      return {
+        statusCode: 500,
+        message: 'Error al rechazar solicitudes.',
+        error: errorMessage,
+      };
+    }
+  }
+  
+
+  //para obtener el id_solictud
+  async getSolicitudByDesignacion(id_designacion: number): Promise<number | null> {
+    const designacion = await this.DesigRepositorio.findOne({
+      where: { id_designacion },
+      select: ['id_solicitud'], // Solo traemos id_solicitud
+    });
+  
+    return designacion ? designacion.id_solicitud : null;
   }
 
   
