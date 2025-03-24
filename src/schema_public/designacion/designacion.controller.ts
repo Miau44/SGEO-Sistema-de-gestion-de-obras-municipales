@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, NotFoundException } from '@nestjs/common';
 import { DesignacionService } from './designacion.service';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
@@ -15,6 +15,29 @@ import { GenerarDto } from './dto/generar.dto';
 @Controller('designacion')
 export class DesignacionController {
   constructor(private readonly designacionService: DesignacionService) {}
+
+
+  //controlador mike para el rechazo
+ 
+  @Post('rechazar')
+  async rechazarSolicitudes2(@Body() data: { estado_designacion: number; id_tipo_solicitud: number }) {
+   
+    return this.designacionService.rechazarSolicitudes2(data.estado_designacion, data.id_tipo_solicitud);
+  }
+  
+
+  @Get('/solicitud/:id_designacion')
+async getSolicitud(@Param('id_designacion') id_designacion: number) {
+  const id_solicitud = await this.designacionService.getSolicitudByDesignacion(id_designacion);
+  
+  if (!id_solicitud) {
+    throw new NotFoundException(`No se encontró solicitud para designación ${id_designacion}`);
+  }
+
+  return { id_solicitud };
+}
+
+
 
   @Public()
   @Post()

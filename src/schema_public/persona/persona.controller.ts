@@ -175,7 +175,11 @@ listaPersonasNoDesignadas(@Body() estadoDto: PersonasEstadoDto) {
 async obtenerSupervisoresNoDesignados(@Body() body: { asignadosSupervisores: any[], supervisoresAprobadosList: any[] }) {
   return this.personaService.filtrarSupervisoresNoDesignados(body.asignadosSupervisores, body.supervisoresAprobadosList);
 }
-
+//para fiscales
+@Post('fiscales/no-designados')
+async obtenerFiscalesNoDesignados(@Body() body: { asignadosSupervisores: any[], supervisoresAprobadosList: any[] }) {
+  return this.personaService.filtrarFiscalesNoDesignados(body.asignadosSupervisores, body.supervisoresAprobadosList);
+}
 
  /* @Public()
   @Post('listapersonas-nodesignadas')

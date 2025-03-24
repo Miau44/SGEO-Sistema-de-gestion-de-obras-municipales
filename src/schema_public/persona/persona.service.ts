@@ -438,6 +438,28 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   }
   
   
+  //para filtrar fiscales no designados
+  async filtrarFiscalesNoDesignados(
+    asignadosSupervisores: any[], 
+    supervisoresAprobadosList: any[]
+  ) {
+    try {
+      if (!Array.isArray(asignadosSupervisores) || !Array.isArray(supervisoresAprobadosList)) {
+        return this.responseService.error("Los parámetros deben ser arrays válidos.");
+      }
+  
+      // Filtrar los supervisores que están en asignados pero NO en designados
+      const supervisoresNoDesignados = asignadosSupervisores.filter((asignado) => {
+        return !supervisoresAprobadosList.some(
+          (designado) => Number(designado.id_persona) === Number(asignado.id_persona)
+        );
+      });
+  
+      return this.responseService.success(supervisoresNoDesignados, "Fiscales no designados filtrados correctamente.");
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
   
   
 
