@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
 import { ResponseService } from 'src/response.service';
@@ -15,6 +15,7 @@ import { SolicitudService } from '../solicitud/solicitud.service';
 import { PlanillaService } from '../planilla/planilla.service';
 import { Planilla } from '../planilla/entities/planilla.entity';
 import { listaModDto } from './dto/obra.dto';
+import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 
 
@@ -28,6 +29,7 @@ export class ModificacionPagoService {
     @InjectRepository(Modificacion) private modificacionRepocitorio: Repository<Modificacion>,
     @InjectRepository(Pago) private pagoRepocitorio: Repository<Pago>,
     @InjectRepository(Planilla) private planillaRepocitorio: Repository<Planilla>,
+    @InjectRepository(Modificacion) private readonly modificacionRepo: Repository<Modificacion>,
 
     private responseService: ResponseService,
     private solicitudService: SolicitudService,
@@ -221,6 +223,42 @@ export class ModificacionPagoService {
     }
   }
 
+
+  //servicio para modificacion de dias_variacion marvel
+    
+  async updateDiasVariacion(id_modificacion: number, dias_variacion: number) {
+    try {
+        // Actualizar el campo directamente en la base de datos con QueryBuilder
+        const resultado = await this.modificacionRepo
+            .createQueryBuilder()
+            .update('modificacion')
+            .set({ dias_variacion })
+            .where('id_modificacion = :id_modificacion', { id_modificacion })
+            .execute();
+
+        if (resultado.affected === 0) {
+            return this.responseService.error('Registro no encontrado', '404');
+        }
+
+        return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
+    } catch (error) {
+        return this.responseService.error(error);
+    }
+  }
+
+  
+  async obtenerModificacion(id: number): Promise<Modificacion> {
+    const modificacion = await this.modificacionRepo.findOne({ where: { id_modificacion: id } });
+    if (!modificacion) {
+      throw new NotFoundException(`Modificacion with ID ${id} not found`);
+    }
+    return modificacion;
+  }
+
+
+  async guardarModificacion(datos: CreateModificacionDto): Promise<Modificacion> {
+    return await this.modificacionRepo.save(datos);
+  }
 
   //  async validarModificacion(data: ValidarModificacionDto): Promise<{ valido: boolean; mensaje: string }> {
   async validarModificacion(data: ValidarModificacionDto) {

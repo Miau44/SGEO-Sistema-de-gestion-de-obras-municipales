@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, InternalServerErrorException, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { InformeService } from './informe_inicial.service';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
@@ -11,19 +11,20 @@ import { UpdateInformeInicialDto } from './dto/update-informe-inicial.dto';
 import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
 import { InformeActividadesDto } from './dto/informe-actividades.dto';
+import { DocumentoService } from '../documento/documento.service';
 
 
 @ApiTags('informe')
 @Controller('informe')
 export class InformeController {
-  constructor(private readonly informeService: InformeService) { }
+  constructor(
+    private readonly informeService: InformeService,
+  ) { }
 
   @Public()
   @Post()
-  create(@Body() createInformeDto: CreateInformeDto) {
-    try {
+  async create(@Body() createInformeDto: CreateInformeDto) {
       return this.informeService.create(createInformeDto);
-    } catch (error) { }
   }
 
   @Public()
@@ -125,7 +126,9 @@ export class InformeController {
       return this.informeService.listaEmitirOrden();
     } catch (error) {
     }
-  }   
+  }  
+  
+  // Para hacer registros de los documentos de un informe
   
   @Post('updateDocumentosInforme')
   @ApiBody({
@@ -156,5 +159,27 @@ export class InformeController {
       const result = await this.informeService.updateInformeDocumentos(id_informe, id_documentos);
       return result;
   }
-  
+
+  /**
+   * obtendra los datos que tiene el informe
+   */
+  @Get(':idSolicitud/:idModificacion')
+  async obtenerFormulario(
+    @Param('idSolicitud') idSolicitud: number,
+    @Param('idModificacion') idModificacion: number,
+  ) {
+    return this.informeService.obtenerDatosFormulario(idSolicitud, idModificacion);
+  }
+
+  /**
+   * actualizara el formulario 
+   */
+  @Patch(':idModificacion/:idInforme')
+  async actualizarFormulario(
+    @Param('idModificacion') idModificacion: number,
+    @Param('idInforme') idInforme: number,
+    @Body() datosFormulario: any
+  ) {
+    return this.informeService.actualizarFormulario(idModificacion, idInforme, datosFormulario);
+  }
 }

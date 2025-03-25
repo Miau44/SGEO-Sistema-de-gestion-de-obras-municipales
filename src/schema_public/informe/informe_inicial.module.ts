@@ -6,10 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Informe } from './entities/informe.entity';
 import { InformeInicial } from './entities/informe_inicial.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
+import { Solicitud } from '../solicitud/entities/solicitud.entity';
+import { Documento } from '../documento/entities/documento.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Informe, InformeInicial, Correlativo])],
+  imports: [TypeOrmModule.forFeature([Informe, InformeInicial, Correlativo, Solicitud, Documento])],
 
   controllers: [InformeController],
   providers: [InformeService, ResponseService],

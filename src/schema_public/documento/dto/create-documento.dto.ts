@@ -23,4 +23,7 @@ export class CreateDocumentoDto {
     @ApiProperty()
     id_estado: number;
 
+    @ApiProperty()
+    nombre_documento: string;
+
 }

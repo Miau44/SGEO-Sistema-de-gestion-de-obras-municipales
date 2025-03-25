@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { ItemObraDto } from './dto/item-obra.dto';
@@ -151,9 +151,5 @@ finalizarOrdenItem(@Body() itemEstadoDto: ItemFinalizarDto) {
     } catch (error) {
     }
   }  
-
-
-
-
 
 }
