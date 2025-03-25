@@ -13,35 +13,7 @@ export class CorrelativoService {
   ) { }
 
 
-  /*async create(createCorrelativoDto: CreateCorrelativoDto) {
-    try {
-        const query = `
-        SELECT COUNT(*) 
-        FROM correlativo 
-        WHERE id_obra = $1 
-          AND id_tipo_documento = $2
-        `;
-        const values = [
-          createCorrelativoDto.id_obra,
-          createCorrelativoDto.id_tipo_documento,
-        ];
-        const result = await this.coorrelativoRepo.query(query, values);
-        const count = parseInt(result[0].count, 10);    
-
-        // ✅ SOLO generar número si no se ha enviado un correlativo desde el frontend
-        if (!createCorrelativoDto.correlativo || createCorrelativoDto.correlativo.trim() === '') {
-            let numero_correlativo = this.countNumber(count + 1, 0);
-            createCorrelativoDto.correlativo = numero_correlativo.toString();
-        }
-
-        // Guardar en la base de datos
-        const resultado = await this.coorrelativoRepo.save(createCorrelativoDto);
-
-        return this.responseService.success(resultado, "Registrado Correctamente.");
-    } catch (error: any) {
-        return this.responseService.error(error);
-    }
-  }*/
+ 
     async create(createCorrelativoDto: CreateCorrelativoDto) {
       try {
           console.log("🟡 Valor recibido de correlativo:", createCorrelativoDto.correlativo);
@@ -59,15 +31,12 @@ export class CorrelativoService {
           const result = await this.coorrelativoRepo.query(query, values);
           const count = parseInt(result[0].count, 10);    
   
-          // ✅ Solo generar número si no se ha enviado un correlativo válido desde el frontend
           if (!createCorrelativoDto.correlativo || createCorrelativoDto.correlativo.trim() === '') {
               let numero_correlativo = this.countNumber(count + 1, 0);
               createCorrelativoDto.correlativo = numero_correlativo.toString();
           }
   
-          console.log("🟢 Correlativo final antes de guardar:", createCorrelativoDto.correlativo);
-  
-          // Guardar en la base de datos
+      
           const resultado = await this.coorrelativoRepo.save(createCorrelativoDto);
   
           return this.responseService.success(resultado, "Registrado Correctamente.");
