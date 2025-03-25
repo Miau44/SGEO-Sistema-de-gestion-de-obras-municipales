@@ -72,7 +72,7 @@ export class Item {
   finalizado: boolean;
 
   ///campos de tabla generales
-  @Column()
+  @Column({ nullable:true })
   id_usuario_registro: number;
 
   @CreateDateColumn({ type: 'timestamp'})

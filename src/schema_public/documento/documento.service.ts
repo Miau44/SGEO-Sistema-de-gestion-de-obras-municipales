@@ -3,7 +3,7 @@ import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Any, Not, Repository } from 'typeorm';
+import { And, Any, EntityManager, Not, Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
@@ -19,9 +19,10 @@ export class DocumentoService {
   constructor(
     @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
     private responseService: ResponseService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private entityManager: EntityManager,
   ) {
-    this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.8.4:3300/documento/saveFile';
+    this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.7.35:3300/documento/saveFile';
   }
 
   async create(createDocumentoDto: CreateDocumentoDto) {
@@ -48,6 +49,14 @@ export class DocumentoService {
     console.log('ruta nueva agregando funcionario',ruta);
     console.log('Body recibido:', { id_obra, id_tipo_documento, usuario_registro, ciNitFuncionario, usuario_desc });
     return ruta;
+  }
+
+    
+  normalizeFileName(fileName: string): string {
+    return fileName
+      .normalize("NFD") // Separa los caracteres acentuados de sus componentes
+      .replace(/[\u0300-\u036f]/g, "") // Elimina los caracteres diacríticos (tildes)
+      .replace(/[^a-zA-Z0-9.-]/g, "_"); // Reemplaza caracteres especiales con "_"
   }
 
   async saveDocumentoUrl(id_documento: number, url_file: string): Promise<void> {
@@ -84,6 +93,29 @@ export class DocumentoService {
         `Error al enviar el archivo: ${(error as Error).message}`,
         HttpStatus.BAD_GATEWAY
       );
+    }
+  }
+
+
+  async obtenerDocumentosPorInforme(idInforme: number): Promise<Documento[]> {
+    const query = `
+      SELECT * FROM documento 
+      WHERE id_documento IN (
+        SELECT (jsonb_array_elements(informe.id_documento::jsonb)->>'id_documento')::INTEGER
+        FROM informe 
+        WHERE id_informe = $1
+      );
+    `;
+
+    try {
+      const documentos = await this.entityManager.query(query, [idInforme]);
+      return documentos;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al obtener documentos: ${error.message}`);
+      } else {
+        throw new Error('Error al obtener documentos');
+      }
     }
   }
 
