@@ -1,11 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Body } from '@nestjs/common';
 //import * as PdfPrinter from 'pdfmake/src/printer';
 import PdfPrinter from 'pdfmake';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ResponseService } from 'src/response.service';
 import { Sequelize } from 'sequelize-typescript';
-import { log } from 'console';
+import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 
@@ -688,129 +688,274 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     });
   }
 
-  //16_INSTRUCCION_OrdenProceder_rev01 
+  //16_INSTRUCCION_OrdenProceder_rev01 JMTA_REV
   async generatecartaInstruccionesOrdeProcedeRev(obra: number): Promise<Buffer> {
 
+    const datosGenerales = await this.datosGeneralesReporte(obra);
+    if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
+      throw new Error('No se encontraron datos para la obra y el ID proporcionado.');
+    }
+      
+    this.datosEnvio = datosGenerales;
 
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const membretado_carta = path.join(__dirname, '..', 'assets', 'images', 'MEMBRETADO_CARTA.png');
+    const imgPath = 'assets/images/logo_gamlp.png';
+    const imgLogoPath = 'assets/images/logoSGEO.png';
+    const imgMemPath = 'assets/images/MEMBRETADO_CARTA.png';
+    var xx1 = 'Prueba de Variable';
+    //var textomemo = 'sssssssss';
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      pageMargins: [70, 60, 50, 30] as any,
-
-      header: {
-
+      background: function(currentPage: any, pageSize: any) { return {image: imgMemPath, absolutePosition: {x: 1, y: 1}}},
+      //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      pageMargins: [50, 150, 50, 130] as any,
+      //IMAGE HEADER SI SE REQUIERE
+      /*header: {
+        columns: [{ image: imgPath, width: 120 }],
+        margin: [40, 10]
       } as any,
-      content: [
-       
+      */
+      content: [     
+        //TITULO MEMORANDUM
         {
-          text: 'La Paz, 08 de octubre de 2024',
-          alignment: 'right',
-          margin: [0, 0, 0, 20],
-          style: 'fecha',
-        }as any,
+          text: 'MEMORANDUM',
+          alignment: 'center',
+          style: {fontSize: 25},
+        } as any,
 
+        //CODIGO MEMORANDUM DE ORDEN PROCEDER  
         {
-          text: 'EMA-106-2024-RPC/RPA-1',
-          alignment: 'right',
-          margin: [0, 0, 0, 20],
-          style: 'codigo',
-        },
-  
-        // Destinatarios
+          text: this.datosEnvio[0].cod_carpeta + '-MI-1',
+          alignment: 'center',
+          //style: 'fecha',
+        } as any,
         {
-          text: 'Señor(es):',
-          style: 'titulo',
-          margin: [0, 0, 0, 10],
+          text: '\n'
+        } as any,
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                {
+                  border: [false, false, true, false],
+                  text: '', alignment: 'center', fontSize: 10
+                },
+                {
+                  border: [true, false, false, false],
+                  text: 'Señor(es):', fontSize: 10
+                }
+              ],
+              [
+                {
+                  border: [false, false, true, false],
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ', alignment: 'center', fontSize: 10
+                },
+                {
+                  border: [true, false, false, false],
+                  text: 'EMPRESA CONTRATISTA S.R.L.', fontSize: 10
+                }
+              ],
+              [
+                {
+                  border: [false, false, true, true],
+                  text: '18 de abril de 2025', alignment: 'center', fontSize: 10
+                },
+                {
+                  border: [true, false, false, true],
+                  text: 'Presente.-', fontSize: 10
+                }
+              ]
+            ]
+          },
+          layout: {
+            defaultBorder: false
+          }
+        } as any,
+      // Referencia
+        {
+          text: '\n'
+        } as any,
+        {
+          text: 'REF. ORDEN DE PROCEDER', style: 'titulo', alignment: 'center', decoration: 'underline' 
         },
+        {
+          text: '\n'
+        } as any,
+        // Tabla resumen de obra
+        {
+          table: {
+            widths: ['30%', '70%'],
+            body: [
+              [
+                {
+                  text: 'OBRA: ', alignment: 'right', bold: true, fontSize: 9
+                },
+                {
+                  text: 'ASFALTADO Y OBRAS COMPLEMENTARIAS CALLE OSCAR CERRUTO, CALLE 1 Y CALLE S/N 12 ZONA MESETA ACHUMANI', alignment: 'left-justify', fontSize: 9
+                }
+              ],
+              [
+                {
+                  text: 'CÓDIGO: ', alignment: 'right', bold: true, fontSize: 9
+                },
+                {
+                  text: this.datosEnvio[0].cod_carpeta, alignment: 'left', fontSize: 9
+                }
+              ],
+              [
+                {
+                  text: 'ZONA: ', alignment: 'right', bold: true, fontSize: 9
+                },
+                {
+                  text: this.datosEnvio[0].desc_zona_carpeta, alignment: 'left', fontSize: 9
+                }
+              ],
+              [
+                {
+                  text: 'UNIDAD EJECUTORA: ', alignment: 'right', bold: true, fontSize: 9
+                },
+                {
+                  text: 'DIRECCIÓN DE INFRAESTRUCTURA Y FISCALIZACIÓN TERRITORIAL SUB. V - SUBALCALDIA V SUR' , alignment: 'left', fontSize: 9
+                }
+              ]
+            ]
+          },
+          layout: {
+            defaultBorder: false,
+            fillColor: function (rowIndex: number, node: any, columnIndex: any) {
+              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+            }
+          }
+        } as any,
+        // Cuerpo de la carta
         {
           text: [
-            'ING. JOSE ANTONIO MIRANDA LOAYZA\n',
-            'ING. JOSE ANTONIO MIRANDA LOAYZA\n',
-            'SUPERVISOR(ES) DE OBRA\n', //negrita
-            'Presente.-', //debe esta subrayado
+            { text: 'Señor(es): \n', style: 'contenido' },
+            {
+              text: 'Habiendo sido adjudicada en su favor la obra ASFALTADO Y OBRAS COMPLEMENTARIAS CALLE OSCAR CERRUTO, CALLE 1 Y CALLE S/N 12 ZONA MESETA ACHUMANI, le comunicamos que a partir del día 26 de agosto de 2021, se contabilizará el plazo de ejecución 12 días calendario señalados en el contrato.\n\n',
+              alignment: 'justify',
+              style: 'contenido',
+              lineHeight: 1,
+            },
+            {
+              text: 'Se le recuerda que la obra deberá ser ejecutada en estricto cumplimiento de las Especificaciones Técnicas y Cronograma de Trabajo propuesto y aceptado por las partes.\n\n',
+              alignment: 'justify',
+              style: 'contenido',
+              lineHeight: 1,  
+            },
+            {
+              text: 'Atentamente,\n\n\n', 
+              alignment: 'left',
+              style: 'contenido',
+            },
           ],
-          style: 'contenido',
           margin: [0, 0, 0, 20],
         },
-
-        // Referencia
-      {
-        text: [
-          { text: 'Ref.: ', style: 'titulo', alignment: 'right',decoration: 'underline' },
-          { text: 'EMISIÓN DE ORDEN DE PROCEDER\n', style: 'contenido' ,alignment: 'right', bold: true, decoration: 'underline'},
-          { text: 'Obra: Asfaltado Calle 6 entre Calles B y C Zona Alto Escobar Uría\n', style: 'contenido',alignment: 'right' ,bold: true, decoration: 'underline'},
-          { text: 'Código: EMA-106-2024\n', style: 'contenido',alignment: 'right',bold: true,decoration: 'underline' },
-        ],
-        margin: [0, 0, 0, 20],
-      },
-
-      // Cuerpo de la carta
-      {
-        text: [
-          { text: 'De mi consideración:\n\n', style: 'contenido' },
-          {
-            text: 'En atención al informe de Supervisión EMA-106-2024-ISUP-1 con referencia "Informe Inicial de revisión del Proyecto" y el informe de Fiscalización EMA-106-2024-IFI-5 con referencia "Informe de Actividades Previas" correspondientes a la obra EMA-106-2024 ASFALTADO CALLE 6 ENTRE CALLES B Y C ZONA ALTO ESCOBAR URÍA, en los que se establece que la obra cuenta con la documentación necesaria y no se requieren actividades previas al inicio de la obra.\n\n',
-            style: 'contenido',
-            lineHeight: 1,
-          },
-          {
-            text: 'En tal sentido, se instruye la emisión de la Orden de Proceder de la obra de referencia dentro de los plazos establecidos en la normativa vigente.\n\n',
-            style: 'contenido',
-            lineHeight: 1,
-          },
-          {
-            text: 'Sin otro particular, saludo a usted con las consideraciones más distinguidas.',
-            style: 'contenido',
-          },
-        ],
-        margin: [0, 0, 0, 20],
-      },
-
         // Firma
         {
-          text: 'Atentamente,\n\n\n',
-          style: 'contenido',
-          alignment: 'left',
+          text:
+          [
+            {
+              text: 'ING. MARCO ANTONIO CARO ROCA\n',
+              style: 'contenido',
+              alignment: 'center'
+            },
+            {
+              text: 'SUPERVISOR DE OBRA\n',
+              style: 'firma',
+              alignment: 'center'
+            }
+          ]
+          //margin: [0, 10, 0, 0],
         },
+
         {
-          text: 'LIC. JUANITO PEREZ\nRPC/RPA',
-          style: 'firma',
+          text: 'NOTIFICACIÓN AL CONTRATISTA\n\n\n',
+          style: 'titulo',
           alignment: 'center',
           margin: [0, 20, 0, 0],
         },
-
+        //Tabla de notificación al contratista
         {
-          text: [
-            '\n\nDOC. ADJUNTOS \nPlanilla de Pago de Anticipo \nGarantía de Anticipo\n', //eata parte tiene que ser dinamicos
-          ],
-          style: 'footerText'
-        },
-  
+          table: {
+            widths: ['30%', '70%'],
+            body: [
+              [
+                {
+                  text: 'Firma: ', alignment: 'right', bold: true, fontSize: 8
+                },
+                {
+                  text: '____________________________________________________________', alignment: 'left', fontSize: 8
+                }
+              ],
+              [
+                {
+                  text: 'Nombre y apellido: ', alignment: 'right', bold: true, fontSize: 8
+                },
+                {
+                  text: '____________________________________________________________', alignment: 'left', fontSize: 8
+                }
+              ],
+              [
+                {
+                  text: 'Lugar: ', alignment: 'right', bold: true, fontSize: 8
+                },
+                {
+                  text: '______________________________', alignment: 'left', fontSize: 8
+                }
+              ],
+              [
+                {
+                  text: 'Fecha: ', alignment: 'right', bold: true, fontSize: 8
+                },
+                {
+                  text: '___/___/_____' , alignment: 'left', fontSize: 8
+                }
+              ]
+            ]
+          },
+          layout: {
+            defaultBorder: false,
+          }
+        } as any,
       ],
 
-
+      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+          { //return currentPage.toString() + ' of ' + pageCount; 
+            return {
+              columns:[
+                  { text: 'cc.Arch.Sup.\n cc.Unidad Ejecutora ***', alignment: 'left', style: 'footerText' , margin: [50, 90, 0, 50]},
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0, 90, 50, 0]}
+                      ]
+              }            
+          } as any,
+      
       styles: {
         fecha: {
-          fontSize: 10,
+          fontSize: 9,
           bold: false,
         },
         codigo: {
-          fontSize: 10,
+          fontSize: 9,
           bold: true,
         },
         titulo: {
-          fontSize: 12,
+          fontSize: 10,
           bold: true,
         },
         footerText: {
           fontSize: 6,
-          bold: false,
+          bold: false,          
         },
         contenido: {
-          fontSize: 10,
+          fontSize: 9,
           bold: false,
         },
         firma: {
-          fontSize: 10,
+          fontSize: 9,
           bold: true,
         },
       },
