@@ -1,11 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {  CreateMaestroDto } from './dto/create-maestro.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
+import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
  
 
@@ -53,6 +54,43 @@ export class ModificacionPagoController {
     } catch (error) {
     }
   }  
+
+  //controllers para modificacion Marvel
+  
+  
+  //modificacion de dias variacion (especifico)
+  @Patch('modificacion/:id_modificacion/dias-variacion')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Actualizar días de variación por ID de modificación' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        dias_variacion: { type: 'number', example: 12 }
+      }
+    }
+  })
+  async updateDiasVariacion(
+    @Param('id_modificacion', ParseIntPipe) id_modificacion: number,
+    @Body('dias_variacion', ParseIntPipe) dias_variacion: number
+  ) {
+    return await this.modificacionPagoService.updateDiasVariacion(id_modificacion, dias_variacion);
+  }
+
+  // 🔹 Obtener datos de una modificación por ID
+  @Get(':id')
+  async obtenerModificacion(@Param('id') id: number) {
+    return await this.modificacionPagoService.obtenerModificacion(id);
+  }
+
+  // 🔹 Guardar o actualizar modificación
+  @Post()
+  async guardarModificacion(@Body() datos: CreateModificacionDto) {
+    return await this.modificacionPagoService.guardarModificacion(datos);
+  }
+
+
+
 
 
 

@@ -56,13 +56,10 @@ export class DocumentoController {
     if (!files || files.length === 0) {
       throw new HttpException('No se han cargado archivos', HttpStatus.BAD_REQUEST);
     }
-
+  
     const resultados = [];
     
     for (const file of files) {
-      const fileExtension = path.extname(file.originalname).slice(1);
-
-      // Genera la ruta inicial para el documento
       const ruta = await this.documentoService.generateDocumentRoute(
         id_obra,
         id_tipo_documento,
@@ -70,31 +67,30 @@ export class DocumentoController {
         ciNitFuncionario,
         usuario_desc
       );
-
-      // Crea el documento en la base de datos con la ruta inicial
+  
       const nuevoDocumento = new Documento();
       nuevoDocumento.id_obra = id_obra;
       nuevoDocumento.id_tipo_documento = id_tipo_documento;
       nuevoDocumento.usuario_registro = id_usuario_registro;
       nuevoDocumento.ruta_documento = ruta;
       nuevoDocumento.cumple = false;
-
+      nuevoDocumento.nombre_documento = this.documentoService.normalizeFileName(file.originalname); // ✅ Nombres normalizados
+  
       const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
-
-      // Subir el archivo al servicio externo
+  
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        'marvel',
-        'marvel123',
+        '123',
+        'tre123',
         'rita.flores'
       );
-
+  
       if (uploadResponse.estado && uploadResponse.url_file) {
-        // Actualiza la URL del archivo en la base de datos
         await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
         resultados.push({
           id_documento: savedDocumento.id_documento,
+          nombre_documento: nuevoDocumento.nombre_documento, // ✅ Devuelve el nombre corregido
           url_file: uploadResponse.url_file,
         });
       } else {
@@ -104,9 +100,13 @@ export class DocumentoController {
         );
       }
     }
-
-    // Retorna los resultados acumulados
+  
     return { documentos: resultados };
+  }
+
+  @Get('informe/:id')
+  async obtenerDocumentos(@Param('id') idInforme: number) {
+    return this.documentoService.obtenerDocumentosPorInforme(idInforme);
   }
 
  //modificar esto este servicio que LISTA DPCUMENTOS (SEGUIMIENTO OBRAS) ya que esta mal, pero funcional

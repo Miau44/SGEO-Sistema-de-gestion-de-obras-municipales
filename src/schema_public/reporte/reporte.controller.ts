@@ -31,7 +31,7 @@ export class ReportController {
 
 
   @Public()
-  @Get('memorandum')
+  @Get('memorandumPrueba1')
   async getReporte(@Res() res: Response,
   @Query('gestion') gestion: number, // Primer parámetro de entrada
   @Query('id') id: number,            // Segundo parámetro de entrada
