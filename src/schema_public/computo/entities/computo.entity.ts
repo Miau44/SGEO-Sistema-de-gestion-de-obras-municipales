@@ -70,13 +70,13 @@ export class Computo {
 
 
     // Relación muchos a uno con Item
-    @ManyToOne(() => Item, (item:Item) => item.computo)
+    @ManyToOne(() => Item, (item) => item.computo)
     @JoinColumn({ name: 'id_item' }) // Indica el nombre de la columna FK
     item: Item;
 
 
    // Relación muchos a uno con la entidad modificacion
-    @ManyToOne(() => ModificacionPago, (modificacionpago:ModificacionPago) => modificacionpago.computomo)
+    @ManyToOne(() => ModificacionPago, (modificacionpago) => modificacionpago.computomo)
     @JoinColumn({ name: 'id_modificacion_pago' }) // Indica el nombre de la columna FK
     modificacionpago: ModificacionPago;
 

@@ -64,9 +64,6 @@ export class Solicitud {
 @OneToMany(type => Informe, minform => minform.informe)
     informe: Informe[];      
 
-    //modificarlo para informe
-    @OneToMany(type => Informe, minform => minform.informe)
-    informe: Informe[];  
 
 
 }

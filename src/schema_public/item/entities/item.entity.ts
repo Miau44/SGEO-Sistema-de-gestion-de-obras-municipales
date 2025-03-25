@@ -52,23 +52,12 @@ export class Item {
   total_adjudicado: number;
 
   //datos_modificacion
-  @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
+  @Column({ type: 'decimal', precision: 15, scale: 5, nullable: true })
   cantidad_autorizada: number;
 
   @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   total_autorizado: number;
 
-  @Column({ type: 'decimal', precision: 20, scale: 2, nullable:true})
-  cantidad_modificacion: number;
-
-  @Column({ type: 'decimal', precision: 20, scale: 2, nullable:true})
-  total_modificacion: number;
-
-  @Column({ type: 'decimal', precision: 20, scale: 2 , nullable:true})
-  p_unitario_modificacion: number;
-
-  @Column({nullable: true })
-  id_tipo_modificacion: number;
   @Column({ nullable: true })
   id_modificacion_pago: number;
 
@@ -83,7 +72,7 @@ export class Item {
   finalizado: boolean;
 
   ///campos de tabla generales
-  @Column()
+  @Column({ nullable:true })
   id_usuario_registro: number;
 
   @CreateDateColumn({ type: 'timestamp'})

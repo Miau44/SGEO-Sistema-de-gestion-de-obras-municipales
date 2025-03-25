@@ -32,16 +32,17 @@ export class Planilla {
    /* @Column("json", {nullable:true })
     justificacion_supervisor: string;   
     
-    @Column({ type: 'varchar', nullable:true })
-    justificacion_supervisor: string;   
-    
-    @Column({ type: 'varchar', nullable:true })
+    @Column("json", { nullable:true })
     observacion_fiscal: string;   
 
     @Column({default:false})
-    estado_observacion_fis: boolean;     
-        
-    ///campos de tabla generales
+    estado_observacion_fis: boolean;              
+    ///campos de tabla generales*/
+
+
+    @Column({ nullable: true })
+    finalizado: boolean;
+  
 
     @Column()
     id_usuario_registro: number;
@@ -59,6 +60,6 @@ export class Planilla {
     @ManyToOne(() => ModificacionPago, (modificacion) => modificacion.planimo)
     @JoinColumn({ name: 'id_modificacion_pago' }) // Indica el nombre de la columna FK
     modificacion: ModificacionPago;
-*/
+
 
 }

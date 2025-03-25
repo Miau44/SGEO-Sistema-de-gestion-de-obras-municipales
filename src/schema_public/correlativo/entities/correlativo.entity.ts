@@ -41,7 +41,4 @@ export class Correlativo {
 // correlativo entity
 @OneToOne(() => Informe, (informe) => informe.correlativo)
     informe: Informe;    
-
-    @OneToOne(() => Informe, (informe) => informe.correlativo)
-    informe: Informe;
 }
