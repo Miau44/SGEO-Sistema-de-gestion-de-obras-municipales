@@ -8,9 +8,11 @@ export class UsuarioPermisoXUeDto {
     @ApiProperty()
     desc_cod_ue: number;
 
-    @ApiProperty({default:0})
+    @ApiProperty()
     obra: number;    
 
+    @ApiProperty()
+    gestion: number;        
 
 
 }

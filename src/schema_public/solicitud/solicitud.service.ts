@@ -16,6 +16,7 @@ import { SolicitudHistorial } from './entities/solicitud_historial.entity';
 import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dto';
 import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
 import { HistorialObraDto } from './dto/historial-obra.dto';
+import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 
 
 
@@ -80,7 +81,8 @@ eo.gestion, eg.id_estado_general,
 COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
 
 eg.desc_modulo,   s.id_estado_solicitud,
-s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo 
+s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
+s.proveido, s.fecha_envio
 FROM obra AS o   
 INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
 INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
@@ -236,6 +238,7 @@ async listaHistorialXObra(data: HistorialObraDto) {
     const query = `
         SELECT s.id_obra, s.id_solicitud,  s.fecha_envio, desc_modulo, desc_estado_gral,
         p.id_usuario, pro.detalle || ' ' || TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido)  as nombre
+        s.proveido
         FROM public.solicitud AS s 
         INNER JOIN public.solicitud_historial AS sh ON s.id_solicitud = sh.id_solicitud
         INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
@@ -254,6 +257,27 @@ async listaHistorialXObra(data: HistorialObraDto) {
 
 
 
+async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
+  try {
+    const query = `
+        SELECT  sh.id_solicitud_historial, s.id_obra, s.id_solicitud,  s.fecha_envio, desc_modulo, desc_estado_gral,
+        p.id_usuario, pro.detalle || ' ' || TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido)  as nombre
+        ,s.proveido
+        FROM public.solicitud AS s 
+        INNER JOIN public.solicitud_historial AS sh ON s.id_solicitud = sh.id_solicitud
+        INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
+        INNER JOIN  public.persona AS p ON sh.id_usuario = p.id_usuario
+        INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo      
+        WHERE 
+        s.id_solicitud =$1 AND
+        p.id_estado IN (1,5) ORDER BY sh.id_solicitud_historial DESC; `;
+    const params = [data.id_solicitud]        
+    const resultado = await this.solicitudRepositorio.query(query, params);
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+} 
 
 
 }

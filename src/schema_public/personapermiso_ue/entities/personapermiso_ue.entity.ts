@@ -8,7 +8,10 @@ export class PersonapermisoUe {
     id_personapermiso_ue: number;
 
     @Column()
-    id_persona_permiso:number;    
+    id_persona_permiso:number;  
+    
+    @Column({nullable:true})
+    gestion:number;        
 
     @Column()
     desc_cod_ue:number;        
