@@ -67,8 +67,8 @@ export class PersonapermisoUeService {
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
         INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
-        WHERE gestion =$1 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
-        WHERE p.usuario = $2 AND ppue.id_estado =1`;
+        GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue AND ppue.gestion = ue.gestion
+        WHERE ppue.gestion = $1 AND  p.usuario = $2 AND ppue.id_estado =1`;
       const params = [datosDto.gestion, datosDto.usuario];
       const resultado = await this.pperUeRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -91,8 +91,8 @@ export class PersonapermisoUeService {
 			
         LOOP         
 			INSERT INTO public.personapermiso_ue(
-	         id_persona_permiso, desc_cod_ue, usuario_registro, id_estado, fecha_registro, fecha_modificacion)				
-			VALUES( ${data.id_persona_permiso}, rec.desc_cod_ue, ${data.usuario_registro}, ${data.id_estado}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+	         id_persona_permiso, gestion, desc_cod_ue, usuario_registro, id_estado, fecha_registro, fecha_modificacion)				
+			VALUES( ${data.id_persona_permiso}, ${data.gestion} ,  rec.desc_cod_ue, ${data.usuario_registro}, ${data.id_estado}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 			
         END LOOP;
     END;
@@ -119,10 +119,12 @@ export class PersonapermisoUeService {
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
         INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
-        WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue  AND ppue.gestion = ue.gestion
         INNER JOIN public.designacion AS d ON  p.id_persona = d.id_persona 
         WHERE  pp.id_estado =1 AND ppue.id_estado=1  AND d.id_estado=1 AND per.id_permiso IN(${datosDto.id_permiso}) 
-        AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   AND  d.id_obra =${datosDto.obra};`;          
+        AND  p.id_estado IN(1,5)  
+        AND ppue.gestion =${datosDto.gestion}        
+        AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   AND  d.id_obra =${datosDto.obra};`;          
         const resultado = await this.pperUeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")
         
@@ -133,11 +135,14 @@ export class PersonapermisoUeService {
         FROM public.persona AS p
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        AND ppue.gestion = ue.gestion
         INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
         INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
-        WHERE gestion =2024 GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
-        WHERE  pp.id_estado =1 AND ppue.id_estado=1 AND  per.id_permiso IN(${datosDto.id_permiso})  
-        AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue};`;  
+        GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        WHERE  pp.id_estado =1 AND ppue.id_estado=1  AND  per.id_permiso IN(${datosDto.id_permiso})  
+        AND  p.id_estado IN(1,5)  
+        AND ppue.gestion =${datosDto.gestion};
+        AND ppue.desc_cod_ue =${datosDto.desc_cod_ue};`;  
         const resultado = await this.pperUeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")        
       }

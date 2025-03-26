@@ -72,21 +72,7 @@ async  findAll() {
   async listaPersonas(data: RolDto) {
     try {
       ;
-    /*  let query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
-      p.segundo_apellido as psegundo_apellido, 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, p.id_permiso,
-      dp.permiso, dp.permisodetalle, pro.detalle as cargodetalle
-      FROM persona as  p
-      INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
-      WHERE  gestion =$1   ${data.desc_cod_ue !== null ? 'AND desc_cod_ue = $3' : ''}    GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da		
-      INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON p.id_persona = dp.idpersona		
-      WHERE  dp.idpermisod IN($2 )     	 
-      AND p.gestion =$1  AND   p.id_persona NOT IN ( SELECT  p.id_persona
-      FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona WHERE sd.id_estado=1  AND p.id_persona NOT  IN(-1,-2)) `;*/
+    
 
       let query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
 p.segundo_apellido as psegundo_apellido, 
@@ -178,7 +164,7 @@ CASE  WHEN  p.id_estado=4 THEN null
 FROM persona as  p
 INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
 INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
-WHERE  gestion = 2024 GROUP BY desc_cod_da,nombre_da, gestion)   eo ON p.desc_cod_da_comision= eo.desc_cod_da 
+WHERE  gestion = ${estructuraDto.gestion} GROUP BY desc_cod_da,nombre_da, gestion)   eo ON p.desc_cod_da_comision= eo.desc_cod_da 
 LEFT JOIN  estado_general  as estado ON  p.id_estado = estado.id_estado_general
 LEFT JOIN (SELECT * FROM  public.sp_permisos_xpersona()) as permiso ON p.id_persona = permiso.idpersona 
 INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas()) as desagregado ON p.id_persona = desagregado.idpersona 
@@ -250,7 +236,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       eo ON p.desc_cod_da_comision= eo.desc_cod_da
 	LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =14 )  as estado ON  p.id_estado = estado.id_subtipo	  
       LEFT JOIN (SELECT * FROM  public.sp_permisos_xpersona()) as permiso ON p.id_persona = permiso.idpersona 
-      WHERE p.gestion =${estructuraGralDto.gestion} AND p.id_estado <> 0;	`;
+      WHERE p.id_estado <> 0;	`;
 
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
@@ -260,8 +246,12 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
         return { seguridad, sgeo: asignado };
       });
       return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
+    } catch (error: any) {
+      console.error("Error al actualizar justificación:", error); // Log detallado en consola
+      return this.responseService.error({
+        mensaje: "Ocurrió un error al actualizar la justificación.",
+        detalle: error.message || error,
+      });
     }
 
 
@@ -480,7 +470,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
       INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =2024 GROUP BY desc_cod_da,nombre_da, gestion)  
+      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
     INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
 	 AS dp ON 	sd.id_persona = dp.idpersona
@@ -499,21 +489,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
 
 async estructuraXPermisos(permisoDto: ListaEstructuraDto) {
   try {
-  /*  const query = ` SELECT p.usuario, eo.desc_cod_ue, 
-eo.sigla_ue, eo.sigla_da, eo.nombre_da,  
-eo.desc_cod_ue, eo.nombre_ue,  eo.cod_ue, eo.desc_cod_da, eo.gestion,
-per.desc_subtipo FROM persona as  p		
-INNER JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
-INNER JOIN public.personapermiso_ue AS ppue ON ppe.id_persona_permiso = ppue.id_persona_permiso
-INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON ppe.id_permiso = per.id_permiso
-INNER JOIN (SELECT sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion from estructura_organizacional WHERE  gestion =$1 
-GROUP BY sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion)  eo ON ppue.desc_cod_ue= eo.desc_cod_ue	   
-WHERE 
-p.usuario =$2 AND 
-p.gestion =$1  AND 
-ppe.id_estado =1	AND 
-ppue.id_estado=1;`;*/
-
+  
 
 const query = ` SELECT DISTINCT p.usuario, eo.desc_cod_ue, 
 eo.sigla_ue, eo.sigla_da, eo.nombre_da,  
@@ -522,11 +498,12 @@ FROM persona as  p
 INNER JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
 INNER JOIN public.personapermiso_ue AS ppue ON ppe.id_persona_permiso = ppue.id_persona_permiso
 --INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON ppe.id_permiso = per.id_permiso
-INNER JOIN (SELECT sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion from estructura_organizacional WHERE  gestion =2024 
-GROUP BY sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion)  eo ON ppue.desc_cod_ue= eo.desc_cod_ue	   
+INNER JOIN (SELECT sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion from estructura_organizacional 
+GROUP BY sigla_ue, sigla_da, nombre_da,  desc_cod_ue, nombre_ue,  cod_ue, desc_cod_da, gestion)  eo ON ppue.desc_cod_ue= eo.desc_cod_ue	  
+AND  ppue.gestion= eo.gestion  
 WHERE 
 p.usuario =$2 AND 
-p.gestion =$1  AND 
+ppue.gestion =$1  AND 
 ppe.id_estado =1	AND 
 ppue.id_estado=1;`;
     const values = [permisoDto.gestion, permisoDto.usuario]
@@ -541,24 +518,28 @@ ppue.id_estado=1;`;
 
   async estructuraXDAPermisos(permisoDto: ListaEstructuraDto) {
     try {
-      const query = ` 
- SELECT ppe.id_permiso, rp.id_rolpermiso_real, p.usuario,
- eo.sigla_da, eo.nombre_da,  
- eo.desc_cod_da, eo.gestion, eo.sigla_ue, eo.sigla_da, eo.nombre_ue, eo.cod_ue, eo.desc_cod_da,
- ppue.desc_cod_ue
-FROM persona as  p		
-INNER JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
-INNER JOIN public.personapermiso_ue AS ppue ON ppe.id_persona_permiso = ppue.id_persona_permiso
-INNER JOIN (SELECT  sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue from estructura_organizacional WHERE  gestion =2024
-GROUP BY sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue) AS eo ON ppue.desc_cod_ue= eo.desc_cod_ue
-INNER JOIN rol_permiso AS rp ON ppe.id_permiso = rp.id_permiso
-      WHERE 
-      p.usuario =$2 AND 
-      p.gestion = $1  AND 
-      ppe.id_estado =1	AND 
-      ppue.id_estado=1 
-      AND rp.id_rolpermiso_real IN(${permisoDto.permiso})`;
-      const values = [permisoDto.gestion, permisoDto.usuario, ]
+  const query = ` 
+      SELECT ppe.id_permiso, rp.id_rolpermiso_real, p.usuario,
+      eo.sigla_da, eo.nombre_da,  
+      eo.desc_cod_da, eo.gestion, eo.sigla_ue, eo.sigla_da, eo.nombre_ue, eo.cod_ue, eo.desc_cod_da,
+      ppue.desc_cod_ue
+     FROM persona as  p		
+     INNER JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
+     INNER JOIN public.personapermiso_ue AS ppue ON ppe.id_persona_permiso = ppue.id_persona_permiso
+     INNER JOIN (SELECT  sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue 
+     FROM public.estructura_organizacional
+     GROUP BY sigla_da, sigla_ue, nombre_da, nombre_ue, desc_cod_da, gestion, desc_cod_ue, cod_ue) AS eo 
+     ON ppue.desc_cod_ue= eo.desc_cod_ue AND ppue.gestion = eo.gestion 
+     
+     INNER JOIN public.rol_permiso AS rp ON ppe.id_permiso = rp.id_permiso  
+           WHERE 
+           p.usuario = $2  AND  
+           ppe.id_estado =1	AND ppue.id_estado=1
+           AND  ppue.gestion = $1
+           AND rp.id_rolpermiso_real IN(${permisoDto.permiso});`;
+     
+
+      const values = [permisoDto.gestion, permisoDto.usuario]
       const resultado = await this.personaRepo.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

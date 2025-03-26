@@ -13,6 +13,7 @@ import { UsuarioSolicitudObraDto } from './dto/usuario-asignado-obra.dto';
 import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dto';
 import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
 import { HistorialObraDto } from './dto/historial-obra.dto';
+import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -144,5 +145,14 @@ export class SolicitudController {
   }    
   }
   
+
+  @Public()
+  @Post('historial-solcitud')
+  listaHistorialXSolicitud(@Body() data: HistorialSolicitudDto) {
+    try {
+    return this.solicitudService.listaHistorialXSolicitud( data);
+  } catch (error) {
+  }    
+  }
 
 }

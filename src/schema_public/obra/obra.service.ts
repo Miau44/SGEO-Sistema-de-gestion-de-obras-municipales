@@ -51,7 +51,7 @@ tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_car
  FROM public.obra AS o   
 INNER JOIN public.ficha f  ON o.id_ficha = f.id_ficha
 INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from public.estructura_organizacional
-WHERE  gestion =2024 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue  AND f.gestion_carpeta = eo.gestion
 LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
 INNER JOIN public.estado_general as eg ON  o.id_estado = eg.id_estado_general       
      WHERE  o.id_obra = ${id_obra}`;
@@ -203,7 +203,7 @@ mc.desc_subtipo AS desc_modalidad,
      FROM obra AS o   
     INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
     INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
-    WHERE  gestion =2024 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
+    WHERE  gestion =${data.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
     INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
 	INNER JOIN  public.sp_solicitudes_x_obra() AS sol ON o.id_obra = sol.idobra
 	LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra
