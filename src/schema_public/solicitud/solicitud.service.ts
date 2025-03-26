@@ -198,7 +198,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5)
       SELECT
         COUNT(*) AS total,
         SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END) AS pendientes,
-        SUM(CASE WHEN id_estado_solicitud = 3 THEN 1 ELSE 0 END) AS enProgreso,
+        SUM(CASE WHEN id_estado_solicitud = 3 THEN 1 ELSE 0 END) AS enprogreso,
         SUM(CASE WHEN id_estado_solicitud = 4 THEN 1 ELSE 0 END) AS completadas
       FROM public.solicitud
       WHERE id_usuario = $1;
