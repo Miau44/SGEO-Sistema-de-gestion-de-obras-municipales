@@ -260,7 +260,7 @@ async listaHistorialXObra(data: HistorialObraDto) {
 async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
   try {
     const query = `
-        SELECT  sh.id_solicitud_historial, s.id_obra, s.id_solicitud,  s.fecha_envio, desc_modulo, desc_estado_gral,
+        SELECT  sh.id_solicitud_historial, s.id_obra, s.id_solicitud, s.fecha_envio, sh.fecha_registro, desc_modulo, desc_estado_gral,
         p.id_usuario, pro.detalle || ' ' || TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido)  as nombre
         ,s.proveido
         FROM public.solicitud AS s 
