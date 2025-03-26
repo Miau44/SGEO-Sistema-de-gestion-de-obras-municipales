@@ -5,7 +5,7 @@ export class ObraSolicitudesDto {
     /*  @ApiProperty({ default:0 })
       desc_cod_ue: number;*/
   
-      @ApiProperty({ default:0 })
+      @ApiProperty()
       gestion: number; 
                
     /*  @ApiProperty({ default:0 })

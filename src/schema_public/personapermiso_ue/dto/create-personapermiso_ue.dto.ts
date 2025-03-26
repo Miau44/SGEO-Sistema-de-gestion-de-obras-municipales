@@ -5,6 +5,10 @@ export class CreatePersonapermisoUeDto {
     id_persona_permiso: number;
 
     @ApiProperty()
+    gestion: number;
+
+
+    @ApiProperty()
     desc_cod_ue: number;
 
 
