@@ -143,20 +143,7 @@ export class ReportController {
     res.send(pdfBuffer);
   }    
 
-
-  @Public()
-  @Get('informe-solicitud-baja')
-  async getReporteSolicitudBaja(@Res() res: Response,
-  @Query('id_obra') id_obra: number
-
-): Promise<void> {
-    const pdfBuffer = await this.reportService.generateSolicitudBajaSupervisorFiscal(id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  }    
+ 
 //////////////////////////////////////////////MÓDULO ACTIVIDADES PREVIAS/////////////////////////////// 
 
   @Public()
