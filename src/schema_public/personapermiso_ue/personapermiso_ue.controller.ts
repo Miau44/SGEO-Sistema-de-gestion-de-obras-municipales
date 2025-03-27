@@ -59,6 +59,15 @@ export class PersonapermisoUeController {
     }
   }  
 
+  @Public()
+  @Post('listar-permisos-ue-adm')
+  listarPermisosXUeAdm(@Body() datosDto: PermisoXUeDto) {
+    try {
+      return this.personapermisoUeService.listarPermisosXUEAdm(datosDto);
+    } catch (error) {
+    }
+  }    
+
 
   @Public()
   @Post('asignar-todas-ues')
