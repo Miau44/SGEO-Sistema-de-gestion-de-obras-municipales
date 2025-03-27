@@ -77,6 +77,24 @@ export class PersonapermisoUeService {
     }
   }
 
+  async listarPermisosXUEAdm(datosDto: PermisoXUeDto) {
+    try {
+              const query = `SELECT ppue.id_personapermiso_ue, ue.gestion,  per.desc_subtipo, ue.desc_cod_ue, ue.nombre_ue  FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue AND ppue.gestion = ue.gestion
+        WHERE  p.usuario = $1 AND ppue.id_estado =1  `;
+      const params = [ datosDto.usuario];
+      const resultado = await this.pperUeRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
+
 
   async insertarTodaslasUe(data:TodaslasUesDto) {
     try{
@@ -129,7 +147,19 @@ export class PersonapermisoUeService {
         return this.responseService.success(resultado, "Listado Correctamente.")
         
       }else{ //personas que no son supervisores y fiscales
-        const query = `
+        
+        /* SELECT DISTINCT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || p.puesto as nombre,  p.id_usuario, 
+        ppue.desc_cod_ue
+        FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
+        INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
+        WHERE gestion =${datosDto.gestion} GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue
+        WHERE  pp.id_estado =1 AND ppue.id_estado=1 AND  per.id_permiso IN(${datosDto.id_permiso})  
+        AND  p.id_estado IN(1,5)  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue};*/
+
+        const query = `       
         SELECT DISTINCT p.id_usuario,  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || p.puesto as nombre,  p.id_usuario, 
         ppue.desc_cod_ue
         FROM public.persona AS p

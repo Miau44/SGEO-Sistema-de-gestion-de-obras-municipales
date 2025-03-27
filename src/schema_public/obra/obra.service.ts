@@ -340,7 +340,7 @@ WHERE sol.idusuario= ${data.usuario} ` ;
       }
       else {
 
-        const query = `SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
+     /*   const query = `SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
         f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
         f.total_carpeta as totalcarpeta,eo.desc_cod_da, eo.nombre_ue, eo.gestion,
         f.fecha_registro,  eg.desc_subestado as desc_estado_gral, tob.desc_subtipo AS desc_tipoobra, 
@@ -358,8 +358,29 @@ WHERE sol.idusuario= ${data.usuario} ` ;
         LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	     
         LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
         LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
-        WHERE p.id_usuario =$2  AND pp.id_estado =1 AND ppue.id_estado=1 `;
+        WHERE p.id_usuario =$2  AND pp.id_estado =1 AND ppue.id_estado=1;`;*/
 
+ const query = `       SELECT DISTINCT  p.usuario, o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
+        f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+        f.total_carpeta as totalcarpeta,eo.desc_cod_da, eo.nombre_ue, eo.gestion,
+        f.fecha_registro,  eg.desc_subestado as desc_estado_gral, tob.desc_subtipo AS desc_tipoobra, 
+        mc.desc_subtipo AS desc_modalidad, (CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema, 
+        '0' as estado_designacion, f.fecha_validacion_carpeta as  fecha_modificacion
+        FROM obra AS o   
+        INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
+        INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
+		WHERE gestion=$1
+         GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue 
+		 AND f.gestion_carpeta = eo.gestion
+        INNER JOIN public.personapermiso_ue AS ppue ON eo.desc_cod_ue = ppue.desc_cod_ue AND eo.gestion = ppue.gestion
+        INNER JOIN estado_general AS eg ON o.id_estado_general = eg.id_estado_general
+        INNER JOIN public.persona_permiso AS pp ON ppue.id_persona_permiso = pp.id_persona_permiso  
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
+        INNER JOIN persona AS p ON pp.id_persona = p.id_persona	
+        LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	     
+        LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
+        LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
+      WHERE p.id_usuario =$2  AND pp.id_estado =1 AND ppue.id_estado=1;`;
         const values = [misproyectos.gestion, misproyectos.id_usuario]
         const resultado = await this.obraRepositorio.query(query, values);
         return this.responseService.success(resultado, "Listado Correctamente.")
