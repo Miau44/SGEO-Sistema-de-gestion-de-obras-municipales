@@ -141,5 +141,10 @@ actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
   async reemplazarDesignacion(@Param('id', ParseIntPipe) idDesignacionNueva: number) {
     return await this.designacionService.reemplazarDesignacion(idDesignacionNueva);
   }
+
+  @Get('obtenerSolicitudId/:id_designacion')
+  async obtenerIdSolicitud(@Param('id_designacion') id_designacion: number) {
+    return this.designacionService.buscarIdSolicitud(id_designacion);
+  }
  
 }
