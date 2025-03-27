@@ -31,12 +31,29 @@ export class ReportController {
 
 
   @Public()
-  @Get('memorandumPrueba1')
+  @Get('memorandum')
   async getReporte(@Res() res: Response,
   @Query('gestion') gestion: number, // Primer parámetro de entrada
   @Query('id') id: number,            // Segundo parámetro de entrada
 ): Promise<void> {
     const pdfBuffer = await this.reportService.generateMemo(gestion, id);    
+    res.set({
+      'Content-Type': 'application/pdf',
+  //    'Content-Disposition': 'attachment; filename=report.pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+
+  @Public()
+  @Get('solicitud-reemplazo')
+  async getSolicitudReemplazo(@Res() res: Response,
+  @Query('gestion') gestion: number, // Primer parámetro de entrada
+  @Query('id') id: number,            // Segundo parámetro de entrada
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateSolReemplazo(gestion, id);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -61,6 +78,24 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   }
+
+
+
+  @Public()
+  @Get('solicitud-baja')
+  async getReporteSolicitudBaja(@Res() res: Response,
+  //ME @Query('id_obra') id_obra: number
+  @Query('gestion') gestion: number, // Primer parámetro de entrada
+  @Query('id') id: number,            // Segundo parámetro de entrada
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateSolicitudBaja(gestion, id);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
 
 
   @Public()
