@@ -262,7 +262,7 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
     const query = `
         SELECT  sh.id_solicitud_historial, s.id_obra, s.id_solicitud, s.fecha_envio, sh.fecha_registro, desc_modulo, desc_estado_gral,
         p.id_usuario, pro.detalle || ' ' || TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido)  as nombre
-        ,s.proveido
+        ,sh.proveido
         FROM public.solicitud AS s 
         INNER JOIN public.solicitud_historial AS sh ON s.id_solicitud = sh.id_solicitud
         INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
