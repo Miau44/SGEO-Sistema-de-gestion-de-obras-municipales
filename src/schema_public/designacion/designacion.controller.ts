@@ -9,6 +9,7 @@ import { EstadoObraDesigDto } from './dto/estado_obra_designacion.dto';
 import { MaxCorrelativoDto } from './dto/correlativo.dto';
 import { ReemplazoDto } from './dto/reemplazo.dto';
 import { GenerarDto } from './dto/generar.dto';
+import { Designacion } from './entities/designacion.entity';
 
 @ApiTags('designacion')
 
@@ -18,7 +19,14 @@ export class DesignacionController {
 
 
   //controlador mike para el rechazo
- 
+  @Get('pendientes')
+  async obtenerDesignacionesPendientes(): Promise<Designacion[]> {
+    const resultado = await this.designacionService.obtenerDesignacionesPendientes();
+    //console.log('🔍 Datos obtenidos:', resultado); // 👀 Verificar en consola del backend
+    return resultado;
+  }
+  
+
   @Post('rechazar')
   async rechazarSolicitudes2(@Body() data: { estado_designacion: number; id_tipo_solicitud: number }) {
    
@@ -147,4 +155,7 @@ actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
     return this.designacionService.buscarIdSolicitud(id_designacion);
   }
  
+
+ 
+  
 }
