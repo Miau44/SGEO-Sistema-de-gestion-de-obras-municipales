@@ -609,5 +609,29 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     return designacion ? designacion.id_solicitud : null;
   }
 
+  async buscarIdSolicitud(id_designacion: number): Promise<number | null> {
+    const designacion = await this.DesigRepositorio.findOne({
+      where: { id_designacion },
+    });
+
+    return designacion ? designacion.id_solicitud : null;
+  }
+
+
+  async obtenerDesignacionesPendientes(): Promise<Designacion[]> {
+    try {
+      const designaciones = await this.DesigRepositorio.find({
+        where: { id_estado: 0, estado_designacion: 105 }, // Filtramos por id_estado = 0
+      });
+  
+     // console.log('📌 Designaciones encontradas:', designaciones); // 👀 Verificar en consola del backend
+      return designaciones;
+    } catch (error) {
+      console.error('❌ Error al obtener las designaciones:', error);
+      throw new InternalServerErrorException('Error al obtener las designaciones pendientes');
+    }
+  }
+  
+
   
 }
