@@ -228,7 +228,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       p.segundo_apellido as psegundo_apellido, 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, permiso.permiso,  
-	  estado.desc_subtipo as sub_estado	
+	  estado.desc_subtipo as sub_estado, p.id_estado
       FROM persona as  p
       INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
