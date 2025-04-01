@@ -631,6 +631,76 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
       throw new InternalServerErrorException('Error al obtener las designaciones pendientes');
     }
   }
+
+
+  async actualizarEstadoSolicitudesSupervisores(): Promise<{ mensaje: string; actualizados: number }> {
+    try {
+      // 🔎 Buscar registros en la tabla solicitud con las condiciones dadas
+      const solicitudes = await this.solicitudRepocitorio.find({
+        where: { id_tipo_solicitud: 76, id_estado_solicitud: 2, id_estado_general:10 },
+        select: ['id_solicitud'],
+      });
+  
+      if (!solicitudes.length) {
+        return { mensaje: 'No se encontraron solicitudes para actualizar', actualizados: 0 };
+      }
+  
+      // Extraer los id_solicitud encontrados
+      const idSolicitudes = solicitudes.map(s => s.id_solicitud);
+  
+      // 📝 Actualizar los registros en la tabla "solicitud"
+      const resultado = await this.solicitudRepocitorio
+        .createQueryBuilder()
+        .update(Solicitud)
+        .set({ id_estado_solicitud: 4 })
+        .where('id_solicitud IN (:...ids)', { ids: idSolicitudes })
+        .execute();
+  
+      const actualizados = resultado.affected || 0;
+      return {
+        mensaje: actualizados > 0 ? 'Solicitudes actualizadas con éxito' : 'No se encontraron solicitudes para actualizar',
+        actualizados,
+      };
+    } catch (error) {
+      console.error('❌ Error al actualizar solicitudes:', error);
+      throw new InternalServerErrorException('Error al actualizar solicitudes');
+    }
+  }
+  
+  
+  async actualizarEstadoSolicitudesFiscales(): Promise<{ mensaje: string; actualizados: number }> {
+    try {
+      // 🔎 Buscar registros en la tabla solicitud con las condiciones dadas
+      const solicitudes = await this.solicitudRepocitorio.find({
+        where: { id_tipo_solicitud: 76, id_estado_solicitud: 2, id_estado_general:11 },
+        select: ['id_solicitud'],
+      });
+  
+      if (!solicitudes.length) {
+        return { mensaje: 'No se encontraron solicitudes para actualizar', actualizados: 0 };
+      }
+  
+      // Extraer los id_solicitud encontrados
+      const idSolicitudes = solicitudes.map(s => s.id_solicitud);
+  
+      // 📝 Actualizar los registros en la tabla "solicitud"
+      const resultado = await this.solicitudRepocitorio
+        .createQueryBuilder()
+        .update(Solicitud)
+        .set({ id_estado_solicitud: 4 })
+        .where('id_solicitud IN (:...ids)', { ids: idSolicitudes })
+        .execute();
+  
+      const actualizados = resultado.affected || 0;
+      return {
+        mensaje: actualizados > 0 ? 'Solicitudes actualizadas con éxito' : 'No se encontraron solicitudes para actualizar',
+        actualizados,
+      };
+    } catch (error) {
+      console.error('❌ Error al actualizar solicitudes:', error);
+      throw new InternalServerErrorException('Error al actualizar solicitudes');
+    }
+  }
   
 
   
