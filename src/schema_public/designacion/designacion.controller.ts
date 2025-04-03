@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, NotFoundException, Put } from '@nestjs/common';
 import { DesignacionService } from './designacion.service';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
@@ -156,6 +156,12 @@ actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
   }
  
 
- 
-  
+  @Put('actualizar-solicitudes-supervisores')
+  async actualizarSolicitudesSupervisores() {
+    return await this.designacionService.actualizarEstadoSolicitudesSupervisores();
+  }
+  @Put('actualizar-solicitudes-fiscales')
+  async actualizarSolicitudesFiscales() {
+    return await this.designacionService.actualizarEstadoSolicitudesFiscales();
+  }
 }

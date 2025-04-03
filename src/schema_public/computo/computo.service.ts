@@ -9,7 +9,7 @@ import { ComputoObra } from './dto/computo-obra.dto';
 
 
 import { ComputoItemDto } from './dto/computo-Item.dto';
-import { ComputoCriterio } from './entities/computo_criterio.entity';
+
 import * as XLSX from 'xlsx';
 import { ErrorDetalle } from './ErrorDetalle';
 import { ComputoImportarDto } from './dto/computo-importar.dto';
@@ -26,8 +26,7 @@ export class ComputoService {
 
   private readonly DECIMAL_PLACES = 5;
   constructor(
-    @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,
-    @InjectRepository(ComputoCriterio) private criterioRepositorio: Repository<ComputoCriterio>,
+    @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,    
     @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
 
     private responseService: ResponseService,
@@ -173,6 +172,7 @@ export class ComputoService {
 
     observacion_fiscal, i.id_obra FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
+    LEFT OUTER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo 
     INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
     WHERE i.id_item =$1
     AND m.id_modificacion_pago = $2
@@ -203,10 +203,11 @@ export class ComputoService {
 	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
 	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
         CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
-        p.justificacion_supervisor	
+        po.justificacion_supervisor	
       FROM public.item AS i
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
-     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2      
+     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
+LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_planilla           
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
 
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
@@ -576,16 +577,7 @@ export class ComputoService {
   }
 
 
-  ////////////////////////////////COMPUTO CRITERIO//////////////////
-
-  async findAllCriterio() {
-    try {
-      const resultado = await this.criterioRepositorio.find()
-      return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }
+ 
 
 
 

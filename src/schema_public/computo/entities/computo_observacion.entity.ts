@@ -1,10 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Item } from 'src/schema_public/item/entities/item.entity'; //relacion con item
 @Entity('')
-export class ComputoObervacion {
+export class ComputoObservacion {
 
     @PrimaryGeneratedColumn()
     id_computo_observacion: number;
+
+    @Column()
+    id_computo: number;    
+
 
     @Column()
     id_solicitud_historial: number;
