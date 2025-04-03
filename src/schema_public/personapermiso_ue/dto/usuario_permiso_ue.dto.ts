@@ -11,7 +11,7 @@ export class UsuarioPermisoXUeDto {
     @ApiProperty()
     obra: number;    
 
-    @ApiProperty()
+    @ApiProperty({required:false})
     gestion: number;        
 
 

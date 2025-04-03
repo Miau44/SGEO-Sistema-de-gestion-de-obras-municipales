@@ -14,6 +14,7 @@ import { CreateSolicitudHistorialDto } from './dto/create-solicitud-historial.dt
 import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dto';
 import { HistorialObraDto } from './dto/historial-obra.dto';
 import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
+import { ContadorGestionDto } from './dto/contador-gestion.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -97,11 +98,22 @@ export class SolicitudController {
   
  
 
-  @Public()
+ /* @Public()
   @Get('contador-solicitudes/:usuario')
   async getTaskCounts(@Param('usuario', ParseIntPipe) usuario: number) {
     try {
       return await this.solicitudService.getTaskCounts(usuario);
+    } catch (error) {
+      console.error('Error en el controlador getTaskCounts:');
+      throw error;
+    }
+  }*/
+
+  @Public()
+  @Post('contador-solicitudes')
+  async getTaskCounts(@Body() datos: ContadorGestionDto) {
+    try {
+      return await this.solicitudService.getTaskCounts(datos);
     } catch (error) {
       console.error('Error en el controlador getTaskCounts:');
       throw error;

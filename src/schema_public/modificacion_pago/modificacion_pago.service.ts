@@ -204,8 +204,16 @@ export class ModificacionPagoService {
            FROM public.modificacion_pago AS mp
            INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
            INNER JOIN public.solicitud AS s ON mp.id_solicitud = s.id_solicitud 
-          LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
-           AS sh ON s.id_solicitud = sh.id_solicitud    	  
+
+LEFT JOIN (
+    SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, id_solicitud
+    FROM public.solicitud_historial  
+    ORDER BY id_solicitud, id_solicitud_historial DESC
+) AS sh ON s.id_solicitud = sh.id_solicitud
+
+--           LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)          
+--           AS sh ON s.id_solicitud = sh.id_solicitud    	  
+
            INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
            INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
          INNER JOIN public.tipo_modificacion_pago AS tmp ON mp.id_tipo_mod_pago = tmp.id_tipo_mod_pago

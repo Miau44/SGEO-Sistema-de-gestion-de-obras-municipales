@@ -172,15 +172,5 @@ export class ComputoController {
   
  
 
-
-  ///////////////////////CRITERIO/////////////////////////
-
-  @Public()
-  @Get('criterio-lista')
-  findAllCriterio() {
-    try {
-      return this.computoService.findAllCriterio();
-    } catch (error) {
-    }    
-  }  
+  
 }

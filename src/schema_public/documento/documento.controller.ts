@@ -73,7 +73,7 @@ export class DocumentoController {
       nuevoDocumento.id_tipo_documento = id_tipo_documento;
       nuevoDocumento.usuario_registro = id_usuario_registro;
       nuevoDocumento.ruta_documento = ruta;
-      nuevoDocumento.cumple = false;
+      nuevoDocumento.cumple = true;
       nuevoDocumento.nombre_documento = this.documentoService.normalizeFileName(file.originalname); // ✅ Nombres normalizados
   
       const savedDocumento = await this.documentoService.createDocumento(nuevoDocumento);
