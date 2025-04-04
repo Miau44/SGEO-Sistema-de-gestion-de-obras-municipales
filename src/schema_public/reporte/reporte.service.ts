@@ -1176,8 +1176,9 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     this.datosSIM = ressim;
     this.datosEnvio = res;
-    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+ //   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+ //   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    //const imgPath = 'assets/images/membretado_carta.png';
     const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
@@ -1193,78 +1194,29 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       header: {
         columns: [
-          //ME { image: imgPath, width: 180 },
+         // { image: imgPath, width: 120 },
 
           // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
         margin: [40, 10]
       } as any,
       content: [
         {
-          text: '\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO\n\n',
+          text: '\n\n\n\n\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n',
           style: 'header', alignment: 'center'
         } as any,
 
         {
-          text: 'DATOS DE PROYECTO \n',
+          text: 'DATOS DE PROYECTO. \n',
           style: 'subheader',
         },
 
-        {
-          table: {
-            widths: ['*', 400],
-            body: [
-              [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
-              ],
-
-              [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
-              ],
-
-              [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-              ],
-
-              [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
-              ],
-
-              [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
-              ]
-            ]
-          },
-          layout: 'noBorders'
-        },
+  
 
         {
-          table: {
-            widths: ['*', 330],
-            body: [
-              [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ],
-
-
-            ]
-          },
-          layout: 'lightHorizontalLines'
-        },
-
-        /* ME {
           table: {
             widths: [100, '*'],
             body: [
@@ -1295,14 +1247,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             ]
           },
           //layout: 'noBorders'
-        }, */
-
-        {
-          text: 'Supervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
-          style: 'textDato',
         },
 
         {
+          text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
+          style: 'textDato',
+        },
+
+   /*     {
           table: {
             widths: [30, '*', 50, 100],
             body: [
@@ -1316,12 +1268,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
               ...this.buildDocumentosSIM(this.datosSIM)
             ]
           },
-        },
+        },*/
 
         {
           text: '\nDocumentación Complementaría. \n',
           style: 'textTitulo',
         },
+
+
 
         {
           table: {
@@ -1340,14 +1294,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
 
         {
-          text: '\n* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
+          text: '\n\n* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
             + '\n** Se remite una copia a la Fiscalización de Obra. \n\n',
           style: 'textDato',
         },
 
 
         {
-          text: '\n Fecha de Envío: 03/12/2024  ',
+          text: '\n Fecha de Envío: 03/4/2025  ',
           style: 'textDato',
         },
 
@@ -1457,12 +1411,21 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/sgeo.png';
-    const imgPathLeft = 'assets/images/smip.png';
+  //  const imgPath = 'assets/images/logo_gamlp.png';
+    const imgPathLeft = 'assets/images/logo_smip.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+      background: function(currentPage: any, pageSize: any) { 
+        return {
+            image: imgPath, 
+            width: pageSize.width, 
+            height: pageSize.height,
+            absolutePosition: {x: 0, y: 0}
+               } },      
+      //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       /*   header: {
            columns: [
@@ -1583,7 +1546,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
   
       content: [
         {
-          text: '\n\n\nINFORME\n\n\n',
+          text: '\n\n\n\n\n\nINFORME.\n\n\n',
           style: 'header', alignment: 'center'
         } as any,
 
