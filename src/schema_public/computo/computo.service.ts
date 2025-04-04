@@ -169,8 +169,7 @@ export class ComputoService {
 	 public.formato_numerico_computo(area,5) AS area,
 	 public.formato_numerico_computo(volumen,5) AS volumen,
 	 public.formato_numerico_computo(parcial,5) AS parcial,	*/
-
-    observacion_fiscal, i.id_obra FROM public.item AS i
+    co.observacion_fiscal, i.id_obra FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     LEFT OUTER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo 
     INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago

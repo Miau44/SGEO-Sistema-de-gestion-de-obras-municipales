@@ -52,8 +52,8 @@ export class Computo {
     @Column({nullable:true})
     version: number;  
     
-    @Column("json", {nullable:true })
-    observacion_fiscal: string;    
+   /* @Column("json", {nullable:true })
+    observacion_fiscal: string;    */
 
     ///campos de tabla generales
     @Column()
