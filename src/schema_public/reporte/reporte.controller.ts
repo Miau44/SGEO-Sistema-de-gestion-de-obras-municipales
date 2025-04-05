@@ -13,6 +13,8 @@ export class ReportController {
     private readonly reporteAPService: ReporteActPreviasService
   ) {}
 
+
+//////////////////////////////////////////////MÓDULO DESIGNACIÓN/////////////////////////////////////
   @Public()
   @Get('solicitud')
   async getReport(@Res() res: Response,
@@ -98,22 +100,6 @@ export class ReportController {
 
 
 
-  @Public()
-  @Get('envio-documentacion')
-  async getReporteEnvioDocumentacion(@Res() res: Response,
-  @Query('id_obra') id_obra: number
-
-): Promise<void> {
-    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-  //    'Content-Disposition': 'attachment; filename=report.pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  }  
-
-
 
   @Public()
   @Get('informe-inicial')
@@ -129,7 +115,7 @@ export class ReportController {
   }    
 
 
-  @Public()
+  /* ME reporte vacio @Public()
   @Get('informe-actividades')
   async getReporteInformeActividades(@Res() res: Response,
   @Query('id_obra') id_obra: number
@@ -141,13 +127,32 @@ export class ReportController {
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
-  }    
+  }  */   
 
  
 //////////////////////////////////////////////MÓDULO ACTIVIDADES PREVIAS/////////////////////////////// 
 
+@Public()
+  @Get('envio-documentacion')
+  async getReporteEnvioDocumentacion(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+
+  ): Promise<void> {
+    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra);    
+    res.set({
+    'Content-Type': 'application/pdf',
+//    'Content-Disposition': 'attachment; filename=report.pdf',
+    'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  } 
+
+
+
+
+
   @Public()
-    @Get('ap-actividades_previas_fiscal')
+    @Get('actividades_previas_fiscal')
     async getReporteActPreviasFiscal(@Res() res: Response,
     @Query('id_obra') id_obra: number,
 
