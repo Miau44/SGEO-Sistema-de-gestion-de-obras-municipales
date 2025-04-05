@@ -84,7 +84,7 @@ export class ReporteActPreviasService {
     
         const res = await this.datosReporteEnvio(obra);
         if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-          throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+          throw new Error('No se encontraron datos para la obra.');
         }
         const ressim = await this.datosAdjuntoSim(obra);
     
@@ -92,22 +92,32 @@ export class ReporteActPreviasService {
         this.datosEnvio = res;
         const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
         const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-        const imgPath = 'assets/images/logo_gamlp.png';
+        const imgPath = 'assets/images/membretado_carta.png';
     
         const documentDefinition = {
-          pageSize: 'LEGAL' as any,
-          watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+          pageSize: 'LETTER' as any,
+          background: function(currentPage: any, pageSize: any) { 
+            return {
+                image: imgPath, 
+                width: pageSize.width, 
+                height: pageSize.height,
+                absolutePosition: {x: 0, y: 0}
+                   } },
+          //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
     
           header: {
             columns: [      
             ],
-            margin: [40, 10]
           } as any,
           content: [
             {
-              text: '\n\n\nINFORME.\n\n\n',
+              text: '\n\n\n\n\n\nINFORME\n',
               style: 'header', alignment: 'center'
             } as any,
+            {
+              text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].descpermisodetalle + '-' + 'XX\n\n',
+          style: 'subheader', alignment: 'center'
+            },
             {
               table: {
                 widths: ['15%', '85%'],
@@ -115,16 +125,30 @@ export class ReporteActPreviasService {
                   [
                     { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5] },
                     { 
-                      text: `${this.datosEnvio[0].cod_carpeta}\nJEFE UNIDAD EJECUTORA`, 
-                      style: 'textDato', 
+                      text: [
+                        { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato' },
+                        { text: 'DIRECTOR DE FISCALIZACION DE OBRAS', style: 'textTitulo' }
+                      ],
+                      margin: [0, 5, 0, 5] 
+                    },
+                  ],
+                  [
+                    { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                    { 
+                      text:[
+                        {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
+                        {text: 'JEFE DE UNIDAD', style: 'textTitulo', }
+                      ],
                       margin: [0, 5, 0, 5] 
                     },
                   ],
                   [
                     { text: 'DE:', style: 'textTitulo', margin: [0, 5, 0, 5] },
                     { 
-                      text: `${this.datosEnvio[0].desc_carpeta}\nSUPERVISOR DE OBRA`, 
-                      style: 'textDato', 
+                      text:[
+                        {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
+                        {text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', }
+                      ], 
                       margin: [0, 5, 0, 5] 
                     },
                   ],
@@ -132,7 +156,7 @@ export class ReporteActPreviasService {
                     { text: 'REF:', style: 'textTitulo', margin: [0, 5, 0, 5] },
                     { 
                       text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO', 
-                      style: 'textDato', 
+                      style: 'textTitulo', 
                       margin: [0, 5, 0, 5] 
                     },
                   ],
@@ -162,10 +186,10 @@ export class ReporteActPreviasService {
               text: 'Señor Director:\n\n'+
               'En atención a INFORME DE SUPERVISIÓN OBN-649-2024-ISUP-1' + 
               ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión y en cumplimiento del ARTICULO referido a “ACTIVIDADES DE LA FISCALIZACIÓN PREVIAS AL INICIO DE OBRA EN LAS MODALIDADES DE LICITACIÓN PUBLICA, APOYO NACIONAL A LA PRODUCCIÓN Y EMPLEO, DIRECTA, POR EXCEPCIÓN Y CON FINANCIAMIENTO EXTERNO DONACIÓN” del REGLAMENTO DE SUPERVISIÓN Y FISCALIZACIÓN DE OBRA (RSFO), se emite el presente informe: \n\n',
-              style: 'textDato',
+              style: 'textDato', alignment: 'justify'
             },
             {
-              text: '\n 1.DATOS DE LA OBRA.\n\n',
+              text: '1. DATOS DEL PROYECTO\n\n',
               style: 'subheader',
             },
             {
@@ -193,7 +217,7 @@ export class ReporteActPreviasService {
                   ],
     
                   [
-                    { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+                    { text: [{ text: 'FECHA VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
                     { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
                   ]
                 ]
@@ -201,128 +225,144 @@ export class ReporteActPreviasService {
               //layout: 'noBorders'
             },
             {
-              text: '\n 2.ANÁLISIS.\n\n',
+              text: '\n2. ANÁLISIS\n',
               style: 'subheader',
             },
             {
                 text: '\nEl INFORME DE SUPERVISIÓN OBN-649-2024-ISUP-1'+
                 ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión,'+
                 ' de fecha 25 de julio de 2024, establece:\n',
+                style: 'textDato', alignment:'justify'
+            }, 
+            {
+              text: '\nSiendo que la supervisión de obra, mediante INFORME DE SUPERVISIÓN ' + 'OBN-XXX-XXXX-SUP-X ' + ', INFORME INICIAL DE REVISION DE PROYECTO,' +
+               ' estable claramente que:',
+               style: 'textDato', alignment:'justify'
+            },    
+            {
+                text: '\n- La obra ' + 'SI' + ' cuenta con óbice para proseguir con los procesos correspondientes.\n',
                 style: 'textDato',
             },
             {
-                text: '\nSiendo que la supervisión de obra, mediante INFORME DE SUPERVISIÓN OBN-649-2024-ISUP-1,'+
-                ' INFORME INICIAL DE REVISIÓN DEL PROYECTO, establece claramente que:\n',
-                style: 'textDato',
+                //ME  table: {
+                //     widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
+                //     body: [
+                //         [
+                //             {
+                //                 text: [
+                //                     { text: 'EN CASO DE QUE SEA ', style: 'bold' },
+                //                     { text: 'SÍ '},
+                //                     { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
+                //                 ],
+                //                 alignment: 'center', // Centrar todo el contenido
+                //             }
+                //         ]
+                //     ]
+                // },
+
+                text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
+                style: 'textDato', alignment:'justify'
             },
-            {
-                text: '\n- La obra si/no cuenta con óbice para proseguir con los procesos correspondientes.\n',
-                style: 'textDato',
-            },
-            {
-                table: {
-                    widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
-                    body: [
-                        [
-                            {
-                                text: [
-                                    { text: 'EN CASO DE QUE SEA ', style: 'bold' },
-                                    { text: 'SÍ '},
-                                    { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
-                                ],
-                                alignment: 'center', // Centrar todo el contenido
-                            }
-                        ]
-                    ]
-                },
                 
-            },
-            
-    
             {
-                text: '\n- La obra si/no requiere coordinación con la Unidad Ejecutora\n',
+                text: '\n- La obra ' + 'SI' + ' requiere coordinación con la Unidad Ejecutora\n',
                 style: 'textDato',
             },
             {
-                table: {
-                    widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
-                    body: [
-                        [
-                            {
-                                text: [
-                                    { text: 'EN CASO DE QUE SEA ', style: 'bold' },
-                                    { text: 'SÍ '},
-                                    { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
-                                ],
-                                alignment: 'center', // Centrar todo el contenido
-                            }
-                        ]
-                    ]
-                },
-                
-            },
-    
-            {
-                text: '\n- La obra si/no requiere coordinación con el Sistema de Regulación Municipal (SIREMU).\n',
-                style: 'textDato',
-            },
-            {
-                table: {
-                    widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
-                    body: [
-                        [
-                            {
-                                text: [
-                                    { text: 'EN CASO DE QUE SEA ', style: 'bold' },
-                                    { text: 'SÍ '},
-                                    { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
-                                ],
-                                alignment: 'center', // Centrar todo el contenido
-                            }
-                        ]
-                    ]
-                },
-                
+                // ME table: {
+                //     widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
+                //     body: [
+                //         [
+                //             {
+                //                 text: [
+                //                     { text: 'EN CASO DE QUE SEA ', style: 'bold' },
+                //                     { text: 'SÍ '},
+                //                     { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
+                //                 ],
+                //                 alignment: 'center', // Centrar todo el contenido
+                //             }
+                //         ]
+                //     ]
+                // },
+
+              text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
+              style: 'textDato', alignment:'justify'
             },
     
             {
-              text: '\n 3.CONCLUSIONES.\n',
+                text: '\n- La obra ' + 'SI ' + 'requiere coordinación con el Sistema de Regulación Municipal (SIREMU).\n',
+                style: 'textDato',
+            },
+            {
+                //ME table: {
+                //     widths: ['*'], // Una sola columna que ocupa todo el ancho disponible
+                //     body: [
+                //         [
+                //             {
+                //                 text: [
+                //                     { text: 'EN CASO DE QUE SEA ', style: 'bold' },
+                //                     { text: 'SÍ '},
+                //                     { text: 'HABILITAR CAJÓN DE TEXTO PARA DESCRIBIR', style: 'bold' },
+                //                 ],
+                //                 alignment: 'center', // Centrar todo el contenido
+                //             }
+                //         ]
+                //     ]
+                // },
+                
+                text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
+                style: 'textDato', alignment:'justify'
+            },
+            {
+              text:'\n\n\n\n\n\n\n\n',
+            },
+    
+            {
+              text: '\n 3. CONCLUSIONES\n',
               style: 'subheader',
             },
             {
               text: '\nEn cumplimiento al Reglamento de Supervisión y Fiscalización de Obras y conforme a evaluación del Informe Inicial de Revisión del Proyecto emitido por la Supervisión se concluye'+ 
               'que SI/NO requiere trabajos previos para el inicio de la obra.\n',
-              style: 'textDato',
+              style: 'textDato', alignment:'justify'
             },
     
             {
-              text: '\n 4.RECOMENDACIÓN.\n',
-              style: 'subheader',
+              text: '\n 4. RECOMENDACIÓN\n',
+              style: 'subheader', 
             },
             {
               text: '\nSe recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia tome las acciones que correspondan conforme el Reglamento de Supervisión y Fiscalización de Obras.\n'
                 + '\nEs cuanto afirmo para los fines consiguientes.\n',
-              style: 'textDato',
+              style: 'textDato', alignment:'justify'
             }, 
             {
                 text: [
-                  '\n'+ this.datosEnvio[0].nombre  + '\n' + 'Jefe de Unidad Solicitante',
+                  '\n\n\n\n\n\n'+ this.datosEnvio[0].nombre  + '\n' + 'Jefe de Unidad Solicitante',
                 ],
                 style: 'subheader', alignment: 'center'
               },
             {
               text: [
-                '\n\nCc arch DFO \nCC PIUM \n',
+                '\n\n\n\n\nCc arch DFO \nCC PIUM \n',
               ],
               style: 'footerText'
             },
     
           ],
     
-    
+          footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+          { //return currentPage.toString() + ' of ' + pageCount; 
+            return {
+              columns:[
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                      ]
+              }            
+          } as any,
+
           styles: {
             header: {
-              fontSize: 12,
+              fontSize: 16,
               bold: true,
             },
             subheader: {
@@ -330,7 +370,7 @@ export class ReporteActPreviasService {
               bold: true,
             },
             coloredText: {
-              fontSize: 11,
+              fontSize: 10,
               bold: true,
               color: 'gray', // Cambiar el color del texto a 'blue'
             },
@@ -344,11 +384,11 @@ export class ReporteActPreviasService {
               bold: false,
             },
             textTitulo: {
-              fontSize: 8,
+              fontSize: 9,
               bold: true,
             },
             textDato: {
-              fontSize: 8,
+              fontSize: 9,
               bold: false,
               //color: 'gray', 
               opacity: 0.8,
@@ -360,7 +400,7 @@ export class ReporteActPreviasService {
     
     
           },
-          pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+          pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
     
     
         };
