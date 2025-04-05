@@ -50,7 +50,7 @@ export class ReportService {
   ) { this.printer = new PdfPrinter(fonts); }
 
   private readonly printer = new PdfPrinter(fonts);
-  
+
   private getImageBase64(imagePath: string): string {
     const image = fs.readFileSync(imagePath);
     //-----const image2 = fs.readFileSync(imagePath2);
@@ -64,7 +64,7 @@ export class ReportService {
     return resultado[0];
   }
 
-//SOLICITUD DE DESIGNACION 
+  //SOLICITUD DE DESIGNACION 
   async generatePdf(gestion: number, id: number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(gestion, id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -73,209 +73,213 @@ export class ReportService {
     this.datos = res;
     console.log("Generar1, ", res);
     console.log("Generar2, ", this.datos);
-    console.log("Generar3, ", this.datos.codcarpeta);
     console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
-    console.log("Generar_zona, ", this.datos.zonacarpeta);
+
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
     const imgPath = 'assets/images/membretado_carta.png';
-    
-    const documentDefinition = {
-      pageSize: 'LETTER' as any,
-      //pageMargins: [0, 0, 0, 0], // Elimina los márgenes para que la imagen cubra toda la hoja
-      background: function(currentPage: any, pageSize: any) { 
-            return {
-                image: imgPath, 
-                width: pageSize.width, 
-                height: pageSize.height,
-                absolutePosition: {x: 0, y: 0}
-                   } },
-      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-            
-      header: {
-        columns: [
-          //{ image: imgPath, width: 180 },  // Uso de la ruta de imagen directamente          
-          //   { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-          //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
+    try {
+      const documentDefinition = {
+        pageSize: 'LETTER' as any,
+        //pageMargins: [0, 0, 0, 0], // Elimina los márgenes para que la imagen cubra toda la hoja
+        background: function (currentPage: any, pageSize: any) {
+          return {
+            image: imgPath,
+            width: pageSize.width,
+            height: pageSize.height,
+            absolutePosition: { x: 0, y: 0 }
+          }
+        },
+        //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
-        ],        
-        //ME margin: [40, 10, 20, 10] // [left, top, right, bottom]
-              } as any,
+        header: {
+          columns: [
+            //{ image: imgPath, width: 180 },  // Uso de la ruta de imagen directamente          
+            //   { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+            //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+            //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+            // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
+
+          ],
+          //ME margin: [40, 10, 20, 10] // [left, top, right, bottom]
+        } as any,
 
         /* ME footer: function(currentPage:any, pageCount: any) { 
         return {
           text: currentPage.toString() + ' de ' + pageCount,
           fontSize: 8, // Reducir el tamaño de la fuente
                }; }, */
-               
-      content: [
 
-        {
-          text: '\n\n\n\n\nFORMULARIO SOLICITUD DE ' + this.datos[0].descpermiso + '\n',
-          style: 'header', alignment: 'center'
-        } as any,
-        {
-          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
-          style: 'subheader', alignment: 'center'
-        },
-        {
-          text: 'DATOS DE PROYECTO \n\n',
-          style: 'textTitulo',
-        },
-        {
-          table: {
-            widths: ['*', 400],
-            body: [
-              [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
-              ],
+        content: [
 
-              [
-                { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
-              ],
-              [
-                { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
-              ],
-              [
-                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
-              ],
-              [
-                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
-              ],
-            ]
+          {
+            text: '\n\n\n\n\nFORMULARIO SOLICITUD DE ' + this.datos[0].descpermiso + '\n',
+            style: 'header', alignment: 'center'
+          } as any,
+          {
+            text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
+            style: 'subheader', alignment: 'center'
           },
-        layout: 'noBorders'
-        },
-        {
-          table: {
-            widths: ['*', 330],
-            body: [
-              [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ],
-            ]
+          {
+            text: 'DATOS DE PROYECTO \n\n',
+            style: 'textTitulo',
           },
-          layout: 'lightHorizontalLines'
-        },
+          {
+            table: {
+              widths: ['*', 400],
+              body: [
+                [
+                  { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
+                  { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+                ],
 
-        {
-          table: {
-            widths: ['*', 400],
-            body: [
-              [
-                { text: [{ text: 'Personal propuesto:', style: 'textDato' },] },
-                { text: [{ text: '\n\n', style: 'textDato' }], }
-              ], 
-              [
-                { text: [{ text: '\n\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].profesiondetalle + this.datos[0].nombre + this.datos[0].primerapellido + this.datos[0].segundoapellido, style: 'textDato' }] },
-              ],
-            ]
+                [
+                  { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
+                  { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
+                ],
+                [
+                  { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                  { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                ],
+                [
+                  { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
+                  { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
+                ],
+                [
+                  { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
+                  { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
+                ],
+              ]
+            },
+            layout: 'noBorders'
           },
-          layout: 'noBorders'
+          {
+            table: {
+              widths: ['*', 330],
+              body: [
+                [
+                  { text: [{ text: '\n', style: 'textTitulo' },] },
+                  { text: [{ text: '\n', style: 'textDato' }], }
+                ], [
+                  { text: [{ text: '\n', style: 'textTitulo' },] },
+                  { text: [{ text: '\n', style: 'textDato' }], }
+                ],
+              ]
+            },
+            layout: 'lightHorizontalLines'
+          },
 
-        },
-        {
-          text: [
-            '\n\n\n\n\n\n\n\n\n\n\n' ],
-        },
+          {
+            table: {
+              widths: ['*', 400],
+              body: [
+                [
+                  { text: [{ text: 'Personal propuesto:', style: 'textDato' },] },
+                  { text: [{ text: '\n\n', style: 'textDato' }], }
+                ],
+                [
+                  { text: [{ text: '\n\n', style: 'textTitulo' },] },
+                  { text: [{ text: this.datos[0].profesiondetalle + this.datos[0].nombre + this.datos[0].primerapellido + this.datos[0].segundoapellido, style: 'textDato' }] },
+                ],
+              ]
+            },
+            layout: 'noBorders'
 
-        {
-          text: [ this.datos[0].aprobador ],
-          style: 'textDato', alignment: 'center'
-        },
-        {
-          text: ['JEFE DE UNIDAD' ],
-          stye: 'textDato', alignment: 'center'
-        },
-        {
-          text: [
-            '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
-          ],
-          style: 'footerText'
-        } as any,
+          },
+          {
+            text: [
+              '\n\n\n\n\n\n\n\n\n\n\n'],
+          },
 
-      ],
-
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                      ]
-              }            
+          {
+            text: [this.datos[0].aprobador],
+            style: 'textDato', alignment: 'center'
+          },
+          {
+            text: ['JEFE DE UNIDAD'],
+            stye: 'textDato', alignment: 'center'
+          },
+          {
+            text: [
+              '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
+            ],
+            style: 'footerText'
           } as any,
 
-      styles: {
-        header: {
-          fontSize: 18,
-          bold: true,
-        },
-        subheader: {
-          fontSize: 12,
-          bold: true,
-        },
-        coloredText: {
-          fontSize: 10,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        coloredTextgray: {
-          fontSize: 14,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        footerText: {
-          fontSize: 6,
-          bold: false,
-        },
-        textTitulo: {
-          fontSize: 9,
-          bold: true,
-        },
-        textDato: {
-          fontSize: 9,
-          bold: false,
-          //color: 'gray', 
-          opacity: 0.8,
-        },
-      },
-      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+        ],
 
-    };
+        footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+          return {
+            columns: [
+              { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+            ]
+          }
+        } as any,
 
-    // Generar el PDF en memoria
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+        styles: {
+          header: {
+            fontSize: 18,
+            bold: true,
+          },
+          subheader: {
+            fontSize: 12,
+            bold: true,
+          },
+          coloredText: {
+            fontSize: 10,
+            bold: true,
+            color: 'gray', // Cambiar el color del texto a 'blue'
+          },
+          coloredTextgray: {
+            fontSize: 14,
+            bold: true,
+            color: 'gray', // Cambiar el color del texto a 'blue'
+          },
+          footerText: {
+            fontSize: 6,
+            bold: false,
+          },
+          textTitulo: {
+            fontSize: 9,
+            bold: true,
+          },
+          textDato: {
+            fontSize: 9,
+            bold: false,
+            //color: 'gray', 
+            opacity: 0.8,
+          },
+        },
+        pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
-    return new Promise<Buffer>((resolve, reject) => {
-      pdfDoc.on('data', (chunk) => {
-        chunks.push(chunk);
+      };
+
+      // Generar el PDF en memoria
+      const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+      let chunks: Buffer[] = [];
+
+      return new Promise<Buffer>((resolve, reject) => {
+        pdfDoc.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+        pdfDoc.on('end', () => {
+          const result = Buffer.concat(chunks);
+          resolve(result);
+        });
+        pdfDoc.end();
       });
-      pdfDoc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      pdfDoc.end();
-    });
+
+    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+      throw new Error('Error al generar el PDF: ' + error);
+    }
   }
 
 
 
-//GENERAR MEMORANDUM SOLICITUD
+  //GENERAR MEMORANDUM SOLICITUD
   async generateMemo(gestion: number, id: number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(gestion, id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -290,13 +294,14 @@ export class ReportService {
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      background: function(currentPage: any, pageSize: any) { 
+      background: function (currentPage: any, pageSize: any) {
         return {
-            image: imgPath, 
-            width: pageSize.width, 
-            height: pageSize.height,
-            absolutePosition: {x: 0, y: 0}
-               } },
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
       //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
@@ -308,7 +313,7 @@ export class ReportService {
           // ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
-    
+
       } as any,
       content: [
 
@@ -322,22 +327,24 @@ export class ReportService {
         },
         {
           table: {
-            widths: ['*','*'],
+            widths: ['*', '*'],
             body: [
               [
-                { border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), 
+                {
+                  border: [false, false, true, true],
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion),
                   style: 'textTitulo', alignment: 'center'
-                
+
                 },
-                { border: [true, false, false, true],
-                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ', 
+                {
+                  border: [true, false, false, true],
+                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ',
                   style: 'textTitulo', alignment: 'left'
                 },
               ],
             ]
           },
-          
+
         },
         {
           text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].descpermiso + ' DE OBRA \n\n',
@@ -413,51 +420,50 @@ export class ReportService {
 
       ],
 
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                      ]
-              }            
-          } as any,
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+        return {
+          columns: [
+            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+          ]
+        }
+      } as any,
 
-          styles: {
-            header: {
-              fontSize: 25,
-              bold: true,
-            },
-            subheader: {
-              fontSize: 12,
-              bold: true,
-            },
-            coloredText: {
-              fontSize: 10,
-              bold: true,
-              //color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            coloredTextgray: {
-              fontSize: 14,
-              bold: true,
-              color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            footerText: {
-              fontSize: 6,
-              bold: false,
-            },
-            textTitulo: {
-              fontSize: 10,
-              bold: true,
-            },
-            textDato: {
-              fontSize: 9,
-              bold: false,
-              //color: 'gray', 
-              opacity: 0.8,
-            },
-          },
+      styles: {
+        header: {
+          fontSize: 25,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 12,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 10,
+          bold: true,
+          //color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        coloredTextgray: {
+          fontSize: 14,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+        textTitulo: {
+          fontSize: 10,
+          bold: true,
+        },
+        textDato: {
+          fontSize: 9,
+          bold: false,
+          //color: 'gray', 
+          opacity: 0.8,
+        },
+      },
       pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-     
+
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
@@ -477,185 +483,185 @@ export class ReportService {
 
 
 
-//SOLICITUD DE REEMPLAZO
-async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
-  const res = await this.datosGeneralesReporte(gestion, id);
-  if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-    throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
-  }
-  this.datos = res;
-  
-  //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
-  //ME const imgPath = 'assets/images/logo_gamlp.png';
-  const imgPath = 'assets/images/membretado_carta.png';
+  //SOLICITUD DE REEMPLAZO
+  async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
+    const res = await this.datosGeneralesReporte(gestion, id);
+    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+    }
+    this.datos = res;
 
-  const documentDefinition = {
-    pageSize: 'LETTER' as any,
-    background: function(currentPage: any, pageSize: any) { 
-      return {
-          image: imgPath, 
-          width: pageSize.width, 
+    //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
+    //ME const imgPath = 'assets/images/logo_gamlp.png';
+    const imgPath = 'assets/images/membretado_carta.png';
+
+    const documentDefinition = {
+      pageSize: 'LETTER' as any,
+      background: function (currentPage: any, pageSize: any) {
+        return {
+          image: imgPath,
+          width: pageSize.width,
           height: pageSize.height,
-          absolutePosition: {x: 0, y: 0}
-             } },
-    //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
+      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
-    header: {
-      columns: [
-        //ME { image: imgPath, width: 180, alignment: 'left' },  // Uso de la ruta de imagen directamente          
-        //   { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-        //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-        //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-        // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
-      ],
-      
-    } as any,
-    content: [
-
-      {
-        text: '\n\n\n\n\n\FORMULARIO SOLICITUD DE REEMPLAZO ' + this.datos[0].descpermiso + '\n',
-        style: 'header', alignment: 'center'
-      } as any,
-      {
-        text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
-        style: 'subheader', alignment: 'center'
-      },
-      {
-        text: 'DATOS DE PROYECTO \n\n',
-        style: 'textTitulo',
-      },
-      {
-        table: {
-          widths: ['*', 400],
-          body: [
-            [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-              { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
-            ],
-
-            [
-              { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-              { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
-            ],
-            [
-              { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-            [
-              { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-              { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
-            ],
-            [
-              { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-          ]
-        },
-      layout: 'noBorders'
-      },
-      {
-        table: {
-          widths: ['*', 330],
-          body: [
-            [
-              { text: [{ text: '\n', style: 'textTitulo' },] },
-              { text: [{ text: '\n', style: 'textDato' }], }
-            ], [
-              { text: [{ text: '\n', style: 'textTitulo' },] },
-              { text: [{ text: '\n', style: 'textDato' }], }
-            ],
-          ]
-        },
-        layout: 'lightHorizontalLines'
-      },
-
-      {
-        text: 'Solicito la designación del (la) ' + this.datos[0].nombre + ' como ' + this.datos[0].descpermiso + ', en reemplazo del (la) ' + this.datos[0].personaareemplazar + '.',
-        style: 'textDato', alignment: 'justify'
-      },
-      {
-        text: [
-          '\n\n\n\n\n\n\n\n\n\n\n\n\n\n' ],
-      },
-
-      {
-        text: [ this.datos[0].aprobador ],
-        style: 'textDato', alignment: 'center'
-      },
-      {
-        text: ['JEFE DE UNIDAD' ],
-        stye: 'subheader', alignment: 'center'
-      },
-      {
-        text: [
-          '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
+      header: {
+        columns: [
+          //ME { image: imgPath, width: 180, alignment: 'left' },  // Uso de la ruta de imagen directamente          
+          //   { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+          //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
+          //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
         ],
-        style: 'footerText'
-      },
 
-    ],
+      } as any,
+      content: [
 
-    footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                      ]
-              }            
-          } as any,
+        {
+          text: '\n\n\n\n\n\FORMULARIO SOLICITUD DE REEMPLAZO ' + this.datos[0].descpermiso + '\n',
+          style: 'header', alignment: 'center'
+        } as any,
+        {
+          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
+          style: 'subheader', alignment: 'center'
+        },
+        {
+          text: 'DATOS DE PROYECTO \n\n',
+          style: 'textTitulo',
+        },
+        {
+          table: {
+            widths: ['*', 400],
+            body: [
+              [
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
+                { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+              ],
 
-          styles: {
-            header: {
-              fontSize: 18,
-              bold: true,
-            },
-            subheader: {
-              fontSize: 12,
-              bold: true,
-            },
-            coloredText: {
-              fontSize: 10,
-              bold: true,
-              color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            coloredTextgray: {
-              fontSize: 14,
-              bold: true,
-              color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            footerText: {
-              fontSize: 6,
-              bold: false,
-            },
-            textTitulo: {
-              fontSize: 9,
-              bold: true,
-            },
-            textDato: {
-              fontSize: 9,
-              bold: false,
-              //color: 'gray', 
-              opacity: 0.8,
-            },
+              [
+                { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
+                { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
+              ],
+              [
+                { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+              [
+                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
+                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
+              ],
+              [
+                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+            ]
           },
-        pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+          layout: 'noBorders'
+        },
+        {
+          table: {
+            widths: ['*', 330],
+            body: [
+              [
+                { text: [{ text: '\n', style: 'textTitulo' },] },
+                { text: [{ text: '\n', style: 'textDato' }], }
+              ], [
+                { text: [{ text: '\n', style: 'textTitulo' },] },
+                { text: [{ text: '\n', style: 'textDato' }], }
+              ],
+            ]
+          },
+          layout: 'lightHorizontalLines'
+        },
 
-  };
-  // Generar el PDF en memoria
-  const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+        {
+          text: 'Solicito la designación del (la) ' + this.datos[0].nombre + ' como ' + this.datos[0].descpermiso + ', en reemplazo del (la) ' + this.datos[0].personaareemplazar + '.',
+          style: 'textDato', alignment: 'justify'
+        },
+        {
+          text: [
+            '\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
+        },
 
-  return new Promise<Buffer>((resolve, reject) => {
-    pdfDoc.on('data', (chunk) => {
-      chunks.push(chunk);
+        {
+          text: [this.datos[0].aprobador],
+          style: 'textDato', alignment: 'center'
+        },
+        {
+          text: ['JEFE DE UNIDAD'],
+          stye: 'subheader', alignment: 'center'
+        },
+        {
+          text: [
+            '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
+          ],
+          style: 'footerText'
+        },
+
+      ],
+
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+        return {
+          columns: [
+            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+          ]
+        }
+      } as any,
+
+      styles: {
+        header: {
+          fontSize: 18,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 12,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 10,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        coloredTextgray: {
+          fontSize: 14,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+        textTitulo: {
+          fontSize: 9,
+          bold: true,
+        },
+        textDato: {
+          fontSize: 9,
+          bold: false,
+          //color: 'gray', 
+          opacity: 0.8,
+        },
+      },
+      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+    };
+    // Generar el PDF en memoria
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    let chunks: Buffer[] = [];
+
+    return new Promise<Buffer>((resolve, reject) => {
+      pdfDoc.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      pdfDoc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      pdfDoc.end();
     });
-    pdfDoc.on('end', () => {
-      const result = Buffer.concat(chunks);
-      resolve(result);
-    });
-    pdfDoc.end();
-  });
-}
+  }
 
 
 
@@ -675,13 +681,14 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      background: function(currentPage: any, pageSize: any) { 
+      background: function (currentPage: any, pageSize: any) {
         return {
-            image: imgPath, 
-            width: pageSize.width, 
-            height: pageSize.height,
-            absolutePosition: {x: 0, y: 0}
-               } },
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
       //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
@@ -692,7 +699,7 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
           // ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
-      
+
       } as any,
       content: [
 
@@ -706,22 +713,24 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
         },
         {
           table: {
-            widths: ['*','*'],
+            widths: ['*', '*'],
             body: [
               [
-                { border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion), 
+                {
+                  border: [false, false, true, true],
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion),
                   style: 'textTitulo', alignment: 'center'
-                
+
                 },
-                { border: [true, false, false, true],
-                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ', 
+                {
+                  border: [true, false, false, true],
+                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ',
                   style: 'textTitulo', alignment: 'left'
                 },
               ],
             ]
           },
-         
+
         },
         {
           text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].descpermiso + ' DE OBRA \n\n',
@@ -797,49 +806,48 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
 
       ],
 
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                      ]
-              }            
-          } as any,
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+        return {
+          columns: [
+            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+          ]
+        }
+      } as any,
 
-          styles: {
-            header: {
-              fontSize: 25,
-              bold: true,
-            },
-            subheader: {
-              fontSize: 12,
-              bold: true,
-            },
-            coloredText: {
-              fontSize: 10,
-              bold: true,
-              //color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            coloredTextgray: {
-              fontSize: 14,
-              bold: true,
-              color: 'gray', // Cambiar el color del texto a 'blue'
-            },
-            footerText: {
-              fontSize: 6,
-              bold: false,
-            },
-            textTitulo: {
-              fontSize: 10,
-              bold: true,
-            },
-            textDato: {
-              fontSize: 9,
-              bold: false,
-              //color: 'gray', 
-              opacity: 0.8,
-            },
-          },
+      styles: {
+        header: {
+          fontSize: 25,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 12,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 10,
+          bold: true,
+          //color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        coloredTextgray: {
+          fontSize: 14,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+        textTitulo: {
+          fontSize: 10,
+          bold: true,
+        },
+        textDato: {
+          fontSize: 9,
+          bold: false,
+          //color: 'gray', 
+          opacity: 0.8,
+        },
+      },
       pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
@@ -863,43 +871,46 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
 
   //SOLICITUD DE BAJA
 
-  async generateSolicitudBaja(gestion: number, id: number): Promise<Buffer>{
+  async generateSolicitudBaja(gestion: number, id: number): Promise<Buffer> {
 
     const res = await this.datosGeneralesReporte(gestion, id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la gestion y el ID proporcionados.');
     }
-        
+
     this.datos = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_carta.png';
-    
+
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      background: function(currentPage: any, pageSize: any) { 
+      background: function (currentPage: any, pageSize: any) {
         return {
-            image: imgPath, 
-            width: pageSize.width, 
-            height: pageSize.height,
-            absolutePosition: {x: 0, y: 0}
-               } },
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
 
       header: {
         columns: [
           // Columna del texto centrado
-         
+
         ],
-      
+
       } as any,
 
       content: [
         {
-              stack: [
-                { text: '\n\n\n\n\nFORMULARIO SOLICITUD DE BAJA '+ this.datos[0].descpermiso + '\n',
-                  style: 'header', alignment: 'center' },
-              ] as any,
-              
+          stack: [
+            {
+              text: '\n\n\n\n\nFORMULARIO SOLICITUD DE BAJA ' + this.datos[0].descpermiso + '\n',
+              style: 'header', alignment: 'center'
+            },
+          ] as any,
+
         } as any,
         {
           text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '\n\n\n',
@@ -909,7 +920,7 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
           text: 'DATOS DE PROYECTO \n\n',
           style: 'textTitulo',
         },
-        
+
         {
           table: {
             widths: ['*', 400],
@@ -925,7 +936,7 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo'},], fillColor: '#dddddd' },
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
                 { text: [{ text: this.datos[0].zonacarpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
               [
@@ -938,7 +949,7 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
               ],
             ]
           },
-        layout: 'noBorders'
+          layout: 'noBorders'
         },
         {
           table: {
@@ -960,7 +971,7 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
           style: 'textDato',
         },
         {
-          text: [ this.datos[0].aprobador + '\n\n' ],
+          text: [this.datos[0].aprobador + '\n\n'],
           style: 'textDato'
         },
         {
@@ -1022,15 +1033,15 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
         },
         {
           text: [
-            '\n\n\n\n\n\n' ],
+            '\n\n\n\n\n\n'],
         },
 
         {
-          text: [ this.datos[0].aprobador ],
+          text: [this.datos[0].aprobador],
           style: 'textDato', alignment: 'center'
         },
         {
-          text: ['JEFE DE UNIDAD' ],
+          text: ['JEFE DE UNIDAD'],
           stye: 'subheader', alignment: 'center'
         },
 
@@ -1044,13 +1055,12 @@ async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
 
       ],
 
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-      { //return currentPage.toString() + ' of ' + pageCount; 
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
         return {
-          columns:[
-              { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                  ]
-          }            
+          columns: [
+            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+          ]
+        }
       } as any,
 
       styles: {
@@ -1154,7 +1164,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     return resultado[0];
     console.log('preguntasInforme', resultado[0]);
 
-  }  
+  }
 
   async generateEnvioDoc(obra: number): Promise<Buffer> {
 
@@ -1173,13 +1183,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      background: function(currentPage: any, pageSize: any) { 
+      background: function (currentPage: any, pageSize: any) {
         return {
-            image: imgPath, 
-            width: pageSize.width, 
-            height: pageSize.height,
-            absolutePosition: {x: 0, y: 0}
-               } },
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
       //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
@@ -1268,10 +1279,10 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           },
         }, */
 
-       /* ME {
-          text: 'Documentación Complementaría \n',
-          style: 'textTitulo',
-        },  */
+        /* ME {
+           text: 'Documentación Complementaría \n',
+           style: 'textTitulo',
+         },  */
 
         {
           table: {
@@ -1298,7 +1309,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
 
         {
-          text: 'Fecha de Envío: ' + this.datosEnvio[0].fecha_modificacion ,
+          text: 'Fecha de Envío: ' + this.datosEnvio[0].fecha_modificacion,
           style: 'textDato',
         },
 
@@ -1322,13 +1333,12 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       ],
 
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-      { //return currentPage.toString() + ' of ' + pageCount; 
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
         return {
-          columns:[
-              { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                  ]
-          }            
+          columns: [
+            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+          ]
+        }
       } as any,
 
       styles: {
@@ -1399,7 +1409,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
       throw new Error('No se encontraron datos para la obra y 1.');
     }
-    
+
     const res3 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
       throw new Error('No se encontraron datos para la obra y 2');
@@ -1408,9 +1418,9 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const res4 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
       throw new Error('No se encontraron datos para la obra y 3');
-    }    
-  
-    this.datosPreguntaInforme = res2;    
+    }
+
+    this.datosPreguntaInforme = res2;
     this.datosPreguntaInformeRestante = res3;
     this.datosEnvio = res;
 
@@ -1449,45 +1459,45 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     
           } as any,*/
 
-  /*    header: {
-        table: {
-          widths: ['70%', '30%'], // Proporciones de las columnas
-          body: [
-            // Primera fila: Imagen a la izquierda
-            [
-              {
-                image: imgPath,
-                width: 60,
-                alignment: 'right',
-                margin: [0, 10, 0, 0] // Asegura que la imagen no esté pegada al borde superior
-              },
-              { text: '', border: [false, false, false, false] } // Celda vacía para ajuste
-            ],
-            // Segunda fila: Línea + Texto de título
-            [
-              {
-                colSpan: 2, // Combina las dos columnas
-                fillColor: '#dddddd', // Fondo gris claro
-                margin: [0, 5, 0, 10], // Ajusta los márgenes alrededor de la línea y el texto
-                stack: [
+      /*    header: {
+            table: {
+              widths: ['70%', '30%'], // Proporciones de las columnas
+              body: [
+                // Primera fila: Imagen a la izquierda
+                [
                   {
-                    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.1 }] // Línea horizontal
+                    image: imgPath,
+                    width: 60,
+                    alignment: 'right',
+                    margin: [0, 10, 0, 0] // Asegura que la imagen no esté pegada al borde superior
                   },
+                  { text: '', border: [false, false, false, false] } // Celda vacía para ajuste
+                ],
+                // Segunda fila: Línea + Texto de título
+                [
                   {
-                    text: 'Título del Informe',
-                    style: 'headerTitle',
-                    alignment: 'center',
-                    margin: [0, 5, 0, 0] // Espaciado debajo de la línea
-                  }
+                    colSpan: 2, // Combina las dos columnas
+                    fillColor: '#dddddd', // Fondo gris claro
+                    margin: [0, 5, 0, 10], // Ajusta los márgenes alrededor de la línea y el texto
+                    stack: [
+                      {
+                        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.1 }] // Línea horizontal
+                      },
+                      {
+                        text: 'Título del Informe',
+                        style: 'headerTitle',
+                        alignment: 'center',
+                        margin: [0, 5, 0, 0] // Espaciado debajo de la línea
+                      }
+                    ]
+                  },
+                  {} // Celda vacía requerida por colSpan
                 ]
-              },
-              {} // Celda vacía requerida por colSpan
-            ]
-          ]
-        },
-        layout: 'noBorders', // Sin bordes en la tabla
-        margin: [0, 0, 0, 10] // Márgenes generales del encabezado
-      } as any,*/
+              ]
+            },
+            layout: 'noBorders', // Sin bordes en la tabla
+            margin: [0, 0, 0, 10] // Márgenes generales del encabezado
+          } as any,*/
 
       header: {
         table: {
@@ -1539,7 +1549,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
         margin: [0, 0, 0, 10] // Márgenes externos de la cabecera
       } as any,
-  
+
       content: [
         {
           text: '\n\n\nINFORME\n\n\n',
@@ -1575,7 +1585,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
         {
           text: [
-            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + this.datosEnvio[0].desc_carpeta+ ' mediante Memorándum(s) XXX y YYY, de fecha DD/MM/AA/ y DD/MM/AA correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + this.datosEnvio[0].desc_carpeta + ' mediante Memorándum(s) XXX y YYY, de fecha DD/MM/AA/ y DD/MM/AA correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
           ],
           style: 'textDato'
         },
@@ -1624,7 +1634,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           table: {
             widths: ['*', 50],
             body: [
-              ...this.buildPreguntaPadre(this.datosPreguntaInforme),              
+              ...this.buildPreguntaPadre(this.datosPreguntaInforme),
             ]
           },
           layout: 'noBorders'
@@ -1653,25 +1663,25 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
               ...this.buildDocumentosSIM(this.datosSIM)
             ]
           },
-        },        
+        },
         {
           text: '\n5. RECOMENDACIONES \n\n',
           style: 'subheader',
         },
-     
+
         [
           {
             table: {
               widths: [435, 50],
               body: [
-             
-                ...this.buildPreguntas (this.datosPreguntaInformeRestante)                
+
+                ...this.buildPreguntas(this.datosPreguntaInformeRestante)
               ],
             },
-          
+
           },
-        ], 
-        
+        ],
+
         {
           text: '\n\n'
         },
@@ -1685,7 +1695,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                   { text: '*** POR LO QUE UNA COPIA DE ESTE INFORME DEBE SER REMITIDO A: A la Fiscalización de la Obra para su remisión a las Unidades Organizacionales requeridas (en caso corresponda).', style: 'textDato', fillColor: '#dddddd' },
                   { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
                 ],
-                
+
                 [
                   { text: 'La Dirección de Fiscalización de Obras para solicitar su coordinación con SIREMU en la ejecución del proyecto.', style: 'textDato', fillColor: '#dddddd' },
                   { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
@@ -1693,7 +1703,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
               ],
             },
-          
+
           },
         ],
 
@@ -1796,7 +1806,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
   //     /*  header: {
   //         columns: [
   //           { image: imgPath, width: 120 },            
-    
+
   //          // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
   //           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
   //           //     { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
@@ -1815,7 +1825,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
   //          text: 'DATOS DE PROYECTO. \n\n',
   //          style: 'subheader',
   //        },
-       
+
   //        {
   //          text: [
   //            '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
@@ -1886,7 +1896,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
 
-//FUNCIONES PARA CONSTRUIR 
+  //FUNCIONES PARA CONSTRUIR 
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -1954,16 +1964,16 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     return arrayData;
   }
 
-  
+
   buildPreguntaPadre(data: any) {
     let groupedData = data.reduce((acc: any, item: any) => {
       if (!acc[item.padre]) {
         acc[item.padre] = {
-          desc_padre: item.desc_padre, 
+          desc_padre: item.desc_padre,
           items: [],
         };
       }
-      acc[item.padre].items.push(item); 
+      acc[item.padre].items.push(item);
       return acc;
     }, {});
 
@@ -1977,10 +1987,12 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           table: {
             body: [
               [
-                { text:
-                   [{ text: padre+': \n', style: 'textTitulo',  alignment: 'center',  margin: [0, 5, 0, 5]},
-                    { text: desc_padre +':\n', style: 'textDato',  margin: [0, 5, 0, 5]}], fillColor: '#f0f0f0',},   
-              ],                    
+                {
+                  text:
+                    [{ text: padre + ': \n', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 5] },
+                    { text: desc_padre + ':\n', style: 'textDato', margin: [0, 5, 0, 5] }], fillColor: '#f0f0f0',
+                },
+              ],
               // Segunda fila: Tabla de preguntas agrupadas por `padre`
               [
                 {
@@ -1994,7 +2006,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                       // Preguntas agrupadas
                       ...preguntas.map((pregunta: any) => [
                         { text: pregunta.desc_subtipo, style: 'textDato' },
-                        { text: pregunta.opcion , style: 'textDato', alignment: 'center' },
+                        { text: pregunta.opcion, style: 'textDato', alignment: 'center' },
                       ]),
                     ],
                   },
