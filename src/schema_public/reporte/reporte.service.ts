@@ -71,11 +71,11 @@ export class ReportService {
       throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
     }
     this.datos = res;
-    console.log("Generar, ", res);
-    console.log("Generar, ", this.datos);
-    console.log("Generar, ", this.datos.codcarpeta);
+    console.log("Generar1, ", res);
+    console.log("Generar2, ", this.datos);
+    console.log("Generar3, ", this.datos.codcarpeta);
     console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
-    console.log("Generar, ", this.datos.zonacarpeta);
+    console.log("Generar_zona, ", this.datos.zonacarpeta);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
