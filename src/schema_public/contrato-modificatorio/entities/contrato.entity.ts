@@ -5,8 +5,12 @@ export class Contrato {
   @PrimaryGeneratedColumn()
   id_contrato: number;
 
-  @Column({ type: 'int', nullable: true })
-  id_carpeta: number;
+  @Column({ type: 'int' })
+  correlativo_carpeta: number;
+
+  @Column({ nullable: true })
+  cuse: string;
+
 
   @Column({ type: 'varchar', nullable: true })
   cod_carpeta: string;

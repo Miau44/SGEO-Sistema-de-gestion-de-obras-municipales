@@ -9,9 +9,6 @@ export class CreateFichaDto {
     nombre_ue: string;
     
     @ApiProperty()
-    cod_poa: number;
-    
-    @ApiProperty()
     correlativo_carpeta: number;
     
     @ApiProperty()
@@ -61,7 +58,4 @@ export class CreateFichaDto {
     
     @ApiProperty()
     id_estado: number;
-    
-    @ApiProperty()
-    id_carpeta: number;
 }
