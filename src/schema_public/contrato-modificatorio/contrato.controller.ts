@@ -4,6 +4,7 @@ import { Contrato } from './entities/contrato.entity';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateContratoDto } from './dto/create-contrato.dto';
+import { ContratoDlcDto } from './dto/contrato-dlc.dto';
 
 @ApiTags('Contrato')
 @Controller('contrato')
@@ -37,8 +38,8 @@ export class ContratoController {
   // //@UseGuards(AuthGuard('jwt'))  // Descomenta esta línea si deseas usar autenticación JWT
   @ApiOperation({ summary: 'registrar_contrato un nuevo contrato modificatorio' })
    @ApiResponse({ status: 201, description: 'registrar_contrato Contrato creado con éxito.' })
-   registrar_contrato(@Body() createContratoModificatorioDto:CreateContratoDto) {
-     return this.contratoService.registrar_contrato(createContratoModificatorioDto);
+   registrar_contrato(@Body() contratoDlc:ContratoDlcDto) {
+     return this.contratoService.registrar_contrato_modificatorio(contratoDlc);
    }
 
   // @Post()

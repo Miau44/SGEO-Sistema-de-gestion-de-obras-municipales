@@ -15,9 +15,6 @@ export class CreateFichaItemDto {
     
     @ApiProperty()
     correlativo_carpeta: number;
-    
-    @ApiProperty()
-    id_carpeta: number;
 
     @ApiProperty()  // carpeta
     desc_carpeta: string;
@@ -25,7 +22,7 @@ export class CreateFichaItemDto {
     @ApiProperty()
     cod_estado_carpeta: number;
     
-    @ApiProperty()
+    @ApiProperty({nullable: true})
     fecha_validacion_carpeta: Date;
     
     @ApiProperty()

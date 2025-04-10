@@ -5,7 +5,6 @@ import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { EstructuraFichaDto } from './dto/estructura-fichaDto';
 import { ResponseService } from 'src/response.service';
 import { Public } from 'src/common/decorators/public.decorator';
-import { TipoObraModDto } from './dto/tipo-obra-modalidad.dto';
 
 
 
@@ -44,11 +43,11 @@ export class FichaController {
     return this.fichaService.update(+id, updateFichaDto);
   }
 
-  @Public()
-  @Patch(':id_ficha')
-  actualizar(@Param('id_ficha') id_ficha: string, @Body() tipoObraModDto: TipoObraModDto) {
-    return this.fichaService.actualizar(+id_ficha, tipoObraModDto);
-  }  
+  // @Public()
+  // @Patch(':id_ficha')
+  // actualizar(@Param('id_ficha') id_ficha: string, @Body() tipoObraModDto: TipoObraModDto) {
+  //   return this.fichaService.actualizar(+id_ficha, tipoObraModDto);
+  // }  
 
   @Delete(':id')
   remove(@Param('id') id: string) {

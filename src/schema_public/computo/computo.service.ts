@@ -404,7 +404,7 @@ LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_plan
       const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
       //console.log('resultado-resumen', resultado);
       for (const itemres of resultado) {
-        // console.log('imprimir item', itemres);
+ 
 
 
         await this.planillaService.actualizarJustificacionXItem({

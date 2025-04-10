@@ -124,7 +124,7 @@ export class InformeService {
       WHERE id_informe = $2) AS sub
       ) AS c ON pp.id_subtipo = c.id_subtipo
       WHERE pp.id_tipo = 21 AND pp.id_padre = $1
-      ORDER BY pp.id_subtipo ASC;; `;
+      ORDER BY pp.id_subtipo ASC; `;
       }
       else {
 
@@ -144,7 +144,7 @@ export class InformeService {
       (f.x ->> 'opcion')::integer AS opcion,
       f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
       jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 ) AS t2
-      ON t1.idsubtipo = t2.opcion AND t1.idpadre = t2.id_padre ) AS ijson   ON de.id_subtipo = ijson.idsubtipo; `;
+      ON t1.idsubtipo = t2.opcion AND t1.idpadre = t2.id_padre ) AS ijson   ON de.id_subtipo = ijson.idsubtipo    ORDER BY de.id_subtipo ASC `;
       }
       const params = [data.padre, data.informe];
       const resultado: any[] = await this.informeRepositorio.query(query, params);

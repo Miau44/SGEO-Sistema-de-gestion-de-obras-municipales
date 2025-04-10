@@ -10,9 +10,6 @@ export class Ficha {
     desc_cod_ue:number;
 
     @Column()
-    cod_poa:number;
-
-    @Column()
     correlativo_carpeta: number;
 
     @Column()
@@ -21,14 +18,14 @@ export class Ficha {
     @Column()
     cod_estado_carpeta: number;
 
-    @Column()
+    @Column({nullable:true})
     fecha_validacion_carpeta: Date;    
 
     @Column("decimal",{ precision: 10, scale: 2 })
     total_carpeta: number;
 
-    @Column({nullable:true})
-    id_carpeta: number;
+    // @Column({nullable:true})
+    // id_carpeta: number;
 
     @Column()
     cod_carpeta: string;
@@ -54,11 +51,11 @@ export class Ficha {
     @Column()
     desc_macrodistrito_carpeta: string; 
    
-    @Column({nullable:true})
-    id_tipo_obra:number;
+    // @Column({nullable:true})
+    // id_tipo_obra:number;
 
-    @Column({nullable:true})
-    id_modalidad: number;    
+    // @Column({nullable:true})
+    // id_modalidad: number;    
 
     @Column()
     usuario_registro: number;
@@ -69,7 +66,7 @@ export class Ficha {
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()', nullable:true})
     fecha_registro: Date
 
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
+    @UpdateDateColumn({nullable:true})
     fecha_modificacion: Date
 
     // Relación con la entidad Obra
