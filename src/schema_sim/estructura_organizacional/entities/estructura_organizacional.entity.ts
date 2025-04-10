@@ -38,7 +38,7 @@ id_estado: number;
 @CreateDateColumn({default: 'NOW()' })
 fecha_registro: Date;
 
-@UpdateDateColumn({  onUpdate: 'NOW()' })
+@UpdateDateColumn({nullable:true})
 fecha_modificacion: Date
 
 @Column({default: 0 } )
