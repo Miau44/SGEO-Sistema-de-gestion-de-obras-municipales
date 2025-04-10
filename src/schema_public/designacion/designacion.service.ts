@@ -256,8 +256,10 @@ export class DesignacionService {
         }
         const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra)
         const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
-
-        const respuestagenera: any = await this.generarSoloSolicitud(AprobarDto.id_obra)
+        let respuestagenera: any;
+        if(AprobarDto.id_estado_flujo === 11)
+        {
+         respuestagenera= await this.generarSoloSolicitud(AprobarDto.id_obra)}
 
         if (respuestagenera) {
           const usuarioDestinoQuery = `
@@ -515,9 +517,10 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
         SELECT id_obra 
         FROM solicitud 
         WHERE id_obra = $1 
-        AND id_estado_general IN (10, 11) 
+        --AND id_estado_general IN (10, 11)        
+        AND id_estado_general IN (11) --fiscal
         GROUP BY id_obra 
-        HAVING COUNT(DISTINCT id_estado_general) = 2`;
+        HAVING COUNT(DISTINCT id_estado_general) = 1`;
         
       const result = await this.DesigRepositorio.query(query, [id_obra]);
   

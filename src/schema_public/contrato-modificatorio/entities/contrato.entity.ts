@@ -5,7 +5,7 @@ export class Contrato {
   @PrimaryGeneratedColumn()
   id_contrato: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true  })
   correlativo_carpeta: number;
 
   @Column({ nullable: true })
