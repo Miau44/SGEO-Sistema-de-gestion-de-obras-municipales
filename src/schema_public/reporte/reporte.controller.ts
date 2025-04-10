@@ -18,10 +18,9 @@ export class ReportController {
   @Public()
   @Get('solicitud')
   async getReport(@Res() res: Response,
-  @Query('gestion') gestion: number, // Primer parámetro de entrada
-  @Query('id') id: number,            // Segundo parámetro de entrada
+  @Query('id') id: number,            //parámetro de entrada
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generatePdf(gestion, id);    
+    const pdfBuffer = await this.reportService.generatePdf(id);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -35,10 +34,9 @@ export class ReportController {
   @Public()
   @Get('memorandum')
   async getReporte(@Res() res: Response,
-  @Query('gestion') gestion: number, // Primer parámetro de entrada
-  @Query('id') id: number,            // Segundo parámetro de entrada
+  @Query('id') id: number,            //parámetro de entrada
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateMemo(gestion, id);    
+    const pdfBuffer = await this.reportService.generateMemo(id);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -52,10 +50,9 @@ export class ReportController {
   @Public()
   @Get('solicitud-reemplazo')
   async getSolicitudReemplazo(@Res() res: Response,
-  @Query('gestion') gestion: number, // Primer parámetro de entrada
-  @Query('id') id: number,            // Segundo parámetro de entrada
+  @Query('id') id: number,            //parámetro de entrada
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateSolReemplazo(gestion, id);    
+    const pdfBuffer = await this.reportService.generateSolReemplazo(id);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -69,10 +66,9 @@ export class ReportController {
   @Public()
   @Get('memorandum-reemplazo')
   async getReporteReemplazo(@Res() res: Response,
-  @Query('gestion') gestion: number, // Primer parámetro de entrada
-  @Query('id') id: number,            // Segundo parámetro de entrada
+  @Query('id') id: number,            //parámetro de entrada
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateMemoReemplazo(gestion, id);    
+    const pdfBuffer = await this.reportService.generateMemoReemplazo(id);    
     res.set({
       'Content-Type': 'application/pdf',
   //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -86,11 +82,9 @@ export class ReportController {
   @Public()
   @Get('solicitud-baja')
   async getReporteSolicitudBaja(@Res() res: Response,
-  //ME @Query('id_obra') id_obra: number
-  @Query('gestion') gestion: number, // Primer parámetro de entrada
-  @Query('id') id: number,            // Segundo parámetro de entrada
+  @Query('id') id: number,            //parámetro de entrada
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateSolicitudBaja(gestion, id);    
+    const pdfBuffer = await this.reportService.generateSolicitudBaja(id);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
@@ -99,46 +93,15 @@ export class ReportController {
   }
 
 
-
-
-  @Public()
-  @Get('informe-inicial')
-  async getReporteInformeInicial(@Res() res: Response,
-  @Query('id_obra') id_obra: number
-): Promise<void> {
-    const pdfBuffer = await this.reportService.generateInformeInicial(id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  }    
-
-
-  /* ME reporte vacio @Public()
-  @Get('informe-actividades')
-  async getReporteInformeActividades(@Res() res: Response,
-  @Query('id_obra') id_obra: number
-
-): Promise<void> {
-    const pdfBuffer = await this.reportService.generateInformeActividades(id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  }  */   
-
- 
 //////////////////////////////////////////////MÓDULO ACTIVIDADES PREVIAS/////////////////////////////// 
 
 @Public()
   @Get('envio-documentacion')
   async getReporteEnvioDocumentacion(@Res() res: Response,
-  @Query('id_obra') id_obra: number
+  @Query('id_obra') id_obra: number  //parametro de entrada
 
   ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateEnvioDoc(id_obra);    
+    const pdfBuffer = await this.reporteAPService.generateEnvioDoc(id_obra);    
     res.set({
     'Content-Type': 'application/pdf',
 //    'Content-Disposition': 'attachment; filename=report.pdf',
@@ -149,12 +112,25 @@ export class ReportController {
 
 
 
+  @Public()
+  @Get('informe-inicial')
+  async getReporteInformeInicial(@Res() res: Response,
+  @Query('id_obra') id_obra: number   //parametro de entrada
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateInformeInicial(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  } 
+
 
 
   @Public()
     @Get('actividades_previas_fiscal')
     async getReporteActPreviasFiscal(@Res() res: Response,
-    @Query('id_obra') id_obra: number,
+    @Query('id_obra') id_obra: number,    //parametro de entrada
 
     ): Promise<void> {
       const pdfBuffer = await this.reporteAPService.generateInformeFISCAL(id_obra);    
@@ -168,21 +144,38 @@ export class ReportController {
 
 //////////////////////////////////////////////MÓDULO ORDEN DE PROCEDER/////////////////////////////// 
 
-  //controller formulario 14
   @Public()
-  @Get('op-informe-doc-contrato2')
-  async getReporteDocumento2(@Res() res: Response,
-  @Query('id_obra') id_obra: number,
-  @Query('id_solicitud') id_solicitud: number,
+ @Get('envio-doc-contrato')
+ async getReporteDocumento2(@Res() res: Response,
+ @Query('id_obra') id_obra: number,     //parametro de entrada
+ @Query('id_solicitud') id_solicitud: number,
 
+ ): Promise<void> {
+   const pdfBuffer = await this.reporteOPService.generateDocumentoContrato(id_obra, id_solicitud);    
+   res.set({
+     'Content-Type': 'application/pdf',
+     'Content-Length': pdfBuffer.length,      
+   });
+   res.send(pdfBuffer);
+ } 
+ 
+ 
+
+ @Public()
+  @Get('nota-instruccion-OrdenProceder')
+  async generateInstruccionOrdenProceder(@Res() res: Response,
+  @Query('id_obra') id_obra: number     //parametro de entrada
   ): Promise<void> {
-    const pdfBuffer = await this.reporteOPService.generateDocumentoContrato2(id_obra, id_solicitud);    
+    const pdfBuffer = await this.reporteOPService.generateInstruccionOrdenProceder(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
-  }   
+  } 
+
+
+
 
   @Public()
   @Get('op-informe-Sol-Anticipo')
@@ -197,18 +190,8 @@ export class ReportController {
     res.send(pdfBuffer);
   }   
 
-  @Public()
-  @Get('op-instrcciones-Orden-Proceder-Carta')
-  async generatecartaInstruccionesOrdeProcedeRev(@Res() res: Response,
-  @Query('id_obra') id_obra: number
-  ): Promise<void> {
-    const pdfBuffer = await this.reporteOPService.generatecartaInstruccionesOrdeProcedeRev(id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  } 
+
+
 
   @Public()
   @Get('op-Orden-Proceder-REV01')
@@ -222,6 +205,9 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   } 
+
+
+
   @Public()
   @Get('op-inf-revisionPagos-REV')
   async generateinfrevisionPagosREV(@Res() res: Response,
