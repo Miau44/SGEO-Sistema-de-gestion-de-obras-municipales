@@ -1,0 +1,93 @@
+import { Obra } from "src/schema_public/obra/entities/obra.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+@Entity()
+
+export class Ficha {
+    @PrimaryGeneratedColumn()
+    id_ficha: number;
+
+    @Column({nullable:true})
+    desc_cod_ue:number;
+
+    @Column()
+    correlativo_carpeta: number;
+
+    @Column()
+    desc_carpeta: string;
+
+    @Column()
+    cod_estado_carpeta: number;
+
+    @Column({nullable:true})
+    fecha_validacion_carpeta: Date;    
+
+    @Column("decimal",{ precision: 10, scale: 2 })
+    total_carpeta: number;
+
+    // @Column({nullable:true})
+    // id_carpeta: number;
+
+    @Column()
+    cod_carpeta: string;
+
+    @Column()
+    cod_prioridad_carpeta: number;
+
+    @Column()
+    gestion_carpeta: number;
+
+    @Column()
+    cod_carpeta_anterior: number;    
+
+    @Column()
+    continuidad: number;     
+
+    @Column()
+    desc_zona_carpeta: string;       
+
+    @Column()
+    desc_distrito_carpeta: string;       
+
+    @Column()
+    desc_macrodistrito_carpeta: string; 
+   
+    // @Column({nullable:true})
+    // id_tipo_obra:number;
+
+    // @Column({nullable:true})
+    // id_modalidad: number;    
+
+    @Column()
+    usuario_registro: number;
+
+    @Column({ })
+    id_estado: number;
+  
+    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()', nullable:true})
+    fecha_registro: Date
+
+    @UpdateDateColumn({nullable:true})
+    fecha_modificacion: Date
+
+    // Relación con la entidad Obra
+    @OneToMany(() => Obra, (obra) => obra.ficha)
+    obras: Obra[];
+
+    @Column({nullable:true})
+    url_adjuntos: string;
+
+    @Column({nullable:true})
+    programa:string;
+
+    @Column({nullable:true})
+    proyecto: string;    
+
+    @Column({nullable:true})
+    actividad: string;
+    
+    @Column({nullable:true})
+    cod_sisin: string;
+
+    @Column({nullable:true})
+    estado_carpeta: string;
+}

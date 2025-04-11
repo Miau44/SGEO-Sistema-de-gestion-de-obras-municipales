@@ -1,0 +1,58 @@
+
+import { ApiProperty } from "@nestjs/swagger";
+export class CreateComputoDto {
+
+    @ApiProperty()
+    id_item: number;
+
+    @ApiProperty()
+    id_modificacion_pago: number;
+      
+    @ApiProperty()
+    tramo: string;
+
+    @ApiProperty()
+    descripcion: string;    
+
+    @ApiProperty()
+    numero_veces: number;    
+
+    @ApiProperty()
+    alto: number;   
+    
+    @ApiProperty()
+    largo: number;    
+
+    @ApiProperty()
+    ancho: number;    
+
+    @ApiProperty()
+    area: number;    
+
+    @ApiProperty()
+    area_total: number;   
+    
+    @ApiProperty()
+    volumen: number;       
+        
+    @ApiProperty()
+    volumen_total: number;      
+        
+    @ApiProperty()
+    parcial: number;         
+
+    @ApiProperty()
+    version: number;    
+    
+    @ApiProperty()    
+    observacion_fiscal : string;      
+        
+    @ApiProperty()
+    id_usuario_registro: number;       
+
+    @ApiProperty()
+    id_estado: number;       
+    
+    
+
+}
