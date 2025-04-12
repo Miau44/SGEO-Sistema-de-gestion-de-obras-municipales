@@ -33,9 +33,7 @@ export class ExternoService {
   async logeo(loginDto:LoginExternoDto) {
     try {
             
-      const url = 'http://192.168.8.4:84/api/v1/servicio/login';//GUALBERTO PRUEBAS
-    //  const url =  process.env.URL_SEGURIDAD_PRUEBAS;
-      
+      const url = process.env.URL_SEGURIDAD+'login';
       const options = {
         method: 'POST',
         headers: {
@@ -62,8 +60,6 @@ export class ExternoService {
     }
   }  
 
-
-  //http://192.168.8.4:3007/api/v1/servicio/login
   async sgpuItemsVigentes() {
     try {
             
