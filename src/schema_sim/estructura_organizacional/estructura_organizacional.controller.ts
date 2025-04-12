@@ -53,7 +53,7 @@ export class EstructuraOrganizacionalController {
   @Public()
   @Post('CardadoUes')
   async llenarBase(@Body() estructuraDa?: EstructuraDADto): Promise<string> {
-    await this.estructuraOrganizacionalService.llenarBaseDesdeServicio();
+    await this.estructuraOrganizacionalService.llenarUEDesdeServicio();
     return 'Proceso de llenado completado.';
   }
 }

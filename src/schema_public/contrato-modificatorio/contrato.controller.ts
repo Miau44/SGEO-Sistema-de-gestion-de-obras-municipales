@@ -5,6 +5,7 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { ContratoDlcDto } from './dto/contrato-dlc.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Contrato')
 @Controller('contrato')
@@ -58,4 +59,19 @@ export class ContratoController {
   // delete(@Param('id') id: number) {
   //   return this.contratoService.delete(id);
   // }
+
+  
+  @Public()
+  @Post('cargarContratosDlc')
+  @ApiParam({ name: 'gestion', description: 'gestión requerida' })
+  async llenarContratos(@Param('gestion') gestion: number): Promise<string> {
+    try {
+      const r = await this.contratoService.obtenerToken();
+      await this.contratoService.llenarContratosDesdeServicio(gestion);
+      return 'Proceso de llenado completado.';
+    } catch (error) {
+      console.error('Error:', error);
+      return 'Test error';
+    }
+  }
 }
