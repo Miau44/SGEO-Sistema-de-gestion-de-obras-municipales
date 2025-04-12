@@ -1135,6 +1135,17 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
   }
 
 
+  async datosReporteInformeInicial(usuario:number, obra: number) {
+    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial  WHERE idusuario = 9859  AND id_obra = ${obra};	`;
+    const values = [usuario, obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
+
+
+
+
+
   //CONSULTASSS
   async datosAdjuntoSim(obra: number) {
     const query1 = `SELECT *  
@@ -1397,107 +1408,53 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
 
+//PAOLA
+//10042025
   //INFORME INICIAL SUPERVISOR 
-  async generateInformeInicial(obra: number): Promise<Buffer> {
+  async generateInformeInicial(usuario:number, obra: number): Promise<Buffer> {
 
-    const res = await this.datosReporteEnvio(obra);
+    const res = await this.datosReporteInformeInicial(usuario, obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra seleccionada.');
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }
 
     const res2 = await this.preguntasInforme(obra, 235);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y 1.');
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }
-
+    
     const res3 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y 2');
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }
 
     const res4 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y 3');
-    }
-
-    this.datosPreguntaInforme = res2;
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+    }    
+  
+    this.datosPreguntaInforme = res2;    
     this.datosPreguntaInformeRestante = res3;
     this.datosEnvio = res;
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/sgeo.png';
-    const imgPathLeft = 'assets/images/smip.png';
+  //  const imgPath = 'assets/images/logo_gamlp.png';
+    const imgPathLeft = 'assets/images/logo_smip.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
-      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      pageSize: 'LEGAL' as any,
 
-      /*   header: {
-           columns: [
-             { image: imgPath, width: 120 },
-             { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-           ],
-           margin: [40, 10]
-         } as any,*/
-      /*    header: {
-            table: {
-              widths: ['70%', '0%', '30%'], // Proporciones de las columnas
-              body: [
-                [
-                  { image: imgPath, width: 120 }, // Imagen derecha
-                 // { text: '', style: 'headerText', alignment: 'center' }, // Título centrado            
-                 //{ text: 'SECRETARÍA MUNICIPAL DE INFRAESTRUCTURA PÚBLICA', style: 'coloredText', alignment: 'center' }, // Título centrado
-                 { text: '', style: 'coloredText', alignment: 'center' }, // Título centrado
-                 { image: imgPathLeft, width: 130 } // Imagen izquierda
-    
-                ]
-              ]
-            },
-            layout: 'noBorders', // Sin bordes en la tabla
-            margin: [40, 10] // Márgenes del encabezado
-    
-          } as any,*/
-
-      /*    header: {
-            table: {
-              widths: ['70%', '30%'], // Proporciones de las columnas
-              body: [
-                // Primera fila: Imagen a la izquierda
-                [
-                  {
-                    image: imgPath,
-                    width: 60,
-                    alignment: 'right',
-                    margin: [0, 10, 0, 0] // Asegura que la imagen no esté pegada al borde superior
-                  },
-                  { text: '', border: [false, false, false, false] } // Celda vacía para ajuste
-                ],
-                // Segunda fila: Línea + Texto de título
-                [
-                  {
-                    colSpan: 2, // Combina las dos columnas
-                    fillColor: '#dddddd', // Fondo gris claro
-                    margin: [0, 5, 0, 10], // Ajusta los márgenes alrededor de la línea y el texto
-                    stack: [
-                      {
-                        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.1 }] // Línea horizontal
-                      },
-                      {
-                        text: 'Título del Informe',
-                        style: 'headerTitle',
-                        alignment: 'center',
-                        margin: [0, 5, 0, 0] // Espaciado debajo de la línea
-                      }
-                    ]
-                  },
-                  {} // Celda vacía requerida por colSpan
-                ]
-              ]
-            },
-            layout: 'noBorders', // Sin bordes en la tabla
-            margin: [0, 0, 0, 10] // Márgenes generales del encabezado
-          } as any,*/
+      background: function(currentPage: any, pageSize: any) { 
+        return {
+            image: imgPath, 
+            width: pageSize.width, 
+            height: pageSize.height,
+            absolutePosition: {x: 0, y: 0},
+            opacity: 0.3
+               } },      
+      
 
       header: {
         table: {
@@ -1505,39 +1462,17 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           body: [
             // Primera fila: Imagen a la derecha
             [
-              { text: '', border: [false, false, false, false] }, // Celda vacía para ajuste
+            /*  { text: '', border: [false, false, false, false] }, // Celda vacía para ajuste
               {
                 image: imgPath,
                 width: 70, // Ajusta el tamaño de la imagen (estático)
                 height: 70, // También define la altura para evitar desbordes
                 alignment: 'right',
                 margin: [0, 0, 0, 0], // Márgenes internos de la celda
-              }
+              }*/
             ],
             // Segunda fila: Línea + Título
-            [
-              {
-                colSpan: 2, // Combina ambas columnas
-                stack: [
-                  // Línea horizontal
-                  {
-                    canvas: [
-                      { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, color: '#555555' }
-                    ]
-                  },
-                  // Texto del título
-                  {
-                    text: 'Título del Informe',
-                    style: 'headerTitle',
-                    alignment: 'center',
-                    margin: [0, 10, 0, 0], // Espaciado adicional debajo de la línea
-                  }
-                ],
-                margin: [0, 5, 0, 10], // Espaciado general para el contenido
-                fillColor: '#f5f5f5', // Fondo del área combinada
-              },
-              {} // Celda vacía requerida por colSpan
-            ]
+           
           ]
         },
         layout: {
@@ -1552,7 +1487,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       content: [
         {
-          text: '\n\n\nINFORME\n\n\n',
+          text: '\n\n\nINFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
           style: 'header', alignment: 'center'
         } as any,
 
@@ -1562,12 +1497,12 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             body: [
               [
                 { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'left' }, { text: '\nJEFE UNIDAD EJECUTORA\n', style: 'textTitulo' }] }
+                { text: [{ text: this.datosEnvio[0].a, style: 'textDato'}, { text: '\nJEFE UNIDAD EJECUTORA\n', style: 'textTitulo' }] }
               ],
 
               [
                 { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n', style: 'textTitulo' },] }
+                { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n', style: 'textTitulo' },] }
               ],
 
               [
@@ -1577,7 +1512,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
               [
                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_aprobacion) + '\n', style: 'textDato' }] }
               ],
             ]
           },
@@ -1585,12 +1520,13 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
         {
           text: [
-            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + this.datosEnvio[0].desc_carpeta + ' mediante Memorándum(s) XXX y YYY, de fecha DD/MM/AA/ y DD/MM/AA correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+            '\n\n\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + this.datosEnvio[0].desc_carpeta+ ' mediante Memorándum(s) XXX y YYY, de fecha'+  this.datosEnvio[0].fecha_aprobacion  +'y DD/MM/AA correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
           ],
-          style: 'textDato'
+       
+          style: 'textDato', alignment: 'justify'           
         },
         {
-          text: '\n1.  DATOS DE PROYECTO. \n\n',
+          text: '\n\n1.  DATOS DE PROYECTO. \n\n',
           style: 'subheader',
         },
         {
@@ -1627,14 +1563,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
 
         {
-          text: '\n2.  ANÁLISIS. \n\n',
+          text: '\n\n2.  ANÁLISIS. \n ',
           style: 'subheader',
         },
         {
           table: {
             widths: ['*', 50],
             body: [
-              ...this.buildPreguntaPadre(this.datosPreguntaInforme),
+              ...this.buildPreguntaPadre(this.datosPreguntaInforme),              
             ]
           },
           layout: 'noBorders'
@@ -1654,10 +1590,10 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             widths: [30, '*', 50, 100],
             body: [
               [
-                { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS.', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
               ...this.buildDocumentosSIM(this.datosSIM)
@@ -1672,7 +1608,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         [
           {
             table: {
-              widths: [435, 50],
+              widths: [415, 50],
               body: [
 
                 ...this.buildPreguntas(this.datosPreguntaInformeRestante)
@@ -1689,7 +1625,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         [
           {
             table: {
-              widths: [435, 50],
+              widths: [415, 50],
               body: [
                 [
                   { text: '*** POR LO QUE UNA COPIA DE ESTE INFORME DEBE SER REMITIDO A: A la Fiscalización de la Obra para su remisión a las Unidades Organizacionales requeridas (en caso corresponda).', style: 'textDato', fillColor: '#dddddd' },
@@ -1764,7 +1700,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
       },
-      pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo    
+      pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo    
 
     };
     // Generar el PDF en memoria

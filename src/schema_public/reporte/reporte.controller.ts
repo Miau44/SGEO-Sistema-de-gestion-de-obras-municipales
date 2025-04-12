@@ -101,7 +101,7 @@ export class ReportController {
 
 
 
-  @Public()
+ /* @Public()
   @Get('informe-inicial')
   async getReporteInformeInicial(@Res() res: Response,
   @Query('id_obra') id_obra: number
@@ -112,7 +112,7 @@ export class ReportController {
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
-  }    
+  } */   
 
 
   /* ME reporte vacio @Public()
@@ -149,7 +149,20 @@ export class ReportController {
 
 
 
+  @Public()
+  @Get('informe-inicial')
+  async getReporteInformeInicial(@Res() res: Response,
+  @Query('id_usuario') id_usuario: number,
+  @Query('id_obra') id_obra: number
 
+): Promise<void> {
+    const pdfBuffer = await this.reportService.generateInformeInicial(id_usuario, id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }    
 
   @Public()
     @Get('actividades_previas_fiscal')
