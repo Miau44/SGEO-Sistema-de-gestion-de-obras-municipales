@@ -115,17 +115,17 @@ export class ReportController {
   @Public()
   @Get('informe-inicial')
   async getReporteInformeInicial(@Res() res: Response,
-  @Query('id_obra') id_obra: number   //parametro de entrada
+  @Query('id_usuario') id_usuario: number,
+  @Query('id_obra') id_obra: number
+
 ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateInformeInicial(id_obra);    
+    const pdfBuffer = await this.reportService.generateInformeInicial(id_usuario, id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
-  } 
-
-
+  }    
 
   @Public()
     @Get('actividades_previas_fiscal')
@@ -148,10 +148,9 @@ export class ReportController {
  @Get('envio-doc-contrato')
  async getReporteDocumento2(@Res() res: Response,
  @Query('id_obra') id_obra: number,     //parametro de entrada
- @Query('id_solicitud') id_solicitud: number,
-
+ 
  ): Promise<void> {
-   const pdfBuffer = await this.reporteOPService.generateDocumentoContrato(id_obra, id_solicitud);    
+   const pdfBuffer = await this.reporteOPService.generateDocumentoContrato(id_obra);    
    res.set({
      'Content-Type': 'application/pdf',
      'Content-Length': pdfBuffer.length,      
@@ -178,7 +177,7 @@ export class ReportController {
 
 
   @Public()
-  @Get('op-informe-Sol-Anticipo')
+  @Get('informe-Sol-Anticipo')
   async getReporteInformeSolAnticip(@Res() res: Response,
   @Query('id_obra') id_obra: number
   ): Promise<void> {
@@ -194,11 +193,11 @@ export class ReportController {
 
 
   @Public()
-  @Get('op-Orden-Proceder-REV01')
+  @Get('Orden-Proceder')
   async generateOrdProcRev01(@Res() res: Response,
   @Query('id_obra') id_obra: number
   ): Promise<void> {
-    const pdfBuffer = await this.reporteOPService.generateOrdenProcederREV01(id_obra);    
+    const pdfBuffer = await this.reporteOPService.generateOrdenProceder(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
@@ -209,11 +208,11 @@ export class ReportController {
 
 
   @Public()
-  @Get('op-inf-revisionPagos-REV')
+  @Get('informe-prev-Pagos')
   async generateinfrevisionPagosREV(@Res() res: Response,
   @Query('id_obra') id_obra: number
   ): Promise<void> {
-    const pdfBuffer = await this.reporteOPService.generateInformeRevisionPagos(id_obra);    
+    const pdfBuffer = await this.reporteOPService.generateInformePrevPagos(id_obra);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      

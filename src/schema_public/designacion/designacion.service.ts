@@ -37,8 +37,6 @@ export class DesignacionService {
   ) { }
 
 
-  //funciones mike para rechazo
- 
 
   
   async create(createDesignacionDto: CreateDesignacionDto) {
@@ -241,14 +239,16 @@ export class DesignacionService {
 
 
 
-
+  async date() {
+    return (await this.DesigRepositorio.query('select now()'))[0].now;
+  }
 
 
   async aprobarDesignacion(AprobarDto: EstadoObraDesigDto) {
     try {
       for (let i = 0; i < AprobarDto.designacion.length; i++) {    // Actualizar estado de designación y solicitud
         const actualizarEstado = async () => {
-          const datadesignacion = { "estado_designacion": 99, "correlativo" : AprobarDto.designacion[i].correlativo}
+          const datadesignacion = { "estado_designacion": 99, "correlativo" : AprobarDto.designacion[i].correlativo, "fecha_aprobacion": await this.date()}
           const estado_designacion = await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion)
 
           const datasolicitud = { "id_estado_solicitud": 4, "id_estado_general": AprobarDto.id_estado_flujo }
