@@ -191,22 +191,6 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
         style: 'textDato', alignment: 'justify',
       },
 
-      /* ME {
-        table: {
-          widths: [30, '*', 50, 100],
-          body: [
-            [
-              { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-              { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-              { text: [{ text: 'OBS.:', style: 'textTitulo' },], fillColor: '#dddddd' },
-
-            ],
-            ...this.buildDocumentosSIM(this.datosSIM)
-          ]
-        },
-      }, */
-
       {
         table: {
           widths: [30, '*', 50, 100],
@@ -232,7 +216,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
       },
 
       {
-        text: 'Fecha de Envío: ' + this.datosEnvio[0].fecha_modificacion ,
+        text: 'Fecha de Envío: ' + this.fechaFormato(this.datosEnvio[0].fecha_envio),
         style: 'textDato',
       },
 
@@ -350,12 +334,12 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       } as any,
       content: [
         {
-          text: '\n\n\n\n\n\nINFORME\n',
+          text: '\n\n\nINFORME\n',
           style: 'header', alignment: 'center'
         } as any,
         {
           text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].descpermisodetalle + '-' + 'XX\n\n',
-      style: 'subheader', alignment: 'center'
+          style: 'subheader', alignment: 'center'
         },
         {
           table: {
@@ -363,8 +347,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             body: [
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text: [
+                { text: [
                     { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato' },
                     { text: 'DIRECTOR DE FISCALIZACION DE OBRAS', style: 'textTitulo' }
                   ],
@@ -373,8 +356,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text:[
+                { text:[
                     {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
                     {text: 'JEFE DE UNIDAD', style: 'textTitulo', }
                   ],
@@ -383,8 +365,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text:[
+                { text:[
                     {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
                     {text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', }
                   ], 
@@ -393,19 +374,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'REF:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text: 'INFORME DE ACTIVIDADES PREVIAS', 
-                  style: 'textTitulo', 
-                  margin: [0, 5, 0, 5] 
-                },
+                { text: 'INFORME DE ACTIVIDADES PREVIAS', style: 'textTitulo', margin: [0, 5, 0, 5] },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text: `${this.datosEnvio[0].total_carpeta}`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
-                },
+                { text: `${this.datosEnvio[0].total_carpeta}`, style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -436,8 +409,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             widths: [100, '*'],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
               ],
 
               [
@@ -446,18 +419,23 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
 
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }] }
               ],
 
               [
-                { text: [{ text: 'FECHA VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'FECHA VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
               ]
             ]
           },
@@ -505,11 +483,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             style: 'textDato', alignment:'justify'
         },
         {
-          text:'\n\n\n\n\n\n\n\n',
+          text:' ',
         },
 
         {
-          text: '\n 3. CONCLUSIONES\n',
+          text: '3. CONCLUSIONES\n',
           style: 'subheader',
         },
         {
@@ -535,8 +513,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               widths: ['*','*'], 
                  body: [
                     [
-                      { text: '\n\n\n\nFISCAL', style: 'textDato', alignment: 'center', bold: true },
-                      { text: '\n\n\n\nFirma y Sello', style: 'textDato', alignment: 'center' },
+                      { text: 'ING. JUAN JOSE  \nFISCAL', style: 'textTitulo', alignment: 'center', margin: [0, 35, 0, 0] },
+                      { text: 'Firma y Sello', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] },
                     ],
                  ]
             }
@@ -598,7 +576,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria
@@ -646,5 +624,36 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
       return formattedDate;
   }
+
+// Fecha en formato dd/mm/aa
+
+fechaFormato(iso: string): string {
+  let fecha: Date;
+
+  if (iso === 'hoy') {
+    fecha = new Date(); // Usar fecha y hora actual
+  } else if (iso) {
+    fecha = new Date(iso); 
+  } else {
+      return 'Sin fecha';
+  }
+
+ if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
+    console.error("La cadena proporcionada no resultó en una fecha válida:", iso);
+    return ''; 
+  }
+
+  // 3. Extraer día, mes y año
+  const day = fecha.getDate();
+  const month = fecha.getMonth() + 1; // getMonth() devuelve 0-11, sumar 1
+  const year = fecha.getFullYear();
+
+  // 4. Formatear día y mes con ceros a la izquierda si es necesario (dd, mm)
+  const formattedDay = String(day).padStart(2, '0');
+  const formattedMonth = String(month).padStart(2, '0');
+
+  // 5. Construir y devolver la cadena final en formato dd/mm/aaaa
+  return `${formattedDay}/${formattedMonth}/${year}`;
+}
 
 }
