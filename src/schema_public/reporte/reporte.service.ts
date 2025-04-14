@@ -57,18 +57,19 @@ export class ReportService {
     return image.toString('base64');
   }
 
-  async datosGeneralesReporte(gestion: number, id: number) {
-    const query1 = ` SELECT * FROM sp_reporte_memorandum2(${gestion},${id})`;
+  async datosGeneralesReporte(id: number) {
+    //const query1 = ` SELECT * FROM sp_reporte_memorandum2(${gestion},${id})`;
+    const query1 = ` SELECT * FROM public.vista_reporte_designacion_memorandum WHERE id_designacion = ${id}`;
     //const response = await sequelize.query(query);
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
 
-  //SOLICITUD DE DESIGNACION 
-  async generatePdf(gestion: number, id: number): Promise<Buffer> {
-    const res = await this.datosGeneralesReporte(gestion, id);
+//SOLICITUD DE DESIGNACION 
+  async generatePdf(id: number): Promise<Buffer> {
+    const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+      throw new Error('No se encontraron datos para el ID proporcionado');
     }
     this.datos = res;
     console.log("Generar1, ", res);
@@ -105,108 +106,100 @@ export class ReportService {
           ],
           //ME margin: [40, 10, 20, 10] // [left, top, right, bottom]
         } as any,
+               
+      content: [
 
-        /* ME footer: function(currentPage:any, pageCount: any) { 
-        return {
-          text: currentPage.toString() + ' de ' + pageCount,
-          fontSize: 8, // Reducir el tamaño de la fuente
-               }; }, */
+        {
+          text: '\n\n\n\n\n\nFORMULARIO SOLICITUD DE ' + this.datos[0].permisos + '\n',
+          style: 'header', alignment: 'center'
+        } as any,
+        {
+          text: this.datos[0].cod_carpeta + '-' + this.datos[0].cite_solicitud + '-' + this.datos[0].correlativo_solicitud + '\n\n\n',
+          style: 'subheader', alignment: 'center'
+        },
+        {
+          text: 'DATOS DE PROYECTO \n',
+          style: 'textTitulo',
+        },
+        {
+          table: {
+            widths: ['*', 400],
+            body: [
+              [
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
+                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+              ],
 
-        content: [
+              [
+                { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
+                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato' }] }
+              ],
+              [
+                { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datos[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+              [
+                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
+                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
+              ],
+              [
+                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
+              ],
+            ]
+          },
+        layout: 'noBorders'
+        },
+        {
+          table: {
+            widths: ['*', 330],
+            body: [
+              [
+                { text: [{ text: '\n', style: 'textTitulo' },] },
+                { text: [{ text: '\n', style: 'textDato' }], }
+              ], [
+                { text: [{ text: '\n', style: 'textTitulo' },] },
+                { text: [{ text: '\n', style: 'textDato' }], }
+              ],
+            ]
+          },
+          layout: 'lightHorizontalLines'
+        },
 
-          {
-            text: '\n\n\n\n\nFORMULARIO SOLICITUD DE ' + this.datos[0].descpermiso + '\n',
-            style: 'header', alignment: 'center'
-          } as any,
-          {
-            text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
-            style: 'subheader', alignment: 'center'
+        {
+          table: {
+            widths: ['*', 400],
+            body: [
+              [
+                { text: [{ text: 'Personal propuesto:', style: 'textDato' },] },
+                { text: [{ text: '\n\n', style: 'textDato' }], }
+              ], 
+              [
+                { text: [{ text: '\n\n', style: 'textTitulo' },] },
+                { text: [{ text: this.datos[0].profesion_detalle + this.datos[0].nombre + this.datos[0].primer_apellido + this.datos[0].segundo_apellido, style: 'textDato' }] },
+              ],
+            ]
           },
-          {
-            text: 'DATOS DE PROYECTO \n\n',
-            style: 'textTitulo',
-          },
-          {
-            table: {
-              widths: ['*', 400],
-              body: [
-                [
-                  { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                  { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
-                ],
+          layout: 'noBorders'
 
-                [
-                  { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-                  { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
-                ],
-                [
-                  { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                  { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
-                ],
-                [
-                  { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                  { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
-                ],
-                [
-                  { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                  { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
-                ],
-              ]
-            },
-            layout: 'noBorders'
-          },
-          {
-            table: {
-              widths: ['*', 330],
-              body: [
-                [
-                  { text: [{ text: '\n', style: 'textTitulo' },] },
-                  { text: [{ text: '\n', style: 'textDato' }], }
-                ], [
-                  { text: [{ text: '\n', style: 'textTitulo' },] },
-                  { text: [{ text: '\n', style: 'textDato' }], }
-                ],
-              ]
-            },
-            layout: 'lightHorizontalLines'
-          },
+        },
+        {
+          text: [
+            '\n\n\n\n\n\n\n\n\n\n\n' ],
+        },
 
-          {
-            table: {
-              widths: ['*', 400],
-              body: [
-                [
-                  { text: [{ text: 'Personal propuesto:', style: 'textDato' },] },
-                  { text: [{ text: '\n\n', style: 'textDato' }], }
-                ],
-                [
-                  { text: [{ text: '\n\n', style: 'textTitulo' },] },
-                  { text: [{ text: this.datos[0].profesiondetalle + this.datos[0].nombre + this.datos[0].primerapellido + this.datos[0].segundoapellido, style: 'textDato' }] },
-                ],
-              ]
-            },
-            layout: 'noBorders'
-
-          },
-          {
-            text: [
-              '\n\n\n\n\n\n\n\n\n\n\n'],
-          },
-
-          {
-            text: [this.datos[0].aprobador],
-            style: 'textDato', alignment: 'center'
-          },
-          {
-            text: ['JEFE DE UNIDAD'],
-            stye: 'textDato', alignment: 'center'
-          },
-          {
-            text: [
-              '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
-            ],
-            style: 'footerText'
-          } as any,
+        {
+          text: this.datos[0].aprobador,
+          style: 'textDato', alignment: 'center'
+        },
+        {
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          style: 'textDato', alignment: 'center', bold: true
+        },
+        {
+          text: '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
+          style: 'footerText'
+        } as any,
 
         ],
 
@@ -220,7 +213,7 @@ export class ReportService {
 
         styles: {
           header: {
-            fontSize: 18,
+            fontSize: 16,
             bold: true,
           },
           subheader: {
@@ -280,10 +273,10 @@ export class ReportService {
 
 
   //GENERAR MEMORANDUM SOLICITUD
-  async generateMemo(gestion: number, id: number): Promise<Buffer> {
-    const res = await this.datosGeneralesReporte(gestion, id);
+  async generateMemo(id: number): Promise<Buffer> {
+    const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+      throw new Error('No se encontraron datos para el ID proporcionado');
     }
 
     this.datos = res;
@@ -322,7 +315,7 @@ export class ReportService {
           style: 'header', alignment: 'center'
         } as any,
         {
-          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n',
+          text: this.datos[0].cod_carpeta + '-' + this.datos[0].cite_memo + '-' + this.datos[0].correlativo + '\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
@@ -332,13 +325,13 @@ export class ReportService {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion),
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_modificacion),
                   style: 'textTitulo', alignment: 'center'
 
                 },
                 {
                   border: [true, false, false, true],
-                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ',
+                  text: 'Señor(a):\n' + this.datos[0].profesion_detalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido + '\nPresente.- ',
                   style: 'textTitulo', alignment: 'left'
                 },
               ],
@@ -347,7 +340,7 @@ export class ReportService {
 
         },
         {
-          text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].descpermiso + ' DE OBRA \n\n',
+          text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].permisos + ' DE OBRA \n\n',
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -359,20 +352,20 @@ export class ReportService {
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desccarpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
               ],
 
               [
                 { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datos[0].codcarpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }] }
               ],
               [
                 { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].zonacarpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_zona_carpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
               ],
               [
                 { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '', style: 'textDato' }] }
+                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }] }
               ]
             ]
           },
@@ -396,7 +389,7 @@ export class ReportService {
         },
 
         {
-          text: 'Señor(a):\n\nEn atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la ' + this.datos[0].nombreue + ' ha dispuesto designarlo(a) ' + this.datos[0].descpermiso + ' (a) de la obra ' + this.datos[0].desccarpeta + '.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
+          text: 'Señor(a):\n\nEn atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la ' + this.datos[0].nombre_ue + ' ha dispuesto designarlo(a) ' + this.datos[0].permisos + ' (a) de la obra ' + this.datos[0].desc_carpeta + '.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -407,7 +400,7 @@ export class ReportService {
         },
         {
           text:
-            'SUBALCALDE\n' + this.datos[0].nombreue,
+            'SUBALCALDE\n' + this.datos[0].nombre_ue,
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -484,8 +477,8 @@ export class ReportService {
 
 
   //SOLICITUD DE REEMPLAZO
-  async generateSolReemplazo(gestion: number, id: number): Promise<Buffer> {
-    const res = await this.datosGeneralesReporte(gestion, id);
+  async generateSolReemplazo(id: number): Promise<Buffer> {
+    const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
     }
@@ -520,15 +513,15 @@ export class ReportService {
       content: [
 
         {
-          text: '\n\n\n\n\n\FORMULARIO SOLICITUD DE REEMPLAZO ' + this.datos[0].descpermiso + '\n',
+          text: '\n\n\n\n\n\n\FORMULARIO SOLICITUD DE REEMPLAZO ' + this.datos[0].permisos + '\n',
           style: 'header', alignment: 'center'
         } as any,
         {
-          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n\n',
+          text: this.datos[0].cod_carpeta + '-' + this.datos[0].cite_solicitud + '-' + this.datos[0].correlativo_solicitud + '\n\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
-          text: 'DATOS DE PROYECTO \n\n',
+          text: 'DATOS DE PROYECTO\n',
           style: 'textTitulo',
         },
         {
@@ -537,24 +530,24 @@ export class ReportService {
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
               ],
 
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desccarpeta, style: 'textDato' }] }
+                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato' }] }
               ],
               [
                 { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].zonacarpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
               ],
               [
                 { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
               ],
               [
                 { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
             ]
           },
@@ -577,7 +570,7 @@ export class ReportService {
         },
 
         {
-          text: 'Solicito la designación del (la) ' + this.datos[0].nombre + ' como ' + this.datos[0].descpermiso + ', en reemplazo del (la) ' + this.datos[0].personaareemplazar + '.',
+          text: 'Solicito la designación del (la) ' + this.datos[0].profesion_detalle + this.datos[0].nombre + this.datos[0].primer_apellido + this.datos[0].segundo_apellido +' como ' + this.datos[0].permisos + ', en reemplazo del (la) ' + this.datos[0].persona_a_reemplazar + '.',
           style: 'textDato', alignment: 'justify'
         },
         {
@@ -590,13 +583,11 @@ export class ReportService {
           style: 'textDato', alignment: 'center'
         },
         {
-          text: ['JEFE DE UNIDAD'],
-          stye: 'subheader', alignment: 'center'
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          style: 'textDato', alignment: 'center', bold: true
         },
         {
-          text: [
-            '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
-          ],
+          text: '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
           style: 'footerText'
         },
 
@@ -612,7 +603,7 @@ export class ReportService {
 
       styles: {
         header: {
-          fontSize: 18,
+          fontSize: 16,
           bold: true,
         },
         subheader: {
@@ -667,11 +658,11 @@ export class ReportService {
 
 
   //GENERAR MEMORANDUM DE REEMPLAZO
-  async generateMemoReemplazo(gestion: number, id: number): Promise<Buffer> {
-    const res = await this.datosGeneralesReporte(gestion, id);
+  async generateMemoReemplazo(id: number): Promise<Buffer> {
+    const res = await this.datosGeneralesReporte(id);
 
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
+      throw new Error('No se encontraron datos para el ID proporcionado');
     }
     this.datos = res;
 
@@ -708,7 +699,7 @@ export class ReportService {
           style: 'header', alignment: 'center'
         } as any,
         {
-          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '-' + this.datos[0].correlativomemo + '\n\n',
+          text: this.datos[0].cod_carpeta + '-' + this.datos[0].cite_memo + '-' + this.datos[0].correlativo + '\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
@@ -718,13 +709,13 @@ export class ReportService {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fechamodificacion),
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_modificacion),
                   style: 'textTitulo', alignment: 'center'
 
                 },
                 {
                   border: [true, false, false, true],
-                  text: 'Señor(a):\n' + this.datos[0].profesiondetalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primerapellido + ' ' + this.datos[0].segundoapellido + '\nPresente.- ',
+                  text: 'Señor(a):\n' + this.datos[0].profesion_detalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido + '\nPresente.- ',
                   style: 'textTitulo', alignment: 'left'
                 },
               ],
@@ -733,7 +724,7 @@ export class ReportService {
 
         },
         {
-          text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].descpermiso + ' DE OBRA \n\n',
+          text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].permisos + ' DE OBRA \n\n',
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -745,20 +736,20 @@ export class ReportService {
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desccarpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
               ],
 
               [
                 { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datos[0].codcarpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }] }
               ],
               [
                 { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].zonacarpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_zona_carpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
               ],
               [
                 { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '', style: 'textDato' }] }
+                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }] }
               ]
             ]
           },
@@ -782,7 +773,7 @@ export class ReportService {
         },
 
         {
-          text: 'Señor(a):\n\nMediante la presente se comunica a usted que la ' + this.datos[0].nombreue + ' ha dispuesto designarlo(a) a partir de la fecha ' + this.datos[0].descpermiso + '(a) de la obra ' + this.datos[0].desccarpeta + ', en reemplazo de (él/la) profesional ' + this.datos[0].personaareemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
+          text: 'Señor(a):\n\nMediante la presente se comunica a usted que la ' + this.datos[0].nombre_ue + ' ha dispuesto designarlo(a) a partir de la fecha ' + this.datos[0].permisos + '(A) de la obra ' + this.datos[0].desc_carpeta + ', en reemplazo de (él/la) profesional ' + this.datos[0].persona_a_reemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -793,7 +784,7 @@ export class ReportService {
         },
         {
           text:
-            'SUBALCALDE\n' + this.datos[0].nombreue,
+            'SUBALCALDE\n' + this.datos[0].nombre_ue,
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -871,11 +862,11 @@ export class ReportService {
 
   //SOLICITUD DE BAJA
 
-  async generateSolicitudBaja(gestion: number, id: number): Promise<Buffer> {
+  async generateSolicitudBaja(id: number): Promise<Buffer> {
 
-    const res = await this.datosGeneralesReporte(gestion, id);
+    const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la gestion y el ID proporcionados.');
+      throw new Error('No se encontraron datos para el ID proporcionado');
     }
 
     this.datos = res;
@@ -906,18 +897,18 @@ export class ReportService {
         {
           stack: [
             {
-              text: '\n\n\n\n\nFORMULARIO SOLICITUD DE BAJA ' + this.datos[0].descpermiso + '\n',
+              text: '\n\n\n\n\n\nFORMULARIO SOLICITUD DE BAJA ' + this.datos[0].permisos + '\n',
               style: 'header', alignment: 'center'
             },
           ] as any,
 
         } as any,
         {
-          text: this.datos[0].codcarpeta + '-' + this.datos[0].descpermisodetalle + '\n\n\n',
+          text: this.datos[0].cod_carpeta + '-' + this.datos[0].permisodetalle + '\n\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
-          text: 'DATOS DE PROYECTO \n\n',
+          text: 'DATOS DE PROYECTO\n',
           style: 'textTitulo',
         },
 
@@ -927,25 +918,25 @@ export class ReportService {
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].codcarpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
               ],
 
               [
                 { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desccarpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.datos[0].desc_carpeta + '\n', style: 'textDato' }] }
               ],
 
               [
                 { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].zonacarpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: this.datos[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
               [
                 { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].totalcarpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
               ],
               [
                 { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fechavalcarpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
+                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
               ],
             ]
           },
@@ -1020,15 +1011,15 @@ export class ReportService {
           style: 'textTitulo',
         },
         {
-          text: 'Falta completar este dato en el Servicio',
-          style: 'textDato',
+          text: this.datos[0].justificacion_baja,
+          style: 'textDato', alignment: 'justify'
         },
         {
           text: [
             { text: '\n\nFecha de solicitud: ', style: 'textTitulo' },
-            { text: '08/08/2024', style: 'textDato' },
+            { text: this.fechaString(this.datos[0].fecha_baja), style: 'textDato' },
             { text: '\nFecha de baja efectiva: ', style: 'textTitulo' },
-            { text: '09/08/2024', style: 'textDato' }
+            { text: this.fechaString(this.datos[0].fecha_efectiva), style: 'textDato' }
           ]
         },
         {
@@ -1037,12 +1028,12 @@ export class ReportService {
         },
 
         {
-          text: [this.datos[0].aprobador],
+          text: this.datos[0].aprobador,
           style: 'textDato', alignment: 'center'
         },
         {
-          text: ['JEFE DE UNIDAD'],
-          stye: 'subheader', alignment: 'center'
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          style: 'textDato', alignment: 'center', bold:true
         },
 
 
@@ -1065,7 +1056,7 @@ export class ReportService {
 
       styles: {
         header: {
-          fontSize: 18,
+          fontSize: 16,
           bold: true,
         },
         subheader: {
@@ -1177,236 +1168,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
   }
 
-  async generateEnvioDoc(obra: number): Promise<Buffer> {
-
-    const res = await this.datosReporteEnvio(obra);
-    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-    }
-    const ressim = await this.datosAdjuntoSim(obra);
-
-    this.datosSIM = ressim;
-    this.datosEnvio = res;
-    console.log("DATOS_DOCUMENTOS", this.datosEnvio);
-    //ME const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-    //ME const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
-
-    const documentDefinition = {
-      pageSize: 'LETTER' as any,
-      background: function (currentPage: any, pageSize: any) {
-        return {
-          image: imgPath,
-          width: pageSize.width,
-          height: pageSize.height,
-          absolutePosition: { x: 0, y: 0 }
-        }
-      },
-      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
-      header: {
-        columns: [
-          //ME { image: imgPath, width: 180 },
-
-          // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-          //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
-        ],
-      } as any,
-      content: [
-        {
-          text: '\n\n\n\n\n\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO\n\n',
-          style: 'header', alignment: 'center'
-        } as any,
-
-        {
-          text: 'DATOS DE PROYECTO \n',
-          style: 'subheader',
-        },
-
-        {
-          table: {
-            widths: ['*', 400],
-            body: [
-              [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
-              ],
-              [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
-              ],
-              [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-              ],
-              [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
-              ],
-              [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
-              ]
-            ]
-          },
-          layout: 'noBorders'
-        },
-
-        {
-          table: {
-            widths: ['*', 330],
-            body: [
-              [
-                { text: [{ text: '', style: 'textTitulo' },] },
-                { text: [{ text: '', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '', style: 'textTitulo' },] },
-                { text: [{ text: '', style: 'textDato' }], }
-              ],
-            ]
-          },
-          layout: 'lightHorizontalLines'
-        },
-        {
-          text: 'Supervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
-          style: 'textDato', alignment: 'justify',
-        },
-
-        /* ME {
-          table: {
-            widths: [30, '*', 50, 100],
-            body: [
-              [
-                { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS.:', style: 'textTitulo' },], fillColor: '#dddddd' },
-
-              ],
-              ...this.buildDocumentosSIM(this.datosSIM)
-            ]
-          },
-        }, */
-
-        /* ME {
-           text: 'Documentación Complementaría \n',
-           style: 'textTitulo',
-         },  */
-
-        {
-          table: {
-            widths: [30, '*', 50, 100],
-            body: [
-              [
-                { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS.', style: 'textTitulo' },], fillColor: '#dddddd' },
-
-              ],
-              ...this.buildDocumentos(this.datosEnvio)
-            ]
-          },
-        },
-        {
-          text: ['\n'],
-        },
-        {
-          text: '* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
-            + '\n** Se remite una copia a la Fiscalización de Obra. \n\n',
-          style: 'textDato', alignment: 'justify',
-        },
-
-        {
-          text: 'Fecha de Envío: ' + this.datosEnvio[0].fecha_modificacion,
-          style: 'textDato',
-        },
-
-        {
-          text: ['\n\n'],
-        },
-
-        {
-          text: [
-            '\n\nIng. Jefe Sub:' + '\n' + 'JEFE DE UNIDAD',
-          ],
-          style: 'subheader', alignment: 'center'
-        },
-
-        {
-          text: [
-            '\n\n\n\n\n\n\n\ncc:Arch:',
-          ],
-          style: 'footerText'
-        },
-
-      ],
-
-      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
-        return {
-          columns: [
-            { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
-          ]
-        }
-      } as any,
-
-      styles: {
-        header: {
-          fontSize: 14,
-          bold: true,
-        },
-        subheader: {
-          fontSize: 10,
-          bold: true,
-        },
-        coloredText: {
-          fontSize: 11,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        coloredTextgray: {
-          fontSize: 14,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        footerText: {
-          fontSize: 6,
-          bold: false,
-        },
-        textTitulo: {
-          fontSize: 8,
-          bold: true,
-        },
-        textDato: {
-          fontSize: 8,
-          bold: false,
-          //color: 'gray', 
-          opacity: 0.8,
-        },
-
-      },
-      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-    };
-    // Generar el PDF en memoria
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
-
-    return new Promise<Buffer>((resolve, reject) => {
-      pdfDoc.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-      pdfDoc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      pdfDoc.end();
-    });
-  }
-
-
-
+  
 
 //PAOLA
 //10042025
@@ -1444,7 +1206,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LEGAL' as any,
+      pageSize: 'LETTER' as any,
+      // watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       background: function(currentPage: any, pageSize: any) { 
         return {
@@ -1721,118 +1484,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
 
-
-  //INFORME ACTIVIDADES PREVIAS 
-  //ME REPORTE VACIO
-  // async generateInformeActividades(obra: number): Promise<Buffer> {
-
-  //   const res = await this.datosReporteEnvio(obra);
-  //   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-  //     throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-  //   }
-  //   this.datosEnvio = res;
-  //   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-  //   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  //   const imgPath = 'assets/images/sgeo.png';
-
-  //   const documentDefinition = {
-  //     pageSize: 'LETTER' as any,
-  //     watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
-  //     /*  header: {
-  //         columns: [
-  //           { image: imgPath, width: 120 },            
-
-  //          // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
-  //           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-  //           //     { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
-  //          // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
-  //         ],
-  //         margin: [40, 10]
-  //       } as any,*/
-  //     content: [
-
-  //       {
-  //         text: '\n\n\n\n\INFORME DE ACTIVIDADES PREVIAS.\n\n\n\n',
-  //         style: 'header', alignment: 'center'
-  //       } as any,
-
-  //       /* {
-  //          text: 'DATOS DE PROYECTO. \n\n',
-  //          style: 'subheader',
-  //        },
-
-  //        {
-  //          text: [
-  //            '\n\n\n\n\n\n\nSolicitante:Jose Perez:' + '\n' + 'RPC/RPA',
-  //          ],
-  //          style: 'subheader', alignment: 'center'
-  //        },*/
-  //       {
-  //         text: [
-  //           '\n\n\n\n\n\n\ncc:Arch:',
-  //         ],
-  //         style: 'footerText'
-  //       },
-
-  //     ],
-
-  //     styles: {
-  //       header: {
-  //         fontSize: 14,
-  //         bold: true,
-  //       },
-  //       subheader: {
-  //         fontSize: 12,
-  //         bold: true,
-  //       },
-  //       coloredText: {
-  //         fontSize: 11,
-  //         bold: true,
-  //         color: 'gray', // Cambiar el color del texto a 'blue'
-  //       },
-  //       coloredTextgray: {
-  //         fontSize: 14,
-  //         bold: true,
-  //         color: 'gray', // Cambiar el color del texto a 'blue'
-  //       },
-  //       footerText: {
-  //         fontSize: 6,
-  //         bold: false,
-  //       },
-  //       textTitulo: {
-  //         fontSize: 10,
-  //         bold: true,
-  //       },
-  //       textDato: {
-  //         fontSize: 10,
-  //         bold: false,
-  //         //color: 'gray', 
-  //         opacity: 0.8,
-  //       },
-  //     },
-
-  //   };
-  //   // Generar el PDF en memoria
-  //   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  //   let chunks: Buffer[] = [];
-
-  //   return new Promise<Buffer>((resolve, reject) => {
-  //     pdfDoc.on('data', (chunk) => {
-  //       chunks.push(chunk);
-  //     });
-  //     pdfDoc.on('end', () => {
-  //       const result = Buffer.concat(chunks);
-  //       resolve(result);
-  //     });
-  //     pdfDoc.end();
-  //   });
-  // }
-
-
-
-
   //FUNCIONES PARA CONSTRUIR 
+
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -1860,25 +1513,6 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     return formattedDate;
   }
 
-
-  buildDocumentos(data: any) {
-    let datosResp = data;
-    let arrayData = [];
-
-    var c = 0;
-    for (let i = 0; i < datosResp.length; i++) {
-      c = c + 1;
-      let rowData = [
-        { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
-        { text: [{ text: datosResp[i].cumple ? 'SI' : 'NO', style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
-      ];
-      arrayData.push(rowData);
-
-    }
-    return arrayData;
-  }
 
   //form-documentos 1
   buildDocumentosSIM(data: any) {
