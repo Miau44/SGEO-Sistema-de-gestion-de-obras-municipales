@@ -176,7 +176,7 @@ export class ReportService {
               ], 
               [
                 { text: [{ text: '\n\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].profesion_detalle + this.datos[0].nombre + this.datos[0].primer_apellido + this.datos[0].segundo_apellido, style: 'textDato' }] },
+                { text: [{ text: this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' +this.datos[0].primer_apellido + ' '+ this.datos[0].segundo_apellido, style: 'textDato' }] },
               ],
             ]
           },
@@ -394,20 +394,16 @@ export class ReportService {
         },
 
         {
-          text:
-            '\n\n\n\n\n\n\n\n' + this.datos[0].aprobador,
+          text: '\n\n\n\n\n\n\n\n' + this.datos[0].aprobador,
           style: 'textDato', alignment: 'center'
         },
         {
-          text:
-            'SUBALCALDE\n' + this.datos[0].nombre_ue,
+          text: this.datos[0].nombre_ue,
           style: 'textTitulo', alignment: 'center'
         },
 
         {
-          text: [
-            '\n\n\n\n\n\n\ncc:Arch:',
-          ],
+          text: '\n\n\n\n\n\n\ncc:Arch:',
           style: 'footerText'
         },
 
@@ -570,7 +566,7 @@ export class ReportService {
         },
 
         {
-          text: 'Solicito la designación del (la) ' + this.datos[0].profesion_detalle + this.datos[0].nombre + this.datos[0].primer_apellido + this.datos[0].segundo_apellido +' como ' + this.datos[0].permisos + ', en reemplazo del (la) ' + this.datos[0].persona_a_reemplazar + '.',
+          text: 'Solicito la designación del (la) ' + this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' +this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido +' como ' + this.datos[0].permisos + ', en reemplazo del (la) ' + this.datos[0].persona_a_reemplazar + '.',
           style: 'textDato', alignment: 'justify'
         },
         {
@@ -778,20 +774,16 @@ export class ReportService {
         },
 
         {
-          text:
-            '\n\n\n\n\n\n\n\n' + this.datos[0].aprobador,
+          text: '\n\n\n\n\n\n\n\n' + this.datos[0].aprobador,
           style: 'textDato', alignment: 'center'
         },
         {
-          text:
-            'SUBALCALDE\n' + this.datos[0].nombre_ue,
+          text: this.datos[0].nombre_ue,
           style: 'textTitulo', alignment: 'center'
         },
 
         {
-          text: [
-            '\n\n\n\n\n\ncc:Arch:',
-          ],
+          text: '\n\n\n\n\n\ncc:Arch:',
           style: 'footerText'
         },
 
@@ -1512,6 +1504,37 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     return formattedDate;
   }
+
+// FECHA EN FORMATO dd/mm/aa
+fechaFormato(iso: string): string {
+  let fecha: Date;
+  let isoProcesado = iso;
+  
+  if (iso === 'hoy') {
+    fecha = new Date(); // Usar fecha y hora actual
+  } else if (iso) {
+    fecha = new Date(iso); 
+  } else {
+      return 'Sin fecha';
+  }
+
+ if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
+    console.error("La cadena proporcionada no resultó en una fecha válida:", iso);
+    return ''; 
+  }
+
+  // 3. Extraer día, mes y año
+  const day = fecha.getDate();
+  const month = fecha.getMonth() + 1; // getMonth() devuelve 0-11, sumar 1
+  const year = fecha.getFullYear();
+
+  // 4. Formatear día y mes con ceros a la izquierda si es necesario (dd, mm)
+  const formattedDay = String(day).padStart(2, '0');
+  const formattedMonth = String(month).padStart(2, '0');
+
+  // 5. Construir y devolver la cadena final en formato dd/mm/aaaa
+  return `${formattedDay}/${formattedMonth}/${year}`;
+}
 
 
   //form-documentos 1
