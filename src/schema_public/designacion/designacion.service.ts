@@ -294,6 +294,26 @@ export class DesignacionService {
           await actualizarEstado()
         };
       }
+
+
+      const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud)
+          const datosHistorial = {
+            id_solicitud: respuesta_solicitud.data.id_solicitud,
+            id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+            nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+            id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+            id_obra: respuesta_solicitud.data.id_obra,
+            id_estado_general: respuesta_solicitud.data.id_estado_general,
+            id_usuario: respuesta_solicitud.data.id_usuario,
+            proveido: 'APROBACIÓN DE DESIGNACIÓN',
+            data_solicitud: respuesta_solicitud.data.data_solicitud,
+            fecha_envio: respuesta_solicitud.data.fecha_envio,
+            id_usuario_previo: 0,
+            usuario_registro: 0,
+            id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+          };
+          await this.serviceSolicitud.createHistorial(datosHistorial)     
+
       return this.responseService.success("Solicitud generada correctamente.");
     } catch (error) {
       console.error("Error en aprobarDesignacion:", error);

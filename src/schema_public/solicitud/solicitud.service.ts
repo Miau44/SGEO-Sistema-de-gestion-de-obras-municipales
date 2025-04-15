@@ -34,8 +34,29 @@ export class SolicitudService {
 
 async  create(createSolicitudDto: CreateSolicitudDto) {
     try {
-      const resultado = await this.solicitudRepositorio.save(createSolicitudDto);
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+      const respuesta_solicitud = await this.solicitudRepositorio.save(createSolicitudDto);
+      if (!respuesta_solicitud) {
+        return this.responseService.error("Error al guardar la solicitud.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.id_estado_solicitud,
+        id_obra: respuesta_solicitud.id_obra,
+        id_estado_general: respuesta_solicitud.id_estado_general,
+        id_usuario: respuesta_solicitud.id_usuario,
+        proveido: respuesta_solicitud.proveido,
+        data_solicitud: respuesta_solicitud.data_solicitud,
+        fecha_envio: respuesta_solicitud.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.usuario_registro,
+        id_estado_registro: respuesta_solicitud.id_estado_registro,
+      };
+
+      const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorial)
+      return this.responseService.success(respuesta_solicitud, "Registrado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
