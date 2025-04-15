@@ -72,8 +72,7 @@ async  findAll() {
   async listaPersonas(data: RolDto) {
     try {
       ;
-    
-
+    /*
       let query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
 p.segundo_apellido as psegundo_apellido, 
 pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
@@ -87,11 +86,28 @@ INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacion
 ${data.desc_cod_ue !== null ? 'AND desc_cod_ue = $3' : ''}					
 GROUP BY desc_cod_da,nombre_da, gestion)  eo ON p.desc_cod_da_comision= eo.desc_cod_da	       			
 WHERE ppe.id_permiso IN($2 )AND 
+p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2) AND p.id_estado =5 ;`;*/
+
+
+      let query = `		SELECT  p.id_usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+p.segundo_apellido as psegundo_apellido, 
+pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
+p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, per.desc_subtipo,
+pro.detalle as cargodetalle
+FROM persona as  p		
+LEFT JOIN public.persona_permiso AS ppe ON p.id_persona = ppe.id_persona
+INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON ppe.id_permiso = per.id_permiso
+INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional WHERE  gestion =$1 
+ ${data.desc_cod_ue?.length ? `AND desc_cod_ue IN (${data.desc_cod_ue.map((_, i) => `$${i + 3}`).join(", ")})` : ''}
+
+GROUP BY desc_cod_da,nombre_da, gestion)  eo ON p.desc_cod_da_comision= eo.desc_cod_da	       			
+WHERE ppe.id_permiso IN($2 )AND 
 p.gestion =$1  AND ppe.id_estado =1 AND p.id_persona NOT  IN(-1,-2) AND p.id_estado =5 ;`;
       const params: any[] = [data.gestion, data.id_rol];
       if (data.desc_cod_ue !== null) {
         //query +=  ` AND desc_cod_ue = $2`; 
-        params.push(data.desc_cod_ue);
+        params.push(...data.desc_cod_ue);
       }
 
 

@@ -36,7 +36,7 @@ export class ReporteOrdenProcederService {
 
     datos: any = [];
     datosEnvio: any = [];
-    datosSIM: any = [];
+    datosDoc: any = [];
     datosPreguntaInforme: any = [];
     datosPreguntaInformeRestante: any = [];
     constructor(
@@ -63,27 +63,28 @@ export class ReporteOrdenProcederService {
   //opcional para borrar los datos que no sean neceasrios
   async datosAdjuntoSim(obra: number) {
     const query1 = `SELECT *  
-  FROM  tipo_documento as td
-WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  } 
-  async datosReporteEnvio(obra: number) {
-    const query1 = `SELECT distinct *, td.id_tipo_documento  
-  FROM  tipo_documento as td
-  INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+    FROM  tipo_documento as td
+    WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
 
-  
-  async datosReporteAnticipo(obra: number, tipo: number) {
+  async datosReporteEnvio(obra: number) {
+    const query1 = `SELECT distinct *, td.id_tipo_documento  
+    FROM  tipo_documento as td
+    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+    LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+    INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+    INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+    WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+    const values = [obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
+
+  //**Datos tablas documentos */
+  async datosTablasDocumentos(obra: number, tipo: number) {
     const query1 = `SELECT DISTINCT desc_tipo_documento, cumple, observacion,  td.id_tipo_documento    
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
@@ -94,178 +95,107 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     return resultado[0];
   }
   
-  //para borrar de ser necesario
-  async preguntasInforme(obra: number, tipo_informe: number) {
-    const query1 = `
-    SELECT * FROM public."vista_informe-inicial"  
-    WHERE id_obra = ${obra} `;
-    const values = [obra, tipo_informe]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
-  }
-  async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
-    const query1 = `
-    SELECT * FROM public."vista_informe_inicial_restante"  
-    WHERE id_obra = ${obra} AND id_tipo_informe =${tipo_informe} AND id_subtipo=${subtipo}`;
-    const values = [obra, tipo_informe]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
-  } 
-  buildPreguntaPadre(data: any) {
-    let groupedData = data.reduce((acc: any, item: any) => {
-      if (!acc[item.padre]) {
-        acc[item.padre] = {
-          desc_padre: item.desc_padre, 
-          items: [],
-        };
-      }
-      acc[item.padre].items.push(item); 
-      return acc;
-    }, {});
 
-    // Construir la tabla para cada `padre`
-    let arrayData = [];
+  // FORMULARIO DOCUMENTOS ETAPA II
+  async generateDocumentoContrato(obra: number): Promise<Buffer> {
 
-    for (let padre in groupedData) {
-      const { desc_padre, items: preguntas } = groupedData[padre]; // Extraer desc_padre y preguntas
-      let rowData = [
-        {
-          table: {
-            body: [
-              [
-                { text:
-                   [{ text: padre+': \n', style: 'textTitulo',  alignment: 'center',  margin: [0, 5, 0, 5]},
-                    { text: desc_padre +':\n', style: 'textDato',  margin: [0, 5, 0, 5]}], fillColor: '#f0f0f0',},   
-              ],                    
-              // Segunda fila: Tabla de preguntas agrupadas por `padre`
-              [
-                {
-                  table: {
-                    widths: [435, 50],
-                    body: [
-                      [
-                        { text: 'Pregunta:', style: 'textDato', fillColor: '#dddddd' },
-                        { text: 'Opción:', style: 'textDato', alignment: 'center', fillColor: '#dddddd' },
-                      ],
-                      // Preguntas agrupadas
-                      ...preguntas.map((pregunta: any) => [
-                        { text: pregunta.desc_subtipo, style: 'textDato' },
-                        { text: pregunta.opcion , style: 'textDato', alignment: 'center' },
-                      ]),
-                    ],
-                  },
-                  layout: 'noBorders',
-                },
-              ],
-            ],
-          },
-          layout: 'noBorders', // Quitar bordes de la tabla principal
-        },
-      ];
-      arrayData.push(rowData);
-    }
+    //Recupera datos
+    const res = await this.datosGeneralesReporte(obra);
+    const resdoc1 = await this.datosTablasDocumentos(obra, 145);
+    const resdoc2 = await this.datosTablasDocumentos(obra, 164);
 
-    return arrayData;
-  }
-  buildPreguntas(data: any) {
-    let datosResp = data;
-    let arrayData = [];
-    var c = 0;
-    for (let i = 0; i < datosResp.length; i++) {
-      let rowData =
-        [
-          { text: [{ text: datosResp[i].desc_subtipo, style: 'textDato' }] },
-          { text: [{ text: datosResp[i].opcion, style: 'textDato', alignment: 'center', }] },
-        ];
-      arrayData.push(rowData);
-    }
-    return arrayData;
-  }
-
-  // 14_Form_documentosContrato2
-  async generateDocumentoContrato2(obra: number, solicitud: number): Promise<Buffer> {
-
-    //para borrar
-    const res = await this.datosGeneralesReporte(solicitud);
-    const ressim1 = await this.datosReporteAnticipo(obra, 145);
-    const ressim2 = await this.datosReporteAnticipo(obra, 164);
-    if ((!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) && (!ressim1 || (Array.isArray(ressim1) && ressim1.length === 0) || (typeof ressim1 === 'object' && Object.keys(ressim1).length === 0)) ){
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+    if ((!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) && (!resdoc1 || (Array.isArray(resdoc1) && resdoc1.length === 0) || (typeof resdoc1 === 'object' && Object.keys(resdoc1).length === 0)) ){
+      throw new Error('No se encontraron datos para la obra seleccionada');
     }
 
     this.datosEnvio = res;
-    this.datosSIM = ressim1;
-    this.datos = ressim2;
+    this.datosDoc= resdoc1;
+    this.datos = resdoc2;
     
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/logo_gamlp.png';
-    const imgLogoPath = 'assets/images/logoSGEO.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
-      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      background: function(currentPage: any, pageSize: any) { 
+        return {
+            image: imgPath, 
+            width: pageSize.width, 
+            height: pageSize.height,
+            absolutePosition: {x: 0, y: 0}
+               } },
+      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
         columns: [
-          { image: imgPath, width: 120 },
+          //ME { image: imgPath, width: 120 },
 
           // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
-        margin: [40, 10]
       } as any,
       content: [
         {
-          text: '\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL PROYECTO.\n\n',
+          text: '\n\n\n\n\n\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL CONTRATO\n\n',
           style: 'header', alignment: 'center'
         } as any,
 
         {
-          text: 'DATOS DEL PROYECTO. \n\n',
+          text: 'DATOS DEL PROYECTO \n',
           style: 'subheader',
         },
 
         {
-          table: { //codigo
-            widths: [100, '*'],
+          table: { 
+            widths: ['*', 400],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo'},], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: 'OBRA:\n', style: 'textTitulo'},] },
                 { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
               ],
-
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo'},], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo'},] },
                 { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
               ],
-
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo'},], fillColor: '#dddddd' },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
               ]
             ]
           },
-          //layout: 'noBorders'
+          layout: 'noBorders'
+        },
+
+        {
+          table: {
+            widths: ['*', 330],
+            body: [
+              [
+                { text: [{ text: '', style: 'textTitulo' },] },
+                { text: [{ text: '', style: 'textDato' }], }
+              ], [
+                { text: [{ text: '', style: 'textTitulo' },] },
+                { text: [{ text: '', style: 'textDato' }], }
+              ],
+            ]
+          },
+          layout: 'lightHorizontalLines'
         },
 
         {
           text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
-          style: 'textDato',
+          style: 'textDato', alignment: 'justify',
         },
 
         {
@@ -279,7 +209,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
                 { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
-              ...this.buildDocumentosSIM(this.datosSIM)
+              ...this.buildDocumentos(this.datosDoc)
             ]
           },
         },
@@ -299,44 +229,55 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
             ]
           },
         },
-
         {
-          text: '\n\n* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
-            + '\n** Se remite una copia a la Fiscalización de Obra. \n\n',
-          style: 'textDato',
+          text: ['\n'],
         },
-
-
+        {
+          text: '* El presente formulario será considerado una declaración jurada, cuya validez y contenido son de entera responsabilidad del funcionario municipal que suscribe la presente, bajo sanción de las determinaciones establecidas en el Reglamento Interno de Personal del GAMLP, en caso de encontrarse incumplimientos e inconsistencias.\n'
+            + '\n** Se remite una copia a la Fiscalización de Obra. \n\n',
+          style: 'textDato', alignment:'justify'
+        },
         {
           style: 'textDato',
           text: '\n Fecha de Envío: '+ this.fechaString(this.datosEnvio[0].fecha_envio) + '\n\n',
         },
-
-
         {
-          text: [
-            '\n'+ this.datosEnvio[0].nombre  + '\n' + 'Jefe de Unidad Solicitante',
-          ],
-          style: 'subheader', alignment: 'center'
+          text: '\n\n\n'
+        },
+        {
+          text: this.datosEnvio[0].aprobador,
+          style: 'textDato', alignment:'center'
+        },
+        {
+          text: 'JEFE DE UNIDAD\n', //+ this.datos[0].nombre_ue,
+          style: 'subheader', alignment: 'center', bold:true
         },
 
         {
           text: [
-            '\ncc:Arch:',
+            '\n\n\n\n\ncc:Arch:',
           ],
           style: 'footerText'
         },
 
       ],
 
+      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+      { //return currentPage.toString() + ' of ' + pageCount; 
+        return {
+          columns:[
+              { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                  ]
+          }            
+      } as any,
 
       styles: {
         header: {
-          fontSize: 12,
+          fontSize: 14,
           bold: true,
         },
         subheader: {
-          fontSize: 10,
+          fontSize: 9,
           bold: true,
         },
         coloredText: {
@@ -364,9 +305,8 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
           opacity: 0.8,
         },
 
-
       },
-      pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
 
     };
@@ -386,75 +326,269 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     });
   }
 
-  //15_info_Sol_anticipo
+
+
+// NOTA INSTRUCCION ORDEN DE PROCEDER
+async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
+
+  const datosGenerales = await this.datosGeneralesReporte(obra);
+  if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
+    throw new Error('No se encontraron datos para la ID de la obra proporcionada');
+  }
+    
+  this.datosEnvio = datosGenerales;
+
+  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+   const imgPath = 'assets/images/membretado_carta.png';
+ 
+    const documentDefinition = {
+    pageSize: 'LETTER' as any,
+    background: function(currentPage: any, pageSize: any) { 
+      return {
+        image: imgPath, 
+        width: pageSize.width, 
+        height: pageSize.height,
+        absolutePosition: {x: 0, y: 0}
+            } },
+
+    //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
+    
+    header: {
+      columns: [{ 
+
+      }],
+      
+    } as any,
+
+    content: [ 
+      {
+        text: '\n\n\n\n\n\n'
+      },
+      {
+        text: 'La Paz, 09 de abril de 2025\n' + this.datosEnvio[0].cod_carpeta + '\n\n\n',
+        style: 'textDato', alignment:'right'
+      },
+      {
+        text: 'Señor(es):\n' + 'Supervisor 1\n' + 'Supervisor 2',
+        style: 'textDato'
+      },
+      {
+        text: 'SUPERVISOR(ES) DE OBRA',
+        style: 'textDato', bold:true
+      },
+      {
+        text: 'Presente.-',
+        style: 'textDato', decoration: 'underline'
+      },
+      {
+        text: '\nREF.:EMISION DE ORDEN DE PROCEDER', 
+        style: 'titulo', alignment: 'center', decoration: 'underline'
+      },
+      {
+        table: {
+          widths: ['40%', '60%'],
+          body: [
+            [
+              { text: 'OBRA:', style: 'textDato', alignment: 'right' },
+              { text: this.datosEnvio[0].desc_carpeta, style: 'textDato', decoration: 'underline', bold: true }
+            ],
+            [
+              { text: 'CODIGO:', style: 'textDato', alignment: 'right' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', decoration: 'underline', bold: true }
+            ],
+            
+          ]
+        },
+        layout: {
+          defaultBorder: false,
+        }
+      },
+      {
+        text: '\n',
+      },
+      {
+        text: [
+          { text: 'De mi consideración:\n\n', style: 'textDato' },
+          {
+            text: 'En atención al informe de Supervisión' + this.datosEnvio[0].cod_carpeta + 'con referencia "INFORME INICIAL DE REVISIÓN DEL PROYECTO" ' + 
+            'y el informe de Fiscalización ' + this.datosEnvio[0].cod_carpeta  + 'con referencia "INFORME DE ACTIVIDADES PREVIAS" correspondiente a la obra ' +
+            + this.datosEnvio[0].cod_carpeta + this.datosEnvio[0].desc_carpeta + ', en los que se establece que la obra cuenta con la documentación necesaria y no se requieren actividades previas al inicio de la obra.\n\n' ,
+            style: 'textDato', alignment: 'justify', lineHeight: 1,
+          },
+          {
+            text: 'En tal sentido, se instruye la emisión de la Orden de Proceder de la obra de referencia dentro de los plazos establecidos en la normativa vigente.\n\n',
+            style: 'textDato', alignment: 'justify', lineHeight: 1,
+          },
+          {
+            text: 'Atentamente,\n\n\n', 
+            style: 'textDato', 
+          },
+        ],
+        margin: [0, 0, 0, 20],
+      },
+      {
+        text: '\n\n\n\n\n'
+      },
+      {
+        text:
+        [
+          {
+            text: 'ING. MARCO ANTONIO CARO ROCA\n',
+            style: 'textDato', alignment: 'center'
+          },
+          {
+            text: 'RPC/RPA\n',
+            style: 'textDato', alignment: 'center'
+          },
+          {
+            text: this.datosEnvio[0].nombre_ue,
+            style: 'textDato', alignment: 'center'
+          }
+        ]
+      },
+      {
+        text: ['\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:' ],
+        style: 'footerText'
+      },
+      {
+        
+      } as any,
+    ],
+
+    footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+          { //return currentPage.toString() + ' of ' + pageCount; 
+            return {
+              columns:[
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                      ]
+              }            
+          } as any,
+    
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 12,
+        bold: true,
+      },
+      titulo: {
+        fontSize: 10,
+        bold: true,
+        opacity: 0.8,
+      },
+      footerText: {
+        fontSize: 6,
+        bold: false,          
+      },
+      textDato: {
+        fontSize: 9,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+    },
+    pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+  };
+  // Generar el PDF en memoria
+  const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+  let chunks: Buffer[] = [];
+
+  return new Promise<Buffer>((resolve, reject) => {
+    pdfDoc.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    pdfDoc.on('end', () => {
+      const result = Buffer.concat(chunks);
+      resolve(result);
+    });
+    pdfDoc.end();
+  });
+}
+
+
+  
+// INFORME SOLICITUD DE ANTICIPO
   async generateInformeSoliAnticipio(obra: number): Promise<Buffer> {
 
     const res = await this.datosReporteEnvio(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos para la obra proporcionada');
     }
-    const ressim = await this.datosAdjuntoSim(obra);
-
-    this.datosSIM = ressim;
+    
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/logo_gamlp.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LEGAL' as any,
-      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      pageSize: 'LETTER' as any,
+      background: function (currentPage: any, pageSize: any) {
+        return {
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
+      //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
         columns: [
-          { image: imgPath, width: 120 },
-
-          // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
+           // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          //{ text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
-        margin: [40, 10]
       } as any,
       content: [
         {
-          text: '\n\n\nINFORME.\n\n\n',
+          text: '\n\n\nINFORME\n',
           style: 'header', alignment: 'center'
         } as any,
+        {
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].descpermisodetalle + '-' + 'XX\n\n',
+          style: 'subheader', alignment: 'center'
+        },
         {
           table: {
             widths: ['15%', '85%'],
             body: [
               [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { 
-                  text: `${this.datosEnvio[0].cod_carpeta}\nJEFE UNIDAD EJECUTORA`, 
-                  style: 'textDato', 
+                  text: [
+                    { text: this.datosEnvio[0].cod_carpeta, style: 'textDato' },
+                    { text: '\nJEFE DE SECCIÓN ADMINISTRATIVA FINANCIERA', style: 'textTitulo' }
+                  ],
+                  margin: [0, 5, 0, 5]
+                },
+              ],
+              [ 
+                { text: 'DE:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                { 
+                  text: [
+                    {text: this.datosEnvio[0].desc_carpeta, style: 'textDato'},
+                    {text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo' }
+                  ],
                   margin: [0, 5, 0, 5] 
                 },
               ],
               [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { 
-                  text: `${this.datosEnvio[0].desc_carpeta}\nSUPERVISOR DE OBRA`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
+                  text: 'INFORME DE SOLICITUD DE PAGO DE ANTICIPO', 
+                  style: 'textTitulo', margin: [0, 5, 0, 5] 
                 },
               ],
               [
-                { text: 'REF:', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { 
-                  text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO', 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
-                },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5] },
-                { 
-                  text: `${this.datosEnvio[0].total_carpeta}`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
+                  text: this.datosEnvio[0].fecha_modificacion, 
+                  style: 'textDato', margin: [0, 5, 0, 5] 
                 },
               ],
             ],
@@ -470,13 +604,12 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
           },
           margin: [20, 0, 20, 10], // Márgenes de la tabla
         },
-        
         {
           text: 'De mi consideración:\nEn el marco del contrato GAMLP-XXX/2024 se emite el presente informe de solicitud de pago de anticipo a favor de la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI".\n',
           style: 'textDato',
         },
         {
-          text: '\n 1.DATOS DE LA OBRA.\n\n',
+          text: '\n 1.DATOS DE LA OBRA\n\n',
           style: 'subheader',
         },
         {
@@ -484,8 +617,8 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
             widths: [100, '*'],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
               ],
 
               [
@@ -494,8 +627,8 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
 
               [
@@ -504,24 +637,24 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
               ],
 
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
               ]
             ]
           },
           //layout: 'noBorders'
         },
         {
-          text: '\n 2.ANTECEDENTES.\n\n',
+          text: '\n 2.ANTECEDENTES\n\n',
           style: 'subheader',
         },
         {
           table: {
-            widths: [100, '*'],
+            widths: [130, '*'],
             body: [
               [
-                { text: [{ text: 'Número de Contrato:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'Número de Contrato:', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }] }
               ],
 
               [
@@ -530,8 +663,8 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
               ],
 
               [
-                { text: [{ text: 'Garantía Presentada:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'Garantía Presentada:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }] }
               ],
 
               [
@@ -540,8 +673,8 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
               ],
 
               [
-                { text: [{ text: 'Fecha fin de vigencia de Garantía:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'Fecha fin de vigencia de Garantía:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
               ]
             ]
           },
@@ -549,25 +682,25 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
         },
 
         {
-          text: '\n 3.ANALISIS.\n',
+          text: '\n 3.ANÁLISIS\n',
           style: 'subheader',
         },
         {
           text: '\nDe acuerdo a la garantía presentada por la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI", para la obra OBRAS DE MEJORAMIENTO VIAL CALLE ABDON SAAVEDRA ENTRE AVENIDA LANDAETA Y CALLE MENDEZ ARCOS DISTRITO 3, la misma cumple las condicionantes requeridas en el contrato de obra por lo que corresponde el desembolso del anticipo por el monto de Bs.760.155,26 (SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS). \n',
-          style: 'textDato',
+          style: 'textDato', alignment: 'justify'
         },
 
         {
-          text: '\n 4.CONCLUSION.\n',
+          text: '\n\n 4.CONCLUSIÓN\n',
           style: 'subheader',
         },
         {
           text: '\n- La garantía presentada por la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI”, cumple con los requisitos establecidos en el contrato GAMLP - 1930/2023 referido al anticipo de la obra de referencia.\n'
-            + '\n- El monto a desembolsar asciende a la suma de Bs.760.155,26 (SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS).\n',
-          style: 'textDato',
+            + '\n- El monto a desembolsar asciende a la suma de Bs.' + this.datosEnvio[0].total_carpeta + ' (SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS).\n',
+          style: 'textDato', alignment: 'justify'
         },
         {
-          text: '\n 5.RECOMENDASÍON.\n',
+          text: '\n 5.RECOMENDACÍON\n',
           style: 'subheader',
         },
         {
@@ -576,36 +709,30 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
         },
         {
           table: {
-            widths: ['50%', '50%'], // Distribución equitativa entre las dos columnas
+            widths: ['*', '*'], // Distribución equitativa entre las dos columnas
             body: [
               [
                 {
                   text: 'ARQ. PAOLA ELFRIDE MUÑOZ ALMANZA\nSUPERVISOR',
-                  alignment: 'center',
-                  bold: true,
+                  style: 'textDato', alignment: 'center', bold: true, 
                   margin: [0, 25, 0, 0], // Márgenes internos
-                  fontSize: 10,
                 },
                 {
                   text: '(Firma y Sello)',
-                  alignment: 'center',
+                  style: 'textDato', alignment: 'center',
                   margin: [0, 35, 0, 0],
-                  fontSize: 10,
                 },
               ],
               [
                 {
                   text: 'ING. WILFREDO LUIS ARI MERCADO\nSUPERVISOR',
-                  alignment: 'center',
-                  bold: true,
+                  style: 'textDato', alignment: 'center', bold: true,
                   margin: [0, 25, 0, 0],
-                  fontSize: 10,
                 },
                 {
                   text: '(Firma y Sello)',
-                  alignment: 'center',
+                  style: 'textDato', alignment: 'center',
                   margin: [0, 35, 0, 0],
-                  fontSize: 10,
                 },
               ],
             ],
@@ -624,17 +751,25 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
         {
           text: [
-            '\n\nDOC. ADJUNTOS \nPlanilla de Pago de Anticipo \nGarantía de Anticipo\n',
+            '\n\n\n\n\nDOC. ADJUNTOS \nPlanilla de Pago de Anticipo \nGarantía de Anticipo\n',
           ],
           style: 'footerText'
         },
 
       ],
 
+      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+      { 
+        return {
+          columns:[
+              { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                  ]
+          }            
+      } as any,
 
       styles: {
         header: {
-          fontSize: 12,
+          fontSize: 16,
           bold: true,
         },
         subheader: {
@@ -642,7 +777,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
           bold: true,
         },
         coloredText: {
-          fontSize: 11,
+          fontSize: 10,
           bold: true,
           color: 'gray', // Cambiar el color del texto a 'blue'
         },
@@ -656,11 +791,11 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
           bold: false,
         },
         textTitulo: {
-          fontSize: 8,
+          fontSize: 9,
           bold: true,
         },
         textDato: {
-          fontSize: 8,
+          fontSize: 9,
           bold: false,
           //color: 'gray', 
           opacity: 0.8,
@@ -668,8 +803,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
 
       },
-      pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-
+      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria
@@ -688,297 +822,10 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     });
   }
 
-  //16_INSTRUCCION_OrdenProceder_rev01 JMTA_REV
-  async generatecartaInstruccionesOrdeProcedeRev(obra: number): Promise<Buffer> {
-
-    const datosGenerales = await this.datosGeneralesReporte(obra);
-    if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
-      throw new Error('No se encontraron datos para la obra y el ID proporcionado.');
-    }
-      
-    this.datosEnvio = datosGenerales;
-
-    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const membretado_carta = path.join(__dirname, '..', 'assets', 'images', 'MEMBRETADO_CARTA.png');
-    const imgPath = 'assets/images/logo_gamlp.png';
-    const imgLogoPath = 'assets/images/logoSGEO.png';
-    const imgMemPath = 'assets/images/MEMBRETADO_CARTA.png';
-    var xx1 = 'Prueba de Variable';
-    //var textomemo = 'sssssssss';
-    const documentDefinition = {
-      pageSize: 'LETTER' as any,
-      background: function(currentPage: any, pageSize: any) { return {image: imgMemPath, absolutePosition: {x: 1, y: 1}}},
-      //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
-      pageMargins: [50, 150, 50, 130] as any,
-      //IMAGE HEADER SI SE REQUIERE
-      /*header: {
-        columns: [{ image: imgPath, width: 120 }],
-        margin: [40, 10]
-      } as any,
-      */
-      content: [     
-        //TITULO MEMORANDUM
-        {
-          text: 'MEMORANDUM',
-          alignment: 'center',
-          style: {fontSize: 25},
-        } as any,
-
-        //CODIGO MEMORANDUM DE ORDEN PROCEDER  
-        {
-          text: this.datosEnvio[0].cod_carpeta + '-MI-1',
-          alignment: 'center',
-          //style: 'fecha',
-        } as any,
-        {
-          text: '\n'
-        } as any,
-        {
-          table: {
-            widths: ['*', '*'],
-            body: [
-              [
-                {
-                  border: [false, false, true, false],
-                  text: '', alignment: 'center', fontSize: 10
-                },
-                {
-                  border: [true, false, false, false],
-                  text: 'Señor(es):', fontSize: 10
-                }
-              ],
-              [
-                {
-                  border: [false, false, true, false],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ', alignment: 'center', fontSize: 10
-                },
-                {
-                  border: [true, false, false, false],
-                  text: 'EMPRESA CONTRATISTA S.R.L.', fontSize: 10
-                }
-              ],
-              [
-                {
-                  border: [false, false, true, true],
-                  text: '18 de abril de 2025', alignment: 'center', fontSize: 10
-                },
-                {
-                  border: [true, false, false, true],
-                  text: 'Presente.-', fontSize: 10
-                }
-              ]
-            ]
-          },
-          layout: {
-            defaultBorder: false
-          }
-        } as any,
-      // Referencia
-        {
-          text: '\n'
-        } as any,
-        {
-          text: 'REF. ORDEN DE PROCEDER', style: 'titulo', alignment: 'center', decoration: 'underline' 
-        },
-        {
-          text: '\n'
-        } as any,
-        // Tabla resumen de obra
-        {
-          table: {
-            widths: ['30%', '70%'],
-            body: [
-              [
-                {
-                  text: 'OBRA: ', alignment: 'right', bold: true, fontSize: 9
-                },
-                {
-                  text: 'ASFALTADO Y OBRAS COMPLEMENTARIAS CALLE OSCAR CERRUTO, CALLE 1 Y CALLE S/N 12 ZONA MESETA ACHUMANI', alignment: 'left-justify', fontSize: 9
-                }
-              ],
-              [
-                {
-                  text: 'CÓDIGO: ', alignment: 'right', bold: true, fontSize: 9
-                },
-                {
-                  text: this.datosEnvio[0].cod_carpeta, alignment: 'left', fontSize: 9
-                }
-              ],
-              [
-                {
-                  text: 'ZONA: ', alignment: 'right', bold: true, fontSize: 9
-                },
-                {
-                  text: this.datosEnvio[0].desc_zona_carpeta, alignment: 'left', fontSize: 9
-                }
-              ],
-              [
-                {
-                  text: 'UNIDAD EJECUTORA: ', alignment: 'right', bold: true, fontSize: 9
-                },
-                {
-                  text: 'DIRECCIÓN DE INFRAESTRUCTURA Y FISCALIZACIÓN TERRITORIAL SUB. V - SUBALCALDIA V SUR' , alignment: 'left', fontSize: 9
-                }
-              ]
-            ]
-          },
-          layout: {
-            defaultBorder: false,
-            fillColor: function (rowIndex: number, node: any, columnIndex: any) {
-              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-            }
-          }
-        } as any,
-        // Cuerpo de la carta
-        {
-          text: [
-            { text: 'Señor(es): \n', style: 'contenido' },
-            {
-              text: 'Habiendo sido adjudicada en su favor la obra ASFALTADO Y OBRAS COMPLEMENTARIAS CALLE OSCAR CERRUTO, CALLE 1 Y CALLE S/N 12 ZONA MESETA ACHUMANI, le comunicamos que a partir del día 26 de agosto de 2021, se contabilizará el plazo de ejecución 12 días calendario señalados en el contrato.\n\n',
-              alignment: 'justify',
-              style: 'contenido',
-              lineHeight: 1,
-            },
-            {
-              text: 'Se le recuerda que la obra deberá ser ejecutada en estricto cumplimiento de las Especificaciones Técnicas y Cronograma de Trabajo propuesto y aceptado por las partes.\n\n',
-              alignment: 'justify',
-              style: 'contenido',
-              lineHeight: 1,  
-            },
-            {
-              text: 'Atentamente,\n\n\n', 
-              alignment: 'left',
-              style: 'contenido',
-            },
-          ],
-          margin: [0, 0, 0, 20],
-        },
-        // Firma
-        {
-          text:
-          [
-            {
-              text: 'ING. MARCO ANTONIO CARO ROCA\n',
-              style: 'contenido',
-              alignment: 'center'
-            },
-            {
-              text: 'SUPERVISOR DE OBRA\n',
-              style: 'firma',
-              alignment: 'center'
-            }
-          ]
-          //margin: [0, 10, 0, 0],
-        },
-
-        {
-          text: 'NOTIFICACIÓN AL CONTRATISTA\n\n\n',
-          style: 'titulo',
-          alignment: 'center',
-          margin: [0, 20, 0, 0],
-        },
-        //Tabla de notificación al contratista
-        {
-          table: {
-            widths: ['30%', '70%'],
-            body: [
-              [
-                {
-                  text: 'Firma: ', alignment: 'right', bold: true, fontSize: 8
-                },
-                {
-                  text: '____________________________________________________________', alignment: 'left', fontSize: 8
-                }
-              ],
-              [
-                {
-                  text: 'Nombre y apellido: ', alignment: 'right', bold: true, fontSize: 8
-                },
-                {
-                  text: '____________________________________________________________', alignment: 'left', fontSize: 8
-                }
-              ],
-              [
-                {
-                  text: 'Lugar: ', alignment: 'right', bold: true, fontSize: 8
-                },
-                {
-                  text: '______________________________', alignment: 'left', fontSize: 8
-                }
-              ],
-              [
-                {
-                  text: 'Fecha: ', alignment: 'right', bold: true, fontSize: 8
-                },
-                {
-                  text: '___/___/_____' , alignment: 'left', fontSize: 8
-                }
-              ]
-            ]
-          },
-          layout: {
-            defaultBorder: false,
-          }
-        } as any,
-      ],
-
-      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: 'cc.Arch.Sup.\n cc.Unidad Ejecutora ***', alignment: 'left', style: 'footerText' , margin: [50, 90, 0, 50]},
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0, 90, 50, 0]}
-                      ]
-              }            
-          } as any,
-      
-      styles: {
-        fecha: {
-          fontSize: 9,
-          bold: false,
-        },
-        codigo: {
-          fontSize: 9,
-          bold: true,
-        },
-        titulo: {
-          fontSize: 10,
-          bold: true,
-        },
-        footerText: {
-          fontSize: 6,
-          bold: false,          
-        },
-        contenido: {
-          fontSize: 9,
-          bold: false,
-        },
-        firma: {
-          fontSize: 9,
-          bold: true,
-        },
-      },
   
-    };
-    // Generar el PDF en memoria
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
 
-    return new Promise<Buffer>((resolve, reject) => {
-      pdfDoc.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-      pdfDoc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      pdfDoc.end();
-    });
-  }
-
-  //17_Orden_de_Proceder_REV01
-  async generateOrdenProcederREV01(obra: number): Promise<Buffer> {
+// MEMORANDUM ORDEN DE PROCEDER
+  async generateOrdenProceder(obra: number): Promise<Buffer> {
 
     const res = await this.datosReporteEnvio(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -986,7 +833,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     }
     const ressim = await this.datosAdjuntoSim(obra);
 
-    this.datosSIM = ressim;
+    this.datosDoc = ressim;
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -1179,90 +1026,81 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
     });
   }
 
-  //18_inf_revisionPagos_REV
-  async generateInformeRevisionPagos(obra: number): Promise<Buffer> {
+
+
+
+// INFORME DE PREVISION DE PAGOS
+  async generateInformePrevPagos(obra: number): Promise<Buffer> {
 
     const res = await this.datosReporteEnvio(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
     const ressim = await this.datosAdjuntoSim(obra);
 
-    this.datosSIM = ressim;
+    this.datosDoc = ressim;
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/logo_gamlp.png';
-    const imgLogoPath = 'assets/images/logoSGEO.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LEGAL' as any,
-      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      pageSize: 'LETTER' as any,
+      background: function(currentPage: any, pageSize: any) { 
+        return {
+            image: imgPath, 
+            width: pageSize.width, 
+            height: pageSize.height,
+            absolutePosition: {x: 0, y: 0}
+              } },
+      //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
 
       header: {
         columns: [
           // Columna del texto centrado
           {
-            text: 'Secretaría Municipal de Infraestructura Pública',
-            style: 'coloredText',
-            alignment: 'center',
-            margin: [0, 15, 0, 0]
+            
           },
         ],
-        margin: [40, 10]
       } as any,
       
       content: [
         {
-          columns: [
-            { image: imgPath, width: 120, margin: [0, 0, 5, 0] }, // Primera imagen
-            { image: imgLogoPath, width: 120, margin: [5, 30, 0, 0] }, // Segunda imagen,
-            {
-              stack: [
-                { text: '\n\nINFORME.\n', style: 'header', alignment: 'center', margin: [0, 10, 0, 0] },
-                { text: 'OBN-476-2024-ISUP-4', style: 'subheader', alignment: 'center', margin: [0, 0, 0, 0] }
-              ],
-              width: 'auto',
-              margin: [70, 0, 10, 0]
-            }
-          ],
-          margin: [10, 0, 10, 0]
-        } as any,
-        
+          text: '\n\n\nINFORME\n', style: 'header', alignment: 'center'
+        },
+        {
+          text: 'OBN-476-2024-ISUP-4', style: 'subheader', alignment: 'center'
+        },
         {
           table: {
             widths: ['15%', '85%'],
             body: [
               [
-                { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0] },
-                { 
-                  text: `${this.datosEnvio[0].cod_carpeta}`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
+                { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { text: [
+                  { text: 'Juanito Perez\n', style: 'textDato' },
+                  { text: 'JEFE DE UNIDAD', style: 'textTitulo' }
+                ],
+                margin: [0, 5, 0, 5]
+              }
+              ],
+              [
+                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { text: [
+                  { text: this.datosEnvio[0].desc_carpeta, style: 'textDato' },
+                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo' }
+                ],  
+                margin: [0, 5, 0, 5] 
                 },
               ],
               [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0] },
-                { 
-                  text: `${this.datosEnvio[0].desc_carpeta}\nSUPERVISOR DE OBRA`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
-                },
+                { text: 'REF:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO', style: 'textTitulo', margin: [0, 5, 0, 5] },
               ],
               [
-                { text: 'REF:', style: 'textTitulo', margin: [0, 6, 0, 0] },
-                { 
-                  text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO', 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
-                },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 6, 0, 0] },
-                { 
-                  text: `${this.datosEnvio[0].total_carpeta}`, 
-                  style: 'textDato', 
-                  margin: [0, 5, 0, 5] 
+                { text: 'FECHA:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta), 
+                  style: 'textDato', margin: [0, 5, 0, 5] 
                 },
               ],
             ],
@@ -1281,10 +1119,10 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
         
         {
           text: 'Habiendo sido designado como Supervisor de la obra OBN-476-2024 y habiendo emitido el memorándum de Orden de Proceder, se informa lo siguiente:\n',
-          style: 'textDato',
+          style: 'textDato', alignment: 'justify'
         },
         {
-          text: '\n 1.DATOS DE LA OBRA.\n\n',
+          text: '\n 1. DATOS DE LA OBRA\n\n',
           style: 'subheader',
         },
         {
@@ -1292,7 +1130,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
             widths: [100, '*'],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
                 { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
               ],
 
@@ -1302,87 +1140,85 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
               ],
 
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },], },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], }
               ],
 
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta)  + '\n\n', style: 'textDato' }] }
               ]
             ]
           },
           //layout: 'noBorders'
         },
         {
-          text: '\n 2. ANÁLISIS.\n\n',
-          style: 'subheaderText',
+          text: '\n 2. ANÁLISIS\n\n',
+          style: 'subheader',
         },
         {
-          text: 'En función al plazo de ejecución de la obra y realizado el análisis de los aspectos administrativos relativos al pago de planillas y fechas previstas de cierre financiero de la obra, se tiene el siguiente detalle de los puntos evaluados:\n',
-          style: 'normalText',
+          text: 'En función al plazo de ejecución de la obra y realizado el análisis de los aspectos administrativos relativos al pago de planillas y fechas previstas de cierre financiero de la obra, se tiene el siguiente detalle de los puntos evaluados:\n\n',
+          style: 'textDato', alignment: 'justify'
         },
         {
           text: [
-            { text: '- Certificado(s) de pago consignados en Contrato de Obra: ', style: 'normalText' },
-            { text: 'Pago Único/parciales – Liquidación final', style: 'highlight' },
+            { text: '- Certificado(s) de pago consignados en Contrato de Obra: ', style: 'textDato' },
+            { text: 'Pago Único/parciales – Liquidación final\n', style: 'textDato' },
         
-            { text: '\n- Número estimado de certificados: ', style: 'normalText' },
-            { text: '1/2/...', style: 'highlight' },
+            { text: '\n- Número estimado de certificados: ', style: 'textDato' },
+            { text: '1/2/...\n', style: 'textDato' },
         
-            { text: '\n- Fecha de Orden de Proceder: ', style: 'normalText' },
-            { text: '31/05/2024', style: 'highlight' },
+            { text: '\n- Fecha de Orden de Proceder: ', style: 'textDato' },
+            { text: '31/05/2024\n', style: 'textDato' },
         
-            { text: '\n- Fecha estimada de Recepción Provisional: ', style: 'normalText' },
-            { text: '04/07/2024', style: 'highlight' },
+            { text: '\n- Fecha estimada de Recepción Provisional: ', style: 'textDato' },
+            { text: '04/07/2024\n', style: 'textDato' },
         
-            { text: '\n- Plazo mínimo entre la Recepción Provisional y Definitiva (conforme a normativa vigente): ', style: 'normalText' },
-            { text: '30 dc.', style: 'highlight' },
+            { text: '\n- Plazo mínimo entre la Recepción Provisional y Definitiva (conforme a normativa vigente): ', style: 'textDato' },
+            { text: '30 dc.\n', style: 'textDato' },
         
-            { text: '\n- Fecha estimada de Recepción Definitiva: ', style: 'normalText' },
-            { text: '03/08/2024', style: 'highlight' }
+            { text: '\n- Fecha estimada de Recepción Definitiva: ', style: 'textDato' },
+            { text: '03/08/2024', style: 'textDato' }
           ],
           margin: [20, 0, 0, 0]
         },
         {
-          text: '\n 3. CONCLUSIONES.\n\n',
-          style: 'subheaderText',
-        },
-        {
-          text: 'En base a lo anterior, se concluye que:\nSe tiene previsto XXX certificados de pago para la Obra OBN-476-2024 - CONSTRUCCION OBRAS DE ESTABILIZACION DE TALUD Y OBRAS COMPLEMENTARIAS CALLE S/N 1 ENTRE PASAJE PEATONAL 8 Y CALLE 7 ZONA CRISTO REY.',
-          style: 'normalText',
-        },
-
-        {
-          text: '\n 5.RECOMENDASÍON.\n',
+          text: '\n 3. CONCLUSIONES\n\n',
           style: 'subheader',
         },
         {
-          text: '\nEn base a lo descrito, se recomienda remitir el presente informe a la Unidad Ejecutora. \nEs cuanto se informa para los fines consiguientes.\n\n',
-          style: 'textDato',
+          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto XXX certificados de pago para la Obra OBN-476-2024 - CONSTRUCCION OBRAS DE ESTABILIZACION DE TALUD Y OBRAS COMPLEMENTARIAS CALLE S/N 1 ENTRE PASAJE PEATONAL 8 Y CALLE 7 ZONA CRISTO REY.',
+          style: 'textDato', alignment: 'justify'
+        },
+
+        {
+          text: '\n 4. RECOMENDACÍON\n',
+          style: 'subheader',
+        },
+        {
+          text: '\nEn base a lo descrito, se recomienda remitir el presente informe a la Unidad Ejecutora. \n\nEs cuanto se informa para los fines consiguientes.\n\n\n',
+          style: 'textDato', alignment: 'justify'
         },
         {
           table: {
             widths: ['50%', '50%'], // Distribución equitativa entre las dos columnas
             body: [
               [
-                {
-                  text: 'ARQ. PAOLA ELFRIDE MUÑOZ ALMANZA\nSUPERVISOR',
-                  alignment: 'center',
-                  bold: true,
-                  margin: [0, 25, 0, 0], // Márgenes internos
-                  fontSize: 10,
+                { text: 'ARQ. PAOLA ELFRIDE MUÑOZ ALMANZA\nSUPERVISOR',
+                  style: 'textTitulo', alignment: 'center', margin: [0, 35, 0, 0], // Márgenes internos
                 },
-                {
-                  text: '(Firma y Sello)',
-                  alignment: 'center',
-                  margin: [0, 35, 0, 0],
-                  fontSize: 10,
+                { text: '(Firma y Sello)',
+                  style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0],
                 },
               ],
             ],
@@ -1397,18 +1233,65 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
             paddingTop: () => 5, // Espaciado interno superior
             paddingBottom: () => 5, // Espaciado interno inferior
           },
+        } as any,
+        {
+          text: [
+            '\n\n\n\n\n\n\n\nc.c. Arch.',
+          ],
+          style: 'footerText'
         },
-        
       ],
+
+      footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+      { 
+        return {
+          columns:[
+              { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                  ]
+          }            
+      } as any,
+
       styles: {
-        coloredText: { fontSize: 12, bold: true, color: '#000000' },
-        headerText: { fontSize: 16, bold: true },
-        subheaderText: { fontSize: 10, bold: true },
-        highlight: {
+        header: {
+          fontSize: 16,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 10,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 10,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        coloredTextgray: {
+          fontSize: 14,
+          bold: true,
+          color: 'gray', // Cambiar el color del texto a 'blue'
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+        textTitulo: {
           fontSize: 9,
           bold: true,
         },
-      }
+        textDato: {
+          fontSize: 9,
+          bold: false,
+          //color: 'gray', 
+          opacity: 0.8,
+        },
+        bold: {
+            bold: true,
+            fontSize: 10, // Ajusta el tamaño según sea necesario
+        },
+
+      },
+      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
     }
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
@@ -1536,25 +1419,6 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
         { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
         { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
         { text: [{ text: datosResp[i].cumple ? 'SI' : 'NO', style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
-      ];
-      arrayData.push(rowData);
-
-    }
-    return arrayData;
-  }
-
-  buildDocumentosSIM(data: any) {
-    let datosResp = data;
-    let arrayData = [];
-
-    var c = 0;
-    for (let i = 0; i < datosResp.length; i++) {
-      c = c + 1;
-      let rowData = [
-        { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
-        { text: [{ text: datosResp[i].cumple ? 'SI' : 'SI', style: 'textDato', alignment: 'center', }] },
         { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
       ];
       arrayData.push(rowData);

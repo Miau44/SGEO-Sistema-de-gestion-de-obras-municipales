@@ -115,7 +115,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       INNER JOIN  (SELECT id_usuario, id_estado
       FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
       WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3
-AND f.gestion_carpeta = $1 ORDER BY  s.id_solicitud DESC`;
+AND f.gestion_carpeta = $1 ORDER BY  s.fecha_registro DESC`;
       const values = [bandeja.gestion, bandeja.usuario, bandeja.estado]
       const resultado = await this.solicitudRepositorio.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")

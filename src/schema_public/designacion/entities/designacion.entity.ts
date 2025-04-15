@@ -13,17 +13,12 @@ export class Designacion {
     @Column()
     id_persona: number; 
 
-  
-
     @Column()
     id_obra: number;     
 
     @Column({nullable:true})
     id_solicitud: number; 
 
-    @Column({nullable:true})
-    correlativo: number;   
-        
     @Column({nullable:true})
     fecha_baja: Date;  
     
@@ -40,7 +35,25 @@ export class Designacion {
     id_reemplazo: number;    
 
     @Column({nullable:true})
-    fecha_reemplazo: Date;      
+    fecha_reemplazo: Date;     
+
+    
+    @Column({nullable:true})
+    id_cite_memo: number;   
+
+    @Column({nullable:true})
+    correlativo: number;   
+            
+
+    @Column({nullable:true})
+    id_cite_solicitud: number;    
+
+    @Column({nullable:true})
+    correlativo_solicitud: number;  
+
+
+    @Column({ type: 'timestamp without time zone', nullable:true})
+    fecha_aprobacion: Date;         
         
     @Column()
     usuario_registro: number;
