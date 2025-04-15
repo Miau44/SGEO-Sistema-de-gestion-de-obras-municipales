@@ -244,82 +244,117 @@ export class DesignacionService {
   }
 
 
-  async aprobarDesignacion(AprobarDto: EstadoObraDesigDto) {
-    try {
-      for (let i = 0; i < AprobarDto.designacion.length; i++) {    // Actualizar estado de designación y solicitud
-        const actualizarEstado = async () => {
-          const datadesignacion = { "estado_designacion": 99, "correlativo" : AprobarDto.designacion[i].correlativo, "fecha_aprobacion": await this.date()}
-          const estado_designacion = await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion)
-
-          const datasolicitud = { "id_estado_solicitud": 4, "id_estado_general": AprobarDto.id_estado_flujo }
-          await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud)
-        }
-        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra)
+    async aprobarDesignacion(AprobarDto: EstadoObraDesigDto) {
+      try {
+        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra);
         const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
-        let respuestagenera: any;
-        if(AprobarDto.id_estado_flujo === 11)
-        {
-         respuestagenera= await this.generarSoloSolicitud(AprobarDto.id_obra)}
+        const gestion = respuesta_obra.data[0].gestion;
+    
+        // Verificar si se debe generar una nueva solicitud (solo si estado flujo es 11)
+        let debeGenerarSolicitud = false;
+        if (AprobarDto.id_estado_flujo === 11) {
+          debeGenerarSolicitud = await this.generarSoloSolicitud(AprobarDto.id_obra);
+          console.log('debeGenerarSolicitud', debeGenerarSolicitud);
 
-        if (respuestagenera) {
-          const usuarioDestinoQuery = `
-        SELECT idusuario FROM public.sp_permisos_xpersona_filas() WHERE idpermiso IN (85,86)
-        AND desccodue = ${desc_cod_ue}`;
-          const params4 = [desc_cod_ue];
-          const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
-          if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
-
-            return {
-              statusCode: 500,
-              message: false,
-              error: "Error: No se encontró un usuario destino válido.",
-            };
-          }
-          await actualizarEstado();
-          const usuario = usuarioDestinoResult[0].idusuario;
-          const data_solicitud = {
-            id_tipo_solicitud: 114,
-            id_estado_solicitud: 2,
-            id_obra: AprobarDto.id_obra,
-            id_estado_general: 12,
-            id_usuario: usuario,
-            proveido: "SOLICITUD GENERADA POR SISTEMA",
-            usuario_registro: 0,
-            id_estado_registro: 1,
-          };
-
-          const resultado = await this.solicitudRepocitorio.save(data_solicitud);
         }
-        else {
-          await actualizarEstado()
-        };
-      }
-
-
-      const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud)
-          const datosHistorial = {
-            id_solicitud: respuesta_solicitud.data.id_solicitud,
-            id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
-            nro_solicitud: respuesta_solicitud.data.nro_solicitud,
-            id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
-            id_obra: respuesta_solicitud.data.id_obra,
-            id_estado_general: respuesta_solicitud.data.id_estado_general,
-            id_usuario: respuesta_solicitud.data.id_usuario,
-            proveido: 'APROBACIÓN DE DESIGNACIÓN',
-            data_solicitud: respuesta_solicitud.data.data_solicitud,
-            fecha_envio: respuesta_solicitud.data.fecha_envio,
-            id_usuario_previo: 0,
-            usuario_registro: 0,
-            id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+    
+        for (let i = 0; i < AprobarDto.designacion.length; i++) {
+          const actualizarEstado = async () => {
+            const datadesignacion = {
+              estado_designacion: 99,
+              correlativo: AprobarDto.designacion[i].correlativo,
+              fecha_aprobacion: await this.date(),
+            };
+            await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
+    
+            const datasolicitud = {
+              id_estado_solicitud: 4,
+              id_estado_general: AprobarDto.id_estado_flujo,
+            };
+            await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };
-          await this.serviceSolicitud.createHistorial(datosHistorial)     
+    
+          if (debeGenerarSolicitud) {
+            const usuarioDestinoQuery = `
+              SELECT idusuario FROM public.sp_permisos_xpersona_filas() 
+              WHERE idpermiso IN (85,86) 
+              AND desccodue = '${desc_cod_ue}' 
+              AND gestion = '${gestion}'`;
+    
+            const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
+    
+            if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+              return {
+                statusCode: 500,
+                message: false,
+                error: "Error: No se encontró un usuario destino válido.",
+              };
+            }
+    
+            await actualizarEstado(); // Se actualiza primero
+    
+            const usuario = usuarioDestinoResult[0].idusuario;
+            const data_solicitud = {
+              id_tipo_solicitud: 114,
+              id_estado_solicitud: 2,
+              id_obra: AprobarDto.id_obra,
+              id_estado_general: 12,
+              id_usuario: usuario,
+              proveido: "SOLICITUD GENERADA POR SISTEMA",
+              usuario_registro: 0,
+              id_estado_registro: 1,
+            };
+    
+          const respuesta_s =  await this.solicitudRepocitorio.save(data_solicitud);
 
-      return this.responseService.success("Solicitud generada correctamente.");
-    } catch (error) {
-      console.error("Error en aprobarDesignacion:", error);
-      return this.responseService.error(error);
-    }
-  }  
+        /*    const respuesta_solicitud = await this.serviceSolicitud.findOne(respuesta_s.id_solicitud);
+            const datosHistorial = {
+              id_solicitud: respuesta_solicitud.data.id_solicitud,
+              id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+              nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+              id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+              id_obra: respuesta_solicitud.data.id_obra,
+              id_estado_general: respuesta_solicitud.data.id_estado_general,
+              id_usuario: respuesta_solicitud.data.id_usuario,
+              proveido: respuesta_solicitud.data.proveido,
+              data_solicitud: respuesta_solicitud.data.data_solicitud,
+              fecha_envio: respuesta_solicitud.data.fecha_envio,
+              id_usuario_previo: 0,
+              usuario_registro: 0,
+              id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+            };    
+            await this.serviceSolicitud.createHistorial(datosHistorial);   */         
+            
+          } else {
+            await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud
+          }
+        }
+    
+        // Historial de solicitud
+        const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        const datosHistorial = {
+          id_solicitud: respuesta_solicitud.data.id_solicitud,
+          id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+          nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+          id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+          id_obra: respuesta_solicitud.data.id_obra,
+          id_estado_general: respuesta_solicitud.data.id_estado_general,
+          id_usuario: respuesta_solicitud.data.id_usuario,
+          proveido: "APROBACIÓN DE DESIGNACIÓN",
+          data_solicitud: respuesta_solicitud.data.data_solicitud,
+          fecha_envio: respuesta_solicitud.data.fecha_envio,
+          id_usuario_previo: 0,
+          usuario_registro: 0,
+          id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+        };    
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+    
+        return this.responseService.success("Solicitud generada correctamente.");
+      } catch (error) {
+        console.error("Error en aprobarDesignacion:", error);
+        return this.responseService.error(error);
+      }
+    }    
 
 
   async aprobarDesignacionR(AprobarDto: EstadoObraDesigDto) {
@@ -531,26 +566,25 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   }
 
 
-  async generarSoloSolicitud(id_obra: number) {
-    try {
-      const query = `
-        SELECT id_obra 
-        FROM solicitud 
-        WHERE id_obra = $1 
-        --AND id_estado_general IN (10, 11)        
-        AND id_estado_general IN (11) --fiscal
-        GROUP BY id_obra 
-        HAVING COUNT(DISTINCT id_estado_general) = 1`;
-        
-      const result = await this.DesigRepositorio.query(query, [id_obra]);
-  
-      return result.length > 0;
-      
-    } catch (error) {
-      console.error('Error en generar:', error);
-      return false;
+    async generarSoloSolicitud(id_obra: number): Promise<boolean> {
+      try {
+        const query = `
+          SELECT 1
+          FROM solicitud
+          WHERE id_obra = $1 
+            AND id_estado_general = 11
+          LIMIT 1;
+        `;
+        const result = await this.DesigRepositorio.query(query, [id_obra]);
+    
+        // Si NO hay resultados, entonces se puede generar (no existe ninguna con estado 11)
+        return result.length === 0;
+      } catch (error) {
+        console.error('Error en generarSoloSolicitud:', error);
+        return false;
+      }
     }
-  }
+
 
 
   //mike
