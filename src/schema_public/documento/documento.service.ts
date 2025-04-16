@@ -77,7 +77,7 @@ export class DocumentoService {
     try {
       const formData = new FormData();
       formData.append('file', file.buffer, file.originalname);
-      formData.append('sistema', 'SICOM'); // Valor fijo
+      formData.append('sistema', 'SGEO'); // Valor fijo
       formData.append('ruta', ruta);
       formData.append('resumen', resumen);
       formData.append('palabraClave', palabraClave);
@@ -86,8 +86,9 @@ export class DocumentoService {
       const response = await axios.post(this.uploadUrl, formData, {
         headers: formData.getHeaders(),
       });
-
+      console.log("que traes ",response.data);
       return response.data;
+
     } catch (error) {
       throw new HttpException(
         `Error al enviar el archivo: ${(error as Error).message}`,
