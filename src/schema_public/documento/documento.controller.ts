@@ -36,6 +36,7 @@ export class DocumentoController {
     schema: {
       type: 'object',
       properties: {
+      
         files: { type: 'array', items: { type: 'string', format: 'binary' } },
         id_obra: { type: 'number' },
         id_tipo_documento: { type: 'number' },
@@ -81,9 +82,9 @@ export class DocumentoController {
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        '123',
-        'tre123',
-        'rita.flores'
+        `archivo ${file.originalname} asociado a la documento ID ${id_tipo_documento}`,
+        `documento-${id_tipo_documento}`,
+        'josue.torrez'
       );
   
       if (uploadResponse.estado && uploadResponse.url_file) {
