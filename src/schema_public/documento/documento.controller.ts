@@ -36,6 +36,7 @@ export class DocumentoController {
     schema: {
       type: 'object',
       properties: {
+      
         files: { type: 'array', items: { type: 'string', format: 'binary' } },
         id_obra: { type: 'number' },
         id_tipo_documento: { type: 'number' },
@@ -83,7 +84,7 @@ export class DocumentoController {
         ruta,
         '123',
         'tre123',
-        'rita.flores'
+        'josue.torrez'
       );
   
       if (uploadResponse.estado && uploadResponse.url_file) {
