@@ -82,8 +82,8 @@ export class DocumentoController {
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        '123',
-        'tre123',
+        `archivo ${file.originalname} asociado a la documento ID ${id_tipo_documento}`,
+        `documento-${id_tipo_documento}`,
         'josue.torrez'
       );
   
