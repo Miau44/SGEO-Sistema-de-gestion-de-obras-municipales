@@ -68,8 +68,8 @@ export class MemorandumService {
       // 2. Crear correlativo para MEMORANDUM
     const correlativoMemoRes = await this.correlativoService.create({
       id_obra: updateObraMemInfDto.idObra,
-      id_tipo_documento: 241, // Tipo MEMORANDUM
-      correlativo: '', // si querés que lo genere automáticamente
+      id_tipo_documento: 241,
+      correlativo: '', 
       usuario_registro: updateObraMemInfDto.idUsuarioMemo,
       id_estado : 1
     });
@@ -83,7 +83,7 @@ export class MemorandumService {
       const data_memo = {
         "id_obra": updateObraMemInfDto.idObra,
         "id_tipo_memo":241,
-        "id_correlativo": updateObraMemInfDto.idCorrelativoMemo,
+        "id_correlativo": idCorrelativoMemo,
         "fecha_memo": "2024-11-29T19:57:41.028Z",
         "nombre_destinatario": updateObraMemInfDto.nombreDestinatario,
         "referencia": updateObraMemInfDto.referencia,
@@ -96,8 +96,8 @@ export class MemorandumService {
 
       const correlativoInformeRes = await this.correlativoService.create({
         id_obra: updateObraMemInfDto.idObra,
-        id_tipo_documento: 223, // Tipo INFORME
-        correlativo: '', // lo generará automáticamente
+        id_tipo_documento: 223, 
+        correlativo: '', 
         usuario_registro: updateObraMemInfDto.usuarioRegistroInforme,
         id_estado : 1
       });
@@ -116,7 +116,7 @@ export class MemorandumService {
         "obs_general": "",
         "conclusion": updateObraMemInfDto.conclusion,
         "recomendacion": updateObraMemInfDto.recomendacion,
-        "id_correlativo": updateObraMemInfDto.idCorrelativoInforme,
+        "id_correlativo": idCorrelativoInforme,
         "usuario_registro": updateObraMemInfDto.usuarioRegistroInforme,
       };
      const result =  await this.informeRepository.save(data_infor);
