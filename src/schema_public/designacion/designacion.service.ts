@@ -244,32 +244,31 @@ export class DesignacionService {
   }
 
 
+
+//paola
     async aprobarDesignacion(AprobarDto: EstadoObraDesigDto) {
       try {
-        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra);
-        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
-        const gestion = respuesta_obra.data[0].gestion;
-    
-        // Verificar si se debe generar una nueva solicitud (solo si estado flujo es 11)
+        // Verificar si se debe generar una nueva solicitud (solo si el flujo es 11)
         let debeGenerarSolicitud = false;
         if (AprobarDto.id_estado_flujo === 11) {
           debeGenerarSolicitud = await this.generarSoloSolicitud(AprobarDto.id_obra);
-          console.log('debeGenerarSolicitud', debeGenerarSolicitud);
-
-        }
+        }    
+        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra);
+        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
+        const gestion = respuesta_obra.data[0].gestion;
     
         for (let i = 0; i < AprobarDto.designacion.length; i++) {
           const actualizarEstado = async () => {
             const datadesignacion = {
               estado_designacion: 99,
               correlativo: AprobarDto.designacion[i].correlativo,
-              fecha_aprobacion: await this.date(),
+              fecha_aprobacion: await this.date()
             };
             await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
     
             const datasolicitud = {
               id_estado_solicitud: 4,
-              id_estado_general: AprobarDto.id_estado_flujo,
+              id_estado_general: AprobarDto.id_estado_flujo
             };
             await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };
@@ -277,9 +276,9 @@ export class DesignacionService {
           if (debeGenerarSolicitud) {
             const usuarioDestinoQuery = `
               SELECT idusuario FROM public.sp_permisos_xpersona_filas() 
-              WHERE idpermiso IN (85,86) 
-              AND desccodue = '${desc_cod_ue}' 
-              AND gestion = '${gestion}'`;
+              WHERE idpermiso IN (85,86)
+                AND desccodue = ${desc_cod_ue} 
+                AND gestion = ${gestion}`;
     
             const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
     
@@ -304,27 +303,8 @@ export class DesignacionService {
               usuario_registro: 0,
               id_estado_registro: 1,
             };
-    
-          const respuesta_s =  await this.solicitudRepocitorio.save(data_solicitud);
-
-        /*    const respuesta_solicitud = await this.serviceSolicitud.findOne(respuesta_s.id_solicitud);
-            const datosHistorial = {
-              id_solicitud: respuesta_solicitud.data.id_solicitud,
-              id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
-              nro_solicitud: respuesta_solicitud.data.nro_solicitud,
-              id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
-              id_obra: respuesta_solicitud.data.id_obra,
-              id_estado_general: respuesta_solicitud.data.id_estado_general,
-              id_usuario: respuesta_solicitud.data.id_usuario,
-              proveido: respuesta_solicitud.data.proveido,
-              data_solicitud: respuesta_solicitud.data.data_solicitud,
-              fecha_envio: respuesta_solicitud.data.fecha_envio,
-              id_usuario_previo: 0,
-              usuario_registro: 0,
-              id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-            };    
-            await this.serviceSolicitud.createHistorial(datosHistorial);   */         
-            
+            await this.solicitudRepocitorio.save(data_solicitud);
+            debeGenerarSolicitud = false; // prevenir que genere más de una en caso de múltiples designaciones
           } else {
             await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud
           }
@@ -340,7 +320,7 @@ export class DesignacionService {
           id_obra: respuesta_solicitud.data.id_obra,
           id_estado_general: respuesta_solicitud.data.id_estado_general,
           id_usuario: respuesta_solicitud.data.id_usuario,
-          proveido: "APROBACIÓN DE DESIGNACIÓN",
+          proveido: 'APROBACIÓN DE DESIGNACIÓN',
           data_solicitud: respuesta_solicitud.data.data_solicitud,
           fecha_envio: respuesta_solicitud.data.fecha_envio,
           id_usuario_previo: 0,
