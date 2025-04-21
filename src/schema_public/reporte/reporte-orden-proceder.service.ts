@@ -39,6 +39,7 @@ export class ReporteOrdenProcederService {
     datosDoc: any = [];
     datosPreguntaInforme: any = [];
     datosPreguntaInformeRestante: any = [];
+    datosSup: any = [];
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -51,25 +52,34 @@ export class ReporteOrdenProcederService {
     }
   
   //CONSULTAS
-  async datosGeneralesReporte(idSolicitud: number) {
+  // Datos generales obra - contrato - OP
+  async datosGeneralesReporteOP(obra: number) {
     const query1 = `
         SELECT * 
-        FROM public.sp_reporte_datos_gral_obra(${idSolicitud});
-    `;
+        FROM public.vista_datos_op WHERE id_obra = ${obra}`;
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
 
-  //opcional para borrar los datos que no sean neceasrios
-  async datosAdjuntoSim(obra: number) {
-    const query1 = `SELECT *  
-    FROM  tipo_documento as td
-    WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
+   // Supervisores designados por obra - OP
+   async supervisorDesignado(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+  //
+  async datosGeneralesReporte(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_datos_op WHERE id_obra = ${obra}`;
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
 
+  //Datos tabla documentos SGEO
   async datosReporteEnvio(obra: number) {
     const query1 = `SELECT distinct *, td.id_tipo_documento  
     FROM  tipo_documento as td
@@ -827,163 +837,225 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 // MEMORANDUM ORDEN DE PROCEDER
   async generateOrdenProceder(obra: number): Promise<Buffer> {
 
-    const res = await this.datosReporteEnvio(obra);
+    const res = await this.datosGeneralesReporteOP(obra);
+    const resSup = await this.supervisorDesignado(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos para la obra proporcionada');
     }
-    const ressim = await this.datosAdjuntoSim(obra);
 
-    this.datosDoc = ressim;
+    this.datosSup = resSup;
     this.datosEnvio = res;
+
+    console.log("DATOS, ", res);
+
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/logo_gamlp.png';
+    const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LEGAL' as any,
-      watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
+      pageSize: 'LETTER' as any,
+      background: function (currentPage: any, pageSize: any) {
+        return {
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
+      //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
       header: {
         columns: [
-          { image: imgPath, width: 120 },
-
+          
           // { image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
           //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
-          { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
+          //{ text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
           // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }          
         ],
-        margin: [40, 10]
+
       } as any,
       content: [
+        //TITULO MEMORANDUM
         {
-          text: 'MEMORANDUM\nOBN-95-2024-MI-1\n',
-          style: 'header',
-          alignment: 'center',
-          margin: [0, 10],
-        }as any,
-
-        {
-          columns: [
-            [
-              { text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ', style: 'header', alignment: 'center' },
-              { text: 'La Paz, 18 de abril de 2024', style: 'subheader', alignment: 'center' },
-            ],
-            // Línea vertical
-            {
-              canvas: [{ type: 'line', x1: 0, y1: 0, x2: 0, y2: 50, lineWidth: 1 }],
-              width: 10,
-            },
-            [
-              { text: 'Señor(a):', style: 'subheader', alignment: 'left' },
-              { text: 'VM 3600 S.R.L.', style: 'normal', alignment: 'left' },
-              { text: 'Presente.-', style: 'normal', alignment: 'left' },
-            ],
-          ],
-          columnGap: 10,
+          text: '\n\n\n\nMEMORANDUM',
+          style: 'header', alignment: 'center',
+        } as any,
+       {
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + this.datosEnvio[0].correlativo,
+          style: 'subheader', alignment: 'center'
         },
-        // Línea divisoria
-        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1 }] },
-        
-        // Referencia
-        { text: '\nREF. ORDEN DE PROCEDER\n', style: 'header', alignment: 'center', margin: [0, 10] },
-  
+        {
+          text: '\n'
+        } as any,
         {
           table: {
-            widths: [120, '*'],
+            widths: ['*', '*'],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                {
+                  border: [false, false, true, false],
+                  text: '', alignment: 'center', fontSize: 10
+                },
+                {
+                  border: [true, false, false, false],
+                  text: 'Señor(es):', fontSize: 10
+                }
               ],
-
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                {
+                  border: [false, false, true, false],
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ', 
+                  style: 'textTitulo', alignment: 'center'
+                },
+                {
+                  border: [true, false, false, false],
+                  text: this.datosEnvio[0].proponente_razon_social, 
+                  style: 'textTitulo'
+                }
               ],
-
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
-              ],
-
-              [
-                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                {
+                  border: [false, false, true, true],
+                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo), 
+                  style: 'textDato', alignment: 'center'
+                },
+                {
+                  border: [true, false, false, true],
+                  text: 'Presente.-', 
+                  style: 'textDato'
+                }
               ]
             ]
           },
-          //layout: 'noBorders'
-          margin: [0, 10],
+          layout: {
+            defaultBorder: false
+          }
+        } as any,
+      // Referencia
+        {
+          text: '\n'
+        } as any,
+        {
+          text: 'REF.: ORDEN DE PROCEDER', 
+          style: 'coloredText', alignment: 'center', decoration: 'underline' 
         },
+        {
+          text: '\n'
+        } as any,
+        // Tabla resumen de obra
+        {
+          table: {
+            widths: ['*', 350],
+            body: [
+              [
+                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato', }], fillColor: '#dddddd' }
+              ],
 
+              [
+                { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }] }
+              ],
+
+              [
+                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
+              ]
+            ]
+          },
+          layout: 'noBorders'
+        } as any,
+        // Cuerpo de la carta
+        {
+          text: '\n'
+        },
         {
           text: [
-            { text: 'Señor(a):\n\n', style: 'contenido' },
+            { text: 'Señor(es): \n', style: 'textDato' },
             {
-              text: 'Habiéndose suscrito el contrato de la obra CONSTRUCCION ENLOSETADO Y OBRAS COMPLEMENTARIAS CALLE 2 ENTRE CALLE 4 Y CALLE 5 ZONA ENTEL 24, comunicamos que a partir del día 22 de abril de 2024, se contabilizará el plazo de ejecución de 44 días calendario establecidos en el contrato GAMLP-XXX/2024.\n\n',
-              style: 'contenido',
-              lineHeight: 1,
+              text: 'Habiendo sido adjudicada en su favor la obra ' + this.datosEnvio[0].desc_carpeta + ' , le comunicamos que a partir del día ' + 
+              this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + ', se contabilizará el plazo de ejecución de ' + this.datosEnvio[0].plazo_ejecucion + ' días calendario establecidos ' +
+              ' en el contrato ' + this.datosEnvio[0].numero_contrato+'.\n\n',
+              style: 'textDato',  alignment: 'justify'
             },
             {
-              text: 'En tal sentido, la obra deberá ser ejecutada en estricto cumplimiento del contrato de obra, especificaciones técnicas, tiempo de ejecución, los plazos estableciendo y documentos que forman parte del contrato.\n\n',
-              style: 'contenido',
-              lineHeight: 1,
+              text: 'En tal sentido, la obra deberá ser ejecutada en estricto cumplimiento del contrato de obra, especificaciones técnicas, tiempo de ' + 
+              'ejecución, los plazos establecidos y documentos que forman parte del contrato.\n\n',
+              style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {
-              text: 'Atentamente,',
-              style: 'contenido',
+              text: 'Atentamente,\n\n\n', 
+              style: 'textDato', alignment: 'left'
             },
           ],
-          margin: [0, 0, 0, 20],
         },
-
         {
-          text: '\nSUPERVISOR(ES) DE OBRA\n',
-          style: 'textDato',
-          alignment: 'center',
-          margin: [0, 30],
+          text: '\n\n'
+        },
+        //FIRMA
+        {
+          text:
+          [
+            { text: this.datosSup[0].profesion + this.datosSup[0].nombre + ' ' + this.datosSup[0].primer_apellido + ' ' + this.datosSup[0].segundo_apellido + '\n', style: 'textDato', alignment: 'center' },
+            { text: 'SUPERVISOR(ES) DE OBRA\n', style: 'textTitulo', alignment: 'center' }
+          ]
+        },
+        {
+          text: '\n\n'
         },
         {
           text: 'NOTIFICACIÓN AL CONTRATISTA\n',
-          style: 'textDato',
-          alignment: 'center',
-          margin: [0, 10],
+          style: 'textTitulo', alignment: 'center'
         },
         {
-          // Lugar y Fecha
+          text: '\n\n\n'
+        },
+        //TABLA DE NOTIFICACION AL CONTRATISTA
+        {
           table: {
-            widths: ['*'],
+            widths: ['30%', '70%'],
             body: [
               [
-                { text: 'LUGAR: ...............................................................................................................', style: 'normal', },
+                { text: 'Firma: ', alignment: 'right', bold: true, fontSize: 8 },
+                { text: '____________________________________________________________', alignment: 'left', fontSize: 8 }
               ],
               [
-                { text: 'FECHA: ____/____/____', style: 'normal', },
+                { text: 'Nombre y apellido: ', alignment: 'right', bold: true, fontSize: 8 },
+                { text: '____________________________________________________________', alignment: 'left', fontSize: 8 }
               ],
-            ],
+              [
+                { text: 'Lugar: ', alignment: 'right', bold: true, fontSize: 8 },
+                { text: '______________________________', alignment: 'left', fontSize: 8 }
+              ],
+              [
+                { text: 'Fecha: ', alignment: 'right', bold: true, fontSize: 8 },
+                { text: '___/___/_____' , alignment: 'left', fontSize: 8 }
+              ]
+            ]
           },
-          layout: 'noBorders',
-          margin: [0, 15],
-        },
-        {
-          // Nombre, Apellido y Firma
-          columns: [
-            [
-              { text: 'NOMBRE Y APELLIDO:', style: 'normal',},
-              { text: '....................................................................................................................', style: 'normal', margin: [0, 13] },
-            ],
-            { text: 'FIRMA:', style: 'normal', margin: [3, 21] },
-          ],
-        },
-        { text: '..............................................', alignment: 'left', margin: [0, -1]  },
-        { text: 'c.c. Arch.', style: 'normal', alignment: 'left', margin: [0, 40] },
+          layout: {
+            defaultBorder: false,
+          }
+        } as any,
+        { text: '\nc.c. Arch.', style: 'footerText', alignment: 'left' },
       
       ],
 
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+              return {
+                columns: [
+                  { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+                ]
+              }
+      } as any,
 
       styles: {
         header: {
-          fontSize: 14,
+          fontSize: 25,
           bold: true,
         },
         subheader: {
@@ -991,22 +1063,24 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           bold: true,
         },
         coloredText: {
-          fontSize: 11,
+          fontSize: 10,
           bold: true,
-          color: 'gray',
+          //color: 'gray',
         },
         textTitulo: {
-          fontSize: 10,
+          fontSize: 9,
           bold: true,
         },
         textDato: {
-          fontSize: 10,
+          fontSize: 9,
+          bold: false,
         },
-        normal: {
-          fontSize: 10,
+        footerText: {
+          fontSize: 6,
+          bold: false,
         },
       },
-      pageMargins: [70, 60, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
 
     };
@@ -1028,17 +1102,16 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
 
 
-
 // INFORME DE PREVISION DE PAGOS
   async generateInformePrevPagos(obra: number): Promise<Buffer> {
 
-    const res = await this.datosReporteEnvio(obra);
+    const res = await this.datosGeneralesReporteOP(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
-    const ressim = await this.datosAdjuntoSim(obra);
+    //MEconst ressim = await this.datosAdjuntoSim(obra);
 
-    this.datosDoc = ressim;
+    //ME this.datosDoc = ressim;
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -1069,7 +1142,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           text: '\n\n\nINFORME\n', style: 'header', alignment: 'center'
         },
         {
-          text: 'OBN-476-2024-ISUP-4', style: 'subheader', alignment: 'center'
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + this.datosEnvio[0].correlativo,
+          style: 'subheader', alignment: 'center'
         },
         {
           table: {
@@ -1078,7 +1152,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: 'Juanito Perez\n', style: 'textDato' },
+                  { text: '\n', style: 'textDato' },
                   { text: 'JEFE DE UNIDAD', style: 'textTitulo' }
                 ],
                 margin: [0, 5, 0, 5]
@@ -1087,21 +1161,19 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: this.datosEnvio[0].desc_carpeta, style: 'textDato' },
-                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo' }
+                  { text: '\n', style: 'textDato' },
+                  { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo' }
                 ],  
                 margin: [0, 5, 0, 5] 
                 },
               ],
               [
-                { text: 'REF:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: 'REF.:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { text: 'INFORME DE PREVISIÓN DE PAGOS', style: 'textTitulo', margin: [0, 5, 0, 5] },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta), 
-                  style: 'textDato', margin: [0, 5, 0, 5] 
-                },
+                { text: '\n', style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -1118,7 +1190,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
         
         {
-          text: 'Habiendo sido designado como Supervisor de la obra OBN-476-2024 y habiendo emitido el memorándum de Orden de Proceder, se informa lo siguiente:\n',
+          text: 'Habiendo sido designado como Supervisor de la obra ' + this.datosEnvio[0].cod_carpeta + ' y habiendo emitido el memorándum de Orden de Proceder, se informa lo siguiente:\n',
           style: 'textDato', alignment: 'justify'
         },
         {
@@ -1127,7 +1199,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
         {
           table: {
-            widths: [100, '*'],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -1146,7 +1218,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
               [
                 { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },], },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], }
+                { text: [{ text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }], }
               ],
 
               [
@@ -1155,8 +1227,13 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               ],
 
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta)  + '\n\n', style: 'textDato' }] }
+                { text: [{ text: 'MONTO DE CONTRATO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }] }
+              ],
+
+              [
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd'  },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta)  + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
               ]
             ]
           },
@@ -1173,22 +1250,22 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         {
           text: [
             { text: '- Certificado(s) de pago consignados en Contrato de Obra: ', style: 'textDato' },
-            { text: 'Pago Único/parciales – Liquidación final\n', style: 'textDato' },
+            { text: this.datosEnvio[0].tipo_pago + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Número estimado de certificados: ', style: 'textDato' },
-            { text: '1/2/...\n', style: 'textDato' },
+            { text: this.datosEnvio[0].numero_pago + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha de Orden de Proceder: ', style: 'textDato' },
-            { text: '31/05/2024\n', style: 'textDato' },
+            { text: this.datosEnvio[0].fecha_memo + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha estimada de Recepción Provisional: ', style: 'textDato' },
-            { text: '04/07/2024\n', style: 'textDato' },
+            { text: this.datosEnvio[0].fecha_recep_provisional + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Plazo mínimo entre la Recepción Provisional y Definitiva (conforme a normativa vigente): ', style: 'textDato' },
-            { text: '30 dc.\n', style: 'textDato' },
+            { text: this.datosEnvio[0].plazo_prov_definitiva + ' dc.\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha estimada de Recepción Definitiva: ', style: 'textDato' },
-            { text: '03/08/2024', style: 'textDato' }
+            { text: this.datosEnvio[0].fecha_recep_definitiva + '\n', style: 'textDato', bold: true }
           ],
           margin: [20, 0, 0, 0]
         },
@@ -1197,7 +1274,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           style: 'subheader',
         },
         {
-          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto XXX certificados de pago para la Obra OBN-476-2024 - CONSTRUCCION OBRAS DE ESTABILIZACION DE TALUD Y OBRAS COMPLEMENTARIAS CALLE S/N 1 ENTRE PASAJE PEATONAL 8 Y CALLE 7 ZONA CRISTO REY.',
+          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto ' + this.datosEnvio[0].numero_pago + ' certificados de pago para la Obra ' + this.datosEnvio[0].cod_carpeta + ' - ' + this.datosEnvio[0].desc_carpeta + '.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -1214,7 +1291,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             widths: ['50%', '50%'], // Distribución equitativa entre las dos columnas
             body: [
               [
-                { text: 'ARQ. PAOLA ELFRIDE MUÑOZ ALMANZA\nSUPERVISOR',
+                { text: '\nSUPERVISOR',
                   style: 'textTitulo', alignment: 'center', margin: [0, 35, 0, 0], // Márgenes internos
                 },
                 { text: '(Firma y Sello)',
@@ -1312,6 +1389,35 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
   //FUNCIONES PARA CONSTRUIR 
   //funcion para generar la fecha de manera escrita
+
+  // ME fechaString(iso: string): string {
+  //   let formattedDate = '';
+  //   let fecha: Date;
+  
+  //   if (iso === 'hoy') {
+  //     fecha = new Date();
+  //   } else {
+  //     const partes = iso.split('-'); // 'YYYY-MM-DD'
+  //     const anio = parseInt(partes[0], 10);
+  //     const mes = parseInt(partes[1], 10) - 1; // Meses en JS: 0-indexed
+  //     const dia = parseInt(partes[2], 10);
+  //     fecha = new Date(anio, mes, dia); // Fuerza fecha local sin desfase
+  //   }
+  
+  //   const h = fecha.getHours();
+  //   const m = fecha.getMinutes();
+  //   const horas = h < 10 ? `0${h}` : `${h}`;
+  //   const minutos = m < 10 ? `0${m}` : `${m}`;
+  
+  //   formattedDate = fecha.toLocaleDateString('es-ES', {
+  //     year: 'numeric',
+  //     month: 'long',
+  //     day: 'numeric',
+  //   });
+  
+  //   return formattedDate;
+  // fin ME}
+  
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -1334,7 +1440,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         month: 'long',
         day: 'numeric',
       });
-    }
+     }
 
     return formattedDate;
   }

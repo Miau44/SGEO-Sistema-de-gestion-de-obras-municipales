@@ -50,29 +50,57 @@ export class ReporteActPreviasService {
     }
 
     //CONSULTAS
-    async datosGeneralesReporte(idSolicitud: number) {
-        const query1 = `
-            SELECT * 
-            FROM public.sp_reporte_datos_gral_obra(${idSolicitud});
-        `;
-        const resultado = await this.sequelize.query(query1);
-        return resultado[0];
-    }
+    async datosGeneralesReporte(obra: number) {
+      const query1 = `
+          SELECT * 
+          FROM public.f_reporte_datos_obra(${obra});
+      `;
+      const resultado = await this.sequelize.query(query1);
+      return resultado[0];
+  }
+    // async datosGeneralesReporte(idSolicitud: number) {
+    //     const query1 = `
+    //         SELECT * 
+    //         FROM public.sp_reporte_datos_gral_obra(${idSolicitud});
+    //     `;
+    //     const resultado = await this.sequelize.query(query1);
+    //     return resultado[0];
+    // }
 
 
 //--Datos Documentos ETAPA I
     async datosReporteEnvio(obra: number) {
-      const query1 = `SELECT distinct *, td.id_tipo_documento  
-    FROM  tipo_documento as td
-    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-    INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-    INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-    WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+      const query1 = `SELECT
+    td.*, 
+    sub.*, 
+    d.* 
+    FROM tipo_documento as td INNER JOIN
+    (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub
+    ON td.id_subtipo_documento = sub.id_subtipo
+    INNER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+    INNER JOIN ( SELECT d_inner.id_tipo_documento,
+          MIN(d_inner.id_documento) AS min_id_documento 
+      FROM documento as d_inner WHERE d_inner.id_obra = ${obra}
+      GROUP BY d_inner.id_tipo_documento ) AS selector_unico
+    ON d.id_documento = selector_unico.min_id_documento WHERE d.id_obra = ${obra} 
+    AND td.id_etapa_documento = 1 AND td.id_subtipo_documento = 108 ORDER BY td.id_tipo_documento ASC;	`;
       const values = [obra]
       const resultado = await this.sequelize.query(query1);
       return resultado[0];
     }
+
+    // async datosReporteEnvio(obra: number) {
+    //   const query1 = `SELECT distinct *, td.id_tipo_documento  
+    // FROM  tipo_documento as td
+    // INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+    // LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+    // INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+    // INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+    // WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+    //   const values = [obra]
+    //   const resultado = await this.sequelize.query(query1);
+    //   return resultado[0];
+    // }
 
     //--Cargar tabla de documentos
     buildDocumentos(data: any) {
