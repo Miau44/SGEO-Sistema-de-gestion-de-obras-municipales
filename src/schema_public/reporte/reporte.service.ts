@@ -124,7 +124,7 @@ export class ReportService {
         },
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -349,7 +349,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -523,7 +523,7 @@ export class ReportService {
         },
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -729,7 +729,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -907,7 +907,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -1569,7 +1569,7 @@ fechaFormato(iso: string): string {
   }
 
   // 3. Extraer día, mes y año
-  const day = fecha.getDate();
+  const day = fecha.getDate() + 1; 
   const month = fecha.getMonth() + 1; // getMonth() devuelve 0-11, sumar 1
   const year = fecha.getFullYear();
 
