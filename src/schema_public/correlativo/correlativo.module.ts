@@ -15,5 +15,6 @@ import { ConfigModule } from '@nestjs/config';
 
   controllers: [CorrelativoController],
   providers: [CorrelativoService, ResponseService],
+  exports: [CorrelativoService],
 })
 export class CorrelativoModule {}

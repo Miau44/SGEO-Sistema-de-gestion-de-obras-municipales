@@ -7,9 +7,11 @@ import { Obra } from '../obra/entities/obra.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { ResponseService } from 'src/response.service';
 import { Informe } from '../informe/entities/informe.entity';
+import { CorrelativoModule } from '../correlativo/correlativo.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Memorandum, Obra, Correlativo, Informe])],
+  imports: [TypeOrmModule.forFeature([Memorandum, Obra, Correlativo, Informe]),
+  CorrelativoModule, ],
 
   controllers: [MemorandumController],
   providers: [MemorandumService, ResponseService],

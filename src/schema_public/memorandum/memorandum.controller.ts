@@ -30,6 +30,11 @@ export class MemorandumController {
     return this.memorandumService.findOne(+id);
   }
 
+  @Get('por-obra/:id_obra')
+  obtenerDatosObraMemoInforme(@Param('id_obra') id_obra: number) {
+    return this.memorandumService.obtenerObraMemoInforme(+id_obra);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateMemorandumDto: UpdateMemorandumDto) {
     return this.memorandumService.update(+id, updateMemorandumDto);
