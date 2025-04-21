@@ -44,6 +44,7 @@ export class ReportService {
   datosSIM: any = [];
   datosPreguntaInforme: any = [];
   datosPreguntaInformeRestante: any = [];
+  datosListaSupervisores: any = [];
   constructor(
     private readonly responseService: ResponseService,
     @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -123,7 +124,7 @@ export class ReportService {
         },
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -348,7 +349,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -522,7 +523,7 @@ export class ReportService {
         },
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -728,7 +729,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -906,7 +907,7 @@ export class ReportService {
 
         {
           table: {
-            widths: ['*', 400],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
@@ -1119,8 +1120,15 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
 
   async datosReporteInformeInicial(usuario:number, obra: number) {
-    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial  WHERE idusuario = 9859  AND id_obra = ${obra};	`;
+    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial  WHERE idusuario = ${usuario}  AND id_obra = ${obra};	`;
     const values = [usuario, obra]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+  }
+
+  async datosReporteInformeInicialSupervisores(obra: number, permiso:number) {
+    const query1 = `SELECT * FROM public.vista_fiscal_supervisor_designacion WHERE id_obra = ${obra} AND id_permiso = 84;	`;
+    const values = [ obra, permiso]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
@@ -1185,11 +1193,19 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const res4 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
       throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-    }    
+    }   
+    
+    const res5 = await this.datosReporteInformeInicialSupervisores(obra, 84);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+    }
   
     this.datosPreguntaInforme = res2;    
     this.datosPreguntaInformeRestante = res3;
     this.datosEnvio = res;
+    this.datosListaSupervisores = res5;   
+    console.log("datosListaSupervisores", this.datosListaSupervisores);
+
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -1198,8 +1214,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const imgPath = 'assets/images/membretado_carta.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
-      // watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+      pageSize: 'LEGAL' as any,
 
       background: function(currentPage: any, pageSize: any) { 
         return {
@@ -1243,7 +1258,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
       content: [
         {
           text: '\n\n\nINFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
-          style: 'header', alignment: 'center'
+          style: 'headerTitle', alignment: 'center'
         } as any,
 
         {
@@ -1252,22 +1267,22 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             body: [
               [
                 { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].a, style: 'textDato'}, { text: '\nJEFE UNIDAD EJECUTORA\n', style: 'textTitulo' }] }
+                { text: [{ text: this.datosEnvio[0].a, style: 'textDato'}, { text: '\nJEFE UNIDAD EJECUTORA\n\n', style: 'textTitulo' }] }
               ],
 
               [
                 { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n', style: 'textTitulo' },] }
+                { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n\n', style: 'textTitulo' },] }
               ],
 
               [
                 { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
+                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n\n', style: 'textTitulo' }] }
               ],
 
               [
                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_aprobacion) + '\n', style: 'textDato' }] }
+                { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
               ],
             ]
           },
@@ -1275,7 +1290,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
         {
           text: [
-            '\n\n\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + this.datosEnvio[0].desc_carpeta+ ' mediante Memorándum(s) XXX y YYY, de fecha'+  this.datosEnvio[0].fecha_aprobacion  +'y DD/MM/AA correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+            '\n\n\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
+           +' mediante Memorándum(s) '+ this.datosEnvio[0].cite_designacion  +', de fecha '+  this.datosEnvio[0].fecha_aprobacion  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
           ],
        
           style: 'textDato', alignment: 'justify'           
@@ -1340,7 +1356,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           text: '\n4. CONCLUSIONES \n\n',
           style: 'subheader',
         },
-        {
+       /* {
           table: {
             widths: [30, '*', 50, 100],
             body: [
@@ -1354,7 +1370,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
               ...this.buildDocumentosSIM(this.datosSIM)
             ]
           },
-        },
+        },*/
         {
           text: '\n5. RECOMENDACIONES \n\n',
           style: 'subheader',
@@ -1363,7 +1379,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         [
           {
             table: {
-              widths: [415, 50],
+              widths: ['*', 50],
               body: [
 
                 ...this.buildPreguntas(this.datosPreguntaInformeRestante)
@@ -1380,7 +1396,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         [
           {
             table: {
-              widths: [415, 50],
+              widths: ['*', 50],
               body: [
                 [
                   { text: '*** POR LO QUE UNA COPIA DE ESTE INFORME DEBE SER REMITIDO A: A la Fiscalización de la Obra para su remisión a las Unidades Organizacionales requeridas (en caso corresponda).', style: 'textDato', fillColor: '#dddddd' },
@@ -1397,6 +1413,34 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
           },
         ],
+
+
+        {
+          table: {
+            widths: ['*'],
+            body: [
+              [
+                {
+                  text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
+                  style: 'subheader',
+                  alignment: 'center'
+                }
+              ],
+              ...this.datosListaSupervisores.map((item: any) => [
+                {
+                  text: [{ text: item.nombre, style: 'textDato' }],
+                  alignment: 'center'
+                }
+              ])
+            ]
+          },
+          layout: 'noBorders',
+          alignment: 'center'
+        },
+        
+      
+
+
 
         {
           text: [
@@ -1455,7 +1499,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
 
       },
-      pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo    
+      //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
+      pageMargins: [70, 150, 70, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo            
 
     };
     // Generar el PDF en memoria
@@ -1524,7 +1569,7 @@ fechaFormato(iso: string): string {
   }
 
   // 3. Extraer día, mes y año
-  const day = fecha.getDate();
+  const day = fecha.getDate() + 1; 
   const month = fecha.getMonth() + 1; // getMonth() devuelve 0-11, sumar 1
   const year = fecha.getFullYear();
 
@@ -1590,7 +1635,7 @@ fechaFormato(iso: string): string {
               [
                 {
                   table: {
-                    widths: [435, 50],
+                    widths: [415, 50],
                     body: [
                       [
                         { text: 'Pregunta:', style: 'textDato', fillColor: '#dddddd' },
