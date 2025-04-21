@@ -15,6 +15,9 @@ import { DocumentoObraDto } from './dto/documento_obra.dto';
 export class DocumentoService {
 
   private readonly uploadUrl: string;
+  private readonly sistema : string;
+  private readonly user_registro : string;
+
 
   constructor(
     @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
@@ -22,7 +25,11 @@ export class DocumentoService {
     private configService: ConfigService,
     private entityManager: EntityManager,
   ) {
-    this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.7.35:3300/documento/saveFile';
+    this.uploadUrl = String(process.env.URL_ADJUNTO);
+    this.sistema = String(process.env.SISTEMA);
+    this.user_registro = String(process.env.USR_REGISTRO);
+    
+    //this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.6.140:3300/documento/saveFile/';
   }
 
   async create(createDocumentoDto: CreateDocumentoDto) {
@@ -77,12 +84,16 @@ export class DocumentoService {
     try {
       const formData = new FormData();
       formData.append('file', file.buffer, file.originalname);
-      formData.append('sistema', 'SGEO'); // Valor fijo
+      formData.append('sistema', this.sistema); // Valor fijo
       formData.append('ruta', ruta);
       formData.append('resumen', resumen);
       formData.append('palabraClave', palabraClave);
-      formData.append('usuario', usuario);
+      formData.append('usuario', this.user_registro);
 
+      console.log("logs upload", ruta,resumen,palabraClave);
+      console.log(this.uploadUrl);
+      
+      
       const response = await axios.post(this.uploadUrl, formData, {
         headers: formData.getHeaders(),
       });
