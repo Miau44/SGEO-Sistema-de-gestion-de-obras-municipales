@@ -64,17 +64,25 @@ export class MemorandumService {
       };
       await this.obraRepository.update(updateObraMemInfDto.idObra, data_obra);
 
-      
+      console.log('➡️ Enviando a correlativoService.create (MEMO):', {
+        id_obra: updateObraMemInfDto.idObra,
+        id_tipo_documento: 241,
+        correlativo: '',
+        usuario_registro: updateObraMemInfDto.idUsuarioMemo,
+        id_estado: 1
+      });
       // 2. Crear correlativo para MEMORANDUM
-    const correlativoMemoRes = await this.correlativoService.create({
+    const correlativoMemoRes = await this.correlativoService.create( {
+      
       id_obra: updateObraMemInfDto.idObra,
       id_tipo_documento: 241,
       correlativo: '', 
       usuario_registro: updateObraMemInfDto.idUsuarioMemo,
       id_estado : 1
     });
+    console.log('⬅️ Respuesta de correlativoService.create:', correlativoMemoRes);
 
-    if (correlativoMemoRes.statusCode !== 201) {
+    if (correlativoMemoRes.statusCode !== 200) {
       throw new Error('Error al generar correlativo del memorandum');
     }
 
@@ -94,6 +102,15 @@ export class MemorandumService {
       };
       await this.memoRepository.save(data_memo);
 
+      // 🟡 Log previo al correlativo (INFORME)
+    console.log('➡️ Enviando a correlativoService.create (INFORME):', {
+      id_obra: updateObraMemInfDto.idObra,
+      id_tipo_documento: 223,
+      correlativo: '',
+      usuario_registro: updateObraMemInfDto.usuarioRegistroInforme,
+      id_estado: 1
+    });
+    
       const correlativoInformeRes = await this.correlativoService.create({
         id_obra: updateObraMemInfDto.idObra,
         id_tipo_documento: 223, 
@@ -102,7 +119,7 @@ export class MemorandumService {
         id_estado : 1
       });
   
-      if (correlativoMemoRes.statusCode !== 201) {
+      if (correlativoMemoRes.statusCode !== 200) {
         throw new Error('Error al generar correlativo del informe');
       }
   
