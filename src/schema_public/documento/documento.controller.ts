@@ -147,6 +147,11 @@ export class DocumentoController {
       }
   }
 
+ @Patch('cambiar-estado')
+  cambiarEstado(@Body() data: { id_documento: number; id_estado: number }) {
+  return this.documentoService.update(data.id_documento, { id_estado: data.id_estado });
+}
+
   @Public()
   @Post('lista-documentos-adjuntos')
     listaDocumentos(@Body() documentoDto: ListaDocumentoDto) {

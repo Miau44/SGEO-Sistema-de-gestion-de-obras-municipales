@@ -234,13 +234,13 @@ export class DocumentoService {
   async listaDocumentos(data: ListaDocumentoDto) {
     try { 
     ;      
-      let query = `		SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+      let query = `		SELECT  td.id_tipo_documento,d.nombre_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
     td.id_subtipo_documento, td.id_etapa_documento,
     d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
-    AND d.id_obra = $1	
+    AND d.id_obra = $1 AND d.id_estado = 1	
     ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
     ORDER BY td.id_tipo_documento ASC `;     
       const params : any[]  = [data.id_obra];
@@ -268,6 +268,16 @@ WHERE id_obra = $1 AND cumple = true`;
       return this.responseService.error(error);
     }
   }
+
+  async update(id: number, updateDocumentoDto: Partial<Documento>) {
+    try {
+      await this.documentoRepositorio.update(id, updateDocumentoDto);
+      return this.responseService.success({}, 'Documento actualizado correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al actualizar el documento.');
+    }
+  }
+  
 
 
 
