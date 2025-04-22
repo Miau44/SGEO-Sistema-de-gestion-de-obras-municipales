@@ -36,6 +36,7 @@ export class DocumentoController {
     schema: {
       type: 'object',
       properties: {
+      
         files: { type: 'array', items: { type: 'string', format: 'binary' } },
         id_obra: { type: 'number' },
         id_tipo_documento: { type: 'number' },
@@ -81,17 +82,21 @@ export class DocumentoController {
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        '123',
-        'tre123',
-        'rita.flores'
+        `archivo ${file.originalname} asociado a la documento ID ${id_tipo_documento}`,
+        `documento-${id_tipo_documento}`,
+        'josue.torrez'
       );
   
       if (uploadResponse.estado && uploadResponse.url_file) {
         await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
         resultados.push({
           id_documento: savedDocumento.id_documento,
-          nombre_documento: nuevoDocumento.nombre_documento, // ✅ Devuelve el nombre corregido
+          nombre_documento: nuevoDocumento.nombre_documento,
           url_file: uploadResponse.url_file,
+          uploadUrl: uploadResponse.uploadUrl,
+          ruta: uploadResponse.ruta,
+          resumen: uploadResponse.resumen,
+          palabraClave: uploadResponse.palabraClave,
         });
       } else {
         throw new HttpException(

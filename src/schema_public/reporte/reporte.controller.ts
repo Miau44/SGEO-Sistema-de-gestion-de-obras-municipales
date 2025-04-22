@@ -125,7 +125,11 @@ export class ReportController {
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
-  }    
+  }
+
+  
+      
+	      
 
   @Public()
     @Get('actividades_previas_fiscal')

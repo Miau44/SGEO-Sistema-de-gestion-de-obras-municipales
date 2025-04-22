@@ -47,7 +47,7 @@ export class ObraService {
 REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
 eo.desc_cod_da, eo.nombre_ue, eo.gestion,
 f.fecha_registro,  
-tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, o.*
+tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, f.url_adjuntos, o.*
  FROM public.obra AS o   
 INNER JOIN public.ficha f  ON o.id_ficha = f.id_ficha
 INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from public.estructura_organizacional
@@ -341,7 +341,8 @@ WHERE sol.idusuario= ${data.usuario} ` ;
         return this.responseService.success(resultado, "Listado Correctamente.")
 
       }
-      else {
+      
+      if (misproyectos.permiso) {
 
      /*   const query = `SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
         f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
