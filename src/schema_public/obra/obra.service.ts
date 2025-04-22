@@ -341,7 +341,8 @@ WHERE sol.idusuario= ${data.usuario} ` ;
         return this.responseService.success(resultado, "Listado Correctamente.")
 
       }
-      else {
+      
+      if (misproyectos.permiso) {
 
      /*   const query = `SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
         f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
