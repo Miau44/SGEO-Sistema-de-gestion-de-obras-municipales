@@ -91,8 +91,12 @@ export class DocumentoController {
         await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
         resultados.push({
           id_documento: savedDocumento.id_documento,
-          nombre_documento: nuevoDocumento.nombre_documento, // ✅ Devuelve el nombre corregido
+          nombre_documento: nuevoDocumento.nombre_documento,
           url_file: uploadResponse.url_file,
+          uploadUrl: uploadResponse.uploadUrl,
+          ruta: uploadResponse.ruta,
+          resumen: uploadResponse.resumen,
+          palabraClave: uploadResponse.palabraClave,
         });
       } else {
         throw new HttpException(

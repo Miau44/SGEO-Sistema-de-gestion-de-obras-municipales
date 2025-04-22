@@ -97,8 +97,14 @@ export class DocumentoService {
       const response = await axios.post(this.uploadUrl, formData, {
         headers: formData.getHeaders(),
       });
-      console.log("que traes ",response.data);
-      return response.data;
+
+      const responseData = response.data as {
+        id_documento: number;
+        nombre_documento: string;
+        url_file: string;
+      };
+
+    return {...responseData, uploadUrl: this.uploadUrl, ruta, resumen, palabraClave,};
 
     } catch (error) {
       throw new HttpException(
@@ -107,7 +113,6 @@ export class DocumentoService {
       );
     }
   }
-
 
   async obtenerDocumentosPorInforme(idInforme: number): Promise<Documento[]> {
     const query = `
