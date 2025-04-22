@@ -222,10 +222,68 @@ export class ficha_itemService {
     }
   }
 
+
+  async obtenerFichaporCorrelativo(id_correlativo:number, id_usuario: number): Promise<any> {
+    //console.log("desc_cod_ue_",desc_cod_ue_);
+
+    // OBTENER PARAMETROS DE URL DESDE .env
+    const url_sim = process.env.URL_SIM2;
+    // realizar la llamada al servicio externo metodo POST
+    const url = `${url_sim}sgeo/wsDataFichaObra`;
+    // Realizar la llamada al servicio externo
+    var response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+      body: JSON.stringify({
+        "cod_carpeta": id_correlativo
+      })
+    });
+    const data = await response.json();
+    console.log(data);
+    if (data.res == "OK") {
+      for (const fichaJson of data.datos) {
+        //verificar si existe la ficha en la base de datos, si existe no guardar
+        const fichaExistente = await this.fichaRepository.findOne({ where: { cod_carpeta: fichaJson.cod_carpeta } });
+        if (fichaExistente) {
+          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+          continue; // Si ya existe, continuar con la siguiente ficha
+        }
+
+        //validar que codigo_ficha tenga el texto 2025
+        if (!fichaJson.codigo_ficha.includes("2025")) {
+          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
+          continue; // Si no contiene el texto, continuar con la siguiente ficha
+        }
+
+        const nueva_ficha = this.transformarFicha2(fichaJson,id_usuario);
+        //console.log(nueva_ficha);
+        try {
+          const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
+          const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
+          const obraGuardada = await this.obraRepository.save(nuevaObra);
+          console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
+          
+          await this.guardarItemsIndividual(fichaJson.d_item, obraGuardada, id_usuario);
+        } catch (error) {
+          //lanzar error si no se puede guardar la ficha
+
+          //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
+          //mandar  error si no se puede guardar la obra, trwow error
+          console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
+          throw new Error(`Error al guardar la obra: ${error}`);
+        }
+      }
+    } else {
+      console.log("error: sin datos de servicio", data.res);
+      //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
+    }
+  }
+
+
+
   private transformarFicha(fichaJson: any, desc_cod_ue: number, gestion: number, id_usuario: number): Ficha {
     //separar el campo cat_programatico en 3 partes
     const cat_progratica = fichaJson.cat_progratica.split('-');
-
     return this.fichaRepository.create({
       desc_cod_ue: desc_cod_ue,
       correlativo_carpeta: fichaJson.cod_carpeta,
@@ -237,6 +295,37 @@ export class ficha_itemService {
       estado_carpeta: fichaJson.estado,
       total_carpeta: fichaJson.monto_total,
       gestion_carpeta: gestion,
+      cod_estado_carpeta: 1, //validado
+      cod_prioridad_carpeta: 0,
+      cod_carpeta_anterior: 0,
+      continuidad: 0,
+      desc_distrito_carpeta: fichaJson.distrito || '',
+      desc_macrodistrito_carpeta: fichaJson.macrodistrito || '',
+      fecha_validacion_carpeta: this.formatDate(fichaJson.fe_val),
+      fecha_modificacion: undefined,
+      fecha_registro: new Date(),
+      usuario_registro: id_usuario, // Asignar según contexto de usuario
+      url_adjuntos: fichaJson.url,
+      programa: cat_progratica[0],
+      proyecto: cat_progratica[1],
+      actividad: cat_progratica[2],
+    });
+  }
+
+  private transformarFicha2(fichaJson: any,   id_usuario: number): Ficha {
+    //separar el campo cat_programatico en 3 partes
+    const cat_progratica = fichaJson.cat_progratica.split('-');
+
+    return this.fichaRepository.create({
+      correlativo_carpeta: fichaJson.cod_carpeta,
+      cod_carpeta: fichaJson.codigo_ficha,
+      cod_sisin: fichaJson.sisin,
+      desc_carpeta: fichaJson.nombre_ficha,
+      desc_zona_carpeta: fichaJson.localizacion || '',
+      id_estado: 1, //Asignar estado inicial
+      estado_carpeta: fichaJson.estado,
+      total_carpeta: fichaJson.monto_total,
+      gestion_carpeta: fichaJson.gestion,
       cod_estado_carpeta: 1, //validado
       cod_prioridad_carpeta: 0,
       cod_carpeta_anterior: 0,
@@ -330,7 +419,70 @@ export class ficha_itemService {
   
       // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
       registrosUnicos.set(claveRegistro, itemJson);
-      console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
+      //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
+    });
+
+    const itemsFiltrados: any[] = Array.from(registrosUnicos.values());
+    try {
+      if (itemsFiltrados.length > 0) {
+        // Guardar los items filtrados en la base de datos
+        await this.itemRepository.save(
+          itemsFiltrados.map(itemJson =>
+            this.itemRepository.create({
+              desc_item: itemJson.item,
+              cantidad_sim: itemJson.cantidad,
+              cantidad_autorizada: itemJson.cantidad,
+              unidad_medida_sim: itemJson.unidad,
+              p_unitario_sim: itemJson.real_unitario,
+              total_item_sim: itemJson.total,
+              obra: obra, // Relación con la obra
+              codigo_item: itemJson.codigo_item || '',
+              partida_sim: itemJson.partida || 0, // ajustar para el servicio
+              orden_sim: itemJson.orden, // ajustar para el servicio
+              id_tipo_item: id_tipo_item, // ajustar para el servicio
+              id_usuario_registro: id_usuario_,
+              id_estado: 1,
+            })
+          )
+        );
+        console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
+      } else {
+        console.log(`No se guardaron nuevos items porque todos fueron ignorados.`);
+      }
+    } catch (error) {
+      console.error(`Error al guardar items: ${error}`);
+      throw new Error(`Error al guardar items: ${error}`);
+    }
+  }
+
+  private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
+    if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
+  
+    const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
+  
+    // Filtrar solo las partidas permitidas (42310 y 42230)
+    const partidasPermitidas = ["42310", "42230","24300"];
+    const registrosUnicos = new Map<string, any>();
+
+    itemsJson.forEach(itemJson => {
+      // Validar si la partida está permitida
+      if (!partidasPermitidas.includes(itemJson.partida)) {
+        console.log(`Item ignorado: Partida no permitida. Partida=${itemJson.partida}, Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
+        return; // Saltar este item
+      }
+  
+      // Crear una clave única basada en orden y codigo_item
+      const claveRegistro = `${itemJson.orden}-${itemJson.codigo_item}`;
+  
+      // Si ya existe un item con esta clave, se ignora el nuevo
+      if (registrosUnicos.has(claveRegistro)) {
+        console.log(`Item ignorado: Par (Orden, Código_Item) duplicado en el JSON. Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
+        return; // Ignorar duplicados posteriores
+      }
+  
+      // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
+      registrosUnicos.set(claveRegistro, itemJson);
+      //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
     });
 
     const itemsFiltrados: any[] = Array.from(registrosUnicos.values());

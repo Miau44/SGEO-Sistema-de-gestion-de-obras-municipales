@@ -80,12 +80,11 @@ export class FichaItemController {
     }
   }
 
-  @Post('test')
+  @Post('cargadoFichaItem')
   @Public()
-  @ApiOperation({ summary: 'Test endpoint' })
+  @ApiOperation({ summary: 'cargado de fichas e items' })
   async cargadoFichaItem(@Body() body: { gestion: number, id_usuario: number }) { //añadir parametro de entrada a servicio test, gestion
-//validar que el id_usuario no sea nulo
-console.log(body);
+    //validar que el id_usuario no sea nulo
 
     if (body == null) {
       console.error('Error: id_usuario es nulo');
@@ -105,7 +104,45 @@ console.log(body);
       
       const s = this.ficha_itemService.obtenerUes(gestion,id_usuario);
       s.then((result) => {
-        console.log(result);
+        console.log({res:"OK"});
+        //retornar un json con el resultado de la consulta
+        return { message: 'Test successful', result };
+      }).catch((error) => {
+        console.error('Error:', error);
+        return { message: 'Test error' };
+      });
+    }
+    ).catch((error) => {
+      console.error('Error:', error);
+      return { message: 'Test error' };
+    });
+  }
+
+  @Post('cargadoFichaItemPorCorrelativo')
+  @Public()
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  async cargadoFichaItemPorCorrelativo(@Body() body: { correlativo_carpeta: number, id_usuario: number }) { //añadir parametro de entrada a servicio test, gestion
+    //validar que el id_usuario no sea nulo
+
+    if (body == null) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
+    }
+    const { correlativo_carpeta, id_usuario } = body;
+    console.log(correlativo_carpeta,id_usuario);
+    //validar que la gestion no sea nulo y mayor a 2020
+    if (correlativo_carpeta == null ) {
+      console.error('Error: gestion es nulo');
+      return { message: 'error', error: 'gestion es nulo' };
+    }
+
+    const r = this.ficha_itemService.obtenerToken();
+    r.then((result) => {
+      //return { message: 'Test successful' };
+      console.log(correlativo_carpeta,id_usuario);
+      
+      const s = this.ficha_itemService.obtenerFichaporCorrelativo(correlativo_carpeta,id_usuario);
+      s.then((result) => {
         console.log({res:"OK"});
         //retornar un json con el resultado de la consulta
         return { message: 'Test successful', result };

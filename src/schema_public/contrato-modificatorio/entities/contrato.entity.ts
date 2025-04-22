@@ -23,11 +23,11 @@ export class Contrato {
   @Column({ type: 'decimal', precision: 18, scale: 2, nullable: true })
   monto_contrato: number;
 
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // nombre_rpa: string;
+  @Column({ type: 'varchar', length: 350, nullable: true })
+  direccion: string;
 
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // apellido_p_rpa: string;
+  @Column({ type: 'varchar', length: 25, nullable: true })
+  telefono: string;
 
   // @Column({ type: 'varchar', length: 100, nullable: true })
   // apellido_m_rpa: string;
