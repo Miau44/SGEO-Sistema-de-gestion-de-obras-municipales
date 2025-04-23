@@ -36,6 +36,7 @@ import { ComputoModule } from './schema_public/computo/computo.module';
 import { PlanillaModule } from './schema_public/planilla/planilla.module';
 import { ModificacionPagoModule } from './schema_public/modificacion_pago/modificacion_pago.module';
 import { SubrolesModule } from './schema_public/subroles/subroles.module';
+import { LogModule } from './schema_public/log/log.module';
 
 
 
@@ -102,7 +103,8 @@ import { SubrolesModule } from './schema_public/subroles/subroles.module';
   ComputoModule,
   PlanillaModule,
   ModificacionPagoModule,
-  SubrolesModule
+  SubrolesModule,
+  LogModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

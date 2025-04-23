@@ -73,7 +73,7 @@ export class DocumentoController {
       nuevoDocumento.id_obra = id_obra;
       nuevoDocumento.id_tipo_documento = id_tipo_documento;
       nuevoDocumento.usuario_registro = id_usuario_registro;
-      nuevoDocumento.ruta_documento = ruta;
+      nuevoDocumento.ruta_documento = '';
       nuevoDocumento.cumple = true;
       nuevoDocumento.nombre_documento = this.documentoService.normalizeFileName(file.originalname); // ✅ Nombres normalizados
   
@@ -82,12 +82,16 @@ export class DocumentoController {
       const uploadResponse = await this.documentoService.uploadFileToExternalService(
         file,
         ruta,
-        `archivo ${file.originalname} asociado a la documento ID ${id_tipo_documento}`,
+        `archivo asociado al documento con id ${id_tipo_documento}`,
         `documento-${id_tipo_documento}`,
         'josue.torrez'
       );
-  
+      
+      console.log("1: ",uploadResponse);
+      
       if (uploadResponse.estado && uploadResponse.url_file) {
+        console.log("entras al if_:");
+        
         await this.documentoService.saveDocumentoUrl(savedDocumento.id_documento, uploadResponse.url_file);
         resultados.push({
           id_documento: savedDocumento.id_documento,
@@ -99,10 +103,26 @@ export class DocumentoController {
           palabraClave: uploadResponse.palabraClave,
         });
       } else {
-        throw new HttpException(
-          `Error en el servicio externo para el archivo ${file.originalname}`,
-          HttpStatus.BAD_GATEWAY
-        );
+        
+        throw new HttpException({
+          statusCode: HttpStatus.BAD_GATEWAY,
+          message: uploadResponse.error,
+          error: 'Error al subir archivo',
+          ruta:uploadResponse.ruta,
+          resumen: uploadResponse.resumen,
+          palabraClave: uploadResponse.palabraClave,
+        }, HttpStatus.BAD_GATEWAY);
+        
+        // resultados.push({
+        //   response:uploadResponse,
+        //   id_documento: savedDocumento.id_documento,
+        //   nombre_documento: nuevoDocumento.nombre_documento,
+        //   url_file: uploadResponse.url_file,
+        //   uploadUrl: uploadResponse.uploadUrl,
+        //   ruta: uploadResponse.ruta,
+        //   resumen: uploadResponse.resumen,
+        //   palabraClave: uploadResponse.palabraClave,
+        // });
       }
     }
   
