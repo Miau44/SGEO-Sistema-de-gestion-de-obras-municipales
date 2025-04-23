@@ -46,10 +46,10 @@ export class ObraService {
 f.fecha_validacion_carpeta,    
 public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
 eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-f.fecha_registro,  c.contrato_fecha, 
+f.fecha_registro,  c.fecha_numeracion as contrato_fecha,  c.numero_contrato,
 CASE
-WHEN c.contrato_fecha IS NULL THEN 'SIN CONTRATO'
-ELSE 'CON CONTRATO'
+WHEN c.numero_contrato IS NULL THEN 'SIN CONTRATO'
+ELSE c.numero_contrato
 END AS estado_contrato,
 tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, f.url_adjuntos, o.* 
 FROM public.obra AS o   

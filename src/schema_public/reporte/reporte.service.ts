@@ -190,11 +190,11 @@ export class ReportService {
         },
 
         {
-          text: this.datos[0].aprobador,
+          text: '\n',
           style: 'textDato', alignment: 'center'
         },
         {
-          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_da,
           style: 'textDato', alignment: 'center', bold: true
         },
         {
@@ -390,7 +390,14 @@ export class ReportService {
         },
 
         {
-          text: 'Señor(a):\n\nEn atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la ' + this.datos[0].nombre_ue + ' ha dispuesto designarlo(a) ' + this.datos[0].permisos + ' (a) de la obra ' + this.datos[0].desc_carpeta + '.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
+          text: 'Señor(a):\n\nEn atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la ' + 
+          (
+            this.datos[0].cod_da_ap >= 37 && this.datos[0].cod_da_ap <= 45
+              ? this.datos[0].nombre_da_ap
+              : this.datos[0].nombre_ue_ap
+          ) + 
+          ' ha dispuesto designarle ' + this.datos[0].permisos + ' de la obra ' + this.datos[0].desc_carpeta + 
+          '.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -399,7 +406,9 @@ export class ReportService {
           style: 'textDato', alignment: 'center'
         },
         {
-          text: this.datos[0].nombre_ue,
+          text: this.datos[0].cod_da_ap >= 37 && this.datos[0].cod_da_ap <= 45
+          ? this.datos[0].nombre_da_ap
+          : this.datos[0].nombre_ue_ap,
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -576,11 +585,11 @@ export class ReportService {
         },
 
         {
-          text: [this.datos[0].aprobador],
+          text: '\n',
           style: 'textDato', alignment: 'center'
         },
         {
-          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_da,
           style: 'textDato', alignment: 'center', bold: true
         },
         {
@@ -770,7 +779,13 @@ export class ReportService {
         },
 
         {
-          text: 'Señor(a):\n\nMediante la presente se comunica a usted que la ' + this.datos[0].nombre_ue + ' ha dispuesto designarlo(a) a partir de la fecha ' + this.datos[0].permisos + '(A) de la obra ' + this.datos[0].desc_carpeta + ', en reemplazo de (él/la) profesional ' + this.datos[0].persona_a_reemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
+          text: 'Señor(a):\n\nMediante la presente se comunica a usted que la ' + 
+          (
+            this.datos[0].cod_da_ap >= 37 && this.datos[0].cod_da_ap <= 45
+              ? this.datos[0].nombre_da_ap
+              : this.datos[0].nombre_ue_ap
+          ) + 
+          ' ha dispuesto designarle a partir de la fecha ' + this.datos[0].permisos + ' de la obra ' + this.datos[0].desc_carpeta + ', en reemplazo de (él/la) profesional ' + this.datos[0].persona_a_reemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -779,7 +794,9 @@ export class ReportService {
           style: 'textDato', alignment: 'center'
         },
         {
-          text: this.datos[0].nombre_ue,
+          text: this.datos[0].cod_da_ap >= 37 && this.datos[0].cod_da_ap <= 45
+          ? this.datos[0].nombre_da_ap
+          : this.datos[0].nombre_ue_ap,
           style: 'textTitulo', alignment: 'center'
         },
 
@@ -1021,11 +1038,11 @@ export class ReportService {
         },
 
         {
-          text: this.datos[0].aprobador,
+          text: '\n',
           style: 'textDato', alignment: 'center'
         },
         {
-          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_ue,
+          text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_da,
           style: 'textDato', alignment: 'center', bold:true
         },
 

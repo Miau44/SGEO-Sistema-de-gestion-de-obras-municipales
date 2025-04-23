@@ -148,6 +148,7 @@ export class PersonapermisoUeService {
       AND d.id_estado=1 
       AND per.id_permiso IN(${datosDto.id_permiso})
       AND  p.id_estado IN(1,5)  
+       AND d.estado_designacion IN(99,105,102)
       --AND ppue.gestion =${datosDto.gestion}        
        AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   AND  d.id_obra =${datosDto.obra};`;
         const resultado = await this.pperUeRepositorio.query(query);
