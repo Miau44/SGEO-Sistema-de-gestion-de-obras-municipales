@@ -7,9 +7,10 @@ import { ResponseService } from 'src/response.service';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { PlanillaService } from '../planilla/planilla.service';
 import { Planilla } from '../planilla/entities/planilla.entity';
+import { LogModule } from '../log/log.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, Planilla ])], // Se importa la entidad Item para TypeORM
+  imports: [TypeOrmModule.forFeature([Item, Planilla ]), LogModule], // Se importa la entidad Item para TypeORM
   controllers: [ItemController],
   providers: [ItemService, ResponseService, ExternoService, PlanillaService], 
   exports: [ItemService],  // Esto permite que el servicio sea usado en otros módulos si es necesario
