@@ -93,7 +93,10 @@ export class Obra {
     usuario_registro: number;
 
     @Column({default:1})
-    id_estado: number;    
+    id_estado: number;
+
+    @Column({ type: 'int', nullable: true })
+    plazo_contrato: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
     fecha_registro: Date
