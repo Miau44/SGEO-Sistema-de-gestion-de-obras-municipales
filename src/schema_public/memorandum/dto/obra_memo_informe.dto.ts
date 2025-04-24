@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsString, IsDateString, IsDate, IsOptional } from 'class-validator';
 
 export class GuardarObraDto {
 
@@ -21,19 +22,33 @@ export class GuardarObraDto {
   planillaAnticipo: number; // Cambiado de `planillasAnticipo`
 
   @ApiProperty()
-  fechaOrdenProceder: Date;
+  /*@IsOptional()
+  @IsDate()
+  @Type(() => Date)*/
+  fechaOrdenProceder: Date ;
 
   @ApiProperty()
+ /* @IsOptional()
+  @IsDate()
+  @Type(() => Date)*/
   fechaRecepProvisional: Date;
 
   @ApiProperty()
-  @IsInt()
+  /*@IsOptional()
+  @IsDate()
+  @Type(() => Date)*/
   plazoProvDefinitiva: number;
 
   @ApiProperty()
+  /*@IsOptional()
+  @IsDate()
+  @Type(() => Date)**/
   fechaRecepDefinitiva: Date;
 
   @ApiProperty()
+  /*@IsOptional()
+  @IsDate()
+  @Type(() => Date)*/
   fechaInicioEjecucion: Date; // Cambiado de `fechaInicio`
 
   @ApiProperty()
