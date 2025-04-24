@@ -977,7 +977,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           text: [
             { text: 'Señor(es): \n', style: 'textDato' },
             {
-              text: 'Habiendose suscrito el contrato de obra ' + this.datosEnvio[0].desc_carpeta + ' , le comunicamos que a partir del día ' + 
+              text: 'Habiéndose suscrito el contrato de obra ' + this.datosEnvio[0].desc_carpeta + ' , le comunicamos que a partir del día ' + 
               this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + ', se contabilizará el plazo de ejecución de ' + this.datosEnvio[0].plazo_ejecucion + ' días calendario establecidos ' +
               ' en el contrato ' + this.datosEnvio[0].numero_contrato+'.\n\n',
               style: 'textDato',  alignment: 'justify'
