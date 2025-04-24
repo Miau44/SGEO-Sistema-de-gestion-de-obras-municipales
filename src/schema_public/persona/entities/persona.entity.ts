@@ -24,8 +24,9 @@ export class Persona {
 
     @Column()
     cargo: string;
-
-    @Column()
+//paola
+//no necesariamente nos pasan el puesto desde el sistema de seguridad
+    @Column({nullable:true})
     puesto: string;
     
     @Column()

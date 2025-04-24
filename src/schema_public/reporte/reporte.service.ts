@@ -44,6 +44,7 @@ export class ReportService {
   datosSIM: any = [];
   datosPreguntaInforme: any = [];
   datosPreguntaInformeRestante: any = [];
+  datosPreguntaInformeConclusion: any = [];
   datosListaSupervisores: any = [];
   constructor(
     private readonly responseService: ResponseService,
@@ -1185,12 +1186,22 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
   }
 
-  
+  async preguntasInformeConclusion(obra: number, tipo_informe: number, subtipo: number) {
+    const query1 = `
+    SELECT * FROM public."vista_reporte_informe_inicial_conclusion"  
+    WHERE id_obra = ${obra}`;
+    const values = [obra, tipo_informe]
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+    console.log('preguntasInforme', resultado[0]);
+
+  }
 
 //PAOLA
 //10042025
   //INFORME INICIAL SUPERVISOR 
-  async generateInformeInicial(usuario:number, obra: number): Promise<Buffer> {
+  async generateInformeInicial(usuario: number, obra: number): Promise<Buffer> {
+    //  async generateInformeInicial(usuario:number): Promise<Buffer> {
 
     const res = await this.datosReporteInformeInicial(usuario, obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -1207,7 +1218,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
       throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }
 
-    const res4 = await this.preguntasInformeRestante(obra, 235, 174);
+    const res4 = await this.preguntasInformeConclusion(obra, 235, 174);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
       throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
     }   
@@ -1219,6 +1230,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
   
     this.datosPreguntaInforme = res2;    
     this.datosPreguntaInformeRestante = res3;
+    this.datosPreguntaInformeConclusion = res4;    
     this.datosEnvio = res;
     this.datosListaSupervisores = res5;   
     console.log("datosListaSupervisores", this.datosListaSupervisores);
@@ -1235,13 +1247,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       background: function(currentPage: any, pageSize: any) { 
         return {
-            image: imgPath, 
-            width: pageSize.width, 
-            height: pageSize.height,
-            absolutePosition: {x: 0, y: 0},
-            opacity: 0.3
-               } },      
-      
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 },
+          opacity: 0.3
+        }
+      },
+
 
       header: {
         table: {
@@ -1274,7 +1287,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       content: [
         {
-          text: '\n\n\nINFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
+          text: 'INFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
           style: 'headerTitle', alignment: 'center'
         } as any,
 
@@ -1367,27 +1380,43 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           text: '\n3. OBSERVACIONES GENERALES. \n\n',
           style: 'subheader',
         },
+        {
+          text: [
+            ' Resultado del análisis de los tres aspectos se tienen las siguientes observaciones Generales:\n\n'
+          ],
+          style: 'textDato', alignment: 'justify'
+        },
 
+
+        {
+          text: [this.datosEnvio[0].obs_general
+          ],
+          style: 'textDato', alignment: 'justify'
+        },
 
         {
           text: '\n4. CONCLUSIONES \n\n',
           style: 'subheader',
         },
-       /* {
+
+        {
           table: {
-            widths: [30, '*', 50, 100],
+            widths: [460],
             body: [
               [
-                { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
-
-              ],
-              ...this.buildDocumentosSIM(this.datosSIM)
+                
+                { text: [{ text: this.datosPreguntaInformeConclusion[0].desc_subtipo, style: 'textDato' }], fillColor: '#f0f0f0' }
+              ],            
             ]
           },
-        },*/
+          //layout: 'noBorders'
+        },
+        {
+          text: ['\n' +this.datosEnvio[0].conclusion
+          ],
+          style: 'textDato', alignment: 'justify'
+        },
+
         {
           text: '\n5. RECOMENDACIONES \n\n',
           style: 'subheader',
@@ -1517,7 +1546,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       },
       //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
-      pageMargins: [70, 150, 70, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo            
+      pageMargins: [70, 180, 70, 180] as any, // Márgenes: izquierda, arriba, derecha, abajo            
 
     };
     // Generar el PDF en memoria
