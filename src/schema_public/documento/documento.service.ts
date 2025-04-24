@@ -67,13 +67,62 @@ export class DocumentoService {
   }
 
   async saveDocumentoUrl(id_documento: number, url_file: string): Promise<void> {
-    await this.documentoRepositorio.update(id_documento, { ruta_documento: url_file });
+    await this.documentoRepositorio.update(id_documento, { ruta_documento: url_file,id_estado:1 });
   }
 
   async createDocumento(documento: Documento): Promise<Documento> {
     return await this.documentoRepositorio.save(documento);
   }
   
+  // async uploadFileToExternalService(
+  //   file: Express.Multer.File,
+  //   ruta: string,
+  //   resumen: string,
+  //   palabraClave: string,
+  //   usuario: string
+  // ): Promise<any> {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append('file', file.buffer, file.originalname);
+  //     formData.append('sistema', this.sistema); // Valor fijo
+  //     formData.append('ruta', ruta);
+  //     formData.append('resumen', resumen);
+  //     formData.append('palabraClave', palabraClave);
+  //     formData.append('usuario', this.user_registro);
+
+  //     console.log("1logs upload", ruta,resumen,palabraClave);
+  //     console.log(this.uploadUrl);
+      
+  //     const response = await axios.post(this.uploadUrl, formData, {
+  //       headers: formData.getHeaders(),
+  //     });
+
+  //     console.log( "2entra en response",response);
+  //     const responseData = response.data as {
+  //       id_documento: number;
+  //       nombre_documento: string;
+  //       url_file: string;
+  //       estado?: boolean;
+  //     };
+  //     console.log( "3entra en response",response);
+
+  //     if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
+  //       console.log("DE LA NEGACION DEL URL",responseData.url_file);
+        
+  //       throw new Error('URL del archivo no es válida o está incompleta');
+  //     }
+
+  //   return {...responseData, uploadUrl: this.uploadUrl, ruta, resumen, palabraClave,};
+
+  //   } catch (error) {
+  //     console.error('⛔ Error en uploadFileToExternalService:', error);
+  //     throw new HttpException(
+  //       `Error al enviar el archivo: ${(error as Error).message}`,
+  //       HttpStatus.BAD_GATEWAY
+  //     );
+  //   }
+  // }
+
   async uploadFileToExternalService(
     file: Express.Multer.File,
     ruta: string,
@@ -81,38 +130,56 @@ export class DocumentoService {
     palabraClave: string,
     usuario: string
   ): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file.buffer, file.originalname);
+    formData.append('sistema', this.sistema); // Valor fijo
+    formData.append('ruta', ruta);
+    formData.append('resumen', resumen);
+    formData.append('palabraClave', palabraClave);
+    formData.append('usuario', this.user_registro);
+  
     try {
-      const formData = new FormData();
-      formData.append('file', file.buffer, file.originalname);
-      formData.append('sistema', this.sistema); // Valor fijo
-      formData.append('ruta', ruta);
-      formData.append('resumen', resumen);
-      formData.append('palabraClave', palabraClave);
-      formData.append('usuario', this.user_registro);
-
-      console.log("logs upload", ruta,resumen,palabraClave);
-      console.log(this.uploadUrl);
-      
-      
       const response = await axios.post(this.uploadUrl, formData, {
         headers: formData.getHeaders(),
       });
-
+  
       const responseData = response.data as {
         id_documento: number;
         nombre_documento: string;
         url_file: string;
+        estado?: boolean;
       };
-
-    return {...responseData, uploadUrl: this.uploadUrl, ruta, resumen, palabraClave,};
-
-    } catch (error) {
-      throw new HttpException(
-        `Error al enviar el archivo: ${(error as Error).message}`,
-        HttpStatus.BAD_GATEWAY
-      );
+  
+      if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
+        throw new Error('URL devuelta no es válida o incompleta');
+      }
+  
+      return {
+        ...responseData,
+        uploadUrl: this.uploadUrl,
+        ruta,
+        resumen,
+        palabraClave,
+      };
+    } catch (error: any) {
+      const responseData = error?.response?.data;
+  
+      // ⚠️ Este log ayuda a depurar problemas reales de respuesta del servicio externo
+      console.error('⛔ Error al subir archivo:', {
+        mensaje: error.message,
+        data: responseData,
+      });  
+      return{
+        ...responseData,
+        uploadUrl: this.uploadUrl,
+        ruta,
+        resumen,
+        palabraClave,
+      }
+      
     }
   }
+  
 
   async obtenerDocumentosPorInforme(idInforme: number): Promise<Documento[]> {
     const query = `
@@ -234,13 +301,13 @@ export class DocumentoService {
   async listaDocumentos(data: ListaDocumentoDto) {
     try { 
     ;      
-      let query = `		SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+      let query = `		SELECT  td.id_tipo_documento,d.nombre_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
     td.id_subtipo_documento, td.id_etapa_documento,
     d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
-    AND d.id_obra = $1	
+    AND d.id_obra = $1 AND d.id_estado = 1	
     ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
     ORDER BY td.id_tipo_documento ASC `;     
       const params : any[]  = [data.id_obra];
@@ -268,6 +335,16 @@ WHERE id_obra = $1 AND cumple = true`;
       return this.responseService.error(error);
     }
   }
+
+  async update(id: number, updateDocumentoDto: Partial<Documento>) {
+    try {
+      await this.documentoRepositorio.update(id, updateDocumentoDto);
+      return this.responseService.success({}, 'Documento actualizado correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al actualizar el documento.');
+    }
+  }
+  
 
 
 

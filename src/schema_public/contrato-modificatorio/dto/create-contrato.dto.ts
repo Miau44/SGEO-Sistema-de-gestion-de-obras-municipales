@@ -103,4 +103,12 @@ export class CreateContratoDto {
   @ApiProperty({ example: '2024-11-11', description: 'ID del tipo de contrato' })
   @IsDateString()
   fecha_contrato: Date;
+
+  @ApiProperty({ example: '', description: '' })
+  @IsString()
+  direccion: string;
+
+  @ApiProperty({ example: '', description: '' })
+  @IsString()
+  telefono: string;
 }

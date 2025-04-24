@@ -79,7 +79,7 @@ export class FichaService {
 
 
    const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, 
-   REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
    f.fecha_registro
    FROM public.Ficha as f

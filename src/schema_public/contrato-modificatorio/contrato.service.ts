@@ -93,8 +93,9 @@ export class ContratoService {
         proponente_nit: contratoDlc.rnit,
         fecha_contrato: this.formatDate(contratoDlc.rfechacontrato),
         fecha_numeracion: new Date(),
+        direccion: contratoDlc.rdomicilio,
+        telefono: contratoDlc.rtelef,
       };
-
 
       createContratoDto.id_obra = resultado[0].id_obra;
       const newContract = this.contratoRepo.create(createContratoDto);
@@ -178,7 +179,7 @@ export class ContratoService {
       // Consumir el servicio externo
       console.log(process.env.URL_DLC+'consumer/reporteunodfo/'+gestion);
       
-      const response = await fetch(process.env.URL_DLC+'consumer/reporteunodfo/2025', {
+      const response = await fetch(process.env.URL_DLC+'consumer/reporteunodfo/2025/0', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
       });
@@ -194,11 +195,30 @@ export class ContratoService {
         return;
       }
 
+      let totalContratos = 0;
       // Iterar sobre los datos y guardarlos en la base de datos
       for (const item of data.data) {
         // Limpiar y transformar los datos según sea necesario
         const montoContrato = this.limpiarMonto(item.rmontocontrato);
         const fechaContrato = this.convertirFecha(item.rfechacontrato);
+
+        // verificar si existe contrato.correlativo_carpeta en la tabla ficha
+        const ficha = await this.fichaRepo.findOne({ where: { correlativo_carpeta: item.ridcodcarpeta } });
+        if (ficha == null) {
+          console.log(`No se encontró la ficha con correlativo_carpeta: ${item.ridcodcarpeta}`);
+          continue; // O manejar el error de otra manera
+        }
+        else{
+          //ficha encontrada en log
+          console.log(`Ficha encontrada con id_ficha: ${ficha.id_ficha}`);
+        }
+
+        // con ese id_ficha buscar el id_obra en la tabla obra
+        const obra = await this.obraRepo.findOne({ where: { id_ficha: ficha.id_ficha } });
+        if (obra == null) { 
+          console.log(`No se encontró la obra con id_ficha: ${ficha.id_ficha}`);
+          continue; // O manejar el error de otra manera
+        }
 
         // Crear una nueva instancia de Contrato
         const nuevoContrato = this.contratoRepository.create({
@@ -214,13 +234,20 @@ export class ContratoService {
           proponente_representante: item.elreplegal,
           proponente_nit: item.rnit,
           plazo_contrato: item.rplazocontrato,
-          id_contrato_dlc:item.elidcontra
+          id_contrato_dlc:item.elidcontra,
+          id_obra: obra.id_obra
         });
 
+        //añadir un contador para ver el total de los contratos insertados
+        
+
+        totalContratos++;
         // Guardar el registro en la base de datos
         await this.contratoRepository.save(nuevoContrato);
       }
-      console.log('Datos insertados correctamente');
+      console.log('Datos insertados correctamente, total de contratos:', totalContratos);
+      console.log('Proceso de llenado de la base de datos completado.');
+      
     } catch (error) {
       console.error('Error al consumir el servicio o insertar datos:', error);
     }

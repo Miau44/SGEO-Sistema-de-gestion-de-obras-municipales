@@ -56,4 +56,10 @@ export class ContratoDlcDto {
 
     @IsString()
     rvigencia: string;
+
+    @IsString()
+    rdomicilio: string;
+
+    @IsString()
+    rtelef: string;
 }

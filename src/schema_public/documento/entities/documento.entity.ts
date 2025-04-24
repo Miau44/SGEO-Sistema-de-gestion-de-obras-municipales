@@ -26,7 +26,7 @@ export class Documento {
     @Column()
     usuario_registro: number;
 
-    @Column({ default: 1 })
+    @Column({ default: 0 })
     id_estado: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
