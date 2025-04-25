@@ -307,7 +307,8 @@ export class DocumentoService {
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
-    AND d.id_obra = $1 AND d.id_estado = 1	
+    AND d.id_obra = $1 
+    WHERE  d.id_estado = 1	
     ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
     ORDER BY td.id_tipo_documento ASC `;     
       const params : any[]  = [data.id_obra];
@@ -326,7 +327,7 @@ export class DocumentoService {
     ;      
       let query = `SELECT * FROM public.documento as d
 INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
-WHERE id_obra = $1 AND cumple = true`;     
+WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;     
       const params : any[]  = [data.id_obra];
      
       const resultado: any[] = await this.documentoRepositorio.query(query, params);
