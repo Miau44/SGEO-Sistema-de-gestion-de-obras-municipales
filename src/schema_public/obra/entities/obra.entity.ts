@@ -28,21 +28,16 @@ export class Obra {
     @Column({default:false})
     anticipo:boolean;
    
-    @Column({type: 'date', nullable:true,})
-    //fecha_orden_proceder: Date;  
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
+    //1paola
+    @Column({type: 'timestamp without time zone', nullable:true})
+   // @Column({type: 'date', nullable:true,})
     fecha_orden_proceder: Date | null;  
 
-    //@Column({type: 'timestamp without time zone', nullable:true})
+    //2paola
+    @Column({type: 'timestamp without time zone', nullable:true})
    // @Column({type: 'date', nullable:true})
-   // fecha_inicio_ejecucion: Date;    
-   @Column({type: 'date', nullable:true})
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    fecha_inicio_ejecucion: Date | null;
+    fecha_inicio_ejecucion: Date | null;    
+   
 
     @Column({nullable:true})
     plazo_ejecucion: number;    
@@ -56,19 +51,16 @@ export class Obra {
     @Column({nullable:true})
     planilla_anticipo: number;    
 
-    @Column({type: 'date',  nullable: true })
-    //fecha_recep_provisional: Date;
-  /*  @IsOptional()
-    @IsDate()
-    @Type(() => Date)*/
-    fecha_recep_provisional: Date;
+    //3paola
+   //@Column({type: 'date',  nullable: true })
+    @Column({type: 'timestamp without time zone', nullable:true})    
+    fecha_recep_provisional: Date | null;
 
-    @Column({type: 'date',  nullable: true})
-    //fecha_recep_definitiva: Date;    
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    fecha_recep_definitiva: Date | null;
+  //4paola
+    @Column({type: 'timestamp without time zone', nullable:true})
+   // @Column({type: 'date',  nullable: true})
+    fecha_recep_definitiva: Date | null;    
+    
 
     @Column({nullable:true})
     plazo_prov_definitiva: number;
@@ -76,13 +68,10 @@ export class Obra {
     @Column({nullable:true})
     procede:number;
 
-    @Column({type: 'date',  nullable: true })
-    //fecha_pago_anticipo: Date | null;
-
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    fecha_pago_anticipo: Date | null;    
+   //5paola
+    @Column({type: 'timestamp without time zone', nullable: true })    
+   // @Column({type: 'date',  nullable: true })
+    fecha_pago_anticipo: Date | null;
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_anticipo: number;

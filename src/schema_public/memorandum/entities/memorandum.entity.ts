@@ -18,8 +18,10 @@ export class Memorandum {
     @Column()
     id_correlativo:number;
 
-    @Column({ type: 'date', nullable: true })
-    fecha_memo:Date;   
+    @Column({type: 'timestamp without time zone', nullable:true})
+    //@Column({type: 'date', nullable:true,})
+    fecha_memo: Date | null;  
+
 
     @Column({ type: 'varchar'})
     nombre_destinatario:string;  
