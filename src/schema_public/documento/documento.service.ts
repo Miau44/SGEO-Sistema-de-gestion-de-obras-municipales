@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
 import axios from 'axios';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
+import { LogService } from '../log/log.service';
 
 @Injectable()
 export class DocumentoService {
@@ -24,6 +25,7 @@ export class DocumentoService {
     private responseService: ResponseService,
     private configService: ConfigService,
     private entityManager: EntityManager,
+    private logService:LogService,
   ) {
     this.uploadUrl = String(process.env.URL_ADJUNTO);
     this.sistema = String(process.env.SISTEMA);
@@ -74,55 +76,6 @@ export class DocumentoService {
     return await this.documentoRepositorio.save(documento);
   }
   
-  // async uploadFileToExternalService(
-  //   file: Express.Multer.File,
-  //   ruta: string,
-  //   resumen: string,
-  //   palabraClave: string,
-  //   usuario: string
-  // ): Promise<any> {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append('file', file.buffer, file.originalname);
-  //     formData.append('sistema', this.sistema); // Valor fijo
-  //     formData.append('ruta', ruta);
-  //     formData.append('resumen', resumen);
-  //     formData.append('palabraClave', palabraClave);
-  //     formData.append('usuario', this.user_registro);
-
-  //     console.log("1logs upload", ruta,resumen,palabraClave);
-  //     console.log(this.uploadUrl);
-      
-  //     const response = await axios.post(this.uploadUrl, formData, {
-  //       headers: formData.getHeaders(),
-  //     });
-
-  //     console.log( "2entra en response",response);
-  //     const responseData = response.data as {
-  //       id_documento: number;
-  //       nombre_documento: string;
-  //       url_file: string;
-  //       estado?: boolean;
-  //     };
-  //     console.log( "3entra en response",response);
-
-  //     if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
-  //       console.log("DE LA NEGACION DEL URL",responseData.url_file);
-        
-  //       throw new Error('URL del archivo no es válida o está incompleta');
-  //     }
-
-  //   return {...responseData, uploadUrl: this.uploadUrl, ruta, resumen, palabraClave,};
-
-  //   } catch (error) {
-  //     console.error('⛔ Error en uploadFileToExternalService:', error);
-  //     throw new HttpException(
-  //       `Error al enviar el archivo: ${(error as Error).message}`,
-  //       HttpStatus.BAD_GATEWAY
-  //     );
-  //   }
-  // }
-
   async uploadFileToExternalService(
     file: Express.Multer.File,
     ruta: string,
@@ -153,6 +106,15 @@ export class DocumentoService {
       if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
         throw new Error('URL devuelta no es válida o incompleta');
       }
+
+      // ✅ Log de éxito
+    await this.logService.create({
+      id_usuario:0,
+      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
+      mensaje: `Archivo subido: ${file.originalname}`,
+      funcionalidad: 'Adjuntos',
+      respuesta: responseData.url_file,
+    });
   
       return {
         ...responseData,
@@ -163,8 +125,16 @@ export class DocumentoService {
       };
     } catch (error: any) {
       const responseData = error?.response?.data;
+
+      // ⛔ Log de error
+    await this.logService.create({
+      id_usuario:0,
+      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
+      mensaje: `Error al subir archivo: ${file.originalname}`,
+      funcionalidad: 'Adjuntos',   
+      respuesta: responseData,
+    });
   
-      // ⚠️ Este log ayuda a depurar problemas reales de respuesta del servicio externo
       console.error('⛔ Error al subir archivo:', {
         mensaje: error.message,
         data: responseData,
