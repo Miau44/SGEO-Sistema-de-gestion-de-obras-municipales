@@ -70,36 +70,27 @@ export class ReporteOrdenProcederService {
     return resultado[0];
    }
 
-  //
-  async datosGeneralesReporte(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public.vista_datos_op WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
+  // //Datos tabla documentos SGEO
+  // async datosReporteEnvio(obra: number) {
+  //   const query1 = `SELECT distinct *, td.id_tipo_documento  
+  //   FROM  tipo_documento as td
+  //   INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+  //   LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+  //   INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+  //   INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+  //   WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+  //   const values = [obra]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  // }
 
-  //Datos tabla documentos SGEO
-  async datosReporteEnvio(obra: number) {
-    const query1 = `SELECT distinct *, td.id_tipo_documento  
-    FROM  tipo_documento as td
-    INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-    INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-    INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-    WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
-
-  //**Datos tablas documentos */
+  //**Datos tablas documentos Contrato - Garantia */
   async datosTablasDocumentos(obra: number, tipo: number) {
     const query1 = `SELECT DISTINCT desc_tipo_documento, cumple, observacion,  td.id_tipo_documento    
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento 
-    WHERE  d.id_obra = ${obra} AND id_etapa_documento =2 AND id_subtipo_documento = ${tipo} ORDER BY td.id_tipo_documento ASC;`;
+    WHERE  d.id_obra = ${obra} AND id_etapa_documento =2 AND d.id_estado = 1 AND id_subtipo_documento = ${tipo} ORDER BY td.id_tipo_documento ASC;`;
     const values = [obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
@@ -110,7 +101,7 @@ export class ReporteOrdenProcederService {
   async generateDocumentoContrato(obra: number): Promise<Buffer> {
 
     //Recupera datos
-    const res = await this.datosGeneralesReporte(obra);
+    const res = await this.datosGeneralesReporteOP(obra);
     const resdoc1 = await this.datosTablasDocumentos(obra, 145);
     const resdoc2 = await this.datosTablasDocumentos(obra, 164);
 
@@ -255,11 +246,11 @@ export class ReporteOrdenProcederService {
           text: '\n\n\n'
         },
         {
-          text: this.datosEnvio[0].aprobador,
+          text: this.datosEnvio[0].profesion + ' ' + this.datosEnvio[0].nombre_sol + ' ' + this.datosEnvio[0].paterno_sol + ' ' + this.datosEnvio[0].materno_sol,
           style: 'textDato', alignment:'center'
         },
         {
-          text: 'JEFE DE UNIDAD\n', //+ this.datos[0].nombre_ue,
+          text: 'JEFE DE UNIDAD\n' + this.datosEnvio[0].nombre_da, //+ this.datos[0].nombre_ue,
           style: 'subheader', alignment: 'center', bold:true
         },
 
@@ -341,12 +332,17 @@ export class ReporteOrdenProcederService {
 // NOTA INSTRUCCION ORDEN DE PROCEDER
 async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
-  const datosGenerales = await this.datosGeneralesReporte(obra);
+  const datosGenerales = await this.datosGeneralesReporteOP(obra);
   if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
     throw new Error('No se encontraron datos para la ID de la obra proporcionada');
   }
-    
   this.datosEnvio = datosGenerales;
+
+  const res1 = await this.supervisorDesignado(obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos para el ID de obra proporcionado');
+  }
+  this.datosSup = res1;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -373,15 +369,22 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     content: [ 
       {
-        text: '\n\n\n\n\n\n'
+        text:[
+              { text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo) + '\n', style: 'textDato', alignment:'right' },
+              { text: this.datosEnvio[0].cod_carpeta + '-RPC/RPA-1', style: 'textDato', bold:true,  alignment:'right'}
+        ],
       },
       {
-        text: 'La Paz, 09 de abril de 2025\n' + this.datosEnvio[0].cod_carpeta + '\n\n\n',
-        style: 'textDato', alignment:'right'
+        text: '\n\n\n',
       },
       {
-        text: 'Señor(es):\n' + 'Supervisor 1\n' + 'Supervisor 2',
-        style: 'textDato'
+        table: {
+          widths: ['*'],
+          body: [
+            ...this.buildSupervisores(this.datosSup)
+          ]
+        },
+        layout: 'noBorders'
       },
       {
         text: 'SUPERVISOR(ES) DE OBRA',
@@ -397,7 +400,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       },
       {
         table: {
-          widths: ['40%', '60%'],
+          widths: ['38%', '65%'],
           body: [
             [
               { text: 'OBRA:', style: 'textDato', alignment: 'right' },
@@ -421,13 +424,17 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         text: [
           { text: 'De mi consideración:\n\n', style: 'textDato' },
           {
-            text: 'En atención al informe de Supervisión' + this.datosEnvio[0].cod_carpeta + 'con referencia "INFORME INICIAL DE REVISIÓN DEL PROYECTO" ' + 
-            'y el informe de Fiscalización ' + this.datosEnvio[0].cod_carpeta  + 'con referencia "INFORME DE ACTIVIDADES PREVIAS" correspondiente a la obra ' +
-            + this.datosEnvio[0].cod_carpeta + this.datosEnvio[0].desc_carpeta + ', en los que se establece que la obra cuenta con la documentación necesaria y no se requieren actividades previas al inicio de la obra.\n\n' ,
+            text: 'En atención al informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + ' con referencia "INFORME INICIAL DE REVISIÓN DEL PROYECTO" ' + 
+            'y el informe de Fiscalización ' + this.datosEnvio[0].cod_carpeta  + ' con referencia "INFORME DE ACTIVIDADES PREVIAS" correspondiente a la obra ' 
+            + this.datosEnvio[0].cod_carpeta + ' ' + this.datosEnvio[0].desc_carpeta + ', en los que se establece que la obra cuenta con la documentación necesaria y no se requieren actividades previas al inicio de la obra.\n\n' ,
             style: 'textDato', alignment: 'justify', lineHeight: 1,
           },
           {
             text: 'En tal sentido, se instruye la emisión de la Orden de Proceder de la obra de referencia dentro de los plazos establecidos en la normativa vigente.\n\n',
+            style: 'textDato', alignment: 'justify', lineHeight: 1,
+          },
+          {
+            text: 'Sin otro particular, saludo a usted(es) con las consideraciones más distinguidas.\n\n',
             style: 'textDato', alignment: 'justify', lineHeight: 1,
           },
           {
@@ -438,27 +445,27 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         margin: [0, 0, 0, 20],
       },
       {
-        text: '\n\n\n\n\n'
+        text: '\n\n\n\n'
       },
       {
         text:
         [
           {
-            text: 'ING. MARCO ANTONIO CARO ROCA\n',
+            text: '\n',
             style: 'textDato', alignment: 'center'
           },
           {
             text: 'RPC/RPA\n',
-            style: 'textDato', alignment: 'center'
+            style: 'textDato', bold:true, alignment: 'center'
           },
           {
-            text: this.datosEnvio[0].nombre_ue,
-            style: 'textDato', alignment: 'center'
+            text: this.datosEnvio[0].nombre_da,
+            style: 'textDato', bold:true, alignment: 'center'
           }
         ]
       },
       {
-        text: ['\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:' ],
+        text: ['\n\n\n\n\n\n\n\n\ncc:Arch:' ],
         style: 'footerText'
       },
       {
@@ -500,7 +507,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         opacity: 0.8,
       },
     },
-    pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
@@ -524,7 +531,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 // INFORME SOLICITUD DE ANTICIPO
   async generateInformeSoliAnticipio(obra: number): Promise<Buffer> {
 
-    const res = await this.datosReporteEnvio(obra);
+    const res = await this.datosGeneralesReporteOP(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la obra proporcionada');
     }
@@ -532,10 +539,10 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
+    const imgPath = 'assets/images/membretado_oficio.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
+      pageSize: 'LEGAL' as any,
       background: function (currentPage: any, pageSize: any) {
         return {
           image: imgPath,
@@ -556,7 +563,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       } as any,
       content: [
         {
-          text: '\n\n\nINFORME\n',
+          text: 'INFORME\n',
           style: 'header', alignment: 'center'
         } as any,
         {
@@ -615,11 +622,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           margin: [20, 0, 20, 10], // Márgenes de la tabla
         },
         {
-          text: 'De mi consideración:\nEn el marco del contrato GAMLP-XXX/2024 se emite el presente informe de solicitud de pago de anticipo a favor de la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI".\n',
-          style: 'textDato',
+          text: 'De mi consideración:\nEn el marco del contrato ' + this.datosEnvio[0].numero_contrato + '+ se emite el presente informe de solicitud de pago de anticipo a favor de la empresa ' +
+                this.datosEnvio[0].proponente_razon_social + '.\n',
+          style: 'textDato', alignment: 'justify'
         },
         {
-          text: '\n 1.DATOS DE LA OBRA\n\n',
+          text: '\n 1. DATOS DE LA OBRA\n\n',
           style: 'subheader',
         },
         {
@@ -642,20 +650,25 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               ],
 
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }] }
               ],
 
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              ],
+
+              [
+                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
               ]
             ]
           },
           //layout: 'noBorders'
         },
         {
-          text: '\n 2.ANTECEDENTES\n\n',
+          text: '\n 2. ANTECEDENTES\n\n',
           style: 'subheader',
         },
         {
@@ -664,12 +677,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             body: [
               [
                 { text: [{ text: 'Número de Contrato:', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }] }
+                { text: [{ text: this.datosEnvio[0].numero_contrato, style: 'textDato' }] }
               ],
 
               [
                 { text: [{ text: 'Monto de Contrato:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }] }
               ],
 
               [
@@ -683,7 +696,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               ],
 
               [
-                { text: [{ text: 'Fecha fin de vigencia de Garantía:\n', style: 'textTitulo', alignment: 'right' },] },
+                { text: [{ text: 'Fecha fin vigencia de Garantía:\n', style: 'textTitulo', alignment: 'right' },] },
                 { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
               ]
             ]
@@ -692,30 +705,33 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
 
         {
-          text: '\n 3.ANÁLISIS\n',
+          text: '\n 3. ANÁLISIS\n',
           style: 'subheader',
         },
         {
-          text: '\nDe acuerdo a la garantía presentada por la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI", para la obra OBRAS DE MEJORAMIENTO VIAL CALLE ABDON SAAVEDRA ENTRE AVENIDA LANDAETA Y CALLE MENDEZ ARCOS DISTRITO 3, la misma cumple las condicionantes requeridas en el contrato de obra por lo que corresponde el desembolso del anticipo por el monto de Bs.760.155,26 (SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS). \n',
+          text: '\nDe acuerdo a la garantía presentada por la empresa ' + this.datosEnvio[0].proponente_razon_social + ', para la obra ' + this.datosEnvio[0].desc_carpeta + 
+                ', la misma cumple las condicionantes requeridas en el contrato de obra por lo que corresponde el desembolso del anticipo por el monto ' +
+                'de Bs.' + this.datosEnvio[0].monto_contrato + '(SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS). \n',
           style: 'textDato', alignment: 'justify'
         },
 
         {
-          text: '\n\n 4.CONCLUSIÓN\n',
+          text: '\n\n 4. CONCLUSIÓN\n',
           style: 'subheader',
         },
         {
-          text: '\n- La garantía presentada por la empresa ASOCIACIÓN ACCIDENTAL "ILLIMANI”, cumple con los requisitos establecidos en el contrato GAMLP - 1930/2023 referido al anticipo de la obra de referencia.\n'
+          text: '\n- La garantía presentada por la empresa "' + this.datosEnvio[0].proponente_razon_social + '”, cumple con los requisitos establecidos en el contrato ' +
+                this.datosEnvio[0].numero_contrato + ' referido al anticipo de la obra de referencia.\n'
             + '\n- El monto a desembolsar asciende a la suma de Bs.' + this.datosEnvio[0].total_carpeta + ' (SETECIENTOS SESENTA MIL CIENTO CINCUENTA Y CINCO 26/100 BOLIVIANOS).\n',
           style: 'textDato', alignment: 'justify'
         },
         {
-          text: '\n 5.RECOMENDACÍON\n',
+          text: '\n 5. RECOMENDACÍON\n',
           style: 'subheader',
         },
         {
           text: '\nLa supervisión de obra recomienda la prosecución del presente trámite de acuerdo a lo expuesto.\n\n',
-          style: 'textDato',
+          style: 'textDato', alignment: 'justify'
         },
         {
           table: {
@@ -813,7 +829,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
 
       },
-      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 180, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria
@@ -1110,8 +1126,9 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
     this.datosEnvio = res;
+
     const res1 = await this.supervisorDesignado(obra);
-    if (!res || (Array.isArray(res1) && res.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
     this.datosSup = res1;
