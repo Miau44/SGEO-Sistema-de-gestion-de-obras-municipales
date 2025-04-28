@@ -15,9 +15,10 @@ export class CreateMemorandumDto {
     @ApiProperty()
     id_correlativo: number;
 
-    @IsDate()
+
     @ApiProperty()
-    @IsNotEmpty()
+   /* @IsDate()
+    @IsNotEmpty()*/
     fecha_memo: Date;
 
     @IsString()

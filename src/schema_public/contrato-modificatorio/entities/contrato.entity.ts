@@ -56,6 +56,9 @@ export class Contrato {
   @Column({ type: 'varchar', length: 20, nullable: true })
   proponente_nit: string;
 
+  @Column({type: 'varchar',nullable:true})
+  url:string;
+
   @Column({ type: 'date', nullable: true })
   fecha_numeracion: Date;
 

@@ -62,4 +62,7 @@ export class ContratoDlcDto {
 
     @IsString()
     rtelef: string;
+
+    @IsString()
+    url: string;
 }
