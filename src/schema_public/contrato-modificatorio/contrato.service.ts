@@ -210,7 +210,7 @@ export class ContratoService {
         }
         else{
           //ficha encontrada en log
-          console.log(`Ficha encontrada con id_ficha: ${ficha.id_ficha}`);
+          console.log(`Ficha encontrada con correlativo_carpeta: ${item.ridcodcarpeta}`);
         }
 
         // con ese id_ficha buscar el id_obra en la tabla obra
@@ -235,7 +235,10 @@ export class ContratoService {
           proponente_nit: item.rnit,
           plazo_contrato: item.rplazocontrato,
           id_contrato_dlc:item.elidcontra,
-          id_obra: obra.id_obra
+          id_obra: obra.id_obra,
+          direccion:item.rdomicilio,
+          telefono:item.rtelef,
+          url:item.rlinkcontrat,
         });
 
         //añadir un contador para ver el total de los contratos insertados
@@ -245,11 +248,75 @@ export class ContratoService {
         // Guardar el registro en la base de datos
         await this.contratoRepository.save(nuevoContrato);
       }
-      console.log('Datos insertados correctamente, total de contratos:', totalContratos);
-      console.log('Proceso de llenado de la base de datos completado.');
+      //console.log('Datos insertados correctamente, total de contratos:', totalContratos);
+      //console.log('Proceso de llenado de la base de datos completado.');
       
     } catch (error) {
       console.error('Error al consumir el servicio o insertar datos:', error);
+    }
+  }
+
+  async actualizarUrlContratosDesdeServicio(gestion: number): Promise<any> {
+    try {
+      console.log('Iniciando actualización de URLs de contratos...',gestion);
+  
+      const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/0`;
+      console.log('Consultando servicio externo:', url);
+  
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+        },
+      });
+  
+      const data = await response.json();
+      console.log('Respuesta del servicio:', data);
+  
+      if (data.statusCode == 500) {
+        console.log('error en el servicio externo.');
+        return {res:'error',msg:data.data};
+      }
+      if (!data.data || data.data.length === 0) {
+        console.log('No se encontraron datos en el servicio externo.');
+        return {res:'error',msg:data.data};
+      }
+  
+      let contratosActualizados = 0;
+  
+      for (const item of data.data) {
+        const correlativo = item.ridcodcarpeta;
+        //const numeroContrato = item.rnrocontrato;
+        if (!item.rlinkcontrat || item.rlinkcontrat.trim() === '') {
+          console.log(`No se encontró la URL para el contrato con correlativo ${correlativo}`);
+          continue;
+        }
+        else{
+          console.log(`Se encontró la URL para el contrato con correlativo ${correlativo}, url: ${item.rlinkcontrat}`);
+        }
+  
+        const contratoExistente = await this.contratoRepository.findOne({
+          where: {
+            correlativo_carpeta: correlativo/*,
+            numero_contrato: numeroContrato,*/
+          },
+        });
+  
+        if (!contratoExistente) {
+          console.log(`Contrato no encontrado: correlativo ${correlativo}`);
+          continue;
+        }
+
+        contratoExistente.url = item.rlinkcontrat;
+        await this.contratoRepository.save(contratoExistente);
+        contratosActualizados++;
+      }
+  
+      console.log(`URLs actualizadas correctamente en ${contratosActualizados} contratos.`);
+      return { res: 'success', msg: `URLs actualizadas correctamente en ${contratosActualizados} contratos.` };
+    } catch (error) {
+      console.error('Error al actualizar URLs de contratos:', error);
     }
   }
 

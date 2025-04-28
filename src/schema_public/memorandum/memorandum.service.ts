@@ -107,15 +107,15 @@ export class MemorandumService {
       // 🟡 Log previo al correlativo (INFORME)
     console.log('➡️ Enviando a correlativoService.create (INFORME):', {
       id_obra: updateObraMemInfDto.idObra,
-      id_tipo_documento: 223,
+      id_tipo_documento: 237,
       correlativo: '',
       usuario_registro: updateObraMemInfDto.usuarioRegistroInforme,
       id_estado: 1
     });
-
+    
       const correlativoInformeRes = await this.correlativoService.create({
         id_obra: updateObraMemInfDto.idObra,
-        id_tipo_documento: 223, 
+        id_tipo_documento: 237, 
         correlativo: '', 
         usuario_registro: updateObraMemInfDto.usuarioRegistroInforme,
         id_estado : 1

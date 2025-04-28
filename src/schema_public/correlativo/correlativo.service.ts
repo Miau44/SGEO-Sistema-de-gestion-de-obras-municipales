@@ -13,11 +13,8 @@ export class CorrelativoService {
   ) { }
 
 
- 
-    async create(createCorrelativoDto: CreateCorrelativoDto) {
-      try {
-          console.log("🟡 Valor recibido de correlativo:", createCorrelativoDto.correlativo);
-  
+  async create(createCorrelativoDto: CreateCorrelativoDto) {
+    try {    
       const productCount = await this.coorrelativoRepo
       const query = `
       SELECT COUNT(*) 
@@ -32,16 +29,11 @@ export class CorrelativoService {
     const result = await this.coorrelativoRepo.query(query, values);
     const count = parseInt(result[0].count, 10);    
       //return productCount;
-  if (!createCorrelativoDto.correlativo || createCorrelativoDto.correlativo.trim() === '') {
       let numero_correlativo =  this.countNumber(count+1,0)
       createCorrelativoDto.correlativo = numero_correlativo.toString();
- }
-
-  
-          // Guardar en la base de datos
-      const resultado = await  this.coorrelativoRepo.save(createCorrelativoDto);
-
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+   const resultado = await this.coorrelativoRepo.save(createCorrelativoDto);     
+    //return this.coorrelativoRepo.save(createCorrelativoDto);      
+    return this.responseService.success( resultado, "Registrado Correctamente.")
     } catch (error: any) {
       return this.responseService.error(error);
     }
