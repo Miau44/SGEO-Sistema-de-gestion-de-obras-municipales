@@ -880,7 +880,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           style: 'header', alignment: 'center',
         } as any,
        {
-          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + this.datosEnvio[0].correlativo,
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + '1',
           style: 'subheader', alignment: 'center'
         },
         {
@@ -977,7 +977,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           text: [
             { text: 'Señor(es): \n', style: 'textDato' },
             {
-              text: 'Habiendo sido adjudicada en su favor la obra ' + this.datosEnvio[0].desc_carpeta + ' , le comunicamos que a partir del día ' + 
+              text: 'Habiéndose suscrito el contrato de obra ' + this.datosEnvio[0].desc_carpeta + ' , le comunicamos que a partir del día ' + 
               this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + ', se contabilizará el plazo de ejecución de ' + this.datosEnvio[0].plazo_ejecucion + ' días calendario establecidos ' +
               ' en el contrato ' + this.datosEnvio[0].numero_contrato+'.\n\n',
               style: 'textDato',  alignment: 'justify'
@@ -1109,16 +1109,19 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
-    //MEconst ressim = await this.datosAdjuntoSim(obra);
-
-    //ME this.datosDoc = ressim;
     this.datosEnvio = res;
+    const res1 = await this.supervisorDesignado(obra);
+    if (!res || (Array.isArray(res1) && res.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos para el ID de obra proporcionado');
+    }
+    this.datosSup = res1;
+  
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
+    const imgPath = 'assets/images/membretado_oficio.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
+      pageSize: 'LEGAL' as any,
       background: function(currentPage: any, pageSize: any) { 
         return {
             image: imgPath, 
@@ -1139,10 +1142,10 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       
       content: [
         {
-          text: '\n\n\nINFORME\n', style: 'header', alignment: 'center'
+          text: 'INFORME\n', style: 'header', alignment: 'center'
         },
         {
-          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + this.datosEnvio[0].correlativo,
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_inf + '-' + this.datosEnvio[0].corr_inf,
           style: 'subheader', alignment: 'center'
         },
         {
@@ -1152,7 +1155,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: '\n', style: 'textDato' },
+                  { text: this.datosEnvio[0].profesion + ' ' + this.datosEnvio[0].nombre_sol + ' ' + this.datosEnvio[0].paterno_sol + ' ' + this.datosEnvio[0].materno_sol + '\n', style: 'textDato' },
                   { text: 'JEFE DE UNIDAD', style: 'textTitulo' }
                 ],
                 margin: [0, 5, 0, 5]
@@ -1160,10 +1163,19 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { text: [
-                  { text: '\n', style: 'textDato' },
-                  { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo' }
-                ],  
+                { 
+                  table: {
+                    widths: ['*'],
+                    body: [
+                      ...this.buildSupervisores(this.datosSup)
+                    ]
+                  },
+                  layout: 'noBorders', margin: [0, 5, 0, 5] 
+                },
+              ],
+              [
+                { text: ' ' },
+                { text: [ { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo' } ],  
                 margin: [0, 5, 0, 5] 
                 },
               ],
@@ -1173,7 +1185,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { text: '\n', style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosEnvio[0].fecha_memo), style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -1256,16 +1268,16 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             { text: this.datosEnvio[0].numero_pago + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha de Orden de Proceder: ', style: 'textDato' },
-            { text: this.datosEnvio[0].fecha_memo + '\n', style: 'textDato', bold: true },
+            { text: this.formatearFecha(this.datosEnvio[0].fecha_memo) + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha estimada de Recepción Provisional: ', style: 'textDato' },
-            { text: this.datosEnvio[0].fecha_recep_provisional + '\n', style: 'textDato', bold: true },
+            { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Plazo mínimo entre la Recepción Provisional y Definitiva (conforme a normativa vigente): ', style: 'textDato' },
             { text: this.datosEnvio[0].plazo_prov_definitiva + ' dc.\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha estimada de Recepción Definitiva: ', style: 'textDato' },
-            { text: this.datosEnvio[0].fecha_recep_definitiva + '\n', style: 'textDato', bold: true }
+            { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva) + '\n', style: 'textDato', bold: true }
           ],
           margin: [20, 0, 0, 0]
         },
@@ -1274,7 +1286,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           style: 'subheader',
         },
         {
-          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto ' + this.datosEnvio[0].numero_pago + ' certificados de pago para la Obra ' + this.datosEnvio[0].cod_carpeta + ' - ' + this.datosEnvio[0].desc_carpeta + '.',
+          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto ' + this.datosEnvio[0].numero_pago + ' certificado(s) de pago para la Obra ' + this.datosEnvio[0].cod_carpeta + ' - ' + this.datosEnvio[0].desc_carpeta + '.',
           style: 'textDato', alignment: 'justify'
         },
 
@@ -1288,35 +1300,18 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
         {
           table: {
-            widths: ['50%', '50%'], // Distribución equitativa entre las dos columnas
+            widths: ['50%','50%'],
             body: [
-              [
-                { text: '\nSUPERVISOR',
-                  style: 'textTitulo', alignment: 'center', margin: [0, 35, 0, 0], // Márgenes internos
-                },
-                { text: '(Firma y Sello)',
-                  style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0],
-                },
-              ],
-            ],
+              ...this.buildSupervisores2(this.datosSup)
+              ]
           },
-          layout: {
-            hLineWidth: (i: number, node: any) => 1, // Grosor de las líneas horizontales
-            vLineWidth: (i: number, node: any) => 1, // Grosor de las líneas verticales
-            hLineColor: () => '#000000', // Color negro para las líneas
-            vLineColor: () => '#000000',
-            paddingLeft: () => 5, // Espaciado interno izquierdo
-            paddingRight: () => 5, // Espaciado interno derecho
-            paddingTop: () => 5, // Espaciado interno superior
-            paddingBottom: () => 5, // Espaciado interno inferior
-          },
-        } as any,
+        },
         {
           text: [
             '\n\n\n\n\n\n\n\nc.c. Arch.',
           ],
           style: 'footerText'
-        },
+        } as any,
       ],
 
       footer: function(currentPage: { toString: () => string; }, pageCount: string) 
@@ -1367,7 +1362,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 170, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     }
     // Generar el PDF en memoria
@@ -1388,36 +1383,17 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
 
   //FUNCIONES PARA CONSTRUIR 
-  //funcion para generar la fecha de manera escrita
-
-  // ME fechaString(iso: string): string {
-  //   let formattedDate = '';
-  //   let fecha: Date;
+ 
+ //funcion para generar la fecha en formato dd/mm/aaa
+  formatearFecha(iso: string) {
+    const fecha = new Date(iso);
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Enero = 0
+    const anio = fecha.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  }
   
-  //   if (iso === 'hoy') {
-  //     fecha = new Date();
-  //   } else {
-  //     const partes = iso.split('-'); // 'YYYY-MM-DD'
-  //     const anio = parseInt(partes[0], 10);
-  //     const mes = parseInt(partes[1], 10) - 1; // Meses en JS: 0-indexed
-  //     const dia = parseInt(partes[2], 10);
-  //     fecha = new Date(anio, mes, dia); // Fuerza fecha local sin desfase
-  //   }
-  
-  //   const h = fecha.getHours();
-  //   const m = fecha.getMinutes();
-  //   const horas = h < 10 ? `0${h}` : `${h}`;
-  //   const minutos = m < 10 ? `0${m}` : `${m}`;
-  
-  //   formattedDate = fecha.toLocaleDateString('es-ES', {
-  //     year: 'numeric',
-  //     month: 'long',
-  //     day: 'numeric',
-  //   });
-  
-  //   return formattedDate;
-  // fin ME}
-  
+   //funcion para generar la fecha de manera escrita
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -1533,4 +1509,42 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     return arrayData;
   }
 
+  buildSupervisores(data: any) {
+    let datosResp1 = data;
+    let arrayData = [];
+
+    for (let i = 0; i < datosResp1.length; i++) {
+      let rowData = [
+        { text: [{ text: datosResp1[i].profesion + ' ' +datosResp1[i].nombre + ' ' + datosResp1[i].primer_apellido + ' ' + datosResp1[i].segundo_apellido, style: 'textDato' }] },
+      ];
+      arrayData.push(rowData);
+    }
+    return arrayData;
+  }
+
+  buildSupervisores2(data: any[]) {
+    const arrayData = [];
+
+    for (const persona of data) {
+      const nombreCompleto = [
+        persona.profesion,
+        persona.nombre,
+        persona.primer_apellido,
+        persona.segundo_apellido
+      ]
+      .filter(Boolean) // elimina null, undefined, o strings vacíos
+      .join(' ');
+
+      const rowData = [
+        { text: [
+              { text: nombreCompleto + '\n', style: 'textDato' },
+              { text: 'SUPERVISOR', bold: true, style: 'textDato' }
+                ],
+              alignment: 'center', margin: [0, 35, 0, 0]},
+        { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+      ];
+      arrayData.push(rowData);
+    }
+    return arrayData;
+  }
 }

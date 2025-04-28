@@ -35,7 +35,7 @@ export class ReporteActPreviasService {
 
     datos: any = [];
     datosEnvio: any = [];
-    datosSIM: any = [];
+    datosSGEO: any = [];
     datosPreguntaInforme: any = [];
     datosPreguntaInformeRestante: any = [];
     constructor(
@@ -49,7 +49,7 @@ export class ReporteActPreviasService {
       return image.toString('base64');
     }
 
-    //CONSULTAS
+    //--Datos generales Obra
     async datosGeneralesReporte(obra: number) {
       const query1 = `
           SELECT * 
@@ -69,7 +69,7 @@ export class ReporteActPreviasService {
 
 
 //--Datos Documentos ETAPA I
-    async datosReporteEnvio(obra: number) {
+    async datosDocumentosSGEO(obra: number) {
       const query1 = `SELECT
     td.*, 
     sub.*, 
@@ -127,13 +127,19 @@ export class ReporteActPreviasService {
 
 async generateEnvioDoc(obra: number): Promise<Buffer> {
 
-  const res = await this.datosReporteEnvio(obra);
+  const res = await this.datosDocumentosSGEO(obra);
   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
     throw new Error('No se encontraron datos para la obra proporcionada');
   }
+  this.datosSGEO = res;
 
-  this.datosEnvio = res;
-  console.log("DATOS_DOCUMENTOS", this.datosEnvio);
+  const res1 = await this.datosGeneralesReporte(obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+    throw new Error('No se encontraron datos para la obra proporcionada');
+  }
+  this.datosEnvio = res1;
+  console.log("DATOS_OBRA", this.datosEnvio);
+
   //ME const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   //ME const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_carta.png';
@@ -230,7 +236,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
               { text: [{ text: 'OBS.', style: 'textTitulo' },], fillColor: '#dddddd' },
 
             ],
-            ...this.buildDocumentos(this.datosEnvio)
+            ...this.buildDocumentos(this.datosSGEO)
           ]
         },
       },
@@ -244,19 +250,19 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
       },
 
       {
-        text: 'Fecha de Envío: ' + this.fechaFormato(this.datosEnvio[0].fecha_envio),
+        text: 'Fecha de Envío: ',
         style: 'textDato',
       },
 
       {
-        text: ['\n\n\n\n'],
+        text: ['\n\n\n'],
       },
       {
-        text: this.datosEnvio[0].aprobador,
+        text: this.datosEnvio[0].profesion + this.datosEnvio[0].nombre_sol + ' ' + this.datosEnvio[0].paterno_sol + ' ' + this.datosEnvio[0].materno_sol,
         style: 'textDato', alignment:'center'
       },
       {
-        text: 'JEFE DE UNIDAD\n' + this.datosEnvio[0].nombre_ue,
+        text: 'JEFE DE UNIDAD\n' + this.datosEnvio[0].nombre_da,
         style: 'subheader', alignment: 'center', bold:true
       },
         
@@ -336,7 +342,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 // INFORME ACTIVIDADES PREVIAS FISCAL
 async generateInformeFISCAL(obra: number): Promise<Buffer> {
     
-    const res = await this.datosReporteEnvio(obra);
+    const res = await this.datosGeneralesReporte(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la obra.');
     }
@@ -344,16 +350,17 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     this.datosEnvio = res;
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
+    const imgPath = 'assets/images/membretado_oficio.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
+      pageSize: 'LEGAL' as any,
       background: function(currentPage: any, pageSize: any) { 
         return {
             image: imgPath, 
             width: pageSize.width, 
             height: pageSize.height,
-            absolutePosition: {x: 0, y: 0}
+            absolutePosition: {x: 0, y: 0},
+            opacity: 0.3
               } },
       
       header: {
@@ -362,7 +369,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       } as any,
       content: [
         {
-          text: '\n\n\nINFORME\n',
+          text: '\nINFORME\n',
           style: 'header', alignment: 'center'
         } as any,
         {
@@ -604,7 +611,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [60, 80, 40, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 150, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria

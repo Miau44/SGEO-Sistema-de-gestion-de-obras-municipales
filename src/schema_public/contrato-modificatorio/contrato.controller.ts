@@ -64,11 +64,24 @@ export class ContratoController {
   @Public()
   @Post('cargarContratosDlc')
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
-  async llenarContratos(@Param('gestion') gestion: number): Promise<string> {
+  async llenarContratos(@Param('gestion') gestion: number): Promise<any> {
     try {
       const r = await this.contratoService.obtenerToken();
-      await this.contratoService.llenarContratosDesdeServicio(gestion);
-      return 'Proceso de llenado completado.';
+      return await this.contratoService.llenarContratosDesdeServicio(gestion);
+    } catch (error) {
+      console.error('Error:', error);
+      return 'Test error';
+    }
+  }
+
+  @Public()
+  @Post('cargarUrlContratosDlc/:gestion')
+  @ApiParam({ name: 'gestion', description: 'gestión requerida' })
+  async llenarUrlContratos(@Param('gestion') gestion: number): Promise<any> {
+    try {
+      const gestionNumber = Number(gestion);
+      const r = await this.contratoService.obtenerToken();
+      return await this.contratoService.actualizarUrlContratosDesdeServicio(gestionNumber);
     } catch (error) {
       console.error('Error:', error);
       return 'Test error';
