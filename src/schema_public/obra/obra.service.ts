@@ -40,30 +40,15 @@ export class ObraService {
 
  async findOne(id_obra: any) {    
     try {
+     
  const query = `
 
 
- SELECT  f.*,  o.* ,
- public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
- eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-  c.fecha_numeracion as contrato_fecha,  c.numero_contrato,
- CASE
- WHEN c.numero_contrato IS NULL THEN 'SIN CONTRATO'
- ELSE c.numero_contrato
- END AS estado_contrato,
- c.url AS url_contrato,
- c.*,
- tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado
- FROM public.obra AS o   
- INNER JOIN public.ficha f  ON o.id_ficha = f.id_ficha
- INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from public.estructura_organizacional
- GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue  AND f.gestion_carpeta = eo.gestion
- LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
- INNER JOIN public.estado_general as eg ON  o.id_estado = eg.id_estado_general      
- LEFT JOIN public.contrato AS c ON  o.id_obra = c.id_obra  
+ SELECT * FROM  public.datos_generales_x_obra
                    
-     WHERE  o.id_obra = ${id_obra}`;
-     const resultado = await this.obraRepositorio.query(query);
+     WHERE  id_obra = $1`;
+     const params = [ id_obra];  
+     const resultado = await this.obraRepositorio.query(query, params);
 
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
