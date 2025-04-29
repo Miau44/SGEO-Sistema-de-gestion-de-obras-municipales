@@ -233,7 +233,7 @@ LEFT OUTER JOIN (SELECT id_informe_inicial,
   (f.x ->> 'id_subtipo')::integer AS idsubtipo,
   (f.x ->> 'opcion')::integer AS opcion,
   f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
-  jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$1 ) AS ijson   ON de.id_subtipo = ijson.idsubtipo
+  jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$1 AND id_estado =1 ) AS ijson   ON de.id_subtipo = ijson.idsubtipo
 ORDER BY pa.id_subtipo;`;
       const params = [data.informe];
       const resultado = await this.informeRepositorio.query(query, params);
