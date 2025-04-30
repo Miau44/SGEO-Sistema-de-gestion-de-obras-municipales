@@ -1120,6 +1120,10 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
 // INFORME DE PREVISION DE PAGOS
   async generateInformePrevPagos(obra: number): Promise<Buffer> {
+    try{
+      console.log("DATOS, ", obra);
+      
+
 
     const res = await this.datosGeneralesReporteOP(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -1132,7 +1136,14 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
     }
     this.datosSup = res1;
-  
+    console.log("datosSup", this.datosSup);
+    
+
+    } catch (error) {
+      console.error('Error al generar el informe de previsión de pagos:', error);
+      throw new Error('Error al generar el informe de previsión de pagos: ' + error);
+    }
+
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';

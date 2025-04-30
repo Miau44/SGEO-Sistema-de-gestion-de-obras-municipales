@@ -17,6 +17,7 @@ import { GenerarDto } from './dto/generar.dto';
 import { ObraService } from '../obra/obra.service';
 import { SolicitudService } from '../solicitud/solicitud.service';
 import { Persona } from '../persona/entities/persona.entity';
+import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 
 
 @Injectable()
@@ -28,6 +29,7 @@ export class DesignacionService {
     @InjectRepository(Correlativo) private correlativoRepositorio: Repository<Correlativo>,
     @InjectRepository(Solicitud) private solicitudRepocitorio: Repository<Solicitud>,
     @InjectRepository(PersonapermisoUe) private ppueRepocitorio: Repository<PersonapermisoUe>,
+      @InjectRepository(SolicitudHistorial) private solicitudHisRepositorio: Repository<SolicitudHistorial>,  
 
     private responseService: ResponseService,
     private obraService: ObraService,
@@ -300,10 +302,32 @@ export class DesignacionService {
               id_estado_general: 12,
               id_usuario: usuario,
               proveido: "SOLICITUD GENERADA POR SISTEMA",
-              usuario_registro: 0,
+              usuario_registro: usuario,
               id_estado_registro: 1,
             };
-            await this.solicitudRepocitorio.save(data_solicitud);
+            const  respuesta_etapa =   await this.solicitudRepocitorio.save(data_solicitud);
+
+            //para general historial
+            if (!respuesta_etapa) {
+              return this.responseService.error("Error al guardar la solicitud.");
+            }
+            const datosHistorialetapa = {
+              id_solicitud: respuesta_etapa.id_solicitud,
+              id_tipo_solicitud: respuesta_etapa.id_tipo_solicitud,
+              nro_solicitud: respuesta_etapa.nro_solicitud,
+              id_estado_solicitud: respuesta_etapa.id_estado_solicitud,
+              id_obra: respuesta_etapa.id_obra,
+              id_estado_general: respuesta_etapa.id_estado_general,
+              id_usuario: respuesta_etapa.id_usuario,
+              proveido: respuesta_etapa.proveido,
+              data_solicitud: respuesta_etapa.data_solicitud,
+              fecha_envio: respuesta_etapa.fecha_envio,
+              id_usuario_previo: respuesta_etapa.id_usuario_previo,
+              usuario_registro: respuesta_etapa.usuario_registro,
+              id_estado_registro: respuesta_etapa.id_estado_registro,
+            };
+      
+            const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorialetapa)
             debeGenerarSolicitud = false; // prevenir que genere más de una en caso de múltiples designaciones
           } else {
             await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud

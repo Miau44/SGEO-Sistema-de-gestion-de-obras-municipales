@@ -18,6 +18,7 @@ import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dt
 import { HistorialObraDto } from './dto/historial-obra.dto';
 import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 import { ContadorGestionDto } from './dto/contador-gestion.dto';
+import { UsuarioSolicitudXObraDto } from './dto/usuario-solicitud-obra.dto';
 
 
 
@@ -136,7 +137,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       INNER JOIN  (SELECT id_usuario, id_estado
       FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
       WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3
-AND f.gestion_carpeta = $1 ORDER BY  s.fecha_registro DESC`;
+AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_registro DESC`;
       const values = [bandeja.gestion, bandeja.usuario, bandeja.estado]
       const resultado = await this.solicitudRepositorio.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -331,4 +332,23 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
 } 
 
 
+async usuarioSolicitudXObra(data: UsuarioSolicitudXObraDto) {
+  try {
+    const query = `
+      SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
+        FROM solicitud_historial sh
+        INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) 
+		AS per ON pp.id_permiso = per.id_permiso  
+        WHERE id_obra =$1  AND id_estado_general= $2
+        LIMIT 1; `;
+
+      const values = [data.id_obra, data.estado_general]        
+    const resultado = await this.solicitudRepositorio.query(query, values);
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 }
