@@ -247,12 +247,12 @@ export class DocumentoService {
       let query = `
     SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
     td.id_subtipo_documento, td.id_etapa_documento,
-    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento, d.observacion
+    d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento, d.observacion, d.id_estado
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1 	`;
+    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1 AND d.id_estado =1 	`;
     if(data.anticipo){
-      query += ` WHERE   td.id_tipo_documento IN(20,31)  ORDER BY td.id_tipo_documento ASC`;
+      query += ` WHERE   td.id_tipo_documento IN(20,31)   AND d.id_estado =1  ORDER BY td.id_tipo_documento ASC`;
     } else {
 
       query += `ORDER BY td.id_tipo_documento ASC`;
