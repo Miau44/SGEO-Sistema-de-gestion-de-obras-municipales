@@ -76,6 +76,12 @@ export class Obra {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_anticipo: number;
 
+
+  //6paola
+  @Column({type: 'timestamp without time zone', nullable: true })    
+  // @Column({type: 'date',  nullable: true })
+   fecha_instruccion_op: Date | null;
+
     ///---------campos genericos-----//////
 
     @Column({nullable:true})
