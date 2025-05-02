@@ -1681,7 +1681,7 @@ fechaFormato(iso: string): string {
               [
                 {
                   table: {
-                    widths: [415, 50],
+                    widths: [400, 50],
                     body: [
                       [
                         { text: 'Pregunta:', style: 'textDato', fillColor: '#dddddd' },
@@ -1694,7 +1694,7 @@ fechaFormato(iso: string): string {
                       ]),
                     ],
                   },
-                  layout: 'noBorders',
+                 // layout: 'noBorders',
                 },
               ],
             ],
