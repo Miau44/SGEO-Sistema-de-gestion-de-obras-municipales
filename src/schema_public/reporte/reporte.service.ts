@@ -1251,7 +1251,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           width: pageSize.width,
           height: pageSize.height,
           absolutePosition: { x: 0, y: 0 },
-          opacity: 0.3
+          opacity: 0.9
         }
       },
 
@@ -1478,7 +1478,16 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                   text: [{ text: item.nombre, style: 'textDato' }],
                   alignment: 'center'
                 }
-              ])
+              ]),
+
+              [
+                {
+                  text: '\nSUPERVISOR DE OBRAS.\n\n',
+                 
+                  style: 'subheader',
+                  alignment: 'center'
+                }
+              ],
             ]
           },
           layout: 'noBorders',
