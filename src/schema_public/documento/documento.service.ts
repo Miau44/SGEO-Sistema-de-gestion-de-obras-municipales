@@ -11,6 +11,7 @@ import FormData from 'form-data';
 import axios from 'axios';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
 import { LogService } from '../log/log.service';
+import * as http from 'http';
 
 @Injectable()
 export class DocumentoService {
@@ -75,6 +76,52 @@ export class DocumentoService {
   async createDocumento(documento: Documento): Promise<Documento> {
     return await this.documentoRepositorio.save(documento);
   }
+
+  async subirArchivo(file: Express.Multer.File, datos: any): Promise<any> {
+    const form = new FormData();
+    console.log("datos:",datos);
+    
+
+    form.append('file', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+    form.append('sistema', datos.sistema);
+    form.append('ruta', datos.ruta);
+    form.append('resumen', datos.resumen);
+    form.append('palabraClave', datos.palabraClave);
+    form.append('usuario', datos.usuario);
+
+    const options: http.RequestOptions = {
+      method: 'POST',
+      host: '192.168.8.4',
+      port: 3300,
+      path: '/documento/saveFile',
+      headers: form.getHeaders(),
+    };
+
+    return new Promise((resolve, reject) => {
+      console.log("respuesta directa:",resolve,reject);
+      
+      const req = http.request(options, (res) => {
+        let data = '';
+    
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+    
+        res.on('end', () => {
+          resolve(data); // ← se devuelve como string, tal como viene del servicio
+        });
+      });
+    
+      req.on('error', (err) => {
+        reject(err); // ← solo se devuelve el error sin adornos
+      });
+    
+      form.pipe(req);
+    });
+  }
   
   async uploadFileToExternalService(
     file: Express.Multer.File,
@@ -108,12 +155,13 @@ export class DocumentoService {
     formData.append('usuario', this.user_registro);
     var  res = null;
     try {
-
-      const response = await fetch(this.uploadUrl, {
-        method: 'POST',
-        body: formData as any,
-        headers: formData.getHeaders(),
-      });
+      const datos = { sistema, ruta, resumen, palabraClave, usuario };
+      const response = await this.subirArchivo(file, datos);
+      // const response = await fetch(this.uploadUrl, {
+      //   method: 'POST',
+      //   body: formData as any,
+      //   headers: formData.getHeaders(),
+      // });
       console.log(response);
       const res = await response.json();
       
