@@ -16,6 +16,7 @@ import * as http from 'http';
 @Injectable()
 export class DocumentoService {
 
+  private readonly host: string;
   private readonly uploadUrl: string;
   private readonly sistema : string;
   private readonly user_registro : string;
@@ -28,6 +29,7 @@ export class DocumentoService {
     private entityManager: EntityManager,
     private logService:LogService,
   ) {
+    this.host = String(process.env.HOST_ADJUNTO);
     this.uploadUrl = String(process.env.URL_ADJUNTO);
     this.sistema = String(process.env.SISTEMA);
     this.user_registro = String(process.env.USR_REGISTRO);
@@ -81,11 +83,11 @@ export class DocumentoService {
     const form = new FormData();
     console.log("datos:",datos);
     
-
-    form.append('file', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype,
-    });
+    form.append('file', file.buffer, file.originalname);
+    // form.append('file', file.buffer, {
+    //   filename: file.originalname,
+    //   contentType: file.mimetype,
+    // });
     form.append('sistema', datos.sistema);
     form.append('ruta', datos.ruta);
     form.append('resumen', datos.resumen);
@@ -94,7 +96,7 @@ export class DocumentoService {
 
     const options: http.RequestOptions = {
       method: 'POST',
-      host: '192.168.8.4',
+      host: this.host,
       port: 3300,
       path: '/documento/saveFile',
       headers: form.getHeaders(),
@@ -111,11 +113,13 @@ export class DocumentoService {
         });
     
         res.on('end', () => {
+          console.log("respuesta end:");
           resolve(data); // ← se devuelve como string, tal como viene del servicio
         });
       });
     
       req.on('error', (err) => {
+        console.log("respuesta error:",err);
         reject(err); // ← solo se devuelve el error sin adornos
       });
     
@@ -153,33 +157,12 @@ export class DocumentoService {
     formData.append('resumen', resumen);
     formData.append('palabraClave', palabraClave);
     formData.append('usuario', this.user_registro);
-    var  res = null;
     try {
-      const datos = { sistema, ruta, resumen, palabraClave, usuario_servicio };
+      usuario = this.user_registro;
+      const datos = { sistema, ruta, resumen, palabraClave, usuario };
       const response = await this.subirArchivo(file, datos);
-      // const response = await fetch(this.uploadUrl, {
-      //   method: 'POST',
-      //   body: formData as any,
-      //   headers: formData.getHeaders(),
-      // });
-      console.log(response);
-      const res = await response.json();
-      
+      const parsed = JSON.parse(response);
 
-      // const response = await axios.post(this.uploadUrl, formData, {
-      //   headers: formData.getHeaders(),
-      // });
-  
-      // const responseData = response.data as {
-      //   id_documento: number;
-      //   nombre_documento: string;
-      //   url_file: string;
-      //   estado?: boolean;
-      // };
-  
-      if (!res.data.url_file || !res.data.url_file.startsWith('http')) {
-        throw new Error('URL devuelta no es válida o incompleta');
-      }
 
       // ✅ Log de éxito
     await this.logService.create({
@@ -187,17 +170,23 @@ export class DocumentoService {
       parametro: JSON.stringify({...jsonDebug,sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
-      respuesta: res.data.url_file,
+      respuesta: parsed,
     });
   
       return {
-        ...res.data,
+        parsed,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
         palabraClave,
       };
-    } catch (error: any) {
+    }
+    catch (error) {
+      console.log("error:",error);
+      
+    }
+
+    /*} catch (error: any) {
       const responseData = error?.response?.data;
 
       // ⛔ Log de error
@@ -223,7 +212,7 @@ export class DocumentoService {
         palabraClave,
         usuario_servicio
       }
-    }
+    }*/
   }
   
 
