@@ -108,19 +108,28 @@ export class DocumentoService {
     formData.append('usuario', this.user_registro);
     var  res = null;
     try {
-      const response = await axios.post(this.uploadUrl, formData, {
+
+      const response = await fetch(this.uploadUrl, {
+        method: 'POST',
+        body: formData as any,
         headers: formData.getHeaders(),
       });
+      console.log(response);
+      const res = await response.json();
       
-      res = response.data;
-      const responseData = response.data as {
-        id_documento: number;
-        nombre_documento: string;
-        url_file: string;
-        estado?: boolean;
-      };
+
+      // const response = await axios.post(this.uploadUrl, formData, {
+      //   headers: formData.getHeaders(),
+      // });
   
-      if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
+      // const responseData = response.data as {
+      //   id_documento: number;
+      //   nombre_documento: string;
+      //   url_file: string;
+      //   estado?: boolean;
+      // };
+  
+      if (!res.data.url_file || !res.data.url_file.startsWith('http')) {
         throw new Error('URL devuelta no es válida o incompleta');
       }
 
@@ -130,12 +139,11 @@ export class DocumentoService {
       parametro: JSON.stringify({...jsonDebug,sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
-      respuesta: responseData.url_file,
+      respuesta: res.data.url_file,
     });
   
       return {
-        ...jsonDebug,
-        ...responseData,
+        ...res.data,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
