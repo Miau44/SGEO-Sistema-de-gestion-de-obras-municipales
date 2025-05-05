@@ -106,12 +106,13 @@ export class DocumentoService {
     formData.append('resumen', resumen);
     formData.append('palabraClave', palabraClave);
     formData.append('usuario', this.user_registro);
-  
+    var  res = null;
     try {
       const response = await axios.post(this.uploadUrl, formData, {
         headers: formData.getHeaders(),
       });
-  
+      
+      res = response.data;
       const responseData = response.data as {
         id_documento: number;
         nombre_documento: string;
@@ -149,7 +150,7 @@ export class DocumentoService {
         parametro: JSON.stringify({ ...jsonDebug,sistema,ruta, resumen, palabraClave,usuario_servicio }),
         mensaje: `Error al subir archivo: ${file.originalname}`,
         funcionalidad: 'Adjuntos',   
-        respuesta: responseData,
+        respuesta: JSON.stringify(res),
       });
   
       console.error('⛔ Error al subir archivo:', {
