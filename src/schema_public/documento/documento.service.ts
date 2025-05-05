@@ -83,6 +83,22 @@ export class DocumentoService {
     palabraClave: string,
     usuario: string
   ): Promise<any> {
+    const sistema = this.sistema;
+    const usuario_servicio = this.user_registro;
+
+    const jsonDebug: Record<string, any> = {
+      sistema: this.sistema,
+      ruta,
+      resumen,
+      palabraClave,
+      usuario: this.user_registro,
+      file: {
+        originalname: file.originalname,
+        size: file.buffer.length,
+        mimetype: file.mimetype
+      }
+    };
+
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
     formData.append('sistema', this.sistema); // Valor fijo
@@ -90,7 +106,7 @@ export class DocumentoService {
     formData.append('resumen', resumen);
     formData.append('palabraClave', palabraClave);
     formData.append('usuario', this.user_registro);
-  
+    var  res = null;
     try {
 
       const response = await fetch(this.uploadUrl, {
@@ -120,7 +136,7 @@ export class DocumentoService {
       // ✅ Log de éxito
     await this.logService.create({
       id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
+      parametro: JSON.stringify({...jsonDebug,sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
       respuesta: res.data.url_file,
@@ -137,26 +153,28 @@ export class DocumentoService {
       const responseData = error?.response?.data;
 
       // ⛔ Log de error
-    await this.logService.create({
-      id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
-      mensaje: `Error al subir archivo: ${file.originalname}`,
-      funcionalidad: 'Adjuntos',   
-      respuesta: responseData,
-    });
+      await this.logService.create({
+        id_usuario:0,
+        parametro: JSON.stringify({ ...jsonDebug,sistema,ruta, resumen, palabraClave,usuario_servicio }),
+        mensaje: `Error al subir archivo: ${file.originalname}`,
+        funcionalidad: 'Adjuntos',   
+        respuesta: JSON.stringify(res),
+      });
   
       console.error('⛔ Error al subir archivo:', {
         mensaje: error.message,
         data: responseData,
       });  
       return{
+        ...jsonDebug,
+        sistema,
         ...responseData,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
         palabraClave,
+        usuario_servicio
       }
-      
     }
   }
   
