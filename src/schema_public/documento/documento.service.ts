@@ -83,6 +83,9 @@ export class DocumentoService {
     palabraClave: string,
     usuario: string
   ): Promise<any> {
+    const sistema = this.sistema;
+    const usuario_servicio = this.user_registro;
+
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
     formData.append('sistema', this.sistema); // Valor fijo
@@ -110,7 +113,7 @@ export class DocumentoService {
       // ✅ Log de éxito
     await this.logService.create({
       id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
+      parametro: JSON.stringify({sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
       respuesta: responseData.url_file,
@@ -127,24 +130,26 @@ export class DocumentoService {
       const responseData = error?.response?.data;
 
       // ⛔ Log de error
-    await this.logService.create({
-      id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
-      mensaje: `Error al subir archivo: ${file.originalname}`,
-      funcionalidad: 'Adjuntos',   
-      respuesta: responseData,
-    });
+      await this.logService.create({
+        id_usuario:0,
+        parametro: JSON.stringify({ sistema,ruta, resumen, palabraClave,usuario_servicio }),
+        mensaje: `Error al subir archivo: ${file.originalname}`,
+        funcionalidad: 'Adjuntos',   
+        respuesta: responseData,
+      });
   
       console.error('⛔ Error al subir archivo:', {
         mensaje: error.message,
         data: responseData,
       });  
       return{
+        sistema,
         ...responseData,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
         palabraClave,
+        usuario_servicio
       }
       
     }
