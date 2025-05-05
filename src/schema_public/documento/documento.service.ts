@@ -155,7 +155,7 @@ export class DocumentoService {
     formData.append('usuario', this.user_registro);
     var  res = null;
     try {
-      const datos = { sistema, ruta, resumen, palabraClave, usuario };
+      const datos = { sistema, ruta, resumen, palabraClave, usuario_servicio };
       const response = await this.subirArchivo(file, datos);
       // const response = await fetch(this.uploadUrl, {
       //   method: 'POST',
