@@ -86,6 +86,19 @@ export class DocumentoService {
     const sistema = this.sistema;
     const usuario_servicio = this.user_registro;
 
+    const jsonDebug: Record<string, any> = {
+      sistema: this.sistema,
+      ruta,
+      resumen,
+      palabraClave,
+      usuario: this.user_registro,
+      file: {
+        originalname: file.originalname,
+        size: file.buffer.length,
+        mimetype: file.mimetype
+      }
+    };
+
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
     formData.append('sistema', this.sistema); // Valor fijo
@@ -113,13 +126,14 @@ export class DocumentoService {
       // ✅ Log de éxito
     await this.logService.create({
       id_usuario:0,
-      parametro: JSON.stringify({sistema, ruta, resumen, palabraClave,usuario_servicio }),
+      parametro: JSON.stringify({...jsonDebug,sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
       respuesta: responseData.url_file,
     });
   
       return {
+        ...jsonDebug,
         ...responseData,
         uploadUrl: this.uploadUrl,
         ruta,
@@ -132,7 +146,7 @@ export class DocumentoService {
       // ⛔ Log de error
       await this.logService.create({
         id_usuario:0,
-        parametro: JSON.stringify({ sistema,ruta, resumen, palabraClave,usuario_servicio }),
+        parametro: JSON.stringify({ ...jsonDebug,sistema,ruta, resumen, palabraClave,usuario_servicio }),
         mensaje: `Error al subir archivo: ${file.originalname}`,
         funcionalidad: 'Adjuntos',   
         respuesta: responseData,
@@ -143,6 +157,7 @@ export class DocumentoService {
         data: responseData,
       });  
       return{
+        ...jsonDebug,
         sistema,
         ...responseData,
         uploadUrl: this.uploadUrl,
@@ -151,7 +166,6 @@ export class DocumentoService {
         palabraClave,
         usuario_servicio
       }
-      
     }
   }
   
