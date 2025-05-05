@@ -508,6 +508,8 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
 // INFORME ACTIVIDADES PREVIAS FISCAL
 async generateInformeFISCAL(obra: number): Promise<Buffer> {
+    try {
+      
     
     const res = await this.datosGeneralesReporte(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -964,6 +966,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       });
       pdfDoc.end();
     });
+
+  } catch (error) {
+    console.error('Error al generar el informe:', error);
+    throw new Error('Error al generar el informe: ' + error);   
+  }
 }
     
 
