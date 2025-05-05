@@ -7,6 +7,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { text } from 'stream/consumers';
 
 
 
@@ -38,6 +39,17 @@ export class ReporteActPreviasService {
     datosSGEO: any = [];
     datosPreguntaInforme: any = [];
     datosPreguntaInformeRestante: any = [];
+    datosFis: any = [];
+    datosII: any = [];
+    datosPAP: any = [];
+    datosPAP2: any = [];
+    datosPII: any = [];
+    datosPII2: any = [];
+    datosPII3: any = [];
+    datosPII4: any = [];
+    datosIAP: any = [];
+    datosAF: any = [];
+  
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -49,6 +61,15 @@ export class ReporteActPreviasService {
       return image.toString('base64');
     }
 
+    //--Datos Aprobador Fiscal
+    async datosAprobadorFiscal(obra: number) {
+      const query1 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
+      const resultado = await this.sequelize.query(query1);
+      return resultado[0];
+  }
+
     //--Datos generales Obra
     async datosGeneralesReporte(obra: number) {
       const query1 = `
@@ -58,15 +79,51 @@ export class ReporteActPreviasService {
       const resultado = await this.sequelize.query(query1);
       return resultado[0];
   }
-    // async datosGeneralesReporte(idSolicitud: number) {
-    //     const query1 = `
-    //         SELECT * 
-    //         FROM public.sp_reporte_datos_gral_obra(${idSolicitud});
-    //     `;
-    //     const resultado = await this.sequelize.query(query1);
-    //     return resultado[0];
-    // }
 
+    //--Lista Fiscales designados por Obra
+    async fiscalDesignado(obra: number) {
+      const query1 = `
+          SELECT * 
+          FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
+      const resultado = await this.sequelize.query(query1);
+      return resultado[0];
+     }
+
+     //--Datos generales Informe Inicial para Informe de AP
+    async datosGeneralesInfIni(obra: number) {
+      const query2 = `SELECT i.id_informe, i.id_obra, i.id_correlativo, i.obs_general, i.conclusion, i.fecha_registro, i.fecha_modificacion, pc.detalle AS cite, c.correlativo from informe i 
+                      JOIN correlativo c ON i.id_correlativo = c.id_correlativo
+                      JOIN ( SELECT pa.id_subtipo, pa.desc_subtipo, pa.detalle
+                            FROM parametrica pa
+                            WHERE pa.id_tipo = 29 AND pa.id_estado = 1) pc ON c.id_tipo_documento = pc.id_subtipo
+                      WHERE i.id_tipo_informe = 235 AND i.id_obra = ${obra}`;
+      const resultado2 = await this.sequelize.query(query2);
+      return resultado2[0];
+     }
+
+      //--Preguntas Informe AP
+    async preguntasInfAP(obra: number, sbt: number) {
+      const query3 = `SELECT * FROM public."vista_reporte_preguntas_AP" 
+                      WHERE id_obra = ${obra} AND titulo = ${sbt}`;
+      const resultado3 = await this.sequelize.query(query3);
+      return resultado3[0];
+     }
+
+     //--Preguntas Informe AP
+    async preguntasInfInicial(obra: number, sbt: number) {
+      const query4 = `SELECT * FROM public."vista_reporte_preguntas_II" 
+                      WHERE id_obra = ${obra} AND titulo = ${sbt}`;
+      const resultado4 = await this.sequelize.query(query4);
+      return resultado4[0];
+     }
+
+     //--Datos Informe Actividades Previas
+    async datosInfActPrevias(obra: number) {
+      const query5 = `SELECT * FROM public."vista_reporte_ActPrevias" 
+                      WHERE id_obra = ${obra} `;
+      const resultado5 = await this.sequelize.query(query5);
+      return resultado5[0];
+     }
 
 //--Datos Documentos ETAPA I
     async datosDocumentosSGEO(obra: number) {
@@ -101,7 +158,6 @@ export class ReporteActPreviasService {
     //   const resultado = await this.sequelize.query(query1);
     //   return resultado[0];
     // }
-
     //--Cargar tabla de documentos
     buildDocumentos(data: any) {
       let datosResp = data;
@@ -117,11 +173,122 @@ export class ReporteActPreviasService {
           { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
         ];
         arrayData.push(rowData);
-  
       }
       return arrayData;
     }
 
+    //Cargar tabla de fiscales
+    buildFiscales(data: any) {
+      let datosFiscal = data;
+      let arrayData = [];
+  
+      for (let i = 0; i < datosFiscal.length; i++) {
+        let rowData = [
+          { text: [{ text: datosFiscal[i].profesion + ' ' +datosFiscal[i].nombre + ' ' + datosFiscal[i].primer_apellido + ' ' + datosFiscal[i].segundo_apellido, style: 'textDato' }] },
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+    //Cargar tabla de fiscales 2 - con recuadro
+    buildFiscales2(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'FISCAL', bold: true, style: 'textDato' }
+                  ],
+                alignment: 'center', margin: [0, 25, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+    //--Cargar preguntas Informe Inicial + Obervacion si la respuesta es NO
+    buildPregInfInicial(data: any) {
+      let datosPreg = data;
+      let arrayData = [];
+    
+      for (let i = 0; i < datosPreg.length; i++) {
+        const item = datosPreg[i];
+
+        let rowData = [
+          { text: [{ text: item.respuesta || '', style: 'textDato' }] },
+          { text: [{ text: item.sino || '', style: 'textDato', alignment: 'center' }] }
+        ];
+        arrayData.push(rowData);
+    
+        // Si es NO, agregar fila adicional con observación
+        if (item.opcion  === '217') {
+          const observacionTexto = item.observaciones 
+            ? `${item.observaciones}` 
+            : ' ';
+    
+          arrayData.push([
+            {
+              text: observacionTexto,
+              colSpan: 2,
+              style: 'textDato',
+              //color: 'red',
+              //margin: [12, 2, 0, 5]
+            },
+            {} // Segunda celda vacía por el colSpan
+          ]);
+        }
+      }
+    
+      return arrayData;
+    }
+
+    //--Cargar preguntas Informe Inicial + Obervacion si la respuesta es SI o NO
+    buildPregInfInicial2(data: any) {
+      let datosPreg = data;
+      let arrayData = [];
+    
+      for (let i = 0; i < datosPreg.length; i++) {
+        const item = datosPreg[i];
+
+        let rowData = [
+          { text: [{ text: item.respuesta || '', style: 'textDato' }] },
+          { text: [{ text: item.sino || '', style: 'textDato', alignment: 'center' }] }
+        ];
+        arrayData.push(rowData);
+    
+        // Si es NO, agregar fila adicional con observación
+        if (item.opcion != 218) {
+          const observacionTexto = item.observaciones 
+            ? `${item.observaciones}` 
+            : ' ';
+    
+          arrayData.push([
+            {
+              text: observacionTexto,
+              colSpan: 2,
+              style: 'textDato',
+              //color: 'red',
+              //margin: [12, 2, 0, 5]
+            },
+            {} // Segunda celda vacía por el colSpan
+          ]);
+        }
+      }
+    
+      return arrayData;
+    }
 
 // FORMULARIO DE ENVIO DE DOCUMENTOS
 
@@ -341,16 +508,81 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
 // INFORME ACTIVIDADES PREVIAS FISCAL
 async generateInformeFISCAL(obra: number): Promise<Buffer> {
+    try {
+      
     
     const res = await this.datosGeneralesReporte(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la obra.');
     }
-  
     this.datosEnvio = res;
+
+    const res0 = await this.datosAprobadorFiscal(obra);
+    if (!res0 || (Array.isArray(res0) && res0.length === 0) || (typeof res0 === 'object' && Object.keys(res0).length === 0)) {
+      throw new Error('No se encontraron del Aprobador.');
+    }
+    this.datosAF = res0;
+
+    const res1 = await this.fiscalDesignado(obra);
+    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del Fiscal');
+    }
+    this.datosFis = res1;
+
+    const res2 = await this.datosGeneralesInfIni(obra);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos del Informe Inicial');
+    }
+    this.datosII = res2;
+
+    const res3 = await this.preguntasInfAP(obra, 227);
+    if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron la preguntas del informe de AP');
+    }
+    this.datosPAP = res3;
+
+    const res4 = await this.preguntasInfAP(obra, 228);
+    if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
+      throw new Error('No se encontraron la preguntas del informe Inicial');
+    }
+    this.datosPAP2 = res4;
+
+    const res5 = await this.preguntasInfInicial(obra, 169);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+      throw new Error('No se encontraron la preguntas A del Inf.Inicial');
+    }
+    this.datosPII = res5;
+
+    const res6 = await this.preguntasInfInicial(obra, 170);
+    if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
+      throw new Error('No se encontraron la preguntas B del Inf.Inicial');
+    }
+    this.datosPII2 = res6;
+
+    const res7 = await this.preguntasInfInicial(obra, 171);
+    if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+      throw new Error('No se encontraron la preguntas C del Inf.Inicial');
+    }
+    this.datosPII3 = res7;
+
+    const res8 = await this.preguntasInfInicial(obra, 173);
+    if (!res8 || (Array.isArray(res8) && res8.length === 0) || (typeof res8 === 'object' && Object.keys(res8).length === 0)) {
+      throw new Error('No se encontraron las observaciones grales. del Inf.Inicial');
+    }
+    this.datosPII4 = res8;
+
+    const res9 = await this.datosInfActPrevias(obra);
+    if (!res9 || (Array.isArray(res9) && res9.length === 0) || (typeof res9 === 'object' && Object.keys(res9).length === 0)) {
+      throw new Error('No se encontraron datos del Informe de Actividades Previas');
+    }
+    this.datosIAP = res9;
+  
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
+
+    console.log('DATOS IAP',this.datosIAP);
+    const bodyTabla = [];
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -359,8 +591,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             image: imgPath, 
             width: pageSize.width, 
             height: pageSize.height,
-            absolutePosition: {x: 0, y: 0},
-            opacity: 0.3
+            absolutePosition: {x: 0, y: 0}
               } },
       
       header: {
@@ -369,11 +600,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       } as any,
       content: [
         {
-          text: '\nINFORME\n',
+          text: 'INFORME\n',
           style: 'header', alignment: 'center'
         } as any,
         {
-          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].descpermisodetalle + '-' + 'XX\n\n',
+          text: this.datosEnvio[0].cod_carpeta + '-' + 'IFIS' + '-' + '1\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
@@ -383,37 +614,54 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { text: [
-                    { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato' },
-                    { text: 'DIRECTOR DE FISCALIZACION DE OBRAS', style: 'textTitulo' }
+                    { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
+                    { text: (
+                      this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                        ? this.datosAF[0].nombre_da
+                        : this.datosAF[0].nombre_ue
+                    ), style: 'textTitulo' }
                   ],
                   margin: [0, 5, 0, 5] 
                 },
               ],
+              // Fila VIA: solo si la condición NO se cumple
+              ...(
+                this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                  ? [] // No incluir la fila
+                  : [[
+                      { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                      {
+                        text: [
+                          { text: '\n', style: 'textDato' },
+                          { text: 'JEFE DE UNIDAD - DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
+                        ],
+                        margin: [0, 5, 0, 5]
+                      }
+                    ]]
+              ),
               [
-                { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text:[
-                    {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
-                    {text: 'JEFE DE UNIDAD', style: 'textTitulo', }
-                  ],
-                  margin: [0, 5, 0, 5] 
-                },
+                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { 
+                  table: {
+                    widths: ['*'],
+                    body: [
+                      ...this.buildFiscales(this.datosFis)
+                    ]
+                  },
+                  style: 'textDato', layout: 'noBorders', margin: [0, 5, 0, 5] 
+                },                
               ],
               [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text:[
-                    {text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' },
-                    {text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', }
-                  ], 
-                  margin: [0, 5, 0, 5] 
-                },
+                { text: ' ' },
+                { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo' },
               ],
               [
-                { text: 'REF:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { text: 'INFORME DE ACTIVIDADES PREVIAS', style: 'textTitulo', margin: [0, 5, 0, 5] },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: `${this.datosEnvio[0].total_carpeta}`, style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosIAP[0].fecha_modificacion), style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -431,8 +679,10 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         
         {
           text: 'Señor Director:\n\n'+
-          'En atención a INFORME DE SUPERVISIÓN OBN-649-2024-ISUP-1' + 
-          ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión y en cumplimiento del ARTICULO referido a “ACTIVIDADES DE LA FISCALIZACIÓN PREVIAS AL INICIO DE OBRA EN LAS MODALIDADES DE LICITACIÓN PUBLICA, APOYO NACIONAL A LA PRODUCCIÓN Y EMPLEO, DIRECTA, POR EXCEPCIÓN Y CON FINANCIAMIENTO EXTERNO DONACIÓN” del REGLAMENTO DE SUPERVISIÓN Y FISCALIZACIÓN DE OBRA (RSFO), se emite el presente informe: \n\n',
+          'En atención a INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-' + this.datosII[0].correlativo +
+          ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión y en cumplimiento del ARTICULO referido a ' + 
+          '“ACTIVIDADES DE LA FISCALIZACIÓN PREVIAS AL INICIO DE OBRA EN LAS MODALIDADES DE LICITACIÓN PUBLICA, APOYO NACIONAL A LA PRODUCCIÓN ' + 
+          'Y EMPLEO, DIRECTA, POR EXCEPCIÓN Y CON FINANCIAMIENTO EXTERNO DONACIÓN” del REGLAMENTO DE SUPERVISIÓN Y FISCALIZACIÓN DE OBRA (RSFO), se emite el presente informe: \n\n',
           style: 'textDato', alignment: 'justify'
         },
         {
@@ -441,7 +691,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
         {
           table: {
-            widths: [100, '*'],
+            widths: ['*', 350],
             body: [
               [
                 { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -460,7 +710,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
               [
                 { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }] }
+                { text: [{ text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }] }
               ],
 
               [
@@ -481,53 +731,138 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           style: 'subheader',
         },
         {
-            text: '\nEl INFORME DE SUPERVISIÓN OBN-649-2024-ISUP-1'+
+            text: '\nEl INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-' + this.datosII[0].correlativo +
             ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión,'+
-            ' de fecha 25 de julio de 2024, establece:\n\n',
+            ' de fecha ' + this.fechaString(this.datosII[0].fecha_modificacion) + ', establece:\n\n',
             style: 'textDato', alignment:'justify'
         }, 
         {
-          text: 'I N F O R M E - S  U P E R V I S O R  ',
+          text: 'Realizado el análisis de los aspectos técnicos se tiene el siguiente detalle de los puntos evaluados:\n',
           style: 'textDato', alignment:'justify'
-        },    
-        {
-            text: '\n- La obra ' + 'SI' + ' cuenta con óbice para proseguir con los procesos correspondientes.\n',
-            style: 'textDato',
         },
         {
-            text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
-            style: 'textDato', alignment:'justify'
-        },
-            
-        {
-            text: '\n- La obra ' + 'SI' + ' requiere coordinación con la Unidad Ejecutora\n',
-            style: 'textDato',
+          text: '\nCon relación al análisis de los aspectos técnicos se detalla lo siguiente:',
+          style: 'textDato2', alignment:'justify', bold:true
         },
         {
-
-            text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
-            style: 'textDato', alignment:'justify'
+          table: {
+            widths: ['*', 50],
+            body: [
+              ...this.buildPregInfInicial(this.datosPII),              
+            ]
+          }, //margin: [15, 0, 30, 0],
+          //layout: 'noBorders'
         },
-
         {
-            text: '\n- La obra ' + 'SI ' + 'requiere coordinación con el Sistema de Regulación Municipal (SIREMU).\n',
-            style: 'textDato',
+          text: '\nCon relación al análisis de los aspectos inter institucionales se detalla lo siguiente:',
+          style: 'textDato2', alignment:'justify', bold: true
+        }, 
+        {
+          table: {
+            widths: ['*', 50],
+            body: [
+              ...this.buildPregInfInicial2(this.datosPII2),              
+            ]
+          }, //margin: [15, 0, 30, 0],
+          //layout: 'noBorders'
         },
         {
-            text: 'TEXTO SI LA RESPUESTA ES POSITIVA',
-            style: 'textDato', alignment:'justify'
+          text: '\nPara el análisis de los aspectos técnicos y legales se consideraron los siguientes puntos:',
+          style: 'textDato', alignment:'justify', bold:true
+        },
+        {
+          table: {
+            widths: ['*', 50],
+            body: [
+              ...this.buildPregInfInicial(this.datosPII3),              
+            ]
+          }, //margin: [15, 0, 30, 0],
+          //layout: 'noBorders'
+        },
+        {
+          text:'\nResultado del análisis de los tres aspectos se tiene las siguientes observaciones generales:',
+          style: 'textDato', alignment:'justify', bold: true
+        },
+        {
+          text: this.datosII[0].obs_general,
+          style: 'textDato', alignment: 'justify'
+        },
+        {
+          text: '\nAsi mismo, en el punto 4. CONCLUSIONES, indica:',
+          style: 'textDato', alignment:'justify'
+        },
+        {
+          text: this.datosII[0].conclusion,
+          style: 'textDato', alignment: 'justify', //margin: [15, 0, 20, 0]
+        },
+        {
+          table: {
+            widths: ['*', 50],
+            body: [
+              ...this.buildPregInfInicial(this.datosPII4),              
+            ]
+          }, //margin: [15, 0, 20, 0],
+          layout: 'noBorders'
+        },
+        {
+          text: '\nSiendo que la supervisión de obra, mediante INFORME DE SUPERVISION ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + 
+                '-' + this.datosII[0].correlativo + ', INFORME INICIAL DE REVISIÓN DE PROYECTO, establece claramente que:\n\n',
+          style: 'textDato', alignment:'justify'
+        },   
+        {
+          text: [
+            '-  La obra ',
+            { text: this.datosPAP[0].sino, bold: true }, 
+            ' cuenta con óbice para proseguir con los procesos correspondientes.',
+          ],
+          style: 'textDato', alignment: 'justify'
+        },
+        {
+          text: this.datosPAP[0].sino == 'Si'
+            ? this.datosPAP[0].observaciones
+            : ' ',
+          style: 'textDato',
+          margin: [10, 0, 0, 0], alignment: 'justify'
+        },
+        {
+          text: [
+            '-  La obra ',
+            { text: this.datosPAP[1].sino, bold: true }, 
+            ' requiere coordinación con la Unidad Ejecutora.\n',
+          ],
+          style: 'textDato', alignment: 'justify'
+        }, 
+        {
+          text: this.datosPAP[1].sino == 'Si'
+            ? this.datosPAP[1].observaciones
+            : ' ',
+          style: 'textDato', margin: [10, 0, 0, 0], alignment: 'justify'
+        },
+        {
+          text: [
+            '-  La obra ',
+            { text: this.datosPAP[2].sino, bold: true }, 
+            ' requiere coordinación con el Sistema de Regulación Municipal (SIREMU).\n'
+          ],
+          style: 'textDato', alignment: 'justify'
+        },
+        {
+          text: this.datosPAP[2].sino == 'Si'
+            ? this.datosPAP[2].observaciones
+            : '',
+          style: 'textDato',
+          margin: [10, 0, 0, 0], alignment: 'justify'
         },
         {
           text:' ',
         },
 
         {
-          text: '3. CONCLUSIONES\n',
+          text: '3. CONCLUSIONES\n\n',
           style: 'subheader',
         },
         {
-          text: '\nEn cumplimiento al Reglamento de Supervisión y Fiscalización de Obras y conforme a evaluación del Informe Inicial de Revisión del Proyecto emitido por la Supervisión se concluye'+ 
-          'que SI/NO requiere trabajos previos para el inicio de la obra.\n',
+          text: this.datosPAP2[0].respuesta + '.\n',
           style: 'textDato', alignment:'justify'
         },
 
@@ -544,19 +879,16 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           text: ['\n\n'],
         }, 
         {
-            table: {
-              widths: ['*','*'], 
-                 body: [
-                    [
-                      { text: 'ING. JUAN JOSE  \nFISCAL', style: 'textTitulo', alignment: 'center', margin: [0, 35, 0, 0] },
-                      { text: 'Firma y Sello', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] },
-                    ],
-                 ]
-            }
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildFiscales2(this.datosFis)
+              ]
+          },
         },
         {
           text: [
-            '\n\n\n\n\nCc arch DFO \nCC PIUM \n',
+            '\n\n\nCC arch DFO \nCC PIUM \n',
           ],
           style: 'footerText'
         },
@@ -605,13 +937,19 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           //color: 'gray', 
           opacity: 0.8,
         },
+        textDato2: {
+          fontSize: 9,
+          bold: false,
+          italic: true, 
+          opacity: 0.8,
+        },
         bold: {
             bold: true,
             fontSize: 10, // Ajusta el tamaño según sea necesario
         },
 
       },
-      pageMargins: [70, 150, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 170, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria
@@ -628,6 +966,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       });
       pdfDoc.end();
     });
+
+  } catch (error) {
+    console.error('Error al generar el informe:', error);
+    throw new Error('Error al generar el informe: ' + error);   
+  }
 }
     
 

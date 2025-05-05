@@ -370,7 +370,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     content: [ 
       {
         text:[
-              { text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo) + '\n', style: 'textDato', alignment:'right' },
+              { text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_instruccion_op) + '\n', style: 'textDato', alignment:'right' },
               { text: this.datosEnvio[0].cod_carpeta + '-RPC/RPA-1', style: 'textDato', bold:true,  alignment:'right'}
         ],
       },

@@ -156,14 +156,39 @@ export class InformeService {
   }
 
 //informe Inicial
-  async createInformeInicial(createInformeInicialDto: CreateInformeInicialDto) {
+ /* async createInformeInicial(createInformeInicialDto: CreateInformeInicialDto) {
     try {
       const resultado = await this.infInicialRepositorio.save(createInformeInicialDto);
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
-  }
+  }*/
+
+
+
+    async createInformeInicial(createInformeInicialDto: CreateInformeInicialDto) {
+      try {
+        if (createInformeInicialDto.id_subtipo === 227) {
+          const existente = await this.infInicialRepositorio
+            .createQueryBuilder('informe_inicial')
+            .where('informe_inicial.id_subtipo = :idSubtipo', { idSubtipo: 227 })
+            .andWhere('informe_inicial.id_informe = :idInforme', { idInforme: createInformeInicialDto.id_informe })
+            .getOne();
+    
+          if (existente) {
+            return this.responseService.success(null, "Ya existe un informe con id_subtipo 227 para este id_informe.");
+          }
+        }
+    
+        const resultado = await this.infInicialRepositorio.save(createInformeInicialDto);
+        return this.responseService.success(resultado, "Registrado Correctamente.");
+      } catch (error) {
+        return this.responseService.error(error);
+      }
+    }
+    
+
 
   updateInformeInicial(id: number, updateInformeInicialDto: UpdateInformeInicialDto) {
     try {
