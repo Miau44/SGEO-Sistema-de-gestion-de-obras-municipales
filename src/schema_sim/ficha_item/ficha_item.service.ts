@@ -141,7 +141,7 @@ export class ficha_itemService {
     var response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}`, },
-      body: JSON.stringify({"gestion": this.gestion})
+      body: JSON.stringify({ "gestion": this.gestion })
     });
     //const resultados = [];
     const data = await response.json();
@@ -166,64 +166,79 @@ export class ficha_itemService {
 
   // Método para obtener el listado de ues desde un servicio externo
   async obtenerFichas(desc_cod_ue_: number, id_usuario: number): Promise<any> {
-    //console.log("desc_cod_ue_",desc_cod_ue_);
+    try {
 
-    // OBTENER PARAMETROS DE URL DESDE .env
-    const url_sim = process.env.URL_SIM2;
-    // realizar la llamada al servicio externo metodo POST
-    const url = `${url_sim}sgeo/wsListaFichasObras`;
-    // Realizar la llamada al servicio externo
-    var response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
-      body: JSON.stringify({
-        "desc_cod_ue": desc_cod_ue_,
-        "gestion": this.gestion,
-        "cod_carpeta": 0
-      }),
-    });
-    const data = await response.json();
-    if (data.res == "OK") {
-      for (const fichaJson of data.datos) {
-        //verificar si existe la ficha en la base de datos, si existe no guardar
-        const fichaExistente = await this.fichaRepository.findOne({ where: { cod_carpeta: fichaJson.cod_carpeta } });
-        if (fichaExistente) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
-          continue; // Si ya existe, continuar con la siguiente ficha
+      console.log("desc_cod_ue_",desc_cod_ue_);
+      const maxCorrelativo = await this.fichaRepository.findOne({
+        select: { correlativo_carpeta: true },
+        order: { correlativo_carpeta: 'DESC' },
+        where: {desc_cod_ue:desc_cod_ue_}, // ← condición vacía explícita
+      });
+      console.log("maxCorrelativo", maxCorrelativo);
+
+      // OBTENER PARAMETROS DE URL DESDE .env
+      const url_sim = process.env.URL_SIM2;
+      // realizar la llamada al servicio externo metodo POST
+      const url = `${url_sim}sgeo/wsListaFichasObras`;
+      // Realizar la llamada al servicio externo
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+        body: JSON.stringify({
+          "desc_cod_ue": desc_cod_ue_,
+          "gestion": this.gestion,
+          "cod_carpeta": maxCorrelativo?.correlativo_carpeta
+        }),
+      });
+      const data = await response.json();
+      console.log(data);
+      
+      if (data.res == "OK") {
+        for (const fichaJson of data.datos) {
+          //verificar si existe la ficha en la base de datos, si existe no guardar
+          const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
+          //console.log('fichaExistente',fichaExistente);
+          if (fichaExistente) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            continue; // Si ya existe, continuar con la siguiente ficha
+          }
+
+          //validar que codigo_ficha tenga el texto 2025
+          if (!fichaJson.codigo_ficha.includes("2025")) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
+            continue; // Si no contiene el texto, continuar con la siguiente ficha
+          }
+
+          const nueva_ficha = this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
+          //console.log(nueva_ficha);
+          try {
+            const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
+            const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
+            const obraGuardada = await this.obraRepository.save(nuevaObra);
+            console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
+
+            await this.guardarItems(fichaJson.d_item, obraGuardada, id_usuario);
+          } catch (error) {
+            //lanzar error si no se puede guardar la ficha
+
+            //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
+            //mandar  error si no se puede guardar la obra, trwow error
+            console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
+            throw new Error(`Error al guardar la obra: ${error}`);
+          }
         }
-
-        //validar que codigo_ficha tenga el texto 2025
-        if (!fichaJson.codigo_ficha.includes("2025")) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
-          continue; // Si no contiene el texto, continuar con la siguiente ficha
-        }
-
-        const nueva_ficha = this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
-        //console.log(nueva_ficha);
-        try {
-          const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
-          const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
-          const obraGuardada = await this.obraRepository.save(nuevaObra);
-          console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
-          
-          await this.guardarItems(fichaJson.d_item, obraGuardada, id_usuario);
-        } catch (error) {
-          //lanzar error si no se puede guardar la ficha
-
-          //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
-          //mandar  error si no se puede guardar la obra, trwow error
-          console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
-          throw new Error(`Error al guardar la obra: ${error}`);
-        }
+      } else {
+        console.log("error: sin datos de servicio", data.res);
+        //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
       }
-    } else {
-      console.log("error: sin datos de servicio", data.res);
-      //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
+    } catch (error) {
+      console.log("catch error:",error);
+      
     }
   }
 
 
-  async obtenerFichaporCorrelativo(id_correlativo:number, id_usuario: number): Promise<any> {
+  async obtenerFichaporCorrelativo(id_correlativo: number, id_usuario: number): Promise<any> {
     //console.log("desc_cod_ue_",desc_cod_ue_);
 
     // OBTENER PARAMETROS DE URL DESDE .env
@@ -255,14 +270,14 @@ export class ficha_itemService {
           continue; // Si no contiene el texto, continuar con la siguiente ficha
         }
 
-        const nueva_ficha = this.transformarFicha2(fichaJson,id_usuario);
+        const nueva_ficha = this.transformarFicha2(fichaJson, id_usuario);
         //console.log(nueva_ficha);
         try {
           const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
           const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
           const obraGuardada = await this.obraRepository.save(nuevaObra);
           console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
-          
+
           await this.guardarItemsIndividual(fichaJson.d_item, obraGuardada, id_usuario);
         } catch (error) {
           //lanzar error si no se puede guardar la ficha
@@ -312,7 +327,7 @@ export class ficha_itemService {
     });
   }
 
-  private transformarFicha2(fichaJson: any,   id_usuario: number): Ficha {
+  private transformarFicha2(fichaJson: any, id_usuario: number): Ficha {
     //separar el campo cat_programatico en 3 partes
     const cat_progratica = fichaJson.cat_progratica.split('-');
 
@@ -394,9 +409,9 @@ export class ficha_itemService {
 
   private async guardarItems(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
     if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
-  
+
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
-  
+
     // Filtrar solo las partidas permitidas (42310 y 42230)
     const partidasPermitidas = ["42310", "42230"];
     const registrosUnicos = new Map<string, any>();
@@ -407,16 +422,16 @@ export class ficha_itemService {
         console.log(`Item ignorado: Partida no permitida. Partida=${itemJson.partida}, Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
         return; // Saltar este item
       }
-  
+
       // Crear una clave única basada en orden y codigo_item
       const claveRegistro = `${itemJson.orden}-${itemJson.codigo_item}`;
-  
+
       // Si ya existe un item con esta clave, se ignora el nuevo
       if (registrosUnicos.has(claveRegistro)) {
         console.log(`Item ignorado: Par (Orden, Código_Item) duplicado en el JSON. Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
         return; // Ignorar duplicados posteriores
       }
-  
+
       // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
       registrosUnicos.set(claveRegistro, itemJson);
       //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
@@ -457,11 +472,11 @@ export class ficha_itemService {
 
   private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
     if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
-  
+
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
-  
+
     // Filtrar solo las partidas permitidas (42310 y 42230)
-    const partidasPermitidas = ["42310", "42230","24300"];
+    const partidasPermitidas = ["42310", "42230", "24300"];
     const registrosUnicos = new Map<string, any>();
 
     itemsJson.forEach(itemJson => {
@@ -470,16 +485,16 @@ export class ficha_itemService {
         console.log(`Item ignorado: Partida no permitida. Partida=${itemJson.partida}, Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
         return; // Saltar este item
       }
-  
+
       // Crear una clave única basada en orden y codigo_item
       const claveRegistro = `${itemJson.orden}-${itemJson.codigo_item}`;
-  
+
       // Si ya existe un item con esta clave, se ignora el nuevo
       if (registrosUnicos.has(claveRegistro)) {
         console.log(`Item ignorado: Par (Orden, Código_Item) duplicado en el JSON. Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
         return; // Ignorar duplicados posteriores
       }
-  
+
       // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
       registrosUnicos.set(claveRegistro, itemJson);
       //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
