@@ -114,7 +114,7 @@ export class FichaItemController {
     }
     ).catch((error) => {
       console.error('Error:', error);
-      return { message: 'Test error' };
+      return { message: error };
     });
   }
 

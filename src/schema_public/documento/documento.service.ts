@@ -11,10 +11,12 @@ import FormData from 'form-data';
 import axios from 'axios';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
 import { LogService } from '../log/log.service';
+import * as http from 'http';
 
 @Injectable()
 export class DocumentoService {
 
+  private readonly host: string;
   private readonly uploadUrl: string;
   private readonly sistema : string;
   private readonly user_registro : string;
@@ -27,6 +29,7 @@ export class DocumentoService {
     private entityManager: EntityManager,
     private logService:LogService,
   ) {
+    this.host = String(process.env.HOST_ADJUNTO);
     this.uploadUrl = String(process.env.URL_ADJUNTO);
     this.sistema = String(process.env.SISTEMA);
     this.user_registro = String(process.env.USR_REGISTRO);
@@ -75,6 +78,54 @@ export class DocumentoService {
   async createDocumento(documento: Documento): Promise<Documento> {
     return await this.documentoRepositorio.save(documento);
   }
+
+  async subirArchivo(file: Express.Multer.File, datos: any): Promise<any> {
+    const form = new FormData();
+    console.log("datos:",datos);
+    
+    form.append('file', file.buffer, file.originalname);
+    // form.append('file', file.buffer, {
+    //   filename: file.originalname,
+    //   contentType: file.mimetype,
+    // });
+    form.append('sistema', datos.sistema);
+    form.append('ruta', datos.ruta);
+    form.append('resumen', datos.resumen);
+    form.append('palabraClave', datos.palabraClave);
+    form.append('usuario', datos.usuario);
+
+    const options: http.RequestOptions = {
+      method: 'POST',
+      host: this.host,
+      port: 3300,
+      path: '/documento/saveFile',
+      headers: form.getHeaders(),
+    };
+
+    return new Promise((resolve, reject) => {
+      console.log("respuesta directa:",resolve,reject);
+      
+      const req = http.request(options, (res) => {
+        let data = '';
+    
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+    
+        res.on('end', () => {
+          console.log("respuesta end:");
+          resolve(data); // ← se devuelve como string, tal como viene del servicio
+        });
+      });
+    
+      req.on('error', (err) => {
+        console.log("respuesta error:",err);
+        reject(err); // ← solo se devuelve el error sin adornos
+      });
+    
+      form.pipe(req);
+    });
+  }
   
   async uploadFileToExternalService(
     file: Express.Multer.File,
@@ -83,6 +134,22 @@ export class DocumentoService {
     palabraClave: string,
     usuario: string
   ): Promise<any> {
+    const sistema = this.sistema;
+    const usuario_servicio = this.user_registro;
+
+    const jsonDebug: Record<string, any> = {
+      sistema: this.sistema,
+      ruta,
+      resumen,
+      palabraClave,
+      usuario: this.user_registro,
+      file: {
+        originalname: file.originalname,
+        size: file.buffer.length,
+        mimetype: file.mimetype
+      }
+    };
+
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
     formData.append('sistema', this.sistema); // Valor fijo
@@ -90,64 +157,62 @@ export class DocumentoService {
     formData.append('resumen', resumen);
     formData.append('palabraClave', palabraClave);
     formData.append('usuario', this.user_registro);
-  
     try {
-      const response = await axios.post(this.uploadUrl, formData, {
-        headers: formData.getHeaders(),
-      });
-  
-      const responseData = response.data as {
-        id_documento: number;
-        nombre_documento: string;
-        url_file: string;
-        estado?: boolean;
-      };
-  
-      if (!responseData.url_file || !responseData.url_file.startsWith('http')) {
-        throw new Error('URL devuelta no es válida o incompleta');
-      }
+      usuario = this.user_registro;
+      const datos = { sistema, ruta, resumen, palabraClave, usuario };
+      const response = await this.subirArchivo(file, datos);
+      const parsed = JSON.parse(response);
+
 
       // ✅ Log de éxito
     await this.logService.create({
       id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
+      parametro: JSON.stringify({...jsonDebug,sistema, ruta, resumen, palabraClave,usuario_servicio }),
       mensaje: `Archivo subido: ${file.originalname}`,
       funcionalidad: 'Adjuntos',
-      respuesta: responseData.url_file,
+      respuesta: parsed,
     });
   
       return {
-        ...responseData,
+        parsed,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
         palabraClave,
       };
-    } catch (error: any) {
+    }
+    catch (error) {
+      console.log("error:",error);
+      
+    }
+
+    /*} catch (error: any) {
       const responseData = error?.response?.data;
 
       // ⛔ Log de error
-    await this.logService.create({
-      id_usuario:0,
-      parametro: JSON.stringify({ ruta, resumen, palabraClave }),
-      mensaje: `Error al subir archivo: ${file.originalname}`,
-      funcionalidad: 'Adjuntos',   
-      respuesta: responseData,
-    });
+      await this.logService.create({
+        id_usuario:0,
+        parametro: JSON.stringify({ ...jsonDebug,sistema,ruta, resumen, palabraClave,usuario_servicio }),
+        mensaje: `Error al subir archivo: ${file.originalname}`,
+        funcionalidad: 'Adjuntos',   
+        respuesta: JSON.stringify(res),
+      });
   
       console.error('⛔ Error al subir archivo:', {
         mensaje: error.message,
         data: responseData,
       });  
       return{
+        ...jsonDebug,
+        sistema,
         ...responseData,
         uploadUrl: this.uploadUrl,
         ruta,
         resumen,
         palabraClave,
+        usuario_servicio
       }
-      
-    }
+    }*/
   }
   
 
@@ -278,7 +343,7 @@ export class DocumentoService {
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
     AND d.id_obra = $1 
-    WHERE  d.id_estado = 1	
+    WHERE  d.cumple =true AND	 d.id_estado = 1	
     ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
     ORDER BY td.id_tipo_documento ASC `;     
       const params : any[]  = [data.id_obra];
