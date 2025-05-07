@@ -201,7 +201,7 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
-        WHERE id_solicitud =$1  AND id_estado_general= $2
+        WHERE id_solicitud =$1  AND id_estado_general= $2 AND p.id_estado IN(1,5) AND pp.id_estado =1
         LIMIT 1;  `;
 
         const values = [data.solicitud, data.estado_general]        
@@ -222,7 +222,7 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
-        WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso})
+        WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso}) AND p.id_estado IN(1,5) AND pp.id_estado =1
         LIMIT 1; `;
        // const values = [data.obra, data.permiso]        
       const resultado = await this.solicitudRepositorio.query(query);
