@@ -106,23 +106,9 @@ export class DocumentoController {
         
         throw new HttpException({
           statusCode: HttpStatus.BAD_GATEWAY,
-          message: uploadResponse.error,
-          error: 'Error al subir archivo',
-          ruta:uploadResponse.ruta,
-          resumen: uploadResponse.resumen,
-          palabraClave: uploadResponse.palabraClave,
+          message: uploadResponse,
+          error: 'Error al subir archivo'
         }, HttpStatus.BAD_GATEWAY);
-        
-        // resultados.push({
-        //   response:uploadResponse,
-        //   id_documento: savedDocumento.id_documento,
-        //   nombre_documento: nuevoDocumento.nombre_documento,
-        //   url_file: uploadResponse.url_file,
-        //   uploadUrl: uploadResponse.uploadUrl,
-        //   ruta: uploadResponse.ruta,
-        //   resumen: uploadResponse.resumen,
-        //   palabraClave: uploadResponse.palabraClave,
-        // });
       }
     }
   
