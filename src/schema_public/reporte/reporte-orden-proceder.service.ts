@@ -1296,7 +1296,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             { text: this.datosEnvio[0].numero_pago + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha de Orden de Proceder: ', style: 'textDato' },
-            { text: this.formatearFecha(this.datosEnvio[0].fecha_memo) + '\n', style: 'textDato', bold: true },
+            { text: this.formatearFecha(this.datos[0].fecha_inicio_ejecucion) + '\n', style: 'textDato', bold: true },
         
             { text: '\n- Fecha estimada de Recepción Provisional: ', style: 'textDato' },
             { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n', style: 'textDato', bold: true },
