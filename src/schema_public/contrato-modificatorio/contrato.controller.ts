@@ -62,7 +62,7 @@ export class ContratoController {
 
   
   @Public()
-  @Post('cargarContratosDlc')
+  @Post('cargarContratosDlc/:gestion')
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
   async llenarContratos(@Param('gestion') gestion: number): Promise<any> {
     try {
