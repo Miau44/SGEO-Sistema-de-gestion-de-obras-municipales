@@ -1468,7 +1468,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
               [
                 {
                   //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
-                  text: '\n\n\n\n\n\n',
+                  text: '\n\n\n\n\n\n\n\n\n\n',
                   style: 'subheader',
                   alignment: 'center'
                 }
