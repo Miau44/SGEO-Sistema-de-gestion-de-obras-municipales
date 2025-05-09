@@ -322,7 +322,7 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
         WHERE id_estado IN(1,5) )AS p ON   sh.id_usuario =  p.id_usuario
         --INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo      
         WHERE s.id_solicitud =$1 AND
-        p.id_estado IN (1,5) ORDER BY sh.id_solicitud_historial DESC; `;
+        p.id_estado IN (1,5) AND sh.id_estado_general <>0  AND  sh.id_estado_registro <>0  ORDER BY sh.id_solicitud_historial DESC; `;
     const params = [data.id_solicitud]        
     const resultado = await this.solicitudRepositorio.query(query, params);
     return this.responseService.success(resultado, "Listado Correctamente.")
