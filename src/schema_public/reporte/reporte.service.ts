@@ -1311,7 +1311,53 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
               [
                 { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n\n', style: 'textTitulo' },] }
+               // { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n\n', style: 'textTitulo' },] }
+
+             
+            /* {
+                table: {
+                  widths: ['*'],
+                  body: [
+                   
+                    ...this.datosListaSupervisores.map((item: any) => [
+                      {
+                        text: [{ text: item.nombre, style: 'textDato' }],
+                        alignment: 'left'
+                      }
+                    ]),
+                  ]
+                },
+                layout: 'noBorders',
+                alignment: 'center'
+              }, */
+
+              {
+                stack: [
+                  {
+                    table: {
+                      widths: ['*'],
+                      body: [
+                        ...this.datosListaSupervisores.map((item: any) => [
+                          {
+                            text: item.nombre,
+                            style: 'textDato',
+                            alignment: 'left'
+                          }
+                        ])
+                      ]
+                    },
+                    layout: 'noBorders',
+                    alignment: 'center'
+                  },
+                  {
+                    text: 'SUPERVISOR DE OBRAS\n\n',
+                    style: 'textTitulo',
+                    alignment: 'left'
+                  }
+                ]
+              }
+              
+
               ],
 
               [
@@ -1323,16 +1369,21 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                  { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
                ],*/
+              
         
-
-              ...(this.datosEnvio[0].informe_aprobado
+               [
+                { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
+                ...(this.datosEnvio[0].informe_aprobado  ? [    
+                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
+                ]:[ { text: [{ text: '', style: 'textTitulo', alignment: 'left' },] }] ),
+            
+              ]
+           /*   ...(this.datosEnvio[0].informe_aprobado
                 ? [[
-                  { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
-                  
+                  { text: [{ text: 'FECHA:\n', style: 'textTitulo' }] },
                   { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
                 ],]
-                : []),
-
+                : []),*/
 
             ]
           },
