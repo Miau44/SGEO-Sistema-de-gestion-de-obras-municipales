@@ -1288,7 +1288,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           style: 'headerTitle', alignment: 'center'
         } as any,*/        
         {
-          text: 'INFORME. ',
+          text: 'INFORME',
           style: 'headerTitle', alignment: 'center'
         } as any,
 
