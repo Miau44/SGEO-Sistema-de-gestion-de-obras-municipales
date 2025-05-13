@@ -43,11 +43,11 @@ export class ReporteActPreviasService {
     datosII: any = [];
     datosPAP: any = [];
     datosPAP2: any = [];
-    datosPII: any = [];
     datosPII2: any = [];
-    datosPII3: any = [];
     datosPII4: any = [];
     datosIAP: any = [];
+    datosJUFOT: any = [];
+    datosJUFOE: any = [];
     datosAF: any = [];
   
     constructor(
@@ -67,6 +67,15 @@ export class ReporteActPreviasService {
           SELECT * 
           FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
       const resultado = await this.sequelize.query(query1);
+      return resultado[0];
+  }
+
+     //--Datos JEFE UNIDAD DFO
+    async datosJefeUnidadDFO(unidad: number) {
+      const query0 = `
+          SELECT * 
+          FROM public."vista_reporte_jefeDFO" WHERE id_subtipo = ${unidad}`;
+      const resultado = await this.sequelize.query(query0);
       return resultado[0];
   }
 
@@ -91,12 +100,13 @@ export class ReporteActPreviasService {
 
      //--Datos generales Informe Inicial para Informe de AP
     async datosGeneralesInfIni(obra: number) {
-      const query2 = `SELECT i.id_informe, i.id_obra, i.id_correlativo, i.obs_general, i.conclusion, i.fecha_registro, i.fecha_modificacion, pc.detalle AS cite, c.correlativo from informe i 
-                      JOIN correlativo c ON i.id_correlativo = c.id_correlativo
+      const query2 = `SELECT i.id_informe, i.id_obra, i.id_correlativo, i.obs_general, i.conclusion, i.fecha_registro, i.fecha_modificacion, pc.detalle AS cite, hs.fecha_modificacion AS fecha_aprobacion from informe i 
+                      JOIN solicitud s ON i.id_obra = s.id_obra 
+                      JOIN solicitud_historial hs ON s.id_solicitud = hs.id_solicitud
                       JOIN ( SELECT pa.id_subtipo, pa.desc_subtipo, pa.detalle
-                            FROM parametrica pa
-                            WHERE pa.id_tipo = 29 AND pa.id_estado = 1) pc ON c.id_tipo_documento = pc.id_subtipo
-                      WHERE i.id_tipo_informe = 235 AND i.id_obra = ${obra}`;
+                      FROM parametrica pa
+                      WHERE pa.id_tipo = 29 AND pa.id_estado = 1) pc ON i.id_tipo_informe = pc.id_subtipo
+                      WHERE i.id_tipo_informe = 235 AND hs.id_estado_general = 15 AND i.id_obra = ${obra}`;
       const resultado2 = await this.sequelize.query(query2);
       return resultado2[0];
      }
@@ -184,7 +194,7 @@ export class ReporteActPreviasService {
   
       for (let i = 0; i < datosFiscal.length; i++) {
         let rowData = [
-          { text: [{ text: datosFiscal[i].profesion + ' ' +datosFiscal[i].nombre + ' ' + datosFiscal[i].primer_apellido + ' ' + datosFiscal[i].segundo_apellido, style: 'textDato' }] },
+          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
         ];
         arrayData.push(rowData);
       }
@@ -218,43 +228,20 @@ export class ReporteActPreviasService {
       return arrayData;
     }
 
-    //--Cargar preguntas Informe Inicial + Obervacion si la respuesta es NO
-    buildPregInfInicial(data: any) {
-      let datosPreg = data;
-      let arrayData = [];
-    
-      for (let i = 0; i < datosPreg.length; i++) {
-        const item = datosPreg[i];
+     //Cargar tabla de fiscales
+    buildFiscales3(data: any) {
+      let datosFiscal = data;
+      let rowData = [];
 
-        let rowData = [
-          { text: [{ text: item.respuesta || '', style: 'textDato' }] },
-          { text: [{ text: item.sino || '', style: 'textDato', alignment: 'center' }] }
-        ];
-        arrayData.push(rowData);
-    
-        // Si es NO, agregar fila adicional con observación
-        if (item.opcion  === '217') {
-          const observacionTexto = item.observaciones 
-            ? `${item.observaciones}` 
-            : ' ';
-    
-          arrayData.push([
-            {
-              text: observacionTexto,
-              colSpan: 2,
-              style: 'textDato',
-              //color: 'red',
-              //margin: [12, 2, 0, 5]
-            },
-            {} // Segunda celda vacía por el colSpan
-          ]);
+        for (let i = 0; i < datosFiscal.length; i++) {
+          rowData.push({ text: datosFiscal[i].memo + (i < datosFiscal.length - 1 ? ' |' : ''),
+                          style: 'textDato', alignment: 'center' });
         }
-      }
-    
-      return arrayData;
+
+        return [rowData];
     }
 
-    //--Cargar preguntas Informe Inicial + Obervacion si la respuesta es SI o NO
+    //--Cargar preguntas Informe Inicial
     buildPregInfInicial2(data: any) {
       let datosPreg = data;
       let arrayData = [];
@@ -263,28 +250,10 @@ export class ReporteActPreviasService {
         const item = datosPreg[i];
 
         let rowData = [
-          { text: [{ text: item.respuesta || '', style: 'textDato' }] },
-          { text: [{ text: item.sino || '', style: 'textDato', alignment: 'center' }] }
+          { text: [{ text: item.respuesta || '', style: 'textDato', italics:true }] },
+          { text: [{ text: item.sino || '', style: 'textDato', italics: true, alignment: 'left' }] }
         ];
-        arrayData.push(rowData);
-    
-        // Si es NO, agregar fila adicional con observación
-        if (item.opcion != 218) {
-          const observacionTexto = item.observaciones 
-            ? `${item.observaciones}` 
-            : ' ';
-    
-          arrayData.push([
-            {
-              text: observacionTexto,
-              colSpan: 2,
-              style: 'textDato',
-              //color: 'red',
-              //margin: [12, 2, 0, 5]
-            },
-            {} // Segunda celda vacía por el colSpan
-          ]);
-        }
+        arrayData.push(rowData);        
       }
     
       return arrayData;
@@ -508,8 +477,6 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
 // INFORME ACTIVIDADES PREVIAS FISCAL
 async generateInformeFISCAL(obra: number): Promise<Buffer> {
-    try {
-      
     
     const res = await this.datosGeneralesReporte(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -547,23 +514,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     }
     this.datosPAP2 = res4;
 
-    const res5 = await this.preguntasInfInicial(obra, 169);
-    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron la preguntas A del Inf.Inicial');
-    }
-    this.datosPII = res5;
-
     const res6 = await this.preguntasInfInicial(obra, 170);
     if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
       throw new Error('No se encontraron la preguntas B del Inf.Inicial');
     }
     this.datosPII2 = res6;
-
-    const res7 = await this.preguntasInfInicial(obra, 171);
-    if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-      throw new Error('No se encontraron la preguntas C del Inf.Inicial');
-    }
-    this.datosPII3 = res7;
 
     const res8 = await this.preguntasInfInicial(obra, 173);
     if (!res8 || (Array.isArray(res8) && res8.length === 0) || (typeof res8 === 'object' && Object.keys(res8).length === 0)) {
@@ -576,6 +531,18 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       throw new Error('No se encontraron datos del Informe de Actividades Previas');
     }
     this.datosIAP = res9;
+
+    const res5 = await this.datosJefeUnidadDFO(298);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+      throw new Error('No se encontraron del Jefe UFOT');
+    }
+    this.datosJUFOT = res5;
+
+    const res7 = await this.datosJefeUnidadDFO(299);
+    if (!res5 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+      throw new Error('No se encontraron del Jefe UFOE');
+    }
+    this.datosJUFOE = res7;
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -593,6 +560,9 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             height: pageSize.height,
             absolutePosition: {x: 0, y: 0}
               } },
+      defaultStyle: {
+            font: 'Roboto'
+                    },
       
       header: {
         columns: [      
@@ -632,8 +602,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
                       { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                       {
                         text: [
-                          { text: '\n', style: 'textDato' },
-                          { text: 'JEFE DE UNIDAD - DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
+                          { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
+                          { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
                         ],
                         margin: [0, 5, 0, 5]
                       }
@@ -678,16 +648,44 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
         
         {
-          text: 'Señor Director:\n\n'+
-          'En atención a INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-' + this.datosII[0].correlativo +
-          ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión y en cumplimiento del ARTICULO referido a ' + 
-          '“ACTIVIDADES DE LA FISCALIZACIÓN PREVIAS AL INICIO DE OBRA EN LAS MODALIDADES DE LICITACIÓN PUBLICA, APOYO NACIONAL A LA PRODUCCIÓN ' + 
-          'Y EMPLEO, DIRECTA, POR EXCEPCIÓN Y CON FINANCIAMIENTO EXTERNO DONACIÓN” del REGLAMENTO DE SUPERVISIÓN Y FISCALIZACIÓN DE OBRA (RSFO), se emite el presente informe: \n\n',
+          text: 'En atención a INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1' +
+          ', con referencia: "INFORME INICIAL DE REVISIÓN DEL PROYECTO", se emite el presente informe.\n\n',
           style: 'textDato', alignment: 'justify'
         },
         {
-          text: '1. DATOS DEL PROYECTO\n\n',
+          text: '1.   ANTECEDENTES\n\n',
           style: 'subheader',
+        },
+        {
+          ul: [
+                {
+                  text: 'Mediante memorándum ' +
+                  (Array.isArray(this.datosFis)
+                    ? this.datosFis
+                        .filter(f => f && f.memo)
+                        .map(f => f.memo)
+                        .join(' | ')
+                    : ''
+                  ) +
+                  ', se designó a mi (nuestra) persona como Fiscal(es) de la obra: "' +
+                  this.datosEnvio?.[0]?.desc_carpeta + '".',
+                  margin: [0, 0, 0, 5], style: 'textDato'
+                },
+                {
+                  text: 'En fecha ' + this.fechaString(this.datosII[0].fecha_aprobacion) + ', el Supervisor de Obra remite el Informe Inicial de Revisión ' + 
+                        'del Proyecto ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1'
+                }
+              ], style: 'textDato', alignment: 'justify', margin: [20, 0, 0, 0]
+        },
+        {
+          text: '\n',
+        },
+        {
+          text: 'a) DATOS DE LA OBRA:',
+          style: 'textDato', bold: true, margin: [20, 0, 0, 0]
+        },
+        {
+          text: '\n'
         },
         {
           table: {
@@ -723,91 +721,85 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
                 { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
               ]
             ]
-          },
+          }, margin: [20, 0, 0, 0]
           //layout: 'noBorders'
         },
         {
-          text: '\n2. ANÁLISIS\n',
-          style: 'subheader',
+          text: '\n2.   FUNDAMENTO NORMATIVO\n',
+          style: 'subheader', margin: [0, 0, 0, 5] 
         },
         {
-            text: '\nEl INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-' + this.datosII[0].correlativo +
-            ' con referencia: INFORME INICIAL DE REVISIÓN DEL PROYECTO, emitido por la supervisión,'+
-            ' de fecha ' + this.fechaString(this.datosII[0].fecha_modificacion) + ', establece:\n\n',
-            style: 'textDato', alignment:'justify'
+            text: 'El Decreto Municipal N°18/2023 que aprueba el Reglamento de Supervisión y Fiscalización de Obras, señala:',
+            style: 'textDato', alignment:'justify', margin: [0, 0, 0, 5] 
         }, 
         {
-          text: 'Realizado el análisis de los aspectos técnicos se tiene el siguiente detalle de los puntos evaluados:\n',
-          style: 'textDato', alignment:'justify'
+          ul: [
+            {
+              text: [
+                  { text: 'Artículo 21.- (ACTIVIDADES DE LA FISCALIZACIÓN PREVIAS AL INICIO DE OBRA EN LAS MODALIDADES DE LICITACIÓN PÚBLICA, ' + 
+                          'APOYO NACIONAL A LA PRODUCCIÓN Y EMPLEO,  DIRECTA, POR EXCEPCIÓN Y CON FINANCIAMIENTO EXTERNO O DONACIÓN).- ',
+                    style: 'textDato', alignment:'justify', bold:true },
+                  { text: 'La Fiscalización coordinará con la Unidad Ejecutora y con las empresas de servicios, si corresponde, a través del Sistema ' + 
+                          'de Regulación Municipal (SIREMU) o la Unidad Organizacional correspondiente, las actividades necesarias para el desarrollo ' + 
+                          ' de los trabajos, conforme la evaluación del Informe Inicial de Revisión del Proyecto remitido por la Supervisión de forma física.',
+                    style: 'textDato', alignment:'justify', italics: true }
+                  
+                    ], margin: [0, 0, 0, 5] 
+            }, 
+            {
+              text: [
+                  { text: 'Artículo 28.- (RESPONSABILIDADES DEL FISCAL DE OBRAS).- inciso a) ', 
+                    style: 'textDato', alignment:'justify', bold:true },
+                  { text: 'Controlar a través del Supervisor de Obra, el cumplimiento del contrato, emitiendo informes al Director de Fiscalización de Obras ' + 
+                      'en caso de existir observaciones a los trabajos, para envío a la Unidad Ejecutora.', 
+                    style: 'textDato', alignment:'justify', italics: true }
+                    ], margin: [0, 0, 0, 5] 
+            },
+           {
+            text: [
+                  { text: 'Artículo 29.- (ORDEN DE PROCEDER).- ', 
+                    style: 'textDato', alignment:'justify', bold:true },
+                  { text: 'Para la emisión de la Orden de Proceder, una vez se cumpla lo establecido en el artículo 21 y desembolsado el anticipo ' + 
+                          '(si corresponde), se seguirán las siguientes actividades: inciso a) El RPC o RPA en un plazo de hasta 3 ' + 
+                          '(tres) días hábiles instruirá a la Supervisión la emisión de la Orden de Proceder con copia a la Fiscalización.', 
+                    style: 'textDato', alignment:'justify', italics:true }
+                  ], margin: [0, 0, 0, 5] 
+           }
+          ], margin: [20, 0, 0, 0]
         },
         {
-          text: '\nCon relación al análisis de los aspectos técnicos se detalla lo siguiente:',
-          style: 'textDato2', alignment:'justify', bold:true
+          text: '\n3.   ANÁLISIS\n',
+          style: 'subheader', margin: [0, 0, 0, 5] 
+        },
+        {
+          text: [
+            { text: 'El informe Inicial de Revisión del Proyecto ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1 concluye: ', 
+              style: 'textDato', alignment:'justify' },
+            { text: '"' + this.datosII[0].conclusion + '".', 
+              style: 'textDato', alignment:'justify', italics:true }
+          ]     
+        },
+        {
+          text: '\nAdicionalmente, de acuerdo a lo señalado por el Supervisor de Obra en el Informe Inicial de Revisión del Proyecto, ' + 
+          'en relación a la necesidad de realizar actividades previas con Empresas de Servicios recomienda:',
+          style: 'textDato', alignment:'justify' 
+        },
+        {
+          text: '\n'
         },
         {
           table: {
-            widths: ['*', 50],
-            body: [
-              ...this.buildPregInfInicial(this.datosPII),              
-            ]
-          }, //margin: [15, 0, 30, 0],
-          //layout: 'noBorders'
-        },
-        {
-          text: '\nCon relación al análisis de los aspectos inter institucionales se detalla lo siguiente:',
-          style: 'textDato2', alignment:'justify', bold: true
-        }, 
-        {
-          table: {
-            widths: ['*', 50],
+            widths: ['*', 90],
             body: [
               ...this.buildPregInfInicial2(this.datosPII2),              
             ]
-          }, //margin: [15, 0, 30, 0],
-          //layout: 'noBorders'
-        },
-        {
-          text: '\nPara el análisis de los aspectos técnicos y legales se consideraron los siguientes puntos:',
-          style: 'textDato', alignment:'justify', bold:true
-        },
-        {
-          table: {
-            widths: ['*', 50],
-            body: [
-              ...this.buildPregInfInicial(this.datosPII3),              
-            ]
-          }, //margin: [15, 0, 30, 0],
-          //layout: 'noBorders'
-        },
-        {
-          text:'\nResultado del análisis de los tres aspectos se tiene las siguientes observaciones generales:',
-          style: 'textDato', alignment:'justify', bold: true
-        },
-        {
-          text: this.datosII[0].obs_general,
-          style: 'textDato', alignment: 'justify'
-        },
-        {
-          text: '\nAsi mismo, en el punto 4. CONCLUSIONES, indica:',
-          style: 'textDato', alignment:'justify'
-        },
-        {
-          text: this.datosII[0].conclusion,
-          style: 'textDato', alignment: 'justify', //margin: [15, 0, 20, 0]
-        },
-        {
-          table: {
-            widths: ['*', 50],
-            body: [
-              ...this.buildPregInfInicial(this.datosPII4),              
-            ]
-          }, //margin: [15, 0, 20, 0],
+          }, margin: [20, 0, 0, 0],  //margin: [15, 0, 30, 0],
           layout: 'noBorders'
         },
+        
         {
-          text: '\nSiendo que la supervisión de obra, mediante INFORME DE SUPERVISION ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + 
-                '-' + this.datosII[0].correlativo + ', INFORME INICIAL DE REVISIÓN DE PROYECTO, establece claramente que:\n\n',
-          style: 'textDato', alignment:'justify'
+          text:'\nEn consecuencia:',
+          style: 'textDato', alignment:'justify', margin: [0, 0, 0, 5] 
         },   
         {
           text: [
@@ -815,14 +807,14 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             { text: this.datosPAP[0].sino, bold: true }, 
             ' cuenta con óbice para proseguir con los procesos correspondientes.',
           ],
-          style: 'textDato', alignment: 'justify'
+          style: 'textDato', alignment: 'justify',  margin: [20, 0, 0, 0] 
         },
         {
           text: this.datosPAP[0].sino == 'Si'
             ? this.datosPAP[0].observaciones
             : ' ',
           style: 'textDato',
-          margin: [10, 0, 0, 0], alignment: 'justify'
+          margin: [30, 0, 0, 0], alignment: 'justify'
         },
         {
           text: [
@@ -830,13 +822,13 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             { text: this.datosPAP[1].sino, bold: true }, 
             ' requiere coordinación con la Unidad Ejecutora.\n',
           ],
-          style: 'textDato', alignment: 'justify'
+          style: 'textDato', alignment: 'justify', margin: [20, 0, 0, 0] 
         }, 
         {
           text: this.datosPAP[1].sino == 'Si'
             ? this.datosPAP[1].observaciones
             : ' ',
-          style: 'textDato', margin: [10, 0, 0, 0], alignment: 'justify'
+          style: 'textDato', margin: [30, 0, 0, 0], alignment: 'justify'
         },
         {
           text: [
@@ -844,35 +836,50 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             { text: this.datosPAP[2].sino, bold: true }, 
             ' requiere coordinación con el Sistema de Regulación Municipal (SIREMU).\n'
           ],
-          style: 'textDato', alignment: 'justify'
+          style: 'textDato', alignment: 'justify', margin: [20, 0, 0, 0] 
         },
         {
           text: this.datosPAP[2].sino == 'Si'
             ? this.datosPAP[2].observaciones
             : '',
           style: 'textDato',
-          margin: [10, 0, 0, 0], alignment: 'justify'
+          margin: [30, 0, 0, 0], alignment: 'justify'
         },
         {
           text:' ',
         },
 
         {
-          text: '3. CONCLUSIONES\n\n',
+          text: '3.   CONCLUSIONES\n\n',
           style: 'subheader',
         },
         {
-          text: this.datosPAP2[0].respuesta + '.\n',
-          style: 'textDato', alignment:'justify'
+          text: [
+              {
+                text: 'En cumplimiento al Artículo 21 del Reglamento de Supervisión y Fiscalización de Obras, se han verificado las condiciones previas para proceder con la ejecución de la obra.\n\n',
+                style: 'textDato', alignment:'justify'
+              } ,
+              {
+                text: this.datosPAP2[0].respuesta + '.\n',
+                style: 'textDato', alignment:'justify'
+              } 
+          ] 
         },
 
         {
-          text: '\n 4. RECOMENDACIÓN\n',
+          text: '\n 4.   RECOMENDACIÓN\n\n',
           style: 'subheader', 
         },
         {
-          text: '\nSe recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia tome las acciones que correspondan conforme el Reglamento de Supervisión y Fiscalización de Obras.\n'
-            + '\nEs cuanto afirmo para los fines consiguientes.\n',
+          text: [
+            { text: this.datosPAP2[0].id_subtipo === '253'
+              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia considere la instrucción a la Supervisión la emisión de la Orden de Proceder con copia a la Fiscalización en función al Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras.\n\n'
+              :'' },
+            { text: this.datosPAP2[0].id_subtipo === '232'
+              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para realizar el seguimiento a las actividades previas necesarias por parte de las Empresas de Servicios función lo establecido en el Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras.\n\n'
+              :'' },
+            { text: 'Se remite el presente informe para su conocimiento y fines consiguientes.'}
+          ],
           style: 'textDato', alignment:'justify'
         },
         {
@@ -888,7 +895,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
         {
           text: [
-            '\n\n\nCC arch DFO \nCC PIUM \n',
+            '\n\n\nCc, Archivo \nCc./Arch. Personal \n',
           ],
           style: 'footerText'
         },
@@ -966,11 +973,6 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
       });
       pdfDoc.end();
     });
-
-  } catch (error) {
-    console.error('Error al generar el informe:', error);
-    throw new Error('Error al generar el informe: ' + error);   
-  }
 }
     
 
