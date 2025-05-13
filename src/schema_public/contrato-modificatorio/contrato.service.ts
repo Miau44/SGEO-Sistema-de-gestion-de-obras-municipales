@@ -237,6 +237,10 @@ export class ContratoService {
           });
           console.log("creando  contrato, ficha " +item.ridcodcarpeta);
           await this.contratoRepository.save(nuevoContrato);
+
+          obra.plazo_ejecucion = item.rplazocontrato;
+          await this.obraRepo.save(obra);
+
           totalContratos++;
         }
         else { //como existe el contrato se debe verificar si la ruta no sea null tanto en la lista y el objeto
@@ -253,7 +257,6 @@ export class ContratoService {
       }
       console.log('nuevos contratos:', totalContratos);
       console.log('urls actualizadas:', totalUrl);
-
     } catch (error) {
       console.error('Error al consumir el servicio o insertar datos:', error);
     }
