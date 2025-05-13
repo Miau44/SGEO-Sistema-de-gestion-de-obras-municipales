@@ -627,7 +627,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: 'INFORME DE ACTIVIDADES PREVIAS', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: 'INFORME DE FISCALIZACIÓN PREVIO AL INICIO DE OBRA', style: 'textTitulo', margin: [0, 5, 0, 5] },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
@@ -648,7 +648,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
         
         {
-          text: 'En atención a INFORME DE SUPERVISIÓN ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1' +
+          text: 'En atención a informe ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1' +
           ', con referencia: "INFORME INICIAL DE REVISIÓN DEL PROYECTO", se emite el presente informe.\n\n',
           style: 'textDato', alignment: 'justify'
         },
@@ -798,7 +798,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
         
         {
-          text:'\nEn consecuencia:',
+          text:'\nEn tal sentido:',
           style: 'textDato', alignment:'justify', margin: [0, 0, 0, 5] 
         },   
         {
@@ -854,31 +854,26 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           style: 'subheader',
         },
         {
-          text: [
-              {
-                text: 'En cumplimiento al Artículo 21 del Reglamento de Supervisión y Fiscalización de Obras, se han verificado las condiciones previas para proceder con la ejecución de la obra.\n\n',
-                style: 'textDato', alignment:'justify'
-              } ,
-              {
-                text: this.datosPAP2[0].respuesta + '.\n',
-                style: 'textDato', alignment:'justify'
-              } 
-          ] 
+          text: 'En cumplimiento al Artículo 21 del Reglamento de Supervisión y Fiscalización de Obras, se han verificado las condiciones previas para proceder con la ejecución de la obra y se concluye:\n\n',
+          style: 'textDato', alignment:'justify'
         },
-
+        {
+          text: this.datosPAP2[0].respuesta + '.\n',
+          style: 'textDato', alignment:'justify', margin: [20, 0, 0, 0] 
+        },
         {
           text: '\n 4.   RECOMENDACIÓN\n\n',
           style: 'subheader', 
         },
         {
           text: [
-            { text: this.datosPAP2[0].id_subtipo === '253'
-              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia considere la instrucción a la Supervisión la emisión de la Orden de Proceder con copia a la Fiscalización en función al Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras.\n\n'
+            { text: this.datosPAP2[0].id_subtipo === '253' //Si la respuesta es NO
+              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia considere la instrucción a la Supervisión para la emisión de la Orden de Proceder con copia a la Fiscalización en función al Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras.\n\n'
               :'' },
-            { text: this.datosPAP2[0].id_subtipo === '232'
-              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para realizar el seguimiento a las actividades previas necesarias por parte de las Empresas de Servicios función lo establecido en el Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras.\n\n'
+            { text: this.datosPAP2[0].id_subtipo === '232' //Si la respuesta es SI
+              ? 'Se recomienda la remisión del presente informe a la Unidad Ejecutora para que dicha instancia considere la instrucción a la Supervisión para la emisión de la Orden de Proceder con copia a la Fiscalización en función al Artículo 29 del Reglamento de Supervisión y Fiscalización de Obras .\n\n'
               :'' },
-            { text: 'Se remite el presente informe para su conocimiento y fines consiguientes.'}
+            { text: 'Es cuanto informo para los fines consiguientes.'}
           ],
           style: 'textDato', alignment:'justify'
         },
