@@ -203,10 +203,10 @@ export class ReporteOrdenProcederService {
             widths: [30, '*', 50, 100],
             body: [
               [
-                { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBSERVACIONES:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'OBSERVACIONES', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
               ...this.buildDocumentos(this.datosDoc)
@@ -219,10 +219,10 @@ export class ReporteOrdenProcederService {
             widths: [30, '*', 50, 100],
             body: [
               [
-                { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBSERVACIONES:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
+                { text: [{ text: 'OBSERVACIONES', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
               ...this.buildDocumentos(this.datos)
@@ -339,7 +339,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
   const res1 = await this.supervisorDesignado(obra);
   if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos para el ID de obra proporcionado');
+      throw new Error('No se encontraron datos del supervisor designado');
   }
   this.datosSup = res1;
 
