@@ -61,7 +61,7 @@ export class ReporteOrdenProcederService {
     return resultado[0];
   }
 
-   // Supervisores designados por obra - OP
+   // SUPERVISORES designados por obra - OP
    async supervisorDesignado(obra: number) {
     const query1 = `
         SELECT * 
@@ -96,7 +96,6 @@ export class ReporteOrdenProcederService {
     return resultado[0];
   }
   
-
   // FORMULARIO DOCUMENTOS ETAPA II
   async generateDocumentoContrato(obra: number): Promise<Buffer> {
 
@@ -207,7 +206,7 @@ export class ReporteOrdenProcederService {
                 { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
                 { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
                 { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'OBSERVACIONES:', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
               ...this.buildDocumentos(this.datosDoc)
@@ -223,7 +222,7 @@ export class ReporteOrdenProcederService {
                 { text: [{ text: 'Nº:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
                 { text: [{ text: 'DOCUMENTO:', style: 'textTitulo' },], fillColor: '#dddddd' },
                 { text: [{ text: 'ADJUNTO:', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-                { text: [{ text: 'OBS:', style: 'textTitulo' },], fillColor: '#dddddd' },
+                { text: [{ text: 'OBSERVACIONES:', style: 'textTitulo' },], fillColor: '#dddddd' },
 
               ],
               ...this.buildDocumentos(this.datos)
@@ -854,15 +853,18 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
   async generateOrdenProceder(obra: number): Promise<Buffer> {
 
     const res = await this.datosGeneralesReporteOP(obra);
-    const resSup = await this.supervisorDesignado(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la obra proporcionada');
     }
-
-    this.datosSup = resSup;
     this.datosEnvio = res;
 
-    console.log("DATOS, ", res);
+    const resSup = await this.supervisorDesignado(obra);
+    if (!resSup || (Array.isArray(resSup) && resSup.length === 0) || (typeof resSup === 'object' && Object.keys(resSup).length === 0)) {
+      throw new Error('No se encontraron datos para la obra proporcionada');
+    }
+    this.datosSup = resSup;
+   
+    //console.log("DATOS, ", res);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -1016,7 +1018,14 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         {
           text:
           [
-            { text: this.datosSup[0].profesion + this.datosSup[0].nombre + ' ' + this.datosSup[0].primer_apellido + ' ' + this.datosSup[0].segundo_apellido + '\n', style: 'textDato', alignment: 'center' },
+            { text: 
+                  (Array.isArray(this.datosSup)
+                    ? this.datosSup
+                        .filter(f => f && f.supervisor)
+                        .map(f => f.supervisor)
+                        .join(' | ')
+                    : ''
+                  ) + '\n', style: 'textDato', alignment: 'center' },
             { text: 'SUPERVISOR(ES) DE OBRA\n', style: 'textTitulo', alignment: 'center' }
           ]
         },
@@ -1133,7 +1142,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     const res1 = await this.supervisorDesignado(obra);
     if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos para el ID de obra proporcionado');
+      throw new Error('No se encontraron datos del supervisor designado');
     }
     this.datosSup = res1;
     console.log("datosSup", this.datosSup);

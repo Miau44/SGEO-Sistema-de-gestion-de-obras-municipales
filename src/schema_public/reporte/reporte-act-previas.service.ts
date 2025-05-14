@@ -369,7 +369,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
               { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
               { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
               { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-              { text: [{ text: 'OBS.', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: 'OBSERVACIONES.', style: 'textTitulo' },], fillColor: '#dddddd' },
 
             ],
             ...this.buildDocumentos(this.datosSGEO)
@@ -510,7 +510,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
     const res4 = await this.preguntasInfAP(obra, 228);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
-      throw new Error('No se encontraron la preguntas del informe Inicial');
+      throw new Error('No se encontraron la preguntas del informe de AP');
     }
     this.datosPAP2 = res4;
 
