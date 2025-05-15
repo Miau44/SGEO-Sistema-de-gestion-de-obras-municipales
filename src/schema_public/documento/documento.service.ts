@@ -374,6 +374,7 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
 
   async update(id: number, updateDocumentoDto: Partial<Documento>) {
     try {
+      updateDocumentoDto.fecha_modificacion = new Date(); 
       await this.documentoRepositorio.update(id, updateDocumentoDto);
       return this.responseService.success({}, 'Documento actualizado correctamente.');
     } catch (error) {

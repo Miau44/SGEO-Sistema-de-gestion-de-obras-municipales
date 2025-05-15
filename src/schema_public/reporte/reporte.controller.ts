@@ -4,13 +4,15 @@ import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 import { ReporteActPreviasService } from './reporte-act-previas.service';
+import { InformeModificacionSupervisorService } from './modificacion/informe-modificacion-supervisor.service';
 
 
 @Controller('reporte')
 export class ReportController {
   constructor(private readonly reportService: ReportService,
     private readonly reporteOPService: ReporteOrdenProcederService,
-    private readonly reporteAPService: ReporteActPreviasService
+    private readonly reporteAPService: ReporteActPreviasService,
+     private readonly informeModificacionSupervisorService: InformeModificacionSupervisorService
   ) {}
 
 
@@ -223,4 +225,16 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   } 
+
+  @Public()
+  @Get('generar-informe-mod-supervisor')
+  async getReporteModSupervisor(@Res() res: Response): Promise<void> {
+    const htmlDesdeEditor = `<p>Este es el <strong>contenido</strong> del texto enriquecido</p>`;
+    const pdfBuffer = await this.informeModificacionSupervisorService.generarPDF(htmlDesdeEditor);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
 }
