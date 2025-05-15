@@ -369,7 +369,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
               { text: [{ text: 'Nº', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
               { text: [{ text: 'DOCUMENTO', style: 'textTitulo' },], fillColor: '#dddddd' },
               { text: [{ text: 'ADJUNTO', style: 'textTitulo', alignment: 'center', },], fillColor: '#dddddd' },
-              { text: [{ text: 'OBSERVACIONES.', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: [{ text: 'OBSERVACIONES', style: 'textTitulo' },], fillColor: '#dddddd' },
 
             ],
             ...this.buildDocumentos(this.datosSGEO)
