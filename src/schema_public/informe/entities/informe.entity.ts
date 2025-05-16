@@ -37,6 +37,18 @@ export class Informe {
 
     @Column({nullable: true})
     id_solicitud: number;
+    
+    @Column({nullable:true})
+    referencia: string;
+
+    @Column({ type: 'timestamp without time zone', nullable:true})
+    fecha_aprobacion: Date; 
+
+
+
+    @Column({ type: 'text', nullable:true }) // Este campo almacenará el texto enriquecido como HTML
+    informe_modificacion: string;
+  
 
     @Column()
     usuario_registro: number;
