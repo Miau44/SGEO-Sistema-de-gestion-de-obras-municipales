@@ -9,7 +9,7 @@ import { report } from 'process';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 import { ReporteModificacionService } from './reporte-modificacion.service';
 import { ReporteActPreviasService } from './reporte-act-previas.service';
-
+import { InformeModificacionSupervisorService } from './modificacion/informe-modificacion-supervisor.service';
 
 @Module({
 
@@ -18,7 +18,7 @@ import { ReporteActPreviasService } from './reporte-act-previas.service';
     SequelizeModule.forFeature([]), 
   ],
 
-  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService],
+  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,InformeModificacionSupervisorService],
   controllers: [ReportController],
 })
 export class ReporteModule {}
