@@ -48,6 +48,15 @@ export class CreateInformeDto {
     @ApiProperty()
     id_solicitud: number;
 
+    @ApiProperty()
+    referencia: string;
+
+    @ApiProperty({required: false})
+    fecha_aprobacion: Date;  
+
+    @ApiProperty({required: false})
+    informe_modificacion:string;
+
   /*  @ApiProperty({type: 'object'})
     informe_inicial: string;*/
     
