@@ -3,7 +3,7 @@ import { ficha_itemService } from './ficha_item.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CreateFichaDto } from '../../schema_public/ficha/dto/create-ficha.dto';
 import { CreateObraDto } from '../../schema_public/obra/dto/create-obra.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateFichaItemDto } from './dto/ficha-item.dto';
 import { error } from 'console';
 import { IsNull, QueryFailedError } from 'typeorm';
@@ -83,6 +83,16 @@ export class FichaItemController {
   @Post('cargadoFichaItem')
   @Public()
   @ApiOperation({ summary: 'cargado de fichas e items' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        gestion: { type: 'number', example: 2025 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+      required: ['gestion', 'id_usuario'],
+    },
+  })
   async cargadoFichaItem(@Body() body: { gestion: number, id_usuario: number }) { //añadir parametro de entrada a servicio test, gestion
     //validar que el id_usuario no sea nulo
 
