@@ -8,6 +8,7 @@ import { Obra } from './../../schema_public/obra/entities/obra.entity';
 import { Item } from './../../schema_public/item/entities/item.entity';  // Importamos la entidad de item
 import { Documento } from '../../schema_public/documento/entities/documento.entity';
 import { log } from 'node:console';
+import { NUMBER } from 'sequelize';
 
 @Injectable()
 export class ficha_itemService {
@@ -167,15 +168,19 @@ export class ficha_itemService {
   // Método para obtener el listado de ues desde un servicio externo
   async obtenerFichas(desc_cod_ue_: number, id_usuario: number): Promise<any> {
     try {
-
+      var corr_carpeta = 0
       console.log("desc_cod_ue_",desc_cod_ue_);
-      const maxCorrelativo = await this.fichaRepository.findOne({
+      var maxCorrelativo = await this.fichaRepository.findOne({
         select: { correlativo_carpeta: true },
         order: { correlativo_carpeta: 'DESC' },
         where: {desc_cod_ue:desc_cod_ue_}, // ← condición vacía explícita
       });
-      console.log("maxCorrelativo", maxCorrelativo);
-
+      
+      if(maxCorrelativo != null ){
+        corr_carpeta = maxCorrelativo?.correlativo_carpeta;
+        corr_carpeta++;
+      }
+      console.log("corr_carpeta", corr_carpeta);
       // OBTENER PARAMETROS DE URL DESDE .env
       const url_sim = process.env.URL_SIM2;
       // realizar la llamada al servicio externo metodo POST
@@ -187,7 +192,7 @@ export class ficha_itemService {
         body: JSON.stringify({
           "desc_cod_ue": desc_cod_ue_,
           "gestion": this.gestion,
-          "cod_carpeta": maxCorrelativo?.correlativo_carpeta
+          "cod_carpeta": corr_carpeta
         }),
       });
       const data = await response.json();

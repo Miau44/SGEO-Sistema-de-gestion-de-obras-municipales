@@ -38,6 +38,7 @@ import { ModificacionPagoModule } from './schema_public/modificacion_pago/modifi
 import { SubrolesModule } from './schema_public/subroles/subroles.module';
 import { LogModule } from './schema_public/log/log.module';
 import { CorreoModule } from './schema_public/correo/correo.module';
+import { DocumentoSistemaModule } from './schema_public/documento_sistema/documento_sistema.module';
 
 
 
@@ -106,7 +107,8 @@ import { CorreoModule } from './schema_public/correo/correo.module';
   ModificacionPagoModule,
   SubrolesModule,
   LogModule,
-  CorreoModule
+  CorreoModule,
+  DocumentoSistemaModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
