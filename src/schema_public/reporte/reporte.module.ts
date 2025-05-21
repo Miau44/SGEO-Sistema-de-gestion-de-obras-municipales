@@ -9,7 +9,11 @@ import { report } from 'process';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 import { ReporteModificacionService } from './reporte-modificacion.service';
 import { ReporteActPreviasService } from './reporte-act-previas.service';
-import { InformeModificacionSupervisorService } from './modificacion/informe-modificacion-supervisor.service';
+import { InformeModificacionSupervisor } from './modificacion/informe-modificacion-supervisor.service';
+import { MemoOrdenCambio } from './modificacion/memo-orden-cambio.service';
+import { SolicitudGarantia } from './modificacion/solicitud-garantia.service';
+import { InformeModificacionFiscal } from './modificacion/informe-modificacion-fiscal.service';
+import { ComputoMetrico } from './modificacion/computo-metrico.service';
 
 @Module({
 
@@ -18,7 +22,8 @@ import { InformeModificacionSupervisorService } from './modificacion/informe-mod
     SequelizeModule.forFeature([]), 
   ],
 
-  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,InformeModificacionSupervisorService],
+  providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,
+              InformeModificacionSupervisor,MemoOrdenCambio,SolicitudGarantia,InformeModificacionFiscal,ComputoMetrico],
   controllers: [ReportController],
 })
 export class ReporteModule {}
