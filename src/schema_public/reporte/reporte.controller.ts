@@ -4,15 +4,22 @@ import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ReporteOrdenProcederService } from './reporte-orden-proceder.service';
 import { ReporteActPreviasService } from './reporte-act-previas.service';
-import { InformeModificacionSupervisorService } from './modificacion/informe-modificacion-supervisor.service';
-
+import { InformeModificacionSupervisor } from './modificacion/informe-modificacion-supervisor.service';
+import { MemoOrdenCambio } from './modificacion/memo-orden-cambio.service';
+import { SolicitudGarantia } from './modificacion/solicitud-garantia.service';
+import { InformeModificacionFiscal } from './modificacion/informe-modificacion-fiscal.service';
+import { ComputoMetrico } from './modificacion/computo-metrico.service';
 
 @Controller('reporte')
 export class ReportController {
   constructor(private readonly reportService: ReportService,
     private readonly reporteOPService: ReporteOrdenProcederService,
     private readonly reporteAPService: ReporteActPreviasService,
-     private readonly informeModificacionSupervisorService: InformeModificacionSupervisorService
+    private readonly informeModificacionSupervisor: InformeModificacionSupervisor,
+    private readonly memoOrdenCambio: MemoOrdenCambio,
+    private readonly solicitudGarantia: SolicitudGarantia,
+    private readonly informeModificacionFiscal: InformeModificacionFiscal,
+    private readonly computometrico: ComputoMetrico,
   ) {}
 
 
@@ -226,15 +233,76 @@ export class ReportController {
     res.send(pdfBuffer);
   } 
 
+
+////////////////////////////// MODULO DE MODIFICACIONES /////////////////////////////
+
   @Public()
-  @Get('generar-informe-mod-supervisor')
-  async getReporteModSupervisor(@Res() res: Response): Promise<void> {
-    const htmlDesdeEditor = `<p>Este es el <strong>contenido</strong> del texto enriquecido</p>`;
-    const pdfBuffer = await this.informeModificacionSupervisorService.generarPDF(htmlDesdeEditor);    
+  @Get('informe-modificacion-supervisor')
+  async InformeModificacionSupervisorService(@Res() res: Response,
+  @Query('id_modif_pago') id_modif_pago: number
+  ): Promise<void> {
+    const pdfBuffer = await this.informeModificacionSupervisor.generateInformeModificacionSupervisor(id_modif_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
     });
     res.send(pdfBuffer);
   }
+
+  @Public()
+  @Get('memo-orden-cambio')
+  async MemoOrdenCambio(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.memoOrdenCambio.generateOrdenCambio(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+  @Public()
+  @Get('solicitud-garantia')
+  async SolicitudGarantia(@Res() res: Response,
+  @Query('id_modif_pago') id_modif_pago: number
+  ): Promise<void> {
+    const pdfBuffer = await this.solicitudGarantia.generateSolicitudGarantia(id_modif_pago);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+   @Public()
+  @Get('informe-modificacion-fiscal')
+  async InformeModificacionFiscal(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.informeModificacionFiscal.generateInformeModificacionFiscal(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+   @Public()
+  @Get('computo-metrico')
+  async ComputoMetrico(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.computometrico.generateComputoMetrico(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
 }
