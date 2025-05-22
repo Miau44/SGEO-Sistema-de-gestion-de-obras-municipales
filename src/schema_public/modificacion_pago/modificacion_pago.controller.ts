@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
@@ -33,6 +33,11 @@ export class ModificacionPagoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    try {
+      return this.modificacionPagoService.findOne(+id);
+    } catch (error) {
+      throw new HttpException('Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     return this.modificacionPagoService.findOne(+id);
   }
 
