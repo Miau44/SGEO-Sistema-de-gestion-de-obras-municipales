@@ -51,8 +51,14 @@ export class ModificacionPagoService {
     return `This action returns all modificacionPago`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} modificacionPago`;
+  async findOne(id_modificacion_pago: number) {
+    
+    try {
+      const resultado = await this.modPagoRepositorio.findOneBy({ id_modificacion_pago });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   update(id: number, updateModificacionPagoDto: UpdateModificacionPagoDto) {
@@ -72,7 +78,7 @@ export class ModificacionPagoService {
       //crear Solicitud
       const data_solicitud = {
         id_tipo_solicitud: 0,
-        id_estado_solicitud: 2,
+        id_estado_solicitud: 1,
         id_obra: dto.id_obra,
         id_estado_general: 21,
         id_usuario: dto.id_usuario,
