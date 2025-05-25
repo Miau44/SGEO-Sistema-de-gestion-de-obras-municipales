@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Item } from 'src/schema_public/item/entities/item.entity'; //relacion con item
-@Entity('')
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+
+@Entity()
 export class ComputoObservacion {
 
     @PrimaryGeneratedColumn()

@@ -25,6 +25,8 @@ import { ModificacionPagoService } from '../modificacion_pago/modificacion_pago.
 import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
 import { log } from 'console';
 import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pago.entity';
+import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
+import { ComputoObservacion } from './entities/computo_observacion.entity';
 
 @Injectable()
 export class ComputoService {
@@ -32,7 +34,8 @@ export class ComputoService {
 
   private readonly DECIMAL_PLACES = 5;
   constructor(
-    @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,    
+    @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,
+    @InjectRepository(ComputoObservacion) readonly computoObsRepositorio: Repository<ComputoObservacion>,
     @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
 
     private responseService: ResponseService,
@@ -116,16 +119,21 @@ export class ComputoService {
     try {
 
       let query = ` 
-      SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-    total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, 
-    mp.id_solicitud
-    , sh.id_solicitud_historial	  
-    FROM public.item AS i
-    INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
-    INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
-    INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago  	
-    LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
-    AS sh ON mp.id_solicitud = sh.id_solicitud     
+     SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, po.observacion_fiscal,
+mp.id_solicitud
+, sh.id_solicitud_historial, estado_observacion_fis	  
+FROM public.item AS i
+INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
+INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
+INNER JOIN public.planilla_observacion AS po ON p.id_planilla = po.id_planilla
+INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago  	
+LEFT JOIN (
+SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, mp.id_solicitud, mp.id_modificacion_pago
+FROM public.solicitud_historial as sh  
+INNER JOIN modificacion_pago AS mp ON sh.id_solicitud = mp.id_solicitud 
+ORDER BY id_solicitud, id_solicitud_historial DESC
+) AS sh ON mp.id_modificacion_pago = sh.id_modificacion_pago
       WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 
       AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
       ORDER BY i.orden_sim ASC;`
@@ -178,10 +186,18 @@ export class ComputoService {
 	 public.formato_numerico_computo(area,5) AS area,
 	 public.formato_numerico_computo(volumen,5) AS volumen,
 	 public.formato_numerico_computo(parcial,5) AS parcial,	*/
-    co.observacion_fiscal, i.id_obra FROM public.item AS i
+
+    co.observacion_fiscal, i.id_obra, sh.id_solicitud_historial FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     LEFT OUTER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo 
     INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
+
+    LEFT JOIN (
+    SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, mp.id_solicitud, mp.id_modificacion_pago
+    FROM public.solicitud_historial as sh  
+	INNER JOIN modificacion_pago AS mp ON sh.id_solicitud = mp.id_solicitud 
+    ORDER BY id_solicitud, id_solicitud_historial DESC
+) AS sh ON c.id_modificacion_pago = sh.id_modificacion_pago
     WHERE i.id_item =$1
     AND m.id_modificacion_pago = $2
     AND i.id_estado=1 ORDER BY c.id_computo`;
@@ -595,7 +611,10 @@ LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_plan
 
 
   async validarObservacion(data: ComputoItemDto): Promise<{ tieneObservacion: boolean, registros: any[] }> {
-    const query = `SELECT id_item, observacion_fiscal, id_modificacion_pago FROM public.computo  WHERE  id_item =$1 AND id_modificacion_pago =$2 `;
+    const query = `
+    SELECT id_item, observacion_fiscal, id_modificacion_pago FROM public.computo  as c
+INNER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo
+    WHERE  id_item =$1 AND id_modificacion_pago =$2 `;
     const params = [data.id_item, data.id_modificacion_pago];
 
     const result = await this.computoRepositorio.query(query, params);
@@ -612,7 +631,20 @@ LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_plan
   }
 
 
- 
+
+////////////////////////////COMPUTO OBSERVACION//////////////////////////////////
+
+  async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
+    try {
+      console.log('createComputoDto', createComputoDto);
+      
+      const resultado = await this.computoObsRepositorio.save(createComputoDto);
+      console.log('resultado', resultado );
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 
 
