@@ -100,13 +100,8 @@ export class ReporteActPreviasService {
 
      //--Datos generales Informe Inicial para Informe de AP
     async datosGeneralesInfIni(obra: number) {
-      const query2 = `SELECT i.id_informe, i.id_obra, i.id_correlativo, i.obs_general, i.conclusion, i.fecha_registro, i.fecha_modificacion, pc.detalle AS cite, hs.fecha_modificacion AS fecha_aprobacion from informe i 
-                      JOIN solicitud s ON i.id_obra = s.id_obra 
-                      JOIN solicitud_historial hs ON s.id_solicitud = hs.id_solicitud
-                      JOIN ( SELECT pa.id_subtipo, pa.desc_subtipo, pa.detalle
-                      FROM parametrica pa
-                      WHERE pa.id_tipo = 29 AND pa.id_estado = 1) pc ON i.id_tipo_informe = pc.id_subtipo
-                      WHERE i.id_tipo_informe = 235 AND hs.id_estado_general = 15 AND i.id_obra = ${obra}`;
+      const query2 = `SELECT *
+                      FROM public."vista_reporte_datos_InfInicial" WHERE id_obra = ${obra}`;
       const resultado2 = await this.sequelize.query(query2);
       return resultado2[0];
      }
