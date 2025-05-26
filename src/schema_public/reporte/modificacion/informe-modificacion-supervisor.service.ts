@@ -35,6 +35,12 @@ export class InformeModificacionSupervisor {
     datosSup: any = [];
     datosFis: any = [];
     datosInfSup: any = [];
+    datosModAp: any = [];
+    datosMod: any = [];
+    datosIncremento: any = [];
+    datosDecremento: any = [];
+    datosAdicion: any = [];
+    datosINuevos: any = [];
     //let solicitud: Number;
 
     constructor(
@@ -60,10 +66,10 @@ export class InformeModificacionSupervisor {
   }
 
     // Datos informe - modificación Supervisor
-  async datosInformesModifSupervisor(solicitud: number) {
+  async datosInformeModifSupervisor(solicitud: number) {
     const query = `
         SELECT * 
-        FROM public."vista_reporte_infMod_supervisor" WHERE id_solicitud = ${solicitud}`;
+        FROM public."vista_reporte_InfMod_Supervisor" WHERE id_solicitud = ${solicitud}`;
     const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
@@ -72,7 +78,7 @@ export class InformeModificacionSupervisor {
    async supervisorDesignado(obra: number) {
     const query1 = `
         SELECT * 
-        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
     const resultado1 = await this.sequelize.query(query1);
     return resultado1[0];
    }
@@ -81,71 +87,53 @@ export class InformeModificacionSupervisor {
    async fiscalDesignado(obra: number) {
     const query2 = `
         SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
+        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
    }
 
-      //Función para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
+        // Resumen de Modificaciones Aprobadas por obra 
+   async modificacionesAprobadas(obra: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_aprobacion_contrato IS NOT NULL`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+    // Resumen de Modificacion Actual 
+   async modificacionActual(solicitud: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
+ // Tabla ITEM - INCREMENTO - DECREMENTO
+   async itemsModificacion(solicitud: number, tipo: string) {
+    const query4 = `
+        SELECT * 
+        FROM public."vista_reporte_item_modificacion" 
+        WHERE  id_modificacion_pago = ${solicitud} AND tipo_item_modificacion = '${tipo}' `;
+    const resultado4 = await this.sequelize.query(query4);
+    return resultado4[0];
+   }
 
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
-  }
-
-    //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
-                  ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
+      // Resumen de Modificacion Actual 
+   async itemsNuevos(solicitud: number) {
+    const query5 = `
+        SELECT * 
+        FROM public."vista_reporte_item_nuevo" WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado5 = await this.sequelize.query(query5);
+    return resultado5[0];
+   }
 
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
-async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
+async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
 
-  const datosGenerales = await this.datosGeneralesObraModif(obra);
+  const datosGenerales = await this.datosGeneralesObraModif(id_modif_pago);
   if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
     throw new Error('No se encontraron datos para el ID de la obra proporcionada');
   }
@@ -163,16 +151,54 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
   }
   this.datosFis = res2;
 
-  const res3 = await this.datosInformesModifSupervisor(this.datosEnvio[0].id_solicitud);
+  const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
       throw new Error('No se encontraron datos del informe de Supervisor');
   }
-  this.datosInfSup = res3;  
+  this.datosInfSup = res3; 
+
+  const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+  // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
+  //     throw new Error('No se encontraron datos de las modificaciones de la obra');
+  //}
+  this.datosModAp = res4;
+
+  const res5 = await this.modificacionActual(id_modif_pago);
+  if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+      throw new Error('No se encontraron datos de las modificación');
+  }
+  this.datosMod = res5;
+
+  const res6 = await this.itemsModificacion(id_modif_pago, 'I');
+  // if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
+  //     throw new Error('No se encontraron datos de las modificación');
+  // }
+  this.datosIncremento = res6;
+
+  const res7 = await this.itemsModificacion(id_modif_pago, 'D');
+  // if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+  //     throw new Error('No se encontraron datos de las modificación');
+  // }
+  this.datosDecremento = res7;
+
+  const res8 = await this.itemsModificacion(id_modif_pago, 'A');
+  // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+  //     throw new Error('No se encontraron datos de las modificación');
+  // }
+  this.datosAdicion = res8;
+
+  const res9 = await this.itemsNuevos(id_modif_pago);
+  // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+  //     throw new Error('No se encontraron datos de las modificación');
+  // }
+  this.datosINuevos = res9;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
    const imgPath = 'assets/images/membretado_oficio.png';
  
+   //console.log('DATOS ITEMS',this.datosIncremento);
+
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -198,7 +224,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
         style: 'header', alignment: 'center'
       } as any,
       {
-        text: this.datosEnvio[0].cod_carpeta + '-' + 'SUP' + '-' + '1',
+        text: this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + '1',
         style: 'subheader', alignment: 'center'
       },
       {
@@ -250,11 +276,15 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo', margin: [0, 5, 0, 5] },
+                { text: [
+                    { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                    { text: this.datosInfSup[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
+                        ]
+                },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: '', style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosInfSup[0].fecha_aprobacion), style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -270,7 +300,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
           margin: [20, 0, 20, 10], // Márgenes de la tabla
         },
       {
-        text: '1.   DATOS DE LA OBRA\n\n',
+        text: '1.   DATOS DE LA OBRA',
         style: 'subheader', margin: [0, 0, 0, 5]
       },
       {
@@ -282,62 +312,69 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato' }] }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'ZONA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato' }] }
+              { text: [{ text: 'EMPRESA CONTRATISTA:', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }] }
             ],
             [
-              { text: [{ text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs.' + this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'MONTO CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: 'Bs.' + this.datosEnvio[0].monto_contrato, style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'PLAZO DE EJECUCIÓN,CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDato' }] }
+              { text: [{ text: 'PLAZO DE EJECUCIÓN,CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].plazo_contrato, style: 'textDato' }] }
             ],
             [
-              { text: [{ text: 'FECHA INICIO DE OBRA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_recep_definitiva) + '\n\n', style: 'textDato' }] }
+              { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_recep_definitiva), style: 'textDato' }] }
             ],
           ]
-        }, margin: [20, 0, 0, 0]
+        }, margin: [10, 0, 0, 5] 
         //layout: 'noBorders'
       },
       {
-        text: '\n2.   ANTECEDENTES\n',
+        text: '\n2.   ANTECEDENTES',
         style: 'subheader', margin: [0, 0, 0, 5] 
       },
-      {
-        table: {
-          widths: ['*', 60, 60, 60, 60, 60], // 6 columnas
-          body: [
-            [
-              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { text: 'FECHA MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'VARIACIÓN DEL MONTO(Bs.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'MONTO (Bs.)', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { text: 'MODIF. DEL PLAZO(d.c.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'FECHA CONCLUSIÓN PROGRAMADA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-            ],
-          ]
-        }
-      },
+      ...(
+      this.buildModAprobadas(this.datosModAp).length > 0 
+      ?[
+        {
+          table: {
+            widths: [20, '*', 60, 60, 60, 60, 60], // 6 columnas
+            body: [
+              [
+                { text: 'N°', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { text: 'FECHA MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'VARIACIÓN DEL MONTO(Bs.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'MONTO (Bs.)', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { text: 'MODIF. DEL PLAZO(d.c.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'FECHA CONCLUSIÓN PROGRAMADA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              ],
+              ...this.buildModAprobadas(this.datosModAp)
+            ]
+          }, margin: [10, 0, 0, 0] 
+        },]
+        :[]
+      ),
       {
         text: '\n'
       },
       {
           text: this.datosInfSup[0].antecedentes,
-          style: 'textDato', alignment:'justify'
+          style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
       }, 
       {
         text: '\n'
@@ -348,7 +385,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       },
       {
         text: this.datosInfSup[0].analisis,
-        style: 'textDato', alignment:'justify'
+        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
       },
       {
         text: '4.   MODIFICACIÓN A LAS CANTIDADES DE ITEMS\n',
@@ -360,7 +397,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       },
       {
         table: {
-          widths: [20, '*', 30, 40, 40, 40, 40, 40], // 8 columnas
+          widths: [18, '*', 28, 45, 45, 45, 45, 45], // 8 columnas
           body: [
             [
               {
@@ -380,11 +417,12 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: 'PRECIO UNITARIO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD PROPUESTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }
-            ]
+            ],
+            ...this.buildItemsIDA(this.datosIncremento)
           ]
-        }
+        }, margin: [10, 0, 0, 5] 
         
       },
       {
@@ -395,8 +433,17 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
         style: 'subheader', margin: [10, 0, 0, 5]
       },
       {
-        text: 'JUSTIFICACION DE ITEMS INCREMENTADOS BD....',
-        style: 'textDato', alignment:'justify'
+       ul: Array.isArray(this.datosIncremento)
+        ? this.datosIncremento
+            .filter(f => f && f.justificacion_supervisor)
+            .map(f => ({
+              text: [
+                    { text: 'Item ' + f.orden_sim + ' - ' + f.desc_item + '.- ', bold: true },
+                    { text: f.justificacion_supervisor }
+            ]
+          }))
+        : [],
+        style: 'textDato', alignment:'justify', margin: [20, 0, 0, 5]
       },
       {
         text: '4.2. ÍTEMS CON CANTIDADES EN DECREMENTO\n',
@@ -404,7 +451,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       },
       {
         table: {
-          widths: [20, '*', 30, 40, 40, 40, 40, 40], // 8 columnas
+          widths: [18, '*', 28, 45, 45, 45, 45, 45], // 8 columnas
           body: [
             [
               {
@@ -413,7 +460,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               }, {}, {}, {}, {}, {}, // 5 celdas vacías para completar el colSpan de 6
               {
                 colSpan: 2,
-                text: 'INCREMENTO',
+                text: 'DECREMENTO',
                 style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }, 
               {} // 1 celda vacía para completar colSpan de 2
             ],
@@ -426,9 +473,10 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: 'MONTO VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD PROPUESTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }
-            ]
+            ],
+            ...this.buildItemsIDA(this.datosDecremento)
           ]
-        }
+        }, margin: [10, 0, 0, 5] 
         
       },
       {
@@ -436,25 +484,38 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
         style: 'subheader', margin: [10, 0, 0, 5]
       },
       {
-        text: 'JUSTIFICACION DE ITEMS DECREMENTADOS BD....',
-        style: 'textDato', alignment:'justify'
+       ul: Array.isArray(this.datosDecremento)
+        ? this.datosDecremento
+            .filter(f => f && f.justificacion_supervisor)
+            .map(f => ({
+              text: [
+                    { text: 'Item ' + f.orden_sim + ' - ' + f.desc_item + '.- ', bold: true },
+                    { text: f.justificacion_supervisor }
+            ]
+          }))
+        : [],
+        style: 'textDato', alignment:'justify', margin: [20, 0, 0, 5]
       },
-       {
+      // OCULTAR DATOS DE ITEMS ADICIONALES === 1
+      ...(
+      this.datosEnvio[0].id_tipo_mod_pago === 1
+      ?[
+      {
         text: '4.3. ÍTEMS A ADICIONAR\n',
         style: 'subheader', margin: [10, 0, 0, 5]
       },
       {
         table: {
-          widths: [20, '*', 30, 40, 40, 40, 40, 40], // 8 columnas
+          widths: [18, '*', 28, 45, 45, 45, 45, 45],
           body: [
             [
               {
                 colSpan: 6,
                 text: ' ', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd'
-              }, {}, {}, {}, {}, {}, // 5 celdas vacías para completar el colSpan de 6
+              }, {}, {}, {}, {}, {}, // 5 celdas vacías, colSpan de 6
               {
                 colSpan: 2,
-                text: 'INCREMENTO',
+                text: 'ITEMS A ADICIONAR',
                 style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }, 
               {} // 1 celda vacía para completar colSpan de 2
             ],
@@ -467,9 +528,10 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: 'MONTO VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD PROPUESTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }
-            ]
+            ],
+            ...this.buildItemsIDA(this.datosAdicion)
           ]
-        }
+        }, margin: [10, 0, 0, 5] 
         
       },
       {
@@ -477,8 +539,17 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
         style: 'subheader', margin: [10, 0, 0, 5]
       },
       {
-        text: 'JUSTIFICACION DE ITEMS NUEVOS BD....\n',
-        style: 'textDato', alignment:'justify'
+       ul: Array.isArray(this.datosAdicion)
+        ? this.datosAdicion
+            .filter(f => f && f.justificacion_supervisor)
+            .map(f => ({
+              text: [
+                    { text: 'Item ' + f.orden_sim + ' - ' + f.desc_item + '.- ', bold: true },
+                    { text: f.justificacion_supervisor }
+            ]
+          }))
+        : [],
+        style: 'textDato', alignment:'justify', margin: [20, 0, 0, 5]
       },
       {
         text: '4.3.2. TABLA DE PRECIOS UNITARIOS NUEVOS\n',
@@ -496,12 +567,17 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: 'PRECIO GMLP', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { text: 'PRECIO CONSENSUADO', style: 'textTituloT', alignment: 'center',  margin: [0, 5, 0, 0], fillColor: '#dddddd' },
             ],
+            ...this.buildItemsNuevos(this.datosINuevos)
           ]
-        }
+        }, margin: [10, 0, 0, 5] 
       },
       {
         text: '\n\n'
       },
+      ]
+      :[]
+      ),
+      
       {
         text: '5.   RESÚMEN DE CANTIDADES\n',
         style: 'subheader', margin: [0, 0, 0, 5]
@@ -516,15 +592,21 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       },
       {
         text: this.datosInfSup[0].obs_general,
-        style: 'textDato',  alignment:'justify', margin: [10, 0, 0, 5]
+        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: '7.   MODIFICACIÓN AL MONTO CONTRACTUAL\n',
         style: 'subheader', margin: [0, 0, 0, 5]
       },
       {
-        text: 'TEXTO XXXXXX \n',
-        style: 'textDato', margin: [10, 0, 0, 5]
+        text: 'El presente ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs.' +
+        'XXXX' + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + ' % referente a la última modificación aprobada.\n',
+        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+      },
+      {
+        text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
+        'respecto al contrato principal, de ', 
+        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: '8.   CONCLUSIÓN\n',
@@ -533,7 +615,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       {
         text: 'Habiendo descrito los antecedentes, justificaciones y otros inherentes a la pertinencia del presente ' + this.datosEnvio[0].desc_subtipo + ' y contando con la conformidad ' + 
         'del contratista ' + this.datosEnvio[0].proponente_razon_social + ' es que cómo Supervisor(es) de Obra, se recomienda la aprobación del presente ' + this.datosEnvio[0].desc_subtipo + 
-        ' N°' + this.datosEnvio[0].numero_modificacion + ', por' + 'REFERENCIA' + ', de acuerdo al siguiente detalle:\n',
+        ' N°' + this.datosEnvio[0].numero_modificacion + ', por ' + this.datosInfSup[0].referencia + ', de acuerdo al siguiente detalle:\n',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
@@ -548,8 +630,9 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
               { text: 'PLAZO TOTAL(d.c.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
               { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center',  margin: [0, 5, 0, 0], fillColor: '#dddddd' },
             ],
+             ...this.buildModActual(this.datosMod)
           ]
-        }
+        }, margin: [10, 0, 0, 5] 
       },
       {
         text: '\n'
@@ -581,7 +664,7 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
           }, margin: [20,0,20,0]
         },
       {
-        text: ['\n\n\ncc:Arch:' ],
+        text: ['\n\n\ncc:Archivo Supervisor Carpeta' ],
         style: 'footerText'
       },
       {
@@ -624,11 +707,15 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
       textDato: {
         fontSize: 9,
         bold: false,
-        //color: 'gray', 
+        opacity: 0.8,
+      },
+      textDatoT: {
+        fontSize: 7,
+        bold: false,
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 170, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
@@ -646,5 +733,316 @@ async generateInformeModificacionSupervisor(obra: number): Promise<Buffer> {
     pdfDoc.end();
   });
 }
+
+//-------------- FUNCIONES ------------------------------------
+ //funcion para generar la fecha en formato dd/mm/aaa
+  formatearFecha(iso: string | null | undefined): string | undefined {
+  if (!iso) return undefined; // No hace nada si iso es null, undefined o ''
+  
+  const fecha = new Date(iso);
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Enero = 0
+  const anio = fecha.getFullYear();
+  
+  return `${dia}/${mes}/${anio}`;
+}
+
+       //Función para generar la fecha de manera escrita
+  fechaString(iso: string): string {
+    let formattedDate = '';
+    let fecha: Date;
+
+    if (iso === 'hoy') {
+      fecha = new Date();
+    } else {
+      fecha = new Date(iso);
+    }
+
+    if (iso) {
+      const h = fecha.getHours();
+      const m = fecha.getMinutes();
+      const horas = h < 10 ? `0${h}` : `${h}`;
+      const minutos = m < 10 ? `0${m}` : `${m}`;
+
+      // Formatea la fecha
+      formattedDate = fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+     }
+
+    return formattedDate;
+  }
+
+  //Cargar tabla de SUPERVISORES - CON RECUADRO
+    buildSupervisores(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
+                  ],
+                alignment: 'center', margin: [0, 25, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+  // Función para poblar la tabla de modificaciones aprobadas
+    buildModAprobadas(data: any) {
+    let datosResp = data;
+    let arrayData = [];
+
+    var c = 0;
+    for (let i = 0; i < datosResp.length; i++) {
+      c = c + 1;
+      let rowData = [
+        { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].fecha_aprobacion_contrato), style: 'textDatoT', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].monto_variacion, alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: datosResp[i].monto_total, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
+      ];
+      arrayData.push(rowData);
+
+    }
+    return arrayData;
+  }
+
+  // Función para poblar la tabla de modificación Actual
+    buildModActual(data: any) {
+    let datosResp = data;
+    let arrayData = [];
+
+    for (let i = 0; i < datosResp.length; i++) {
+      let rowData = [
+        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
+        { text: [{ text: datosResp[i].monto_variacion, alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: datosResp[i].monto_total, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: datosResp[i].nuevo_plazo, style: 'textDatoT', alignment: 'center', }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
+      ];
+      arrayData.push(rowData);
+
+    }
+    return arrayData;
+  }
+
+  // Función para poblar la tabla de modificación Actual
+  //   buildItemsIncremento(data: any) {
+  //   let datosResp = data;
+  //   let arrayData = [];
+
+  //   for (let i = 0; i < datosResp.length; i++) {
+  //     let rowData = [
+  //       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT' }] },
+  //       { text: [{ text: datosResp[i].desc_item, alignment: 'right', style: 'textDatoT' }] },
+  //       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'right' }] },
+  //       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
+  //       { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'center', }] },
+  //       { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'center' }] },
+  //       { text: [{ text: datosResp[i].cantidad_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
+  //       { text: [{ text: datosResp[i].total_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
+  //     ];
+  //     arrayData.push(rowData);
+
+  //   }
+  //   return arrayData;
+  // }
+
+  buildItemsIDA(data: any) {
+  let datosResp = data;
+  let arrayData = [];
+  let totalReordenamientoSum = 0;
+
+  for (let i = 0; i < datosResp.length; i++) {
+    // Convertir a número por si viene como string
+    const totalReordenamiento = Number(datosResp[i].total_reordenamiento) || 0;
+    totalReordenamientoSum += totalReordenamiento;
+
+    let rowData = [
+      { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].desc_item, alignment: 'right', style: 'textDatoT' }] },
+      { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].cantidad_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].total_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
+    ];
+    arrayData.push(rowData);
+  }
+
+  // Fila final con total
+  const totalRow = [
+    {
+      colSpan: 7,
+      text: 'TOTAL:',
+      style: 'textTituloT',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+    {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
+    {
+      text: totalReordenamientoSum.toFixed(2),
+      style: 'textTituloT',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+  ];
+
+  // Porcentaje adicional 
+  const porcentaje = 15; 
+
+  const porcentajeRow = [
+    {
+      colSpan: 7,
+      text: 'PORCENTAJE:',
+      style: 'textTituloT',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+    {}, {}, {}, {}, {}, {}, // omitidos por colSpan
+    {
+      text: `${porcentaje.toFixed(2)}%`,
+      style: 'textTituloT',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+  ];
+
+  arrayData.push(totalRow);
+  arrayData.push(porcentajeRow);
+
+  return arrayData;
+}
+
+// Función para poblar la tabla de Items Nuevos
+    buildItemsNuevos(data: any) {
+    let datosResp = data;
+    let arrayData = [];
+
+    for (let i = 0; i < datosResp.length; i++) {
+      let rowData = [
+        { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: datosResp[i].desc_item, style: 'textDatoT' }] },
+        { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: datosResp[i].p_unitario_sim, style: 'textDatoT', alignment: 'right', }] },
+        { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'right' }] },
+      ];
+      arrayData.push(rowData);
+
+    }
+    return arrayData;
+  }
+
+//Función para generar de manera escrita el monto del dinero
+private unidades = [
+'', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
+];
+
+private decenas = [
+  '', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA',
+];
+
+private especiales = [
+  'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE',
+];
+
+private centenas = [
+  '', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS',
+  'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS',
+];
+
+convertToWords(value: string, currency: string): string {
+  // Eliminar espacios y símbolos excepto dígitos, punto y coma
+  const cleanValue = value.replace(/[^\d.,]/g, '');
+
+  // Reemplazar el punto (.) por vacío solo si es separador de miles
+  const normalized = cleanValue.replace(/\./g, '').replace(',', '.');
+
+  const number = parseFloat(normalized);
+
+  if (isNaN(number)) throw new Error('Valor inválido');
+
+  const integerNumber = Math.floor(number);
+  const decimalNumber = Math.round((number - integerNumber) * 100);
+
+  const integerWords = this.numberToWords(integerNumber).trim();
+  const decimalWords = `${decimalNumber.toString().padStart(2, '0')}/100`;
+  const currencyWords = this.getCurrencyWord(currency);
+
+  return `${integerWords} CON ${decimalWords} ${currencyWords}`;
+}
+
+private numberToWords(value: number): string {
+  if (value === 0) return 'CERO';
+  if (value < 10) return this.unidades[value];
+  if (value === 10) return 'DIEZ';
+  if (value > 10 && value < 20) return this.especiales[value - 11];
+  if (value < 100) {
+    const decena = Math.floor(value / 10);
+    const unidad = value % 10;
+    return unidad > 0
+      ? `${this.decenas[decena]} Y ${this.unidades[unidad]}`
+      : this.decenas[decena];
+  }
+  if (value < 1000) {
+    const centena = Math.floor(value / 100);
+    const resto = value % 100;
+    if (value === 100) return 'CIEN';
+    return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000) {
+    const miles = Math.floor(value / 1000);
+    const resto = value % 1000;
+    const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
+    return `${milesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000_000) {
+    const millones = Math.floor(value / 1_000_000);
+    const resto = value % 1_000_000;
+    const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
+    return `${millonesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  throw new Error('Valor fuera de rango');
+}
+
+private getCurrencyWord(currency: string): string {
+  switch (currency) {
+    case 'Bs.':
+    case 'Bs':
+      return 'BOLIVIANOS';
+    case '$':
+    case 'USD':
+      return 'DÓLARES';
+    case '€':
+    case 'EUR':
+      return 'EUROS';
+    default:
+      throw new Error(`Moneda no soportada: ${currency}`);
+  }
+}
+
+
+  
 
 }
