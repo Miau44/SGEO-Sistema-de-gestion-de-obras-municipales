@@ -13,6 +13,9 @@ import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
 import { InformeActividadesDto } from './dto/informe-actividades.dto';
 import { Documento } from '../documento/entities/documento.entity';
+import { CreateInformeNuevoDto } from './dto/informe-nuevo.dto';
+import { SolicitudService } from '../solicitud/solicitud.service';
+import { CorrelativoService } from '../correlativo/correlativo.service';
 
 
 
@@ -25,6 +28,9 @@ export class InformeService {
     @InjectRepository(InformeInicial) private infInicialRepositorio: Repository<InformeInicial>,
     private readonly dataSource: DataSource,
     @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
+    private solicitudService: SolicitudService,
+    private servicioCorrelativo: CorrelativoService, 
+
   ) { }
 
   async create(createInformeDto: CreateInformeDto) {
@@ -280,6 +286,20 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
  
       const resultado = await this.informeRepositorio.query(query);
 
+      return this.responseService.success(resultado, "Listado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async listaInformeObra(data: InformeObraDto) {
+    try {
+
+      const query = ` SELECT * FROM  public.vista_lista_informe_obra WHERE id_obra = $1  AND id_tipo_informe =$2`;
+      const params = [data.obra, data.tipo_informe];
+      const resultado = await this.informeRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
 
     } catch (error) {
