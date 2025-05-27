@@ -135,7 +135,9 @@ INNER JOIN modificacion_pago AS mp ON sh.id_solicitud = mp.id_solicitud
 ORDER BY id_solicitud, id_solicitud_historial DESC
 ) AS sh ON mp.id_modificacion_pago = sh.id_modificacion_pago
       WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 
-      AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
+      --AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
+      AND p.id_item IN(SELECT id_item FROM public.planilla WHERE tipo_item_modificacion  IS NOT NULL AND id_modificacion_pago =$1) 
+
       ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
