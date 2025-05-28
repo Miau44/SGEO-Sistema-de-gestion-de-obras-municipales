@@ -133,68 +133,68 @@ export class InformeModificacionSupervisor {
 
 async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
 
-  const datosGenerales = await this.datosGeneralesObraModif(id_modif_pago);
-  if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
-    throw new Error('No se encontraron datos para el ID de la obra proporcionada');
-  }
-  this.datosEnvio = datosGenerales;
+    const datosGenerales = await this.datosGeneralesObraModif(id_modif_pago);
+    if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
+      throw new Error('No se encontraron datos para el ID de la obra proporcionada');
+    }
+    this.datosEnvio = datosGenerales;
 
-  const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
+    const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
+    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+        throw new Error('No se encontraron datos del supervisor designado');
+    }
+    this.datosSup = res1;
 
-  const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del fiscal designado');
-  }
-  this.datosFis = res2;
+    const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+        throw new Error('No se encontraron datos del fiscal designado');
+    }
+    this.datosFis = res2;
 
-  const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
-  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
-      throw new Error('No se encontraron datos del informe de Supervisor');
-  }
-  this.datosInfSup = res3; 
+    const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
+    if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+        throw new Error('No se encontraron datos del informe de Supervisor');
+    }
+    this.datosInfSup = res3; 
 
-  const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
-  // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
-  //     throw new Error('No se encontraron datos de las modificaciones de la obra');
-  //}
-  this.datosModAp = res4;
+    const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+    // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
+    //     throw new Error('No se encontraron datos de las modificaciones de la obra');
+    //}
+    this.datosModAp = res4;
 
-  const res5 = await this.modificacionActual(id_modif_pago);
-  if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron datos de las modificación');
-  }
-  this.datosMod = res5;
+    const res5 = await this.modificacionActual(id_modif_pago);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+        throw new Error('No se encontraron datos de las modificación');
+    }
+    this.datosMod = res5;
 
-  const res6 = await this.itemsModificacion(id_modif_pago, 'I');
-  // if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
-  //     throw new Error('No se encontraron datos de las modificación');
-  // }
-  this.datosIncremento = res6;
+    const res6 = await this.itemsModificacion(id_modif_pago, 'I');
+    // if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
+    //     throw new Error('No se encontraron datos de las modificación');
+    // }
+    this.datosIncremento = res6;
 
-  const res7 = await this.itemsModificacion(id_modif_pago, 'D');
-  // if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-  //     throw new Error('No se encontraron datos de las modificación');
-  // }
-  this.datosDecremento = res7;
+    const res7 = await this.itemsModificacion(id_modif_pago, 'D');
+    // if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+    //     throw new Error('No se encontraron datos de las modificación');
+    // }
+    this.datosDecremento = res7;
 
-  const res8 = await this.itemsModificacion(id_modif_pago, 'A');
-  // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-  //     throw new Error('No se encontraron datos de las modificación');
-  // }
-  this.datosAdicion = res8;
+    const res8 = await this.itemsModificacion(id_modif_pago, 'A');
+    // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+    //     throw new Error('No se encontraron datos de las modificación');
+    // }
+    this.datosAdicion = res8;
 
-  const res9 = await this.itemsNuevos(id_modif_pago);
-  // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-  //     throw new Error('No se encontraron datos de las modificación');
-  // }
-  this.datosINuevos = res9;
+    const res9 = await this.itemsNuevos(id_modif_pago);
+    // if (!res8 || (Array.isArray(res8) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+    //     throw new Error('No se encontraron datos de las modificación');
+    // }
+    this.datosINuevos = res9;
 
-  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
    const imgPath = 'assets/images/membretado_oficio.png';
  
    //console.log('DATOS ITEMS',this.datosIncremento);
