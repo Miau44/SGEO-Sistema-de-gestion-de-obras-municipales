@@ -146,9 +146,9 @@ export class PlanillaService {
        //observacion_fiscal:    $5    
        //id_usuario_registro: $6
         `SELECT public.sp_modificacion_planilla_observacion(
-          $1,$2,$3,$4,$5,$6) as resultado;`;
+          $1,$2,$3,$4,$5,$6,$7) as resultado;`;
       const params: any[] = [data.id_modificacion_pago, data.id_item, data.id_solicitud_historial, 
-        data.justificacion_supervisor, data.observacion_fiscal, data.id_usuario_registro];
+        data.justificacion_supervisor, data.observacion_fiscal, data.estado_observacion_fis, data.id_usuario_registro];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       //log('Consulta generada insertar justificacion:', await this.planillaRepositorio.query(query)); // Imprimir la consulta en el log
       return this.responseService.success(resultado, "Actualizado Correctamente.")

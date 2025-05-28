@@ -17,6 +17,7 @@ import multer from 'multer';
 import { error } from 'console';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 import { ComputoResumenDto } from './dto/computo-resumen.dto';
+import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
 
 @ApiTags('computo')
 @Controller('computo')
@@ -26,7 +27,10 @@ export class ComputoController {
   @Public()
   @Post('create-computo')
   async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
+        try {
     return this.computoService.create(createComputoPlanillaDto);
+     } catch (error) {
+    }
   }
 
   @Public()    
@@ -146,6 +150,17 @@ export class ComputoController {
   async validarObservacion(@Body() computoDto: ComputoItemDto) {
     return this.computoService.validarObservacion(computoDto);
   }  
+
+
+
+
+  @Post('create-computo-observacion')
+  async  createComputoObservacion(@Body() createComputoDto: CreateComputoObservacionDto) {
+        try {
+    return this.computoService.createComputoObservacion(createComputoDto);
+     } catch (error) {
+    }
+  }
 
  /* @UseInterceptors(FileInterceptor('file'))
   async importarExcel(@UploadedFile() file: Express.Multer.File) {

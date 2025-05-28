@@ -15,9 +15,14 @@ import { Modificacion } from '../modificacion_pago/entities/modificacion.entity'
 
 import { FormatoNumericoUtil } from 'src/common/utils/formato-numerico.utils';
 import { PlanillaService } from '../planilla/planilla.service';
+import { ObraService } from '../obra/obra.service';
+import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
 
 @Injectable()
 export class ItemService {
+
+  private var_decimal: 2 | 5 = 5; // valor por defecto
+
   constructor(
     @InjectRepository(Item)
     private readonly itemRepository: Repository<Item>,
@@ -25,7 +30,8 @@ export class ItemService {
 
     private responseService: ResponseService,
     private externoService: ExternoService,
-    private planillaService: PlanillaService
+    private planillaService: PlanillaService,
+    private obraService: ObraService,
 
   ) { }
 
@@ -92,13 +98,35 @@ export class ItemService {
   async updateItem(id: number, updateItemDto: UpdateItemDto) {
     try {
 
-     
+      const obra = await this.obraService.findOne(updateItemDto.id_obra);
+      
+      const modalidad = obra.data[0].modalidad;                 
+      if (modalidad === 'CONTRATACION DIRECTA') {
+        this.var_decimal = 2;
+      } else {  
+        this.var_decimal = 5;
+      }
+      if (!obra) {
+        throw new NotFoundException(`Obra with ID ${updateItemDto.id_obra} not found`);
+        return
+      }      
+    const precio_adjudicado =  DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.p_unitario_adjudicado), this.var_decimal);
+    updateItemDto.p_unitario_adjudicado = precio_adjudicado;
+    var  total_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.total_adjudicado), this.var_decimal);
+    updateItemDto.total_adjudicado = total_adjudicado;
+      console.log('UpdateItemDto2', updateItemDto);
 
       const resultado = await this.itemRepository.update(+id, updateItemDto);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
+  }
+
+  private ensureNumber(value: any): number {
+    // Convertir el valor a un número si es válido y devolverlo; de lo contrario, devolver 0.
+    const parsedValue = parseFloat(value);
+    return !isNaN(parsedValue) && value !== null && value !== '' ? parsedValue : 0;
   }
 
   

@@ -128,6 +128,17 @@ export class InformeController {
     }
   }  
   
+  @Public()
+  @Post('lista-informe-obra')
+  listaInformeObra(@Body() informeDto: InformeObraDto) {
+    try {  
+      return this.informeService.listaInformeObra(informeDto);
+    } catch (error) {
+    }
+  } 
+
+
+  
   // Para hacer registros de los documentos de un informe
   
   @Post('updateDocumentosInforme')
