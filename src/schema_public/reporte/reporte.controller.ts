@@ -9,6 +9,7 @@ import { MemoOrdenCambio } from './modificacion/memo-orden-cambio.service';
 import { SolicitudGarantia } from './modificacion/solicitud-garantia.service';
 import { InformeModificacionFiscal } from './modificacion/informe-modificacion-fiscal.service';
 import { ComputoMetrico } from './modificacion/computo-metrico.service';
+import { AnexoOC } from './modificacion/anexo-oc.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -20,6 +21,7 @@ export class ReportController {
     private readonly solicitudGarantia: SolicitudGarantia,
     private readonly informeModificacionFiscal: InformeModificacionFiscal,
     private readonly computometrico: ComputoMetrico,
+    private readonly anexooc: AnexoOC,
   ) {}
 
 
@@ -297,6 +299,20 @@ export class ReportController {
   @Query('id_obra') id_obra: number
   ): Promise<void> {
     const pdfBuffer = await this.computometrico.generateComputoMetrico(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+  @Public()
+  @Get('anexo-oc')
+  async AnexoOC(@Res() res: Response,
+  @Query('id_modif_pago') id_modif_pago: number
+  ): Promise<void> {
+    const pdfBuffer = await this.anexooc.generateAnexoOC(id_modif_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      

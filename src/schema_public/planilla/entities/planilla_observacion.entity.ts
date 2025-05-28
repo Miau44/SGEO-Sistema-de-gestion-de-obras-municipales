@@ -13,10 +13,10 @@ export class PlanillaObservacion {
     @Column()
     id_solicitud_historial: number;
 
-    @Column()
+    @Column({nullable:true})
     justificacion_supervisor: string;    
 
-    @Column()
+    @Column({nullable:true})
     observacion_fiscal: string;
 
 

@@ -322,4 +322,27 @@ LEFT JOIN (
     */
 
   }
+
+  async aprobarModificacion(AprobarDto: ValidarModificacionDto) {
+    try {
+
+      // Validar los datos de entrada
+      if (!AprobarDto.id_modificacion_pago ) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+
+      const query2 = `
+      SELECT public.sp_aprobacion_x_tipo($1)	`;
+      const params3 = [AprobarDto.id_modificacion_pago];
+    const resultado =  await this.modificacionRepo.query(query2, params3);
+
+      // Guardar los cambios en la base de datos
+      //const resultado = await this.guardarModificacion(modificacion);
+
+      return this.responseService.success(resultado, "aprobada correctamente.");
+    } catch (error) {
+    console.error("Error en aprobarDesignacion:", error);
+    return this.responseService.error(error);
+  }
+}
 }

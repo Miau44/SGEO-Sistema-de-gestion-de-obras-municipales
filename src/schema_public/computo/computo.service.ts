@@ -119,28 +119,9 @@ export class ComputoService {
     try {
 
       let query = ` 
-     SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-total_adjudicado,  cantidad_planilla, monto_planilla, i.id_obra, po.observacion_fiscal,
-mp.id_solicitud
-, sh.id_solicitud_historial, estado_observacion_fis	  
-FROM public.item AS i
-INNER JOIN public.planilla AS p ON i.id_item = p.id_item 
-INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
-INNER JOIN public.planilla_observacion AS po ON p.id_planilla = po.id_planilla
-INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago  	
-LEFT JOIN (
-SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, mp.id_solicitud, mp.id_modificacion_pago
-FROM public.solicitud_historial as sh  
-INNER JOIN modificacion_pago AS mp ON sh.id_solicitud = mp.id_solicitud 
-ORDER BY id_solicitud, id_solicitud_historial DESC
-) AS sh ON mp.id_modificacion_pago = sh.id_modificacion_pago
-      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 
-      --AND p.id_item IN( SELECT DISTINCT id_item FROM public.computo WHERE id_modificacion_pago =$1) 
-      AND p.id_item IN(SELECT id_item FROM public.planilla WHERE tipo_item_modificacion  IS NOT NULL AND id_modificacion_pago =$1) 
-
-      ORDER BY i.orden_sim ASC;`
-
-      const params = [data.id_modificacion_pago, data.id_obra];
+     SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1;
+     `
+      const params = [data.id_modificacion_pago];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -433,8 +414,6 @@ LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_plan
           id_item: itemres.id_item,
           id_solicitud_historial: id_historial,          
           justificacion_supervisor: itemres.justificacion_supervisor,
-          observacion_fiscal: '',
-         estado_observacion_fis: false,
           id_usuario_registro: id_usuario
         });
       }
