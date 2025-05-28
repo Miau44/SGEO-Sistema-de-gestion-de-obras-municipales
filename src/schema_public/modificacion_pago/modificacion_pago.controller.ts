@@ -105,7 +105,18 @@ export class ModificacionPagoController {
     try {  
     return this.modificacionPagoService.validarModificacion(validar);
 
-  } catch (error) {
-  }    
-  }  
+    } catch (error) {
+    }
+  }
+
+
+  @Public()
+  @Post('modificacion-aprobacion')
+  async aprobacion(@Body() validar: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.aprobarModificacion(validar);
+
+    } catch (error) {
+    }
+  }
 }

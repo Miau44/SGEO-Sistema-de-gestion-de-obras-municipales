@@ -12,6 +12,7 @@ import { CopiarPlanillaXItemDto } from './dto/copiar-x-item.dto';
 import { log } from 'console';
 import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
 import { Log } from '../log/entities/log.entity';
+import { actualizarObservacionDto } from './dto/planilla_observacion/actualizar-observacion.dto';
 
 @Injectable()
 export class PlanillaService {
@@ -145,10 +146,10 @@ export class PlanillaService {
        //justificacion_supervisor:  $4
        //observacion_fiscal:    $5    
        //id_usuario_registro: $6
-        `SELECT public.sp_modificacion_planilla_observacion(
-          $1,$2,$3,$4,$5,$6,$7) as resultado;`;
+        `SELECT public.sp_modificacion_planilla_justificacion(
+          $1,$2,$3,$4,$5) as resultado;`;
       const params: any[] = [data.id_modificacion_pago, data.id_item, data.id_solicitud_historial, 
-        data.justificacion_supervisor, data.observacion_fiscal, data.estado_observacion_fis, data.id_usuario_registro];
+        data.justificacion_supervisor,  data.id_usuario_registro];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       //log('Consulta generada insertar justificacion:', await this.planillaRepositorio.query(query)); // Imprimir la consulta en el log
       return this.responseService.success(resultado, "Actualizado Correctamente.")
@@ -161,6 +162,37 @@ export class PlanillaService {
     }
   }
 
+    async actualizarObservacionXItem(data: actualizarObservacionDto) {
+    try {
+
+      console.log('actualizarJustificacionDto', data);
+
+    //  console.log('data actualizarJustificacionXItem', data);           
+      let query =
+      //ejemplo de la funcion
+      // public.sp_modificacion_planilla_observacion(p_modificacion_pago,  p_item, p_solicitud_historial,  p_justificacion_supervisor, p_observacion_fiscal, p_usuario)
+      //variables de la funcion
+        //id_modificacion_pago:  $1
+        //id_item: $2
+        //id_solicitud_historial: $3
+        //justificacion_supervisor:  $4
+        //observacion_fiscal:    $5    
+        //id_usuario_registro: $6
+        `SELECT public.sp_modificacion_planilla_observacion(
+          $1,$2,$3,$4,$5,$6) as resultado;`;
+      const params: any[] = [data.id_modificacion_pago, data.id_item, data.id_solicitud_historial, 
+         data.observacion_fiscal, data.estado_observacion_fis, data.id_usuario_registro];
+      const resultado: any[] = await this.planillaRepositorio.query(query, params);
+      //log('Consulta generada insertar justificacion:', await this.planillaRepositorio.query(query)); // Imprimir la consulta en el log
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error: any) {
+      console.error("Error al actualizar observacion sp nuevo:", error); // Log detallado en consola
+      return this.responseService.error({
+        mensaje: "Ocurrió un error al actualizar la observacion.",
+        detalle: error.message || error,
+      });
+    }
+  }
 
 
   async actualizarPlanilla(data: actualizarPlanillaDto) {
