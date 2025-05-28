@@ -111,4 +111,11 @@ listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
   }*/
 
 
+  @Patch(':id')
+  updatePlanillaObservacion(@Param('id') id: string, @Body() updatePlanillaDto: UpdatePlanillaDto) {
+    try{    
+    return this.planillaService.update(+id, updatePlanillaDto);
+  }catch {error}    
+  }
+
 }
