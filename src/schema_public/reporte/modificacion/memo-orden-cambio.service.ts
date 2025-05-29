@@ -34,6 +34,8 @@ export class MemoOrdenCambio {
 
     datosEnvio: any = [];
     datosFis: any = [];
+    datosInf: any = [];
+    datosSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -47,16 +49,16 @@ export class MemoOrdenCambio {
     }
   
   //CONSULTAS
-  // Datos generales obra - contrato - OP
-  async datosGeneralesReporteOP(obra: number) {
-    const query1 = `
+  // Datos generales obra - contrato - modificación
+  async datosGeneralesObraModif(id_modif_pago: number) {
+    const query = `
         SELECT * 
-        FROM public.vista_datos_op WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
+        FROM public."vista_reporte_modificacion_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
+    const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
 
-     // FISCALES designados por obra 
+   // FISCALES designados por obra 
    async fiscalDesignado(obra: number) {
     const query1 = `
         SELECT * 
@@ -65,57 +67,59 @@ export class MemoOrdenCambio {
     return resultado[0];
    }
 
-      //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
-
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
-
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
-
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
+  // Datos generales obra - contrato - modificación
+  async datosInformesSF(id_modif_pago: number) {
+    const query2 = `
+        SELECT * 
+        FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+    const resultado2 = await this.sequelize.query(query2);
+    return resultado2[0];
   }
 
+   // SUPERVISORES designados por obra 
+   async supervisorDesignado(obra: number) {
+    const query3 = `
+        SELECT * 
+        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
+  
 // REPORTE - MEMORANDUM ORDEN DE CAMBIO
-  async generateOrdenCambio(obra: number): Promise<Buffer> {
+  async generateOrdenCambio(id_modif_pago: number): Promise<Buffer> {
 
-    const res = await this.datosGeneralesReporteOP(obra);
+    const res = await this.datosGeneralesObraModif(id_modif_pago);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la obra proporcionada');
     }
     this.datosEnvio = res;
 
-    const resSup = await this.fiscalDesignado(obra);
-    if (!resSup || (Array.isArray(resSup) && resSup.length === 0) || (typeof resSup === 'object' && Object.keys(resSup).length === 0)) {
+    const resFis = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
+    if (!resFis || (Array.isArray(resFis) && resFis.length === 0) || (typeof resFis === 'object' && Object.keys(resFis).length === 0)) {
       throw new Error('No se encontraron datos del fiscal designado');
     }
-    this.datosFis = resSup;
+    this.datosFis = resFis;
+
+    const res1 = await this.datosInformesSF(id_modif_pago);
+    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos de los informes de Sup/Fis');
+    }
+    this.datosInf = res1;
+
+      const res2 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+    }
+    this.datosSup = res2;
    
     //console.log("DATOS, ", res);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
+    const imgPath = 'assets/images/membretado_oficio.png';
 
     const documentDefinition = {
-      pageSize: 'LETTER' as any,
+      pageSize: 'LEGAL' as any,
       background: function (currentPage: any, pageSize: any) {
         return {
           image: imgPath,
@@ -137,11 +141,11 @@ export class MemoOrdenCambio {
       } as any,
       content: [
         {
-          text: '\n\n\n\nMEMORANDUM',
+          text: 'MEMORANDUM',
           style: 'header', alignment: 'center',
         } as any,
        {
-          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].cite_memo + '-' + '1',
+          text: this.datosEnvio[0].cod_carpeta + '-' + 'MOC-' + this.datosEnvio[0].numero_modificacion,
           style: 'subheader', alignment: 'center'
         },
         {
@@ -176,7 +180,7 @@ export class MemoOrdenCambio {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo), 
+                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_fiscal), 
                   style: 'textDato', alignment: 'center'
                 },
                 {
@@ -191,17 +195,16 @@ export class MemoOrdenCambio {
             defaultBorder: false
           }
         } as any,
-      // Referencia
         {
           text: '\n'
         } as any,
         {
-          text: 'REF.: ORDEN DE CAMBIO N°', 
+          text: 'REF.: ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion, 
           style: 'coloredText', alignment: 'center', decoration: 'underline' 
         },
         {
           text: '\n'
-        } as any,
+        },
         // Tabla resumen de obra
         {
           table: {
@@ -224,15 +227,14 @@ export class MemoOrdenCambio {
                 { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
               ],
               [
-                { text: [{ text: 'CONTRATO N°:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
+                { text: [{ text: 'CONTRATO N°:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },] },
+                { text: [{ text: this.datosEnvio[0].numero_contrato + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }] }
               ]
 
             ]
           },
           layout: 'noBorders'
-        } as any,
-        // Cuerpo de la carta
+        },
         {
           text: '\n'
         },
@@ -240,76 +242,97 @@ export class MemoOrdenCambio {
           text: [
             { text: 'Señor(es): \n', style: 'textDato' },
             {
-              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + 
-              ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + 'de fecha ' + 
-              this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO N° XX' + 
-              ' por ' + ' INSERTAR REFERENCIA' + ', VARIABLE DE SI EL TIEMPO VARIA en ' + this.datosEnvio[0].plazo_ejecucion + '.\n\n',
+              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
+              ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + ' de fecha ' + 
+              this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion + 
+              ' por ' + this.datosInf[0].referencia + ', XXX SI EL TIEMPO VARIA con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_definitiva) + '.\n\n',
               style: 'textDato',  alignment: 'justify'
             },
             {
-              text: 'Asimismo, ' + 'DECREMENTA EL MONTO DE LA MODIFICACIÓN Nro XX de Bs. XXXXXX' + ', en ' + '-27.45 ' + ' (VEINTISIETE 45/100 BOLIVIANOS)' + 
-              '.\n\n',
+              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' de Bs.' + 'MONTO VIGENTE ' + '(' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
+              ', tiene una variación de ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + '.\n\n',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {
-              text: 'Por lo que el monto autorizado será de Bs.' + '97.645,83 ' + ' (NOVENTA Y SIENTE MIL SEICIENTOS CUARENTA Y CINCO 83/100 BOLIVIANOS)' + 
-              'totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + 'XXXX%',
+              text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') +  
+              ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {
-              text: '\n\nAtentamente,\n\n\n', 
+              text: '\n\nAtentamente,', 
               style: 'textDato', alignment: 'left'
             },
           ],
         },
         {
-          text: '\n\n\n\n'
+          text: '\n\n\n\n\n'
         },
         {
-          text:
-          [
-            { text: 
-                  (Array.isArray(this.datosFis)
-                    ? this.datosFis
-                        .filter(f => f && f.fiscal)
-                        .map(f => f.fiscal)
-                        .join(' | ')
-                    : ''
-                  ) + '\n', style: 'textDato', alignment: 'center' },
-            { text: 'FISCAL(ES) DE OBRA\n', style: 'textTitulo', alignment: 'center' }
-          ]
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                {
+                  text: 'CONTRATANTE', style: 'textTitulo', alignment: 'center'
+                },
+                {
+                  text:
+                      [
+                        { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                }
+              ]
+            ]
+          }, layout: 'noBorders'
+
+        },
+        {
+          text: '\n\n\n\n\n\n'
+        },
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosFis)
+                                ? this.datosFis
+                                    .filter(f => f && f.fiscal)
+                                    .map(f => f.fiscal)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                },
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosSup)
+                                ? this.datosSup
+                                    .filter(f => f && f.supervisor)
+                                    .map(f => f.supervisor)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                }
+              ]
+            ]
+          }, layout: 'noBorders'
         },
         {
           text: '\n\n\n'
         },
-        //TABLA DE NOTIFICACION AL CONTRATISTA
-        {
-          // table: {
-          //   widths: ['30%', '70%'],
-          //   body: [
-          //     [
-          //       { text: 'Firma: ', alignment: 'right', bold: true, fontSize: 8 },
-          //       { text: '____________________________________________________________', alignment: 'left', fontSize: 8 }
-          //     ],
-          //     [
-          //       { text: 'Nombre y apellido: ', alignment: 'right', bold: true, fontSize: 8 },
-          //       { text: '____________________________________________________________', alignment: 'left', fontSize: 8 }
-          //     ],
-          //     [
-          //       { text: 'Lugar: ', alignment: 'right', bold: true, fontSize: 8 },
-          //       { text: '______________________________', alignment: 'left', fontSize: 8 }
-          //     ],
-          //     [
-          //       { text: 'Fecha: ', alignment: 'right', bold: true, fontSize: 8 },
-          //       { text: '___/___/_____' , alignment: 'left', fontSize: 8 }
-          //     ]
-          //   ]
-          // },
-          // layout: {
-          //   defaultBorder: false,
-          // }
-        } as any,
-        { text: '\nC.c. DLC' + '\nC.c. Unidad Ejecutora.' + '\nC.c. Arch.', style: 'footerText', alignment: 'left' },
+        { 
+          text: '\nC.c. DLC' + '\nC.c. Unidad Ejecutora.' + '\nC.c. Arch.', style: 'footerText', alignment: 'left' 
+        },
       
       ],
 
@@ -348,7 +371,7 @@ export class MemoOrdenCambio {
           bold: false,
         },
       },
-      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
 
     };
@@ -368,6 +391,123 @@ export class MemoOrdenCambio {
     });
   }
 
+  //// FUNCIONES VARIOS
+  
+      //funcion para generar la fecha de manera escrita
+  fechaString(iso: string): string {
+    let formattedDate = '';
+    let fecha: Date;
+
+    if (iso === 'hoy') {
+      fecha = new Date();
+    } else {
+      fecha = new Date(iso);
+    }
+
+    if (iso) {
+      const h = fecha.getHours();
+      const m = fecha.getMinutes();
+      const horas = h < 10 ? `0${h}` : `${h}`;
+      const minutos = m < 10 ? `0${m}` : `${m}`;
+
+      // Formatea la fecha
+      formattedDate = fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+     }
+
+    return formattedDate;
+  }
+
+//Función para generar de manera escrita el monto del dinero
+private unidades = [
+'', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
+];
+
+private decenas = [
+  '', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA',
+];
+
+private especiales = [
+  'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE',
+];
+
+private centenas = [
+  '', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS',
+  'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS',
+];
+
+convertToWords(value: string, currency: string): string {
+  // Eliminar espacios y símbolos excepto dígitos, punto y coma
+  const cleanValue = value.replace(/[^\d.,]/g, '');
+
+  // Reemplazar el punto (.) por vacío solo si es separador de miles
+  const normalized = cleanValue.replace(/\./g, '').replace(',', '.');
+
+  const number = parseFloat(normalized);
+
+  if (isNaN(number)) throw new Error('Valor inválido');
+
+  const integerNumber = Math.floor(number);
+  const decimalNumber = Math.round((number - integerNumber) * 100);
+
+  const integerWords = this.numberToWords(integerNumber).trim();
+  const decimalWords = `${decimalNumber.toString().padStart(2, '0')}/100`;
+  const currencyWords = this.getCurrencyWord(currency);
+
+  return `${integerWords} CON ${decimalWords} ${currencyWords}`;
+}
+
+private numberToWords(value: number): string {
+  if (value === 0) return 'CERO';
+  if (value < 10) return this.unidades[value];
+  if (value === 10) return 'DIEZ';
+  if (value > 10 && value < 20) return this.especiales[value - 11];
+  if (value < 100) {
+    const decena = Math.floor(value / 10);
+    const unidad = value % 10;
+    return unidad > 0
+      ? `${this.decenas[decena]} Y ${this.unidades[unidad]}`
+      : this.decenas[decena];
+  }
+  if (value < 1000) {
+    const centena = Math.floor(value / 100);
+    const resto = value % 100;
+    if (value === 100) return 'CIEN';
+    return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000) {
+    const miles = Math.floor(value / 1000);
+    const resto = value % 1000;
+    const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
+    return `${milesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000_000) {
+    const millones = Math.floor(value / 1_000_000);
+    const resto = value % 1_000_000;
+    const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
+    return `${millonesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  throw new Error('Valor fuera de rango');
+}
+
+private getCurrencyWord(currency: string): string {
+  switch (currency) {
+    case 'Bs.':
+    case 'Bs':
+      return 'BOLIVIANOS';
+    case '$':
+    case 'USD':
+      return 'DÓLARES';
+    case '€':
+    case 'EUR':
+      return 'EUROS';
+    default:
+      throw new Error(`Moneda no soportada: ${currency}`);
+  }
+}
 
 
 }

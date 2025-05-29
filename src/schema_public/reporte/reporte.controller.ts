@@ -254,9 +254,9 @@ export class ReportController {
   @Public()
   @Get('memo-orden-cambio')
   async MemoOrdenCambio(@Res() res: Response,
-  @Query('id_obra') id_obra: number
+  @Query('id_modif_pago') id_modif_pago: number
   ): Promise<void> {
-    const pdfBuffer = await this.memoOrdenCambio.generateOrdenCambio(id_obra);    
+    const pdfBuffer = await this.memoOrdenCambio.generateOrdenCambio(id_modif_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
@@ -296,9 +296,10 @@ export class ReportController {
    @Public()
   @Get('computo-metrico')
   async ComputoMetrico(@Res() res: Response,
-  @Query('id_obra') id_obra: number
+  @Query('id_obra') id_obra: number,
+  @Query('id_modificacion_pago') id_modificacion_pago: number
   ): Promise<void> {
-    const pdfBuffer = await this.computometrico.generateComputoMetrico(id_obra);    
+    const pdfBuffer = await this.computometrico.generateComputoMetrico(id_obra, id_modificacion_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
