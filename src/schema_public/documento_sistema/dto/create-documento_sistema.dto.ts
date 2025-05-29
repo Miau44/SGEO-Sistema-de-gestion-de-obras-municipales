@@ -16,7 +16,7 @@ export class CreateDocumentoSistemaDto {
 
   @IsNumber()
   @IsNotEmpty()
-  id_tipo_relacion: number;
+  id_tipo_documento: number;
 
   @IsString()
   @IsNotEmpty()

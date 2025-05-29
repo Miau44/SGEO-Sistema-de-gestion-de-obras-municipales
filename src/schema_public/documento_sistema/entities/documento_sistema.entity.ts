@@ -21,7 +21,7 @@ export class DocumentoSistema {
         nombre_tabla_relacion: string;   
     
         @Column()
-        id_tipo_relacion: number;
+        id_tipo_documento: number;
 
         @Column()
         ruta_documento: string;   
