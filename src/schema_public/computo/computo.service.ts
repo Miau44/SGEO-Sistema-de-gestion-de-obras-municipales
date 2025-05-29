@@ -118,10 +118,12 @@ export class ComputoService {
   async listaItemComputoXObraFiscal(data: ComputoModificacionDto) {
     try {
 
-      let query = ` 
-     SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1;
-     `
-      const params = [data.id_modificacion_pago];
+    //   let query = ` 
+    //  SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1; id_solicitud_historial
+    //  `
+    //   const params = [data.id_modificacion_pago];
+    const query = `SELECT * FROM public.sp_listar_planilla_por_historial($1)`;
+    const params = [data.id_solicitud_historial];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

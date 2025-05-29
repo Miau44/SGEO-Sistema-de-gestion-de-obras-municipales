@@ -9,16 +9,11 @@ export class PlanillaObservacion {
     @Column()
     id_planilla: number;    
 
-        
     @Column()
     id_solicitud_historial: number;
 
     @Column({nullable:true})
-    justificacion_supervisor: string;    
-
-    @Column({nullable:true})
     observacion_fiscal: string;
-
 
     @Column({default:false})
     estado_observacion_fis: boolean;              
