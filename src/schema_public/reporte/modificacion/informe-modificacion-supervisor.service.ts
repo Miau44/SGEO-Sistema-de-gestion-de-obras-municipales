@@ -867,6 +867,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   //   return arrayData;
   // }
 
+// Función para cargar las tablas de modificaciones INCREMENTO-DECREMENTO-ADICION
   buildItemsIDA(data: any) {
   let datosResp = data;
   let arrayData = [];

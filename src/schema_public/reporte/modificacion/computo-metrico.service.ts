@@ -34,6 +34,7 @@ export class ComputoMetrico {
 
   datosEnvio: any = [];
     datosSup: any = [];
+    datosComputo: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -48,7 +49,7 @@ export class ComputoMetrico {
 
  //CONSULTAS
 
-// Datos generales obra - contrato - OP
+  // Datos generales obra - contrato - OP
   async datosGeneralesReporteOP(obra: number) {
     const query1 = `
         SELECT * 
@@ -66,7 +67,181 @@ export class ComputoMetrico {
     return resultado[0];
    }
 
-      //funcion para generar la fecha de manera escrita
+       // Tabla Computo Metrico 
+   async computoMetrico(obra: number, solicitud: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.f_reporte_computo(${obra},${solicitud});`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+  
+  // REPORTE - COMPUTO METRICO
+async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promise<Buffer> {
+
+  const datosGenerales = await this.datosGeneralesReporteOP(obra);
+  if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
+    throw new Error('No se encontraron datos para la ID de la obra proporcionada');
+  }
+  this.datosEnvio = datosGenerales;
+
+  const res1 = await this.supervisorDesignado(obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosSup = res1;
+
+  const res2 = await this.computoMetrico(obra, id_modificacion_pago);
+  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos del cómputo métrico');
+  }
+  this.datosComputo = res2;
+
+  console.log('DATOS COMPUTO',this.datosComputo);
+
+  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+  //const imgPath = 'assets/images/membretado_oficio.png';
+  const imgLogo = 'assets/images/logoSGEO.png'
+ 
+    const documentDefinition = {
+    
+    pageSize: 'LEGAL' as any,
+    // background: function(currentPage: any, pageSize: any) { 
+    //   return {
+    //     image: imgPath, 
+    //     width: pageSize.width, 
+    //     height: pageSize.height,
+    //     absolutePosition: {x: 0, y: 0}
+    //         } },
+
+    //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
+    
+    header: {
+      columns: [
+              { image: imgLogo, width: 130, margin: [5,5,0,0] },
+      ],
+      
+    } as any,
+
+    content: [ 
+      
+      {
+        text:[
+            { text: '\n\n\nPLANILLA COMPUTO METRICO ' + 'CONTRATO MODIFICATORIO ' + ' N°' + '1\n', style: 'subheader', alignment: 'center' },
+            { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
+        ],
+      },
+      {
+        text: '\n',
+      },
+      {
+        text:[
+            { text: 'NOMBRE DE LA OBRA: ', style: 'textDato', bold:true },
+            { text: this.datosEnvio[0].desc_carpeta, style: 'textDato'}
+            ], margin: [0,0,0,6],    
+      },
+      {
+        table: {
+          widths: [10, '*', 30, 30, 30, 30, 30, 30, 30, 30, 30], // 11 columnas
+          body: [
+            [
+              { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'Nº de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { colSpan: 5, text: 'MEDIDAS', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {}, {},
+              { rowSpan: 2, text: 'PARCIAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'TOTAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+            ],
+            [
+              {}, {}, {}, {}, //
+              { text: 'A\nLargo', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'B\nAncho', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'C\nAlto', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'D\nÁrea', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'E\nVolumen', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              {}, // vacío para PARCIAL
+              {}, // vacío para TOTAL
+            ],
+           ...this.buildContenidoComputo(this.datosComputo) 
+
+          ]
+        }
+
+      },
+      {
+        text: '\n\n\n',
+      },
+      {
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildsupervisores(this.datosSup)
+              ]
+          }, margin: [20,0,20,0]
+        },
+      {
+        
+      } as any,
+    ],
+
+    footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+          { //return currentPage.toString() + ' of ' + pageCount; 
+            return {
+              columns:[
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                      ]
+              }            
+          } as any,
+    
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 11,
+        bold: true,
+      },
+      textTitulo: {
+        fontSize: 6,
+        bold: true,
+        //opacity: 0.8,
+      },
+      footerText: {
+        fontSize: 6,
+        bold: false,          
+      },
+      textDato: {
+        fontSize: 7,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+    },
+    pageMargins: [50, 0, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+  };
+  // Generar el PDF en memoria
+  const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+  let chunks: Buffer[] = [];
+
+  return new Promise<Buffer>((resolve, reject) => {
+    pdfDoc.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    pdfDoc.on('end', () => {
+      const result = Buffer.concat(chunks);
+      resolve(result);
+    });
+    pdfDoc.end();
+  });
+}
+
+//////FUNCIONES 
+  //Funcion para generar la fecha de manera escrita
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -113,163 +288,38 @@ export class ComputoMetrico {
                 { text: nombreCompleto + '\n', style: 'textDato' },
                 { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
                   ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
       return arrayData;
     }
 
-// REPORTE - COMPUTO METRICO
-async generateComputoMetrico(obra: number): Promise<Buffer> {
+  //Cargar tabla de computos metricos
+buildContenidoComputo(data: any[]) {
+ let datosCM = data;
+      let arrayData = [];
+  
+      for (let i = 0; i < datosCM.length; i++) {
+        let rowData = [
+          { text: datosCM[i].orden_sim, style: 'textDato', alignment: 'center' },
+          { text: datosCM[i].desc_item, style: 'textDato' },
+          { text: datosCM[i].unidad_medida_sim, style: 'textDato', alignment: 'center' },
+          { text: datosCM[i].numero_veces, style: 'textDato', alignment: 'center' },
+          { text: datosCM[i].largo, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].ancho, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].alto, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].area_total, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].volumen_total, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].parcial, style: 'textDato', alignment: 'right' },
+          { text: datosCM[i].cantidad_reordenamiento, style: 'textDato', alignment: 'right' },
 
-  const datosGenerales = await this.datosGeneralesReporteOP(obra);
-  if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
-    throw new Error('No se encontraron datos para la ID de la obra proporcionada');
-  }
-  this.datosEnvio = datosGenerales;
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
 
-  const res1 = await this.supervisorDesignado(obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
-
-  const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-   const imgPath = 'assets/images/membretado_oficio.png';
- 
-    const documentDefinition = {
-    pageSize: 'LEGAL' as any,
-    background: function(currentPage: any, pageSize: any) { 
-      return {
-        image: imgPath, 
-        width: pageSize.width, 
-        height: pageSize.height,
-        absolutePosition: {x: 0, y: 0}
-            } },
-
-    //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
-    
-    header: {
-      columns: [{ 
-
-      }],
-      
-    } as any,
-
-    content: [ 
-      
-      {
-        text:[
-            { text: '\n\n\nPLANILLA COMPUTO METRICO ' + 'CONTRATO MODIFICATORIO ' + ' N°' + '1\n', style: 'subheader', alignment: 'center' },
-            { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
-        ],
-      },
-      {
-        text: '\n',
-      },
-      {
-        text:[
-            { text: 'NOMBRE DE LA OBRA: ', style: 'footerText', bold:true },
-            { text: this.datosEnvio[0].desc_carpeta, style: 'footerText'}
-            ], margin: [0,0,0,6],    
-      },
-      {
-        table: {
-          widths: [10, '*', 30, 30, 30, 30, 30, 30, 30, 30, 30], // 11 columnas
-          body: [
-            [
-              { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'Nº de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 5, text: 'MEDIDAS', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {}, {},
-              { rowSpan: 2, text: 'PARCIAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'TOTAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-            ],
-            [
-              {}, {}, {}, {},
-              { text: 'A\nLargo', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'B\nAncho', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'C\nAlto', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'D\nÁrea', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'E\nVolumen', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              {}, // vacío para PARCIAL
-              {}, // vacío para TOTAL
-            ]
-          ]
-        }
-      },
-      {
-        text: '\n',
-      },
-      {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildsupervisores(this.datosSup)
-              ]
-          }, margin: [20,0,20,0]
-        },
-      {
-        
-      } as any,
-    ],
-
-    footer: function(currentPage: { toString: () => string; }, pageCount: string) 
-          { //return currentPage.toString() + ' of ' + pageCount; 
-            return {
-              columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
-                      ]
-              }            
-          } as any,
-    
-    styles: {
-      header: {
-        fontSize: 18,
-        bold: true,
-      },
-      subheader: {
-        fontSize: 11,
-        bold: true,
-      },
-      textTitulo: {
-        fontSize: 6,
-        bold: true,
-        //opacity: 0.8,
-      },
-      footerText: {
-        fontSize: 6,
-        bold: false,          
-      },
-      textDato: {
-        fontSize: 8,
-        bold: false,
-        //color: 'gray', 
-        opacity: 0.8,
-      },
-    },
-    pageMargins: [50, 0, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-
-  };
-  // Generar el PDF en memoria
-  const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
-
-  return new Promise<Buffer>((resolve, reject) => {
-    pdfDoc.on('data', (chunk) => {
-      chunks.push(chunk);
-    });
-    pdfDoc.on('end', () => {
-      const result = Buffer.concat(chunks);
-      resolve(result);
-    });
-    pdfDoc.end();
-  });
 }
-
 
 }
