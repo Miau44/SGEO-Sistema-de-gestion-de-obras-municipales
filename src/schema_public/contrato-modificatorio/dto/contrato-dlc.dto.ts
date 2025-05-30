@@ -65,4 +65,10 @@ export class ContratoDlcDto {
 
     @IsString()
     url: string;
+
+    @IsString()
+    id_contrato: string;
+
+    @IsString()
+    elreplegal: string;
 }
