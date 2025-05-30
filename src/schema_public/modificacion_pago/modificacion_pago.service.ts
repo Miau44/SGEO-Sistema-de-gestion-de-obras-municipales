@@ -33,7 +33,7 @@ export class ModificacionPagoService {
 
     private responseService: ResponseService,
     private solicitudService: SolicitudService,
-    private servicioCorrelativo: CorrelativoService, 
+    private servicioCorrelativo: CorrelativoService,
     private servicioPlanilla: PlanillaService
 
   ) { }
@@ -242,24 +242,24 @@ LEFT JOIN (
 
 
   //servicio para modificacion de dias_variacion marvel
-    
+
   async updateDiasVariacion(id_modificacion: number, dias_variacion: number) {
     try {
-        // Actualizar el campo directamente en la base de datos con QueryBuilder
-        const resultado = await this.modificacionRepo
-            .createQueryBuilder()
-            .update('modificacion')
-            .set({ dias_variacion })
-            .where('id_modificacion = :id_modificacion', { id_modificacion })
-            .execute();
+      // Actualizar el campo directamente en la base de datos con QueryBuilder
+      const resultado = await this.modificacionRepo
+        .createQueryBuilder()
+        .update('modificacion')
+        .set({ dias_variacion })
+        .where('id_modificacion = :id_modificacion', { id_modificacion })
+        .execute();
 
-        if (resultado.affected === 0) {
-            return this.responseService.error('Registro no encontrado', '404');
-        }
+      if (resultado.affected === 0) {
+        return this.responseService.error('Registro no encontrado', '404');
+      }
 
-        return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
+      return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
     } catch (error) {
-        return this.responseService.error(error);
+      return this.responseService.error(error);
     }
   }
 
@@ -330,24 +330,24 @@ LEFT JOIN (
     try {
 
       // Validar los datos de entrada
-      if (!AprobarDto.id_modificacion_pago ) {
+      if (!AprobarDto.id_modificacion_pago) {
         throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
       }
 
       const query2 = `
       SELECT public.sp_aprobacion_x_tipo($1)	`;
       const params3 = [AprobarDto.id_modificacion_pago];
-    const resultado =  await this.modificacionRepo.query(query2, params3);
+      const resultado = await this.modificacionRepo.query(query2, params3);
 
       // Guardar los cambios en la base de datos
       //const resultado = await this.guardarModificacion(modificacion);
 
       return this.responseService.success(resultado, "aprobada correctamente.");
     } catch (error) {
-    console.error("Error en aprobarDesignacion:", error);
-    return this.responseService.error(error);
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
   }
-}
 
 
   async tieneIncremento(idModificacionPago: number): Promise<boolean> {
@@ -358,4 +358,28 @@ LEFT JOIN (
     return result[0].resultado;
   }
 
+  async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+    let q = `SELECT ficha.correlativo_carpeta, 
+        (select id_contrato from contrato ct where ct.correlativo_carpeta = ficha.correlativo_carpeta limit 1) as id_contrato,
+        id_modificacion,
+        monto_total,
+        porcentaje_total,
+        monto_variacion,
+        --porcentaje_variacion,
+        fecha_fiscal,
+        fecha_supervisor,
+        fecha_memo_minuta, 
+        dias_variacion, 
+        1 as id_tipo_modificacion
+        FROM modificacion
+        JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
+        JOIN obra on mp.id_obra = obra.id_obra
+        JOIN ficha on obra.id_ficha = ficha.id_ficha`;
+    if(id_carpeta>0){
+      q=q+`where ficha.correlativo_carpeta = $1`
+    }
+
+    const result = await this.modificacionRepo.query(q,[id_carpeta]);
+    return result[0].resultado;
+  }
 }

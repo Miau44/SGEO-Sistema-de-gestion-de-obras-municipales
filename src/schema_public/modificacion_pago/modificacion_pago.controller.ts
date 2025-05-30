@@ -120,7 +120,7 @@ export class ModificacionPagoController {
     }
   }
 
-    @Public()
+  @Public()
   @Post('tiene-incremento')
   async tieneIncremento(@Body() validar: ValidarModificacionDto) {
     try {
@@ -130,5 +130,23 @@ export class ModificacionPagoController {
     }
   }
 
-  
+  //Listado de modificaciones por carpeta, servicio de lectura DLC
+  @Public()
+  @Get('ModificacionesPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_carpeta: { type: 'number', example: 332478 }
+      }
+    }
+  })
+  async ModificacionesPorCarpeta(@Body() id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
+    } catch (error) {
+
+    }
+  }
 }

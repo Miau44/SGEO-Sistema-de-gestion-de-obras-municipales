@@ -87,4 +87,17 @@ export class ContratoController {
       return 'Test error';
     }
   }
+
+  //generar una funcion a partir del dto contrato-dlc.dto.ts
+  @Public()
+  @Post('RegistrarContratoSicom')
+  async RegistrarContratoSicom(@Body() contratoDlc: ContratoDlcDto): Promise<any> {
+    try {
+      const r = await this.contratoService.obtenerToken();
+      return await this.contratoService.registrar_contrato_modificatorio(contratoDlc);
+    } catch (error) {
+      console.error('Error:', error);
+      return 'Test error';
+    }
+  }
 }
