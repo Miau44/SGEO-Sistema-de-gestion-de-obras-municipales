@@ -359,6 +359,9 @@ LEFT JOIN (
   }
 
   async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+    console.log('listadoModificacionesxCarpeta');
+    console.log(id_carpeta);
+    
     let q = `SELECT ficha.correlativo_carpeta, 
         (select id_contrato from contrato ct where ct.correlativo_carpeta = ficha.correlativo_carpeta limit 1) as id_contrato,
         id_modificacion,
@@ -376,10 +379,11 @@ LEFT JOIN (
         JOIN obra on mp.id_obra = obra.id_obra
         JOIN ficha on obra.id_ficha = ficha.id_ficha`;
     if(id_carpeta>0){
-      q=q+`where ficha.correlativo_carpeta = $1`
+      q=q+` WHERE ficha.correlativo_carpeta = $1`
     }
-
-    const result = await this.modificacionRepo.query(q,[id_carpeta]);
-    return result[0].resultado;
+    console.log(q);
+    var res = await this.modificacionRepo.query(q,[id_carpeta]);
+    console.log(res);
+    return res;
   }
 }

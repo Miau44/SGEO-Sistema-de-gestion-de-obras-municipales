@@ -134,15 +134,15 @@ export class ModificacionPagoController {
   @Public()
   @Get('ModificacionesPorCarpeta/:id_carpeta')
   @HttpCode(HttpStatus.OK)
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        id_carpeta: { type: 'number', example: 332478 }
-      }
-    }
-  })
-  async ModificacionesPorCarpeta(@Body() id_carpeta: number) {
+  // @ApiBody({
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       id_carpeta: { type: 'number', example: 332478 }
+  //     }
+  //   }
+  // })
+  async ModificacionesPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
     try {
       return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
     } catch (error) {

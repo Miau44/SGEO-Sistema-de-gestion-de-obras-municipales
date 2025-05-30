@@ -28,7 +28,7 @@ export class Modificacion {
     porcentaje_total: number;
 
     @Column()
-    num_contrato_modificatorio: number;
+    numumero_contrato_modificatorio: string;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_aprobacion_contrato: Date|null;
