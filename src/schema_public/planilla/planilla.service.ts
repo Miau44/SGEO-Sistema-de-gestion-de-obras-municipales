@@ -133,7 +133,7 @@ export class PlanillaService {
   async actualizarJustificacionXItem(data: actualizarJustificacionDto) {
     try {
 
-      console.log('actualizarJustificacionDto', data);
+     // console.log('actualizarJustificacionDto', data);
 
     //  console.log('data actualizarJustificacionXItem', data);           
       let query =
