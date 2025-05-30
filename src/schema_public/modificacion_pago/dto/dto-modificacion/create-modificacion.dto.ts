@@ -20,6 +20,7 @@ export class CreateModificacionDto {
     @ApiProperty()
     porcentaje_total: number;   
 
+    
     @ApiProperty()
     numero_contrato_modificatorio: string;      
     

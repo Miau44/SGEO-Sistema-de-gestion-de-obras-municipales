@@ -27,6 +27,7 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     porcentaje_total: number;
 
+    
     @Column({ nullable:true })
     numero_contrato_modificatorio: string;
 
