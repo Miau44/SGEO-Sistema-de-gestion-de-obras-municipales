@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
-export class ListaFeriado {
+export class DiaFeriado  {
   
   @PrimaryColumn()
   id_lista_feriado: number;
