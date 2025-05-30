@@ -49,12 +49,12 @@ export class ComputoMetrico {
 
  //CONSULTAS
 
-  // Datos generales obra - contrato - OP
-  async datosGeneralesReporteOP(obra: number) {
-    const query1 = `
+  // Datos generales obra - contrato - modificación
+  async datosGeneralesObraModif(id_modif_pago: number) {
+    const query = `
         SELECT * 
-        FROM public.vista_datos_op WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
+        FROM public."vista_reporte_modificacion_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
+    const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
 
@@ -80,7 +80,7 @@ export class ComputoMetrico {
   // REPORTE - COMPUTO METRICO
 async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promise<Buffer> {
 
-  const datosGenerales = await this.datosGeneralesReporteOP(obra);
+  const datosGenerales = await this.datosGeneralesObraModif(id_modificacion_pago);
   if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
     throw new Error('No se encontraron datos para la ID de la obra proporcionada');
   }
@@ -129,7 +129,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       
       {
         text:[
-            { text: '\n\n\nPLANILLA COMPUTO METRICO ' + 'CONTRATO MODIFICATORIO ' + ' N°' + '1\n', style: 'subheader', alignment: 'center' },
+            { text: 'PLANILLA COMPUTO METRICO ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'subheader', alignment: 'center' },
             { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
         ],
       },
@@ -144,6 +144,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       },
       {
         table: {
+          headerRows: 2,
           widths: [10, '*', 30, 30, 30, 30, 30, 30, 30, 30, 30], // 11 columnas
           body: [
             [
@@ -221,7 +222,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         opacity: 0.8,
       },
     },
-    pageMargins: [50, 0, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [50, 55, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
