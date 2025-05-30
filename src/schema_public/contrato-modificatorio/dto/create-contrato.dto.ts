@@ -111,4 +111,8 @@ export class CreateContratoDto {
   @ApiProperty({ example: '', description: '' })
   @IsString()
   telefono: string;
+
+  @ApiProperty({ example: 1, description: 'ID del contrato' })
+  @IsInt()
+  id_contrato: number;
 }

@@ -219,7 +219,7 @@ export class ComputoService {
       FROM public.item AS i
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
-LEFT OUTER JOIN public.planilla_observacion AS po  ON p.id_planilla = po.id_planilla           
+LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_planilla           
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
 
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
