@@ -93,7 +93,7 @@ export class ComputoService {
       public.formato_numerico(p_unitario_adjudicado,5) as p_unitario_adjudicado,	
       public.formato_numerico(total_adjudicado,5) as total_adjudicado,       
 	    public.formato_numerico(i.cantidad_autorizada,2) AS cantidad_autorizada, 
-	    public.formato_numerico(cantidad_reordenamiento,5) as reordenamiento,
+	    public.formato_numerico(cantidad_reordenamiento,2) as reordenamiento,
       public.formato_numerico(total_reordenamiento,5) as total_reordenamiento,       
       i.id_obra, 
       --p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis,
