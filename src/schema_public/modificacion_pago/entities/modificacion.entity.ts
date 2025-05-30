@@ -23,12 +23,12 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     porcentaje_modificacion: number;
 
-   // @Column()
-   @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    // @Column()
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
     porcentaje_total: number;
 
-    @Column()
-    numumero_contrato_modificatorio: string;
+    @Column({ nullable:true })
+    numero_contrato_modificatorio: string;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_aprobacion_contrato: Date|null;
@@ -45,8 +45,8 @@ export class Modificacion {
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_aprobacion: Date |null; 
 
-      @Column({ nullable:true })
-      finalizado: boolean;
+    @Column({ nullable:true })
+    finalizado: boolean;
 
     ///campos de tabla generales
 
