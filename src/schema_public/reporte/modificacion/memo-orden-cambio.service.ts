@@ -67,7 +67,7 @@ export class MemoOrdenCambio {
     return resultado[0];
    }
 
-  // Datos generales obra - contrato - modificación
+  // Datos informes de Supervisor y Fiscal
   async datosInformesSF(id_modif_pago: number) {
     const query2 = `
         SELECT * 
