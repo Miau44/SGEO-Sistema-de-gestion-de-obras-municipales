@@ -37,6 +37,9 @@ export class TipoDocumento {
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
-    fecha_modificacion: Date        
+    fecha_modificacion: Date
+
+    @Column({ nullable: true })
+    agrupacion_documento: number;    
 
 }

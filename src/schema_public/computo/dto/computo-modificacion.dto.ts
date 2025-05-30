@@ -7,6 +7,9 @@ export class ComputoModificacionDto {
 
     @ApiProperty()
     id_modificacion_pago: number;
-     
+    
+    @ApiProperty()
+    id_solicitud_historial:number;
+
  
 }

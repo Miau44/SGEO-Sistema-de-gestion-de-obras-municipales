@@ -45,6 +45,9 @@ export class Modificacion {
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_aprobacion: Date |null; 
 
+      @Column({ nullable:true })
+      finalizado: boolean;
+
     ///campos de tabla generales
 
     @Column()

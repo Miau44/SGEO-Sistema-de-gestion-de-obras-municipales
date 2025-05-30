@@ -4,6 +4,7 @@ import { UpdateDocumentoSistemaDto } from './dto/update-documento_sistema.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DocumentoSistema } from './entities/documento_sistema.entity';
 import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DocumentoSistemaService {
@@ -11,6 +12,7 @@ export class DocumentoSistemaService {
   constructor(
     @InjectRepository(DocumentoSistema)
     private readonly documentoSistemaRepo: Repository<DocumentoSistema>,
+    private readonly dataSource: DataSource
   ) {}
   
   async create(createDocumentoSistemaDto: CreateDocumentoSistemaDto) {
@@ -33,5 +35,10 @@ export class DocumentoSistemaService {
   
   remove(id: number) {
     return `This action removes a #${id} documentoSistema`;
+  }
+
+  async listarDocumentosPorObra(idObra: number): Promise<any[]> 
+  {const result = await this.dataSource.query('SELECT * FROM public.sp_listar_documento_sistema($1)',[idObra]);
+    return result;
   }
 }
