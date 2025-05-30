@@ -10,6 +10,7 @@ import { SolicitudGarantia } from './modificacion/solicitud-garantia.service';
 import { InformeModificacionFiscal } from './modificacion/informe-modificacion-fiscal.service';
 import { ComputoMetrico } from './modificacion/computo-metrico.service';
 import { AnexoOC } from './modificacion/anexo-oc.service';
+import { PlanillaReordenamiento } from './modificacion/planilla-reordenamiento.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -22,6 +23,7 @@ export class ReportController {
     private readonly informeModificacionFiscal: InformeModificacionFiscal,
     private readonly computometrico: ComputoMetrico,
     private readonly anexooc: AnexoOC,
+    private readonly planillareorden: PlanillaReordenamiento,
   ) {}
 
 
@@ -282,9 +284,9 @@ export class ReportController {
    @Public()
   @Get('informe-modificacion-fiscal')
   async InformeModificacionFiscal(@Res() res: Response,
-  @Query('id_obra') id_obra: number
+  @Query('id_modif_pago') id_modif_pago: number
   ): Promise<void> {
-    const pdfBuffer = await this.informeModificacionFiscal.generateInformeModificacionFiscal(id_obra);    
+    const pdfBuffer = await this.informeModificacionFiscal.generateInformeModificacionFiscal(id_modif_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      
@@ -314,6 +316,21 @@ export class ReportController {
   @Query('id_modif_pago') id_modif_pago: number
   ): Promise<void> {
     const pdfBuffer = await this.anexooc.generateAnexoOC(id_modif_pago);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
+  @Public()
+  @Get('planilla-reordenamiento')
+  async PlanillaReordenamiento(@Res() res: Response,
+  @Query('id_obra') id_obra: number,
+  @Query('id_modificacion_pago') id_modificacion_pago: number
+  ): Promise<void> {
+    const pdfBuffer = await this.planillareorden.generatePlanillaReordenamiento(id_obra, id_modificacion_pago);    
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdfBuffer.length,      

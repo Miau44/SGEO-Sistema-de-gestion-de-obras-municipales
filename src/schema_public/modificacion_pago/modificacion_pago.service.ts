@@ -205,7 +205,10 @@ export class ModificacionPagoService {
           tmp.desc_subtipo AS tipo_modificacion,
            co.correlativo as nro_modificacion,
            cog.correlativo AS nro_correlativo,
-           es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+           es.desc_estado as estado,
+		   public.formato_numerico(m.monto_total,5) AS monto_total, 
+ public.formato_numerico(m.monto_variacion,5) AS monto_variacion, 		 
+            m.fecha_registro AS fecha_modificacion
            ,param.detalle AS porcentaje_permitido, sh.id_solicitud_historial	  
            FROM public.modificacion_pago AS mp
            INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
@@ -345,4 +348,14 @@ LEFT JOIN (
     return this.responseService.error(error);
   }
 }
+
+
+  async tieneIncremento(idModificacionPago: number): Promise<boolean> {
+    const result = await this.modificacionRepo.query(
+      `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
+      [idModificacionPago],
+    );
+    return result[0].resultado;
+  }
+
 }
