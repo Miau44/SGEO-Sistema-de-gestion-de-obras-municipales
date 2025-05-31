@@ -13,6 +13,7 @@ import { log } from 'console';
 import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
 import { Log } from '../log/entities/log.entity';
 import { actualizarObservacionDto } from './dto/planilla_observacion/actualizar-observacion.dto';
+import { PlanillaItemDto } from './dto/obtener-planilla-item.dto';
 
 @Injectable()
 export class PlanillaService {
@@ -271,5 +272,27 @@ export class PlanillaService {
 
 
 
+  async listaPlanillaXItem(data: PlanillaItemDto) {
+    try {
+      ;
+      let query =
+        ` 
+          SELECT * FROM public.item AS i
+          INNER JOIN public.planilla AS p ON i.id_item = p.id_item
+          LEFT JOIN planilla_justificacion pju 
+            ON p.id_planilla = pju.id_planilla
+            AND pju.id_solicitud_historial = $1
+            WHERE 
+            p.id_modificacion_pago = $2
+          AND i.id_item = $3
+          AND i.id_estado = 1
+        `;
+      const params: any[] = [data.id_solicitud_historial, data.id_modificacion_pago, data.id_item];
+      const resultado: any[] = await this.planillaRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 }

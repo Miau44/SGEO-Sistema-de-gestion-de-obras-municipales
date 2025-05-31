@@ -122,7 +122,9 @@ export class ComputoService {
     //  SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1; id_solicitud_historial
     //  `
     //   const params = [data.id_modificacion_pago];
-    const query = `SELECT * FROM public.sp_listar_planilla_por_historial($1, $2)`;
+ //   const query = `SELECT * FROM public.sp_listar_planilla_por_historial($1, $2)`;
+    const query = `SELECT * FROM public.sp_modificacion_fiscal_item($1, $2)`;
+    
     const params = [
       data.id_modificacion_pago,
       data.id_solicitud_historial,
