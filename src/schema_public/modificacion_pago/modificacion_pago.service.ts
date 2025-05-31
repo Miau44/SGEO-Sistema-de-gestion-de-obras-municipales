@@ -362,12 +362,11 @@ LEFT JOIN (
     console.log(id_contrato);
 
     let q = `SELECT ficha.correlativo_carpeta, 
-				contrato.id_contrato,
         id_modificacion,
         monto_total as montoadjudicado,
-        porcentaje_total,
+        porcentaje_total::INTEGER as porcentaje_total,
         monto_variacion,
-        porcentaje_modificacion,
+        porcentaje_modificacion::INTEGER as porcentaje_modificacion,
         fecha_fiscal,
         fecha_supervisor,
         fecha_memo_minuta, 
@@ -393,7 +392,7 @@ LEFT JOIN (
 
   async guardadoNumeracion(id_contrato: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
     try {
-
+      //--en oc no debe modificar fecha_memo_minuta
       let q = `select id_modificacion,id_contrato from contrato
 				JOIN obra on contrato.id_obra = obra.id_obra
 				JOIN modificacion_pago on obra.id_obra = modificacion_pago.id_obra
