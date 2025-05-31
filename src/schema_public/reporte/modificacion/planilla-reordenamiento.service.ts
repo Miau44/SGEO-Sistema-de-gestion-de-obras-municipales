@@ -36,7 +36,7 @@ export class PlanillaReordenamiento {
     datosEnvio: any = [];
     datosSup: any = [];
     datosFis: any = [];
-    datosComputo: any = [];
+    datosPlanilla: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -78,6 +78,17 @@ export class PlanillaReordenamiento {
     return resultado[0];
    }
 
+    // Tabla Planilla Reordenamiento
+
+   async planillaReordenamiento(solicitud: number) {
+    const query3 = `
+        SELECT * 
+        FROM public.vista_reporte_planilla WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
+
+
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
 
@@ -99,7 +110,13 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   }
   this.datosFis = res2;
 
-  console.log('DATOS COMPUTO',this.datosComputo);
+  const res3 = await this.planillaReordenamiento(id_modificacion_pago);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos de la planilla');
+  }
+  this.datosPlanilla = res3;
+
+  console.log('DATOS PLANILLA',this.datosPlanilla);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -181,13 +198,13 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               
             ],
-           //...this.buildContenidoComputo(this.datosComputo) 
+           ...this.buildContenidoPlanilla(this.datosPlanilla) 
 
           ]
         }
       },
       {
-        text: '\n\n\n',
+        text: '\n\n\n\n\n',
       },
       {
           table: {
@@ -286,6 +303,49 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     pdfDoc.end();
   });
 
+}
+
+//Cargar tabla de computos metricos
+buildContenidoPlanilla(data: any[]) {
+  const formatoNumerico = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+
+  for (let i = 0; i < datosPl.length; i++) {
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'textDato' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+  return arrayData;
+}
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
+  
+  const num = Number(value);
+  if (isNaN(num)) return '';
+
+  return formatter.format(num);
 }
 
 
