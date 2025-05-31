@@ -390,31 +390,35 @@ LEFT JOIN (
     return res;
   }
 
-  async guardadoNumeracion(id_contrato: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
+  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
     try {
-      //--en oc no debe modificar fecha_memo_minuta
-      let q = `select id_modificacion,id_contrato from contrato
-				JOIN obra on contrato.id_obra = obra.id_obra
-				JOIN modificacion_pago on obra.id_obra = modificacion_pago.id_obra
-				JOIN modificacion on modificacion_pago.id_modificacion_pago = modificacion.id_modificacion_pago
-				where id_contrato = $1`;
-      let result = await this.modificacionRepo.query(q, [id_contrato]);
-      console.log(result);
-      
-      let id_mod = result.rows[0].id_modificacion;
-      console.log(result,id_mod);
-      //guardar los datons en la tabla modificacion medianteo orm nestjs
-      const res = await this.modificacionRepo
-        .createQueryBuilder()
-        .update(Modificacion)
-        .set({ numero_contrato_modificatorio, fecha_memo_minuta })
-        .where('id_modificacion = :id_modificacion', { id_mod })
-        .execute();
-      if (res.affected === 0) {
-        throw new NotFoundException(`Modificacion with ID ${id_contrato} not found`);
+
+      // Validar que el id_modificacion sea un número positivo y no nulo
+      if (!id_modificacion || id_modificacion <= 0) {
+        throw new BadRequestException('El id_modificacion debe ser un número positivo.'); 
+      }
+      // Validar que el numero_contrato_modificatorio no esté vacío
+      if (!numero_contrato_modificatorio || numero_contrato_modificatorio.trim() === '') {
+        throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
+      } 
+
+      const mod = await this.modificacionRepocitorio.findOne({
+        where: { id_modificacion },
+        relations: ['modificacionpago'],
+      });
+
+      if (!mod) {
+        throw new NotFoundException('Modificación no encontrada');
       }
 
-      return res;
+      if(mod.modificacionpago.id_tipo_mod_pago == 1){
+        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
+      }
+
+      mod.numero_contrato_modificatorio = numero_contrato_modificatorio;
+
+      const modificacionActualizada = await this.modificacionRepocitorio.save(mod);
+      return modificacionActualizada;
     }
     catch (error) {
       console.error("Error en aprobarDesignacion:", error);
