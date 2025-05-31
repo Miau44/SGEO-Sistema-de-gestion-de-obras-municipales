@@ -88,7 +88,7 @@ export class ModificacionPagoService {
       };
       const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
 
-      const datosHistorial = {
+      /*const datosHistorial = {
         id_solicitud: respuesta_solicitud.data.id_solicitud,
         id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
         nro_solicitud: respuesta_solicitud.data.nro_solicitud,
@@ -103,8 +103,7 @@ export class ModificacionPagoService {
         usuario_registro: respuesta_solicitud.data.usuario_registro,
         id_estado_registro: respuesta_solicitud.data.id_estado_registro,
       };
-
-      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)
+      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)*/
 
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,

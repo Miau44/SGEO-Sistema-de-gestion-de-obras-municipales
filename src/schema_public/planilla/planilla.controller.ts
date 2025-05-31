@@ -10,6 +10,7 @@ import { actualizarJustificacionDto } from './dto/actualizar-justificacion.dto';
 import { actualizarPlanillaDto } from './dto/actualizar-planilla.dto';
 import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
 import { actualizarObservacionDto } from './dto/planilla_observacion/actualizar-observacion.dto';
+import { PlanillaItemDto } from './dto/obtener-planilla-item.dto';
 
 @ApiTags('planilla')
 @Controller('planilla')
@@ -126,6 +127,17 @@ listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
     try{    
     return this.planillaService.update(+id, updatePlanillaDto);
   }catch {error}    
+  }
+
+
+
+    @Public()
+  @Post('obtener-planilla-item')
+   listarPlanillaXItem(@Body() listaDto: PlanillaItemDto) {
+    try {  
+      return this.planillaService.listaPlanillaXItem(listaDto);
+    } catch (error) {
+    }
   }
 
 }
