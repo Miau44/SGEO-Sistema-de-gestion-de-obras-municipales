@@ -17,6 +17,7 @@ import { Planilla } from '../planilla/entities/planilla.entity';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { catchError } from 'rxjs';
 
 
 
@@ -357,32 +358,68 @@ LEFT JOIN (
     return result[0].resultado;
   }
 
-  async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
-    console.log('listadoModificacionesxCarpeta');
-    console.log(id_carpeta);
-    
+  async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
+    console.log(id_contrato);
+
     let q = `SELECT ficha.correlativo_carpeta, 
-        (select id_contrato from contrato ct where ct.correlativo_carpeta = ficha.correlativo_carpeta limit 1) as id_contrato,
+				contrato.id_contrato,
         id_modificacion,
-        monto_total,
+        monto_total as montoadjudicado,
         porcentaje_total,
         monto_variacion,
-        --porcentaje_variacion,
+        porcentaje_modificacion,
         fecha_fiscal,
         fecha_supervisor,
         fecha_memo_minuta, 
-        dias_variacion, 
-        1 as id_tipo_modificacion
+        dias_variacion as diasplazo_proceso, 
+        mp.id_tipo_mod_pago as tipocontrato,
+        2 as tipoplazo, --calendario a confirmar con jenny
+        numero_contrato,
+        numero_contrato_modificatorio
         FROM modificacion
         JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
         JOIN obra on mp.id_obra = obra.id_obra
-        JOIN ficha on obra.id_ficha = ficha.id_ficha`;
-    if(id_carpeta>0){
-      q=q+` WHERE ficha.correlativo_carpeta = $1`
+        JOIN ficha on obra.id_ficha = ficha.id_ficha
+				JOIN contrato on contrato.id_obra = obra.id_obra
+				where modificacion.numero_contrato_modificatorio is null`;
+    if (id_contrato > 0) {
+      q = q + ` AND contrato.id_contrato = $1`
     }
     console.log(q);
-    var res = await this.modificacionRepo.query(q,[id_carpeta]);
+    var res = await this.modificacionRepo.query(q, [id_contrato]);
     console.log(res);
     return res;
+  }
+
+  async guardadoNumeracion(id_contrato: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
+    try {
+
+      let q = `select id_modificacion,id_contrato from contrato
+				JOIN obra on contrato.id_obra = obra.id_obra
+				JOIN modificacion_pago on obra.id_obra = modificacion_pago.id_obra
+				JOIN modificacion on modificacion_pago.id_modificacion_pago = modificacion.id_modificacion_pago
+				where id_contrato = $1`;
+      let result = await this.modificacionRepo.query(q, [id_contrato]);
+      console.log(result);
+      
+      let id_mod = result.rows[0].id_modificacion;
+      console.log(result,id_mod);
+      //guardar los datons en la tabla modificacion medianteo orm nestjs
+      const res = await this.modificacionRepo
+        .createQueryBuilder()
+        .update(Modificacion)
+        .set({ numero_contrato_modificatorio, fecha_memo_minuta })
+        .where('id_modificacion = :id_modificacion', { id_mod })
+        .execute();
+      if (res.affected === 0) {
+        throw new NotFoundException(`Modificacion with ID ${id_contrato} not found`);
+      }
+
+      return res;
+    }
+    catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
   }
 }
