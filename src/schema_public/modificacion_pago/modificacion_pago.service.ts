@@ -383,7 +383,7 @@ LEFT JOIN (
 				JOIN contrato on contrato.id_obra = obra.id_obra
 				where modificacion.numero_contrato_modificatorio is null`;
     if (id_contrato > 0) {
-      q = q + ` AND contrato.id_contrato = $1`
+      q = q + ` AND contrato.id_contrato_dlc = $1`
     }
     console.log(q);
     var res = await this.modificacionRepo.query(q, [id_contrato]);
