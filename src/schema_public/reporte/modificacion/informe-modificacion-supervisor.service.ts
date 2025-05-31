@@ -880,7 +880,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     let rowData = [
       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
-      { text: [{ text: datosResp[i].desc_item, alignment: 'right', style: 'textDatoT' }] },
+      { text: [{ text: datosResp[i].desc_item, alignment: 'left', style: 'textDatoT' }] },
       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'center' }] },

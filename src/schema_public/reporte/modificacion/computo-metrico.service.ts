@@ -222,7 +222,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         opacity: 0.8,
       },
     },
-    pageMargins: [50, 55, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [50, 55, 20, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
@@ -287,7 +287,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         const rowData = [
           { text: [
                 { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISORES DE OBRA', bold: true, style: 'textDato' }
+                { text: 'SUPERVISOR(ES) DE OBRA', bold: true, style: 'textDato' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
           { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
@@ -299,28 +299,41 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
 
   //Cargar tabla de computos metricos
 buildContenidoComputo(data: any[]) {
- let datosCM = data;
-      let arrayData = [];
+  const formatoNumerico = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+  });
+
+  let datosCM = data;
+  let arrayData = [];
+
+  for (let i = 0; i < datosCM.length; i++) {
+    let rowData = [
+      { text: datosCM[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosCM[i].desc_item ?? '', style: 'textDato' },
+      { text: datosCM[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosCM[i].numero_veces ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].area_total, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].volumen_total, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+  return arrayData;
+}
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
   
-      for (let i = 0; i < datosCM.length; i++) {
-        let rowData = [
-          { text: datosCM[i].orden_sim, style: 'textDato', alignment: 'center' },
-          { text: datosCM[i].desc_item, style: 'textDato' },
-          { text: datosCM[i].unidad_medida_sim, style: 'textDato', alignment: 'center' },
-          { text: datosCM[i].numero_veces, style: 'textDato', alignment: 'center' },
-          { text: datosCM[i].largo, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].ancho, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].alto, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].area_total, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].volumen_total, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].parcial, style: 'textDato', alignment: 'right' },
-          { text: datosCM[i].cantidad_reordenamiento, style: 'textDato', alignment: 'right' },
+  const num = Number(value);
+  if (isNaN(num)) return '';
 
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-
+  return formatter.format(num);
 }
 
 }
