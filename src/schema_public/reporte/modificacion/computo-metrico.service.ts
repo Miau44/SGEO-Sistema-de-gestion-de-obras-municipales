@@ -270,7 +270,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
     return formattedDate;
   }
 
-    //Cargar tabla de fiscales - con recuadro
+    //Cargar tabla de supervisores - con recuadro
     buildsupervisores(data: any[]) {
       const arrayData = [];
   
@@ -287,7 +287,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         const rowData = [
           { text: [
                 { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
+                { text: 'SUPERVISORES DE OBRA', bold: true, style: 'textDato' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
           { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }

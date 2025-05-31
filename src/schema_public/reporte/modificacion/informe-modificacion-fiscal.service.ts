@@ -36,6 +36,8 @@ export class InformeModificacionFiscal {
     datosModAp: any = [];
     datosMod: any = [];
     datosInf: any = [];
+    datosAF: any = [];
+    datosSaf: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -95,6 +97,24 @@ export class InformeModificacionFiscal {
     return resultado2[0];
   }
 
+  //--Datos Aprobador Fiscal
+    async datosAprobadorFiscal(obra: number) {
+      const query3 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
+      const resultado3 = await this.sequelize.query(query3);
+      return resultado3[0];
+  }
+
+  //--Datos SAF DA
+    async datosSafes(obra: number) {
+      const query4 = `
+          SELECT * 
+          FROM public."vista_reporte_saf" WHERE id_obra = ${obra}`;
+      const resultado4 = await this.sequelize.query(query4);
+      return resultado4[0];
+  }
+
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -129,6 +149,18 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
     this.datosInf = res4;
 
+  const res5 = await this.datosAprobadorFiscal(this.datosEnvio[0].id_obra);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+      throw new Error('No se encontraron del Aprobador.');
+    }
+    this.datosAF = res5;
+
+  const res6 = await this.datosSafes(this.datosEnvio[0].id_obra);
+    if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
+      throw new Error('No se encontraron del SAF-RPA.');
+    }
+    this.datosSaf = res6;
+
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
    const imgPath = 'assets/images/membretado_oficio.png';
@@ -162,41 +194,68 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         style: 'subheader', alignment: 'center'
       },
       {
-        text: '\n\n',
+        text: '\n',
       },
       {
           table: {
             widths: ['15%', '85%'],
             body: [
               [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                // { text: [
-                //     { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
-                //     { text: (
-                //       this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
-                //         ? this.datosAF[0].nombre_da
-                //         : this.datosAF[0].nombre_ue
-                //     ), style: 'textTitulo' }
-                //   ],
-                //   margin: [0, 5, 0, 5] 
-                // },
-                { text: ' ' }
+                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
+                {
+                  text: (() => {
+                    const da = this.datosAF[0].desc_cod_da;
+                    const monto = this.datosEnvio[0].monto_contrato;
+                    const nombreDA = this.datosSaf[0].nombre_da;
+                    const nombreSAF = this.datosSaf[0].nombre_saf;
+                    const aprobador = this.datosAF[0].aprobador;
+
+                    if (da >= 37 && da <= 45) {
+                      if (monto > 500000) {
+                        return [
+                          { text: aprobador + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      } else {
+                        return [
+                          { text: nombreSAF + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      }
+                    } else {
+                      if (monto > 500000) {
+                        return [
+                          { text: 'Secretario\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      } else {
+                        return [
+                          { text: nombreSAF + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      }
+                    }
+                  })(),
+                  style: ''
+                }   
+                  
               ],
-              // Fila VIA: solo si la condición NO se cumple
-              // ...(
-              //   this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
-              //     ? [] // No incluir la fila
-              //     : [[
-              //         { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-              //         {
-              //           text: [
-              //             { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
-              //             { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
-              //           ],
-              //           margin: [0, 5, 0, 5]
-              //         }
-              //       ]]
-              // ),
+              //Fila VIA: solo si la condición NO se cumple
+              ...(
+                this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                   // No incluir la fila
+                  ? [[
+                      { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                      {
+                        text: [
+                          { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
+                          { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
+                        ],
+                        margin: [0, 5, 0, 5]
+                      }
+                    ]]
+                  : []
+              ),
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { 
