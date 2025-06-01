@@ -284,7 +284,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.fechaString(this.datosInfSup[0].fecha_aprobacion), style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
@@ -333,11 +333,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ],
             [
               { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
               { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_recep_definitiva), style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva), style: 'textDato' }] }
             ],
           ]
         }, margin: [10, 0, 0, 5] 
@@ -802,18 +802,26 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       return arrayData;
     }
 
-  // Función para poblar la tabla de modificaciones aprobadas
+  // Función para poblar la tabla de MODIFICACIONES APROBADAS
     buildModAprobadas(data: any) {
     const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
     });
+    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
 
     let datosResp = data;
     let arrayData = [];
+    let totalmodifaprobadas = 0;
 
     var c = 0;
     for (let i = 0; i < datosResp.length; i++) {
+      const totalmodif = Number(datosResp[i].monto_total) || 0;
+      totalmodifaprobadas += totalmodif;
+
       c = c + 1;
       let rowData = [
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
@@ -825,8 +833,21 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
       arrayData.push(rowData);
-
     }
+    // Fila final con total
+      const totalRow = [
+        {
+          colSpan: 5,
+          text: 'TOTAL:',
+          style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
+        },
+        {}, {}, {},  // estos serán ignorados por el colSpan
+        {
+          text: this.formatIfNumber(totalmodifaprobadas, formatoNumerico2),
+          style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
+        },
+      ];
+
     return arrayData;
   }
 
