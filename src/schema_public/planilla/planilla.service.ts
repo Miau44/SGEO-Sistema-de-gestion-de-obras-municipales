@@ -276,7 +276,7 @@ export class PlanillaService {
     try {
       ;
       let query =
-        ` 
+     /*   ` 
           SELECT * FROM public.item AS i
           INNER JOIN public.planilla AS p ON i.id_item = p.id_item
           LEFT JOIN planilla_justificacion pju 
@@ -287,6 +287,7 @@ export class PlanillaService {
           AND i.id_item = $3
           AND i.id_estado = 1
         `;
+*/
 ` 
 SELECT * 
 FROM public.item AS i
