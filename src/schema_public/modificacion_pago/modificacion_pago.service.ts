@@ -17,6 +17,7 @@ import { Planilla } from '../planilla/entities/planilla.entity';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { catchError } from 'rxjs';
 
 
 
@@ -78,7 +79,7 @@ export class ModificacionPagoService {
       //crear Solicitud
       const data_solicitud = {
         id_tipo_solicitud: 0,
-        id_estado_solicitud: 1,
+        id_estado_solicitud: 2,
         id_obra: dto.id_obra,
         id_estado_general: 21,
         id_usuario: dto.id_usuario,
@@ -86,7 +87,24 @@ export class ModificacionPagoService {
         usuario_registro: dto.id_usuario,
         id_estado_registro: 1,
       };
-      const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      //const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      const  respuesta_solicitud =   await this.solicitudRepocitorio.save(data_solicitud);
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.nro_solicitud,
+        id_estado_solicitud: 2,
+        id_obra: respuesta_solicitud.id_obra,
+        id_estado_general: respuesta_solicitud.id_estado_general,
+        id_usuario: respuesta_solicitud.id_usuario,
+        proveido: respuesta_solicitud.proveido,
+        data_solicitud: respuesta_solicitud.data_solicitud,
+        fecha_envio: respuesta_solicitud.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.usuario_registro,
+        id_estado_registro: respuesta_solicitud.id_estado_registro,
+      };
 
       /*const datosHistorial = {
         id_solicitud: respuesta_solicitud.data.id_solicitud,
@@ -102,8 +120,11 @@ export class ModificacionPagoService {
         id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
         usuario_registro: respuesta_solicitud.data.usuario_registro,
         id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-      };
-      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)*/
+      };*/
+
+
+
+      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)
 
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,
@@ -128,7 +149,7 @@ export class ModificacionPagoService {
       // if(dto.tipo ===3){dto.tipo =1}
       const data_modpago = {
         "id_obra": dto.id_obra,
-        "id_solicitud": respuesta_solicitud.data.id_solicitud,
+        "id_solicitud": respuesta_solicitud.id_solicitud,
         "id_tipo_mod_pago": dto.tipo,
         "id_correlativo_tipo": Number(res_correlativo_tipo.data.id_correlativo),
         "id_correlativo_subtipo": Number(res_correlativo_subtipo.data.id_correlativo),
@@ -199,7 +220,7 @@ export class ModificacionPagoService {
   async listaModificacion(data: listaModDto) {
     try {
       ;
-      let query = `SELECT s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
+      let query = `  SELECT m.finalizado, s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
       tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
           tmp.desc_subtipo AS tipo_modificacion,
            co.correlativo as nro_modificacion,
@@ -357,32 +378,71 @@ LEFT JOIN (
     return result[0].resultado;
   }
 
-  async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
-    console.log('listadoModificacionesxCarpeta');
-    console.log(id_carpeta);
-    
+  async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
+    console.log(id_contrato);
+
     let q = `SELECT ficha.correlativo_carpeta, 
-        (select id_contrato from contrato ct where ct.correlativo_carpeta = ficha.correlativo_carpeta limit 1) as id_contrato,
         id_modificacion,
-        monto_total,
-        porcentaje_total,
+        monto_total as montoadjudicado,
+        porcentaje_total::INTEGER as porcentaje_total,
         monto_variacion,
-        --porcentaje_variacion,
+        porcentaje_modificacion::INTEGER as porcentaje_modificacion,
         fecha_fiscal,
         fecha_supervisor,
         fecha_memo_minuta, 
-        dias_variacion, 
-        1 as id_tipo_modificacion
+        dias_variacion as diasplazo_proceso, 
+        mp.id_tipo_mod_pago as tipocontrato,
+        2 as tipoplazo, --calendario a confirmar con jenny
+        numero_contrato,
+        numero_contrato_modificatorio
         FROM modificacion
         JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
         JOIN obra on mp.id_obra = obra.id_obra
-        JOIN ficha on obra.id_ficha = ficha.id_ficha`;
-    if(id_carpeta>0){
-      q=q+` WHERE ficha.correlativo_carpeta = $1`
+        JOIN ficha on obra.id_ficha = ficha.id_ficha
+				JOIN contrato on contrato.id_obra = obra.id_obra
+				where modificacion.numero_contrato_modificatorio is null`;
+    if (id_contrato > 0) {
+      q = q + ` AND contrato.id_contrato_dlc = $1`
     }
     console.log(q);
-    var res = await this.modificacionRepo.query(q,[id_carpeta]);
+    var res = await this.modificacionRepo.query(q, [id_contrato]);
     console.log(res);
     return res;
+  }
+
+  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
+    try {
+
+      // Validar que el id_modificacion sea un número positivo y no nulo
+      if (!id_modificacion || id_modificacion <= 0) {
+        throw new BadRequestException('El id_modificacion debe ser un número positivo.'); 
+      }
+      // Validar que el numero_contrato_modificatorio no esté vacío
+      if (!numero_contrato_modificatorio || numero_contrato_modificatorio.trim() === '') {
+        throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
+      } 
+
+      const mod = await this.modificacionRepocitorio.findOne({
+        where: { id_modificacion },
+        relations: ['modificacionpago'],
+      });
+
+      if (!mod) {
+        throw new NotFoundException('Modificación no encontrada');
+      }
+
+      if(mod.modificacionpago.id_tipo_mod_pago == 1){
+        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
+      }
+
+      mod.numero_contrato_modificatorio = numero_contrato_modificatorio;
+
+      const modificacionActualizada = await this.modificacionRepocitorio.save(mod);
+      return modificacionActualizada;
+    }
+    catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
   }
 }

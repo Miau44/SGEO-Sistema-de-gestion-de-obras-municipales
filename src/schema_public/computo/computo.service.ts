@@ -27,6 +27,7 @@ import { log } from 'console';
 import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pago.entity';
 import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
 import { ComputoObservacion } from './entities/computo_observacion.entity';
+import { ListaFiscalDto } from './dto/lista-fiscal.dto';
 
 @Injectable()
 export class ComputoService {
@@ -115,20 +116,20 @@ export class ComputoService {
   }
 
 
-  async listaItemComputoXObraFiscal(data: ComputoModificacionDto) {
+  async listaItemComputoXObraFiscal(data: ListaFiscalDto) {
     try {
 
-    //   let query = ` 
-    //  SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1; id_solicitud_historial
-    //  `
-    //   const params = [data.id_modificacion_pago];
- //   const query = `SELECT * FROM public.sp_listar_planilla_por_historial($1, $2)`;
-    const query = `SELECT * FROM public.sp_modificacion_fiscal_item($1, $2)`;
-    
-    const params = [
-      data.id_modificacion_pago,
-      data.id_solicitud_historial,
-    ];
+      //   let query = ` 
+      //  SELECT * FROM  public.vista_modificacion_lista_fiscal WHERE id_modificacion_pago =$1; id_solicitud_historial
+      //  `
+      //   const params = [data.id_modificacion_pago];
+      //   const query = `SELECT * FROM public.sp_listar_planilla_por_historial($1, $2)`;
+      const query = `SELECT * FROM public.sp_modificacion_fiscal_item($1, $2)`;
+
+      const params = [
+        data.id_modificacion_pago,
+        data.id_usuario,
+      ];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -463,7 +464,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       //borrar computos por id_modificacion y tipo de computo
       await this.deleteXModificacion(dataadicional.id_modificacion)
 
-      await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
+      //await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
 
       for (let i = 0; i < datosExcel.length; i += batchSize) {
         const batch = datosExcel.slice(i, i + batchSize).map(row => {
