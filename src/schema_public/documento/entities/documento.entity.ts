@@ -32,7 +32,7 @@ export class Documento {
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
     fecha_registro: Date
 
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_modificacion: Date    
     
     @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.documento)

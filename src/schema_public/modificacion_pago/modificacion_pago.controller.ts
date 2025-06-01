@@ -1,20 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import {  CreateMaestroDto } from './dto/create-maestro.dto';
+import { CreateMaestroDto } from './dto/create-maestro.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
- 
+
 
 
 @ApiTags('modificacion-pago')
 @Controller('modificacion-pago')
 export class ModificacionPagoController {
-  constructor(private readonly modificacionPagoService: ModificacionPagoService) {}
+  constructor(private readonly modificacionPagoService: ModificacionPagoService) { }
 
   @Post()
   create(@Body() createModificacionPagoDto: CreateModificacionPagoDto) {
@@ -22,7 +22,7 @@ export class ModificacionPagoController {
   }
 
   @Post('crear-modificacion-pago')
-  createModificacionPago(@Body() createmaestro:CreateMaestroDto) {
+  createModificacionPago(@Body() createmaestro: CreateMaestroDto) {
     return this.modificacionPagoService.crearModificacionPago(createmaestro);
   }
 
@@ -33,6 +33,11 @@ export class ModificacionPagoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    try {
+      return this.modificacionPagoService.findOne(+id);
+    } catch (error) {
+      throw new HttpException('Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     return this.modificacionPagoService.findOne(+id);
   }
 
@@ -49,15 +54,15 @@ export class ModificacionPagoController {
   @Public()
   @Post('modificacion-lista')
   listaModificacion(@Body() documentoDto: listaModDto) {
-    try {  
+    try {
       return this.modificacionPagoService.listaModificacion(documentoDto);
     } catch (error) {
     }
-  }  
+  }
 
   //controllers para modificacion Marvel
-  
-  
+
+
   //modificacion de dias variacion (especifico)
   @Patch('modificacion/:id_modificacion/dias-variacion')
   @HttpCode(HttpStatus.OK)
@@ -97,10 +102,65 @@ export class ModificacionPagoController {
   @Public()
   @Post('modificacion-validacion')
   async validar(@Body() validar: ValidarModificacionDto) {
-    try {  
-    return this.modificacionPagoService.validarModificacion(validar);
+    try {
+      return this.modificacionPagoService.validarModificacion(validar);
 
-  } catch (error) {
-  }    
-  }  
+    } catch (error) {
+    }
+  }
+
+
+  @Public()
+  @Post('modificacion-aprobacion')
+  async aprobacion(@Body() validar: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.aprobarModificacion(validar);
+
+    } catch (error) {
+    }
+  }
+
+  @Public()
+  @Post('tiene-incremento')
+  async tieneIncremento(@Body() validar: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.tieneIncremento(validar.id_modificacion_pago);
+
+    } catch (error) {
+    }
+  }
+
+  //Listado de modificaciones por carpeta, servicio de lectura DLC
+  @Public()
+  @Get('ModificacionesPorContrato/:id_contrato')
+  @HttpCode(HttpStatus.OK)
+  async ModificacionesPorCarpeta(@Param('id_contrato') id_contrato: number) {
+    try {
+      return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato);
+    } catch (error) {
+
+    }
+  }
+
+  //servicio en metodo post, guardado de numeración del contrato
+  @Post('guardado-numeracion')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Guardar numeración de modificación' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_modificacion: { type: 'number', example: 200 },
+        numero_contrato_modificatorio: { type: 'string', example: 'CONTRATO-001' },
+        fecha_memo_minuta: { type: 'string', example: '2023-08-01' }
+      }
+    }
+  })
+  async guardadoNumeracion(@Body() body: { id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string }) {
+    try {
+      return this.modificacionPagoService.guardadoNumeracion(body.id_modificacion, body.numero_contrato_modificatorio, body.fecha_memo_minuta);
+    } catch (error) {
+      throw new HttpException('Error al guardar la numeración', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

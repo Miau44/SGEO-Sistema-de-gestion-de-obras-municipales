@@ -13,6 +13,9 @@ import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
 import { InformeActividadesDto } from './dto/informe-actividades.dto';
 import { Documento } from '../documento/entities/documento.entity';
+import { CreateInformeNuevoDto } from './dto/informe-nuevo.dto';
+import { SolicitudService } from '../solicitud/solicitud.service';
+import { CorrelativoService } from '../correlativo/correlativo.service';
 
 
 
@@ -25,6 +28,9 @@ export class InformeService {
     @InjectRepository(InformeInicial) private infInicialRepositorio: Repository<InformeInicial>,
     private readonly dataSource: DataSource,
     @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
+    private solicitudService: SolicitudService,
+    private servicioCorrelativo: CorrelativoService, 
+
   ) { }
 
   async create(createInformeDto: CreateInformeDto) {
@@ -287,6 +293,20 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
     }
   }
 
+
+  async listaInformeObra(data: InformeObraDto) {
+    try {
+
+      const query = ` SELECT * FROM  public.vista_lista_informe_obra WHERE id_obra = $1  AND id_tipo_informe =$2`;
+      const params = [data.obra, data.tipo_informe];
+      const resultado = await this.informeRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   async updateInformeDocumentos(id_informe: number, id_documentos: number[]): Promise<any> {
     // Buscar el informe
     const informe = await this.informeRepositorio.findOne({
@@ -326,14 +346,14 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
    * Actualizar los datos del formulario 
    */
   async actualizarFormulario(idModificacion: number, idInforme: number, datosFormulario: any) {
-    const { plazo, antecedentes, justificacion, modificacionPlazo, textoAnexos, id_documento } = datosFormulario;
+    const { plazo, antecedentes, justificacion, modificacionPlazo, textoAnexos, referencia, id_documento } = datosFormulario;
   
-    const query = `SELECT public.sp_actualizar_datos_formulario($1, $2, $3, $4, $5, $6, $7, $8)`;
+    const query = `SELECT public.sp_actualizar_datos_formulario($1, $2, $3, $4, $5, $6, $7, $8,$9)`;
   
     await this.dataSource.query(query, [
       idModificacion, idInforme,
       plazo, antecedentes, justificacion,
-      modificacionPlazo, textoAnexos, JSON.stringify(id_documento) // Convierte el JSON a string para evitar errores
+      modificacionPlazo, textoAnexos, referencia, JSON.stringify(id_documento) // Convierte el JSON a string para evitar errores
     ]);
   
     return { message: 'Formulario actualizado correctamente' };

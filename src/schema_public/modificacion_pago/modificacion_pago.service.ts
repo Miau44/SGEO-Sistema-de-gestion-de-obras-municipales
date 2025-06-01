@@ -17,6 +17,7 @@ import { Planilla } from '../planilla/entities/planilla.entity';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { catchError } from 'rxjs';
 
 
 
@@ -33,7 +34,7 @@ export class ModificacionPagoService {
 
     private responseService: ResponseService,
     private solicitudService: SolicitudService,
-    private servicioCorrelativo: CorrelativoService, 
+    private servicioCorrelativo: CorrelativoService,
     private servicioPlanilla: PlanillaService
 
   ) { }
@@ -51,8 +52,14 @@ export class ModificacionPagoService {
     return `This action returns all modificacionPago`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} modificacionPago`;
+  async findOne(id_modificacion_pago: number) {
+    
+    try {
+      const resultado = await this.modPagoRepositorio.findOneBy({ id_modificacion_pago });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   update(id: number, updateModificacionPagoDto: UpdateModificacionPagoDto) {
@@ -80,9 +87,26 @@ export class ModificacionPagoService {
         usuario_registro: dto.id_usuario,
         id_estado_registro: 1,
       };
-      const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      //const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      const  respuesta_solicitud =   await this.solicitudRepocitorio.save(data_solicitud);
 
       const datosHistorial = {
+        id_solicitud: respuesta_solicitud.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.nro_solicitud,
+        id_estado_solicitud: 2,
+        id_obra: respuesta_solicitud.id_obra,
+        id_estado_general: respuesta_solicitud.id_estado_general,
+        id_usuario: respuesta_solicitud.id_usuario,
+        proveido: respuesta_solicitud.proveido,
+        data_solicitud: respuesta_solicitud.data_solicitud,
+        fecha_envio: respuesta_solicitud.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.usuario_registro,
+        id_estado_registro: respuesta_solicitud.id_estado_registro,
+      };
+
+      /*const datosHistorial = {
         id_solicitud: respuesta_solicitud.data.id_solicitud,
         id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
         nro_solicitud: respuesta_solicitud.data.nro_solicitud,
@@ -96,7 +120,9 @@ export class ModificacionPagoService {
         id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
         usuario_registro: respuesta_solicitud.data.usuario_registro,
         id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-      };
+      };*/
+
+
 
       const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)
 
@@ -123,7 +149,7 @@ export class ModificacionPagoService {
       // if(dto.tipo ===3){dto.tipo =1}
       const data_modpago = {
         "id_obra": dto.id_obra,
-        "id_solicitud": respuesta_solicitud.data.id_solicitud,
+        "id_solicitud": respuesta_solicitud.id_solicitud,
         "id_tipo_mod_pago": dto.tipo,
         "id_correlativo_tipo": Number(res_correlativo_tipo.data.id_correlativo),
         "id_correlativo_subtipo": Number(res_correlativo_subtipo.data.id_correlativo),
@@ -194,12 +220,15 @@ export class ModificacionPagoService {
   async listaModificacion(data: listaModDto) {
     try {
       ;
-      let query = `SELECT s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
+      let query = `  SELECT m.finalizado, s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
       tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
           tmp.desc_subtipo AS tipo_modificacion,
            co.correlativo as nro_modificacion,
            cog.correlativo AS nro_correlativo,
-           es.desc_estado as estado, m.monto_total, monto_variacion, m.fecha_registro AS fecha_modificacion
+           es.desc_estado as estado,
+		   public.formato_numerico(m.monto_total,5) AS monto_total, 
+ public.formato_numerico(m.monto_variacion,5) AS monto_variacion, 		 
+            m.fecha_registro AS fecha_modificacion
            ,param.detalle AS porcentaje_permitido, sh.id_solicitud_historial	  
            FROM public.modificacion_pago AS mp
            INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
@@ -233,24 +262,24 @@ LEFT JOIN (
 
 
   //servicio para modificacion de dias_variacion marvel
-    
+
   async updateDiasVariacion(id_modificacion: number, dias_variacion: number) {
     try {
-        // Actualizar el campo directamente en la base de datos con QueryBuilder
-        const resultado = await this.modificacionRepo
-            .createQueryBuilder()
-            .update('modificacion')
-            .set({ dias_variacion })
-            .where('id_modificacion = :id_modificacion', { id_modificacion })
-            .execute();
+      // Actualizar el campo directamente en la base de datos con QueryBuilder
+      const resultado = await this.modificacionRepo
+        .createQueryBuilder()
+        .update('modificacion')
+        .set({ dias_variacion })
+        .where('id_modificacion = :id_modificacion', { id_modificacion })
+        .execute();
 
-        if (resultado.affected === 0) {
-            return this.responseService.error('Registro no encontrado', '404');
-        }
+      if (resultado.affected === 0) {
+        return this.responseService.error('Registro no encontrado', '404');
+      }
 
-        return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
+      return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
     } catch (error) {
-        return this.responseService.error(error);
+      return this.responseService.error(error);
     }
   }
 
@@ -295,7 +324,7 @@ LEFT JOIN (
     // 2️⃣ Validar que exista al menos un registro en `informe`
     const informeQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total FROM public.informe 
-     WHERE id_obra = $1 AND id_tipo_informe = 266 AND id_estado = 1`, params1);
+     WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_estado = 1`, params1);
 
     if (Number(informeQuery[0].total) === 0) {
       mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
@@ -315,5 +344,105 @@ LEFT JOIN (
       };
     */
 
+  }
+
+  async aprobarModificacion(AprobarDto: ValidarModificacionDto) {
+    try {
+
+      // Validar los datos de entrada
+      if (!AprobarDto.id_modificacion_pago) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+
+      const query2 = `
+      SELECT public.sp_aprobacion_x_tipo($1)	`;
+      const params3 = [AprobarDto.id_modificacion_pago];
+      const resultado = await this.modificacionRepo.query(query2, params3);
+
+      // Guardar los cambios en la base de datos
+      //const resultado = await this.guardarModificacion(modificacion);
+
+      return this.responseService.success(resultado, "aprobada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async tieneIncremento(idModificacionPago: number): Promise<boolean> {
+    const result = await this.modificacionRepo.query(
+      `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
+      [idModificacionPago],
+    );
+    return result[0].resultado;
+  }
+
+  async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
+    console.log(id_contrato);
+
+    let q = `SELECT ficha.correlativo_carpeta, 
+        id_modificacion,
+        monto_total as montoadjudicado,
+        porcentaje_total::INTEGER as porcentaje_total,
+        monto_variacion,
+        porcentaje_modificacion::INTEGER as porcentaje_modificacion,
+        fecha_fiscal,
+        fecha_supervisor,
+        fecha_memo_minuta, 
+        dias_variacion as diasplazo_proceso, 
+        mp.id_tipo_mod_pago as tipocontrato,
+        2 as tipoplazo, --calendario a confirmar con jenny
+        numero_contrato,
+        numero_contrato_modificatorio
+        FROM modificacion
+        JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
+        JOIN obra on mp.id_obra = obra.id_obra
+        JOIN ficha on obra.id_ficha = ficha.id_ficha
+				JOIN contrato on contrato.id_obra = obra.id_obra
+				where modificacion.numero_contrato_modificatorio is null`;
+    if (id_contrato > 0) {
+      q = q + ` AND contrato.id_contrato_dlc = $1`
+    }
+    console.log(q);
+    var res = await this.modificacionRepo.query(q, [id_contrato]);
+    console.log(res);
+    return res;
+  }
+
+  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
+    try {
+
+      // Validar que el id_modificacion sea un número positivo y no nulo
+      if (!id_modificacion || id_modificacion <= 0) {
+        throw new BadRequestException('El id_modificacion debe ser un número positivo.'); 
+      }
+      // Validar que el numero_contrato_modificatorio no esté vacío
+      if (!numero_contrato_modificatorio || numero_contrato_modificatorio.trim() === '') {
+        throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
+      } 
+
+      const mod = await this.modificacionRepocitorio.findOne({
+        where: { id_modificacion },
+        relations: ['modificacionpago'],
+      });
+
+      if (!mod) {
+        throw new NotFoundException('Modificación no encontrada');
+      }
+
+      if(mod.modificacionpago.id_tipo_mod_pago == 1){
+        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
+      }
+
+      mod.numero_contrato_modificatorio = numero_contrato_modificatorio;
+
+      const modificacionActualizada = await this.modificacionRepocitorio.save(mod);
+      return modificacionActualizada;
+    }
+    catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
   }
 }

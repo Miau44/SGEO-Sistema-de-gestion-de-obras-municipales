@@ -1,0 +1,412 @@
+import { Injectable, Inject, Body } from '@nestjs/common';
+//import * as PdfPrinter from 'pdfmake/src/printer';
+import PdfPrinter from 'pdfmake';
+import * as path from 'path';
+import * as fs from 'fs';
+import { ResponseService } from 'src/response.service';
+import { Sequelize } from 'sequelize-typescript';
+import { log, table } from 'console';
+import { existsSync } from 'fs'
+import { join } from 'path';
+import { TDocumentDefinitions } from 'pdfmake/interfaces'; 
+
+const rootPath = process.cwd();
+const fontsPath = join(process.cwd(), 'assets', 'fonts');
+
+const fonts = {
+  Roboto: {
+    normal: join(fontsPath, 'Roboto-Regular.ttf'),
+    bold: join(fontsPath, 'Roboto-Medium.ttf'),
+    italics: join(fontsPath, 'Roboto-Italic.ttf'),
+    bolditalics: join(fontsPath, 'Roboto-MediumItalic.ttf'),
+  },
+};
+
+Object.entries(fonts.Roboto).forEach(([style, path]) => {
+  if (!existsSync(path)) {
+    console.error(`Archivo de fuente ${style} no encontrado en ${path}`);
+  } else {
+    console.log(`Archivo de fuente ${style} encontrado en ${path}`);
+  }
+});
+
+@Injectable()
+export class PlanillaReordenamiento {
+
+    datosEnvio: any = [];
+    datosSup: any = [];
+    datosFis: any = [];
+    datosPlanilla: any = [];
+
+    constructor(
+      private readonly responseService: ResponseService,
+      @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+    ) { this.printer = new PdfPrinter(fonts); }
+  
+    private readonly printer = new PdfPrinter(fonts);
+    private getImageBase64(imagePath: string): string {
+      const image = fs.readFileSync(imagePath);
+      return image.toString('base64');
+    }
+
+  //CONSULTAS
+
+  // Datos generales obra - contrato - modificación
+  async datosGeneralesObraModif(id_modif_pago: number) {
+    const query = `
+        SELECT * 
+        FROM public."vista_reporte_modificacion_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
+    const resultado = await this.sequelize.query(query);
+    return resultado[0];
+  }
+
+   // SUPERVISORES designados por obra 
+   async supervisorDesignado(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+   // FISCALES designados por obra 
+   async fiscalDesignado(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+    // Tabla Planilla Reordenamiento
+
+   async planillaReordenamiento(solicitud: number) {
+    const query3 = `
+        SELECT * 
+        FROM public.vista_reporte_planilla WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
+
+
+// REPORTE - PLANILLA DE REORDENAMIENTO
+async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
+
+  const datosGenerales = await this.datosGeneralesObraModif(id_modificacion_pago);
+  if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
+    throw new Error('No se encontraron datos para la ID de la obra proporcionada');
+  }
+  this.datosEnvio = datosGenerales;
+
+  const res1 = await this.supervisorDesignado(obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosSup = res1;
+
+  const res2 = await this.fiscalDesignado(obra);
+  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosFis = res2;
+
+  const res3 = await this.planillaReordenamiento(id_modificacion_pago);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos de la planilla');
+  }
+  this.datosPlanilla = res3;
+
+  console.log('DATOS PLANILLA',this.datosPlanilla);
+  
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    //const imgPath = 'assets/images/membretado_oficio.png';
+    const imgLogo = 'assets/images/logoSGEO.png'
+
+  const documentDefinition: TDocumentDefinitions = {
+  pageSize: 'LEGAL', 
+  pageOrientation: 'landscape', 
+    
+    header: {
+      columns: [
+              { image: imgLogo, width: 130, margin: [5,5,0,0] },
+      ],
+      
+    } as any,
+
+    content: [ 
+      
+      {
+        text: 'PLANILLA DE ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion, 
+        style: 'subheader', alignment: 'center', 
+      },
+      {
+        text: '\n',
+      },
+      {
+        text:[
+            { text: 'CONTRATISTA: ', style: 'textTitulo2', bold:true },
+            { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato'}
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
+            { text: 'NOMBRE DE LA OBRA: ', style: 'textTitulo2', bold:true },
+            { text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].desc_carpeta, style: 'textDato'}
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
+            { text: 'U.E.: ', style: 'textTitulo2', bold:true },
+            { text: this.datosEnvio[0].nombre_ue, style: 'textDato'}
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
+            { text: 'ZONA: ', style: 'textTitulo2', bold:true },
+            { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato'}
+            ], margin: [0,0,0,5],    
+      },
+      {
+        table: {
+          headerRows: 2,
+          widths: [10, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
+          body: [
+            [
+              { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'PU', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
+              { colSpan: 2, text: 'MODIFICACIÓN APROBADA', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },   {}, 
+              { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+            ],
+            [
+              {}, {}, {}, {}, {},//
+              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              
+            ],
+           ...this.buildContenidoPlanilla(this.datosPlanilla) 
+
+          ]
+        }
+      },
+      {
+        text: '\n\n\n\n\n',
+      },
+      {
+          table: {
+            widths: ['*', '*', '*'],
+            body: [
+              [
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosFis)
+                                ? this.datosFis
+                                    .filter(f => f && f.fiscal)
+                                    .map(f => f.fiscal)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                },
+
+                { text: [
+                          { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
+                          { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                ]
+                  },
+
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosSup)
+                                ? this.datosSup
+                                    .filter(f => f && f.supervisor)
+                                    .map(f => f.supervisor)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                }
+              ]
+            ]
+          }, layout: 'noBorders'
+      },
+      {
+        
+      } as any,
+    ],
+
+    footer: function(currentPage: { toString: () => string; }, pageCount: string) 
+          { //return currentPage.toString() + ' of ' + pageCount; 
+            return {
+              columns:[
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,20,0]} 
+                      ]
+              }            
+          } as any,
+    
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+      },
+      subheader: {
+        fontSize: 11,
+        bold: true,
+      },
+      textTitulo: {
+        fontSize: 6,
+        bold: true,
+        //opacity: 0.8,
+      },
+      textTitulo2: {
+        fontSize: 7,
+        bold: true,
+        //opacity: 0.8,
+      },
+      footerText: {
+        fontSize: 6,
+        bold: false,          
+      },
+      textDato: {
+        fontSize: 7,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+    },
+    pageMargins: [20, 55, 20, 20] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+  };
+  // Generar el PDF en memoria
+  const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+  let chunks: Buffer[] = [];
+
+  return new Promise<Buffer>((resolve, reject) => {
+    pdfDoc.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    pdfDoc.on('end', () => {
+      const result = Buffer.concat(chunks);
+      resolve(result);
+    });
+    pdfDoc.end();
+  });
+
+}
+
+//Cargar tabla de computos metricos
+buildContenidoPlanilla(data: any[]) {
+  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+  let totalReordenSum= 0;
+  let totalContratoSum = 0;
+  let totalModifApSum = 0;
+  let totalIncrementoSum = 0;
+  let totalDecrementoSum = 0;
+
+
+
+  for (let i = 0; i < datosPl.length; i++) {
+    const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
+    totalReordenSum += totalReorden;
+
+    const totalContrato = Number(datosPl[i].total_adjudicado) || 0;
+    totalContratoSum += totalContrato;
+
+    const totalModAp = Number(datosPl[i].total_autorizado) || 0;
+    totalModifApSum += totalModAp;
+
+    const totalIncremento = Number(datosPl[i].total_incremento) || 0;
+    totalIncrementoSum += totalIncremento;
+
+    const totalDecremento = Number(datosPl[i].total_decremento) || 0;
+    totalDecrementoSum += totalDecremento;
+
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+   // Fila final con totales
+  const totalRow = [
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, 
+    { text: this.formatIfNumber(totalModifApSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, // celdas vacias
+    { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, 
+    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {},
+    {
+      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+      style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+    },
+  ];
+
+  arrayData.push(totalRow);
+  return arrayData;
+}
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
+  
+  const num = Number(value);
+  if (isNaN(num)) return '';
+
+  return formatter.format(num);
+}
+
+
+}

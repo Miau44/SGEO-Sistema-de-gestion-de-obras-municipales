@@ -15,9 +15,14 @@ import { Modificacion } from '../modificacion_pago/entities/modificacion.entity'
 
 import { FormatoNumericoUtil } from 'src/common/utils/formato-numerico.utils';
 import { PlanillaService } from '../planilla/planilla.service';
+import { ObraService } from '../obra/obra.service';
+import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
 
 @Injectable()
 export class ItemService {
+
+  private var_decimal: 2 | 5 = 5; // valor por defecto
+
   constructor(
     @InjectRepository(Item)
     private readonly itemRepository: Repository<Item>,
@@ -25,7 +30,8 @@ export class ItemService {
 
     private responseService: ResponseService,
     private externoService: ExternoService,
-    private planillaService: PlanillaService
+    private planillaService: PlanillaService,
+    private obraService: ObraService,
 
   ) { }
 
@@ -92,7 +98,20 @@ export class ItemService {
   async updateItem(id: number, updateItemDto: UpdateItemDto) {
     try {
 
-     
+      const obra = await this.obraService.findOne(updateItemDto.id_obra);
+      if (!obra || !obra.data || obra.data.length === 0) {
+        throw new NotFoundException(`Obra with ID ${updateItemDto.id_obra} not found`);
+      }
+
+      const modalidad = obra.data[0].modalidad;
+      console.log('modalidad', modalidad);
+      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
+
+      const precio_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.p_unitario_adjudicado), this.var_decimal);
+      updateItemDto.p_unitario_adjudicado = precio_adjudicado;
+      var total_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.total_adjudicado), this.var_decimal);
+      updateItemDto.total_adjudicado = total_adjudicado;
+      //console.log('UpdateItemDto2hoy29', updateItemDto);
 
       const resultado = await this.itemRepository.update(+id, updateItemDto);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
@@ -101,7 +120,13 @@ export class ItemService {
     }
   }
 
-  
+  private ensureNumber(value: any): number {
+    // Convertir el valor a un número si es válido y devolverlo; de lo contrario, devolver 0.
+    const parsedValue = parseFloat(value);
+    return !isNaN(parsedValue) && value !== null && value !== '' ? parsedValue : 0;
+  }
+
+
   // Eliminar un item por id
   async remove(id: number): Promise<void> {
     await this.itemRepository.delete(id);
@@ -245,12 +270,27 @@ export class ItemService {
 
       for (const registro of registros) {
         try {
+
+          const id_obra = await this.findOne(registro.id_item);
+          const obra = await this.obraService.findOne(id_obra.id_obra);
+          if (!obra || !obra.data || obra.data.length === 0) {
+            throw new NotFoundException(`Obra with ID ${id_obra} not found`);
+          }
+
+          const modalidad = obra.data[0].modalidad;
+          console.log('modalidad bloque', modalidad);
+          this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
+
+          var p_unitario_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0')
+          var total_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0')
           const data = {
-            p_unitario_adjudicado: FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0'),
-            total_adjudicado: FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0'),
+            p_unitario_adjudicado: DecimalUtil.roundToDecimals((this.ensureNumber(p_unitario_adjudicado_)), this.var_decimal),
+            total_adjudicado: DecimalUtil.roundToDecimals(this.ensureNumber(total_adjudicado_), this.var_decimal)
           };
 
+
           const resultado = await this.itemRepository.update({ id_item: registro.id_item }, data);
+          // const resultado = await this.updateItem(registro.id_item, data);          
 
           if (typeof resultado.affected === 'number' && resultado.affected > 0) {
             resultados.push({ id_item: registro.id_item, estado: 'Actualizado', data });
