@@ -347,11 +347,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
               { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_recep_definitiva) + '\n\n', style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva) + '\n\n', style: 'textDato' }] }
             ],
             [
               { text: [{ text: 'TOTAL AMPLIACIÓN DE PLAZO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -359,7 +359,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'NUEVA FECHA DE CONCLUSIÓN:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.fechaString(this.datosMod[0].nueva_conclusion), style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosMod[0].nueva_conclusion), style: 'textDato' }] }
             ],
           ]
         }, margin: [10, 0, 0, 5] 
