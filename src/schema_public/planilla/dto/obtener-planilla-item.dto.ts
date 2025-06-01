@@ -9,6 +9,6 @@ export class PlanillaItemDto {
     id_item: number;
 
     @ApiProperty()
-    id_solicitud_historial: number;    
+    id_usuario: number;    
 
 }

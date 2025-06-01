@@ -79,7 +79,7 @@ export class ModificacionPagoService {
       //crear Solicitud
       const data_solicitud = {
         id_tipo_solicitud: 0,
-        id_estado_solicitud: 1,
+        id_estado_solicitud: 2,
         id_obra: dto.id_obra,
         id_estado_general: 21,
         id_usuario: dto.id_usuario,
@@ -87,7 +87,24 @@ export class ModificacionPagoService {
         usuario_registro: dto.id_usuario,
         id_estado_registro: 1,
       };
-      const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      //const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
+      const  respuesta_solicitud =   await this.solicitudRepocitorio.save(data_solicitud);
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.nro_solicitud,
+        id_estado_solicitud: 2,
+        id_obra: respuesta_solicitud.id_obra,
+        id_estado_general: respuesta_solicitud.id_estado_general,
+        id_usuario: respuesta_solicitud.id_usuario,
+        proveido: respuesta_solicitud.proveido,
+        data_solicitud: respuesta_solicitud.data_solicitud,
+        fecha_envio: respuesta_solicitud.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.usuario_registro,
+        id_estado_registro: respuesta_solicitud.id_estado_registro,
+      };
 
       /*const datosHistorial = {
         id_solicitud: respuesta_solicitud.data.id_solicitud,
@@ -103,8 +120,11 @@ export class ModificacionPagoService {
         id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
         usuario_registro: respuesta_solicitud.data.usuario_registro,
         id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-      };
-      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)*/
+      };*/
+
+
+
+      const solicitud_historial = await this.solicitudService.createHistorial(datosHistorial)
 
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,
@@ -129,7 +149,7 @@ export class ModificacionPagoService {
       // if(dto.tipo ===3){dto.tipo =1}
       const data_modpago = {
         "id_obra": dto.id_obra,
-        "id_solicitud": respuesta_solicitud.data.id_solicitud,
+        "id_solicitud": respuesta_solicitud.id_solicitud,
         "id_tipo_mod_pago": dto.tipo,
         "id_correlativo_tipo": Number(res_correlativo_tipo.data.id_correlativo),
         "id_correlativo_subtipo": Number(res_correlativo_subtipo.data.id_correlativo),
@@ -200,7 +220,7 @@ export class ModificacionPagoService {
   async listaModificacion(data: listaModDto) {
     try {
       ;
-      let query = `SELECT s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
+      let query = `  SELECT m.finalizado, s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
       tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
           tmp.desc_subtipo AS tipo_modificacion,
            co.correlativo as nro_modificacion,

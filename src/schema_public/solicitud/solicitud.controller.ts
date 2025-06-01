@@ -16,6 +16,7 @@ import { HistorialObraDto } from './dto/historial-obra.dto';
 import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 import { ContadorGestionDto } from './dto/contador-gestion.dto';
 import { UsuarioSolicitudXObraDto } from './dto/usuario-solicitud-obra.dto';
+import { ActualizarSolicitudDto } from './dto/datos-modificacion.dto';
 
 @ApiTags('solicitud')
 @Controller('solicitud')
@@ -177,5 +178,13 @@ export class SolicitudController {
     } catch (error) {
     }
   } 
+
+  @Post('guardar-historial-estado')
+  async guardarHistorial(@Body() data: ActualizarSolicitudDto) {
+     try {
+    return await this.solicitudService.guardarHistorialYActualizar(data);
+       } catch (error) {
+    }
+  }
 
 }
