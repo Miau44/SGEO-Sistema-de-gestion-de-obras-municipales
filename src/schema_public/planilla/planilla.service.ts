@@ -287,7 +287,42 @@ export class PlanillaService {
           AND i.id_item = $3
           AND i.id_estado = 1
         `;
-      const params: any[] = [data.id_solicitud_historial, data.id_modificacion_pago, data.id_item];
+` 
+SELECT * 
+FROM public.item AS i
+INNER JOIN public.planilla AS p ON i.id_item = p.id_item
+INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
+
+INNER JOIN (
+  SELECT DISTINCT ON (id_solicitud) *
+  FROM solicitud_historial
+  WHERE id_usuario = $1
+  ORDER BY id_solicitud, id_solicitud_historial DESC
+) AS sh ON mp.id_solicitud = sh.id_solicitud
+
+LEFT JOIN public.planilla_justificacion AS pj 
+  ON p.id_planilla = pj.id_planilla 
+  AND pj.id_solicitud_historial = sh.id_solicitud_historial
+
+LEFT JOIN (
+  SELECT DISTINCT ON (p.id_item, p.id_modificacion_pago)
+         p.id_item, 
+         p.id_modificacion_pago, 
+         po.observacion_fiscal,
+         po.fecha_registro
+  FROM public.planilla AS p
+  INNER JOIN public.planilla_observacion AS po ON p.id_planilla = po.id_planilla
+  ORDER BY p.id_item, p.id_modificacion_pago, po.fecha_registro DESC
+) AS sub ON p.id_modificacion_pago = sub.id_modificacion_pago 
+        AND i.id_item = sub.id_item
+
+WHERE 
+  p.id_modificacion_pago = $2
+  AND i.id_item = $3
+  AND i.id_estado = 1;`;
+
+
+      const params: any[] = [data.id_usuario, data.id_modificacion_pago, data.id_item];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {

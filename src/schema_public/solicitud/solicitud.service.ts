@@ -19,6 +19,7 @@ import { HistorialObraDto } from './dto/historial-obra.dto';
 import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 import { ContadorGestionDto } from './dto/contador-gestion.dto';
 import { UsuarioSolicitudXObraDto } from './dto/usuario-solicitud-obra.dto';
+import { ActualizarSolicitudDto } from './dto/datos-modificacion.dto';
 
 
 
@@ -351,4 +352,48 @@ async usuarioSolicitudXObra(data: UsuarioSolicitudXObraDto) {
     return this.responseService.error(error);
   }
 }
+
+
+async guardarHistorialYActualizar(data: ActualizarSolicitudDto) {
+  try {
+
+    console.log(data);
+    
+    console.log('Ejecutando sp_modificacion_historial con:');
+    console.log('Solicitud:', data.p_id_solicitud);
+    console.log('Usuario:', data.p_id_usuario);
+    console.log('Usuario Registro:', data.p_usuario_registro);
+    console.log('Estado:', data.p_id_estado_general);
+    console.log('Proveído:', data.p_proveido);
+
+   /* const query = `SELECT public.sp_modificacion_historial(${data.p_id_solicitud}, 
+    ${data.p_id_usuario}, ${data.p_usuario_registro}, ${data.p_id_estado_general}, ${data.p_proveido}) AS id_historial`;*/
+
+const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5) AS id_historial`;    
+    const params = [
+      data.p_id_solicitud,
+      data.p_id_usuario,
+      data.p_usuario_registro,
+      data.p_id_estado_general,
+      data.p_proveido,
+    ];
+
+    const resultado = await this.solicitudRepositorio.query(query, params);
+    console.log('Resultado del SP:', resultado);
+
+    return this.responseService.success(resultado, "Ejecutado correctamente.");
+  } catch (error:any) {
+    console.error('❌ Error al ejecutar sp_modificacion_historial:', {
+      message: error.message,
+      detail: error.detail,
+      stack: error.stack,
+    });
+    return this.responseService.error(error);
+  }
+}
+
+
+
+
+
 }

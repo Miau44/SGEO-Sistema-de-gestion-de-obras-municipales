@@ -18,6 +18,7 @@ import { error } from 'console';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 import { ComputoResumenDto } from './dto/computo-resumen.dto';
 import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
+import { ListaFiscalDto } from './dto/lista-fiscal.dto';
 
 @ApiTags('computo')
 @Controller('computo')
@@ -72,7 +73,7 @@ export class ComputoController {
 
   @Public()
   @Post('computo-lista-fiscal')
-  listaItemFiscal(@Body() computoObraDto: ComputoModificacionDto) {
+  listaItemFiscal(@Body() computoObraDto: ListaFiscalDto) {
     try {  
       return this.computoService.listaItemComputoXObraFiscal(computoObraDto);
     } catch (error) {
