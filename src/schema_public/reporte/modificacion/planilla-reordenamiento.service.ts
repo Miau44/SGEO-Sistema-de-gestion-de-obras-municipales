@@ -145,32 +145,32 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
       },
       {
         text:[
-            { text: 'CONTRATISTA: ', style: 'textDato', bold:true },
+            { text: 'CONTRATISTA: ', style: 'textTitulo2', bold:true },
             { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato'}
             ], margin: [0,0,0,3],    
       },
       {
         text:[
-            { text: 'NOMBRE DE LA OBRA: ', style: 'textDato', bold:true },
-            { text: this.datosEnvio[0].desc_carpeta, style: 'textDato'}
+            { text: 'NOMBRE DE LA OBRA: ', style: 'textTitulo2', bold:true },
+            { text: this.datosEnvio[0].cod_carpeta + '-' + this.datosEnvio[0].desc_carpeta, style: 'textDato'}
             ], margin: [0,0,0,3],    
       },
       {
         text:[
-            { text: 'U.E.: ', style: 'textDato', bold:true },
+            { text: 'U.E.: ', style: 'textTitulo2', bold:true },
             { text: this.datosEnvio[0].nombre_ue, style: 'textDato'}
             ], margin: [0,0,0,3],    
       },
       {
         text:[
-            { text: 'ZONA: ', style: 'textDato', bold:true },
+            { text: 'ZONA: ', style: 'textTitulo2', bold:true },
             { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato'}
             ], margin: [0,0,0,5],    
       },
       {
         table: {
           headerRows: 2,
-          widths: [10, 45, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
+          widths: [10, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
           body: [
             [
               { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -187,15 +187,15 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
             [
               {}, {}, {}, {}, {},//
               { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               
             ],
            ...this.buildContenidoPlanilla(this.datosPlanilla) 
@@ -228,7 +228,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 
                 { text: [
                           { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
-                          { text: 'CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                          { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
                 ]
                   },
 
@@ -275,6 +275,11 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
       },
       textTitulo: {
         fontSize: 6,
+        bold: true,
+        //opacity: 0.8,
+      },
+      textTitulo2: {
+        fontSize: 7,
         bold: true,
         //opacity: 0.8,
       },
@@ -326,17 +331,35 @@ buildContenidoPlanilla(data: any[]) {
   let datosPl = data;
   let arrayData = [];
   let totalReordenSum= 0;
+  let totalContratoSum = 0;
+  let totalModifApSum = 0;
+  let totalIncrementoSum = 0;
+  let totalDecrementoSum = 0;
+
+
 
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
     totalReordenSum += totalReorden;
 
+    const totalContrato = Number(datosPl[i].total_adjudicado) || 0;
+    totalContratoSum += totalContrato;
+
+    const totalModAp = Number(datosPl[i].total_autorizado) || 0;
+    totalModifApSum += totalModAp;
+
+    const totalIncremento = Number(datosPl[i].total_incremento) || 0;
+    totalIncrementoSum += totalIncremento;
+
+    const totalDecremento = Number(datosPl[i].total_decremento) || 0;
+    totalDecrementoSum += totalDecremento;
+
     let rowData = [
       { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: datosPl[i].codigo_item ?? '', style: 'textDato' },
+      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico5), style: 'textDato', alignment: 'right' },
@@ -351,22 +374,24 @@ buildContenidoPlanilla(data: any[]) {
     arrayData.push(rowData);
   }
 
-   // Fila final con total
+   // Fila final con totales
   const totalRow = [
     {}, {}, {}, {}, {}, {}, // celdas vacias
-    { text: this.datosEnvio[0].monto_contrato, style: 'textDato', alignment: 'right', bold: true }, 
-    {}, {}, {}, {}, {}, {}, // celdas vacias
-    {
-      text: 'Suma vertical:', 
-      style: 'textDato',
-      alignment: 'right',
-      border: [false, true, false, true],
-    },
+    { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, 
+    { text: this.formatIfNumber(totalModifApSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, // celdas vacias
+    { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, 
+    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {},
     {
       text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
-      style: 'textDato', bold: true,
-      alignment: 'right',
-      border: [true, true, true, true],
+      style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
     },
   ];
 

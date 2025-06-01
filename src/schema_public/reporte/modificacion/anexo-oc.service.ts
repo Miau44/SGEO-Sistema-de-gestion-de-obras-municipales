@@ -116,7 +116,7 @@ export class AnexoOC {
                 ],
                 [
                     { text: [
-                        { text: 'CONTRATISTA\n', style: 'textTitulo', alignment: 'center'},
+                        { text: 'EMPRESA CONTRATISTA\n', style: 'textTitulo', alignment: 'center'},
                         { text: 'Firmo dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio N°' + this.datosEnvio[0].numero_modificacion,
                       style: 'textDato', alignment: 'left'},
                     ] 
@@ -125,7 +125,7 @@ export class AnexoOC {
 
               
               ]
-          }, margin: [100,0,100,0]
+          }, margin: [20,0,20,0]
       },
       {
         text: '\n\n'

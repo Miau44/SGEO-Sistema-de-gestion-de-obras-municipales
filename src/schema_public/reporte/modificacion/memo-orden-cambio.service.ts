@@ -180,7 +180,7 @@ export class MemoOrdenCambio {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_fiscal), 
+                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo_minuta), 
                   style: 'textDato', alignment: 'center'
                 },
                 {
