@@ -324,7 +324,7 @@ LEFT JOIN (
     // 2️⃣ Validar que exista al menos un registro en `informe`
     const informeQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total FROM public.informe 
-     WHERE id_obra = $1 AND id_tipo_informe = 266 AND id_estado = 1`, params1);
+     WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_estado = 1`, params1);
 
     if (Number(informeQuery[0].total) === 0) {
       mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
