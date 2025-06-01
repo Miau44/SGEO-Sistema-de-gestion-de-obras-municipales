@@ -226,7 +226,11 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                       ]
                 },
 
-                { text: 'CONTRATISTA', style: 'textTitulo', alignment: 'center'},
+                { text: [
+                          { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
+                          { text: 'CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                ]
+                  },
 
                 {
                   text:
@@ -307,35 +311,66 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 
 //Cargar tabla de computos metricos
 buildContenidoPlanilla(data: any[]) {
-  const formatoNumerico = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
+    
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    
   });
 
   let datosPl = data;
   let arrayData = [];
+  let totalReordenSum= 0;
 
   for (let i = 0; i < datosPl.length; i++) {
+    const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
+    totalReordenSum += totalReorden;
+
     let rowData = [
       { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
       { text: datosPl[i].codigo_item ?? '', style: 'textDato' },
       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
     arrayData.push(rowData);
   }
 
+   // Fila final con total
+  const totalRow = [
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    { text: this.datosEnvio[0].monto_contrato, style: 'textDato', alignment: 'right', bold: true }, 
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    {
+      text: 'Suma vertical:', 
+      style: 'textDato',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+    {
+      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+      style: 'textDato', bold: true,
+      alignment: 'right',
+      border: [true, true, true, true],
+    },
+  ];
+
+  arrayData.push(totalRow);
   return arrayData;
 }
 

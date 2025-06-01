@@ -38,6 +38,7 @@ export class InformeModificacionFiscal {
     datosInf: any = [];
     datosAF: any = [];
     datosSaf: any = [];
+    datosSec: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -115,6 +116,15 @@ export class InformeModificacionFiscal {
       return resultado4[0];
   }
 
+  //--Datos MAE - SMIP
+    async datosSecretario(obra: number) {
+      const query5 = `
+          SELECT * 
+          FROM public."vista_reporte_mae_SMIP"`;
+      const resultado5 = await this.sequelize.query(query5);
+      return resultado5[0];
+  }
+
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -151,15 +161,21 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
   const res5 = await this.datosAprobadorFiscal(this.datosEnvio[0].id_obra);
     if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron del Aprobador.');
+      throw new Error('No se encontraron del Aprobador');
     }
     this.datosAF = res5;
 
   const res6 = await this.datosSafes(this.datosEnvio[0].id_obra);
     if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
-      throw new Error('No se encontraron del SAF-RPA.');
+      throw new Error('No se encontraron del SAF-RPA');
     }
     this.datosSaf = res6;
+
+  const res7 = await this.datosSecretario(this.datosEnvio[0].id_obra);
+    if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+      throw new Error('No se encontraron del Secretario de la SMIP');
+    }
+    this.datosSaf = res7;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -180,9 +196,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     header: {
       columns: [{ 
 
-      }],
-      
-    } as any,
+               }],
+              
+            } as any,
 
     content: [ 
       {
@@ -225,8 +241,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                     } else {
                       if (monto > 500000) {
                         return [
-                          { text: 'Secretario\n', style: 'textDato' },
-                          { text: nombreDA, style: 'textTitulo' }
+                          { text: this.datosSec[0].nombre_sec + '\n', style: 'textDato' },
+                          { text: this.datosSec[0].nombre_da, style: 'textTitulo' }
                         ];
                       } else {
                         return [
@@ -244,7 +260,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ...(
                 this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
                    // No incluir la fila
-                  ? [[
+                  ? []
+                  : [[
                       { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                       {
                         text: [
@@ -254,7 +271,6 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                         margin: [0, 5, 0, 5]
                       }
                     ]]
-                  : []
               ),
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
@@ -278,7 +294,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               [
                 { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n' + this.datosInf[0].referencia, 
-                  style: 'textTitulo', margin: [0, 5, 0, 5] },
+                  style: 'textDato', margin: [0, 5, 0, 5] },
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
@@ -380,7 +396,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         text: '\n'
       },
       {
-          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
+          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
           ' de fecha ' + this.datosEnvio[0].fecha_supervisor + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
           'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
           style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
@@ -564,8 +580,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 { text: nombreCompleto + '\n', style: 'textDato' },
                 { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
                   ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }

@@ -310,8 +310,8 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
                 { text: nombreCompleto + '\n', style: 'textDato' },
                 { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
                   ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
