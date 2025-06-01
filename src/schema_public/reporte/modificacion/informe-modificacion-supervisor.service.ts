@@ -794,8 +794,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
                 { text: nombreCompleto + '\n', style: 'textDato' },
                 { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
                   ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
@@ -804,6 +804,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   // Función para poblar la tabla de modificaciones aprobadas
     buildModAprobadas(data: any) {
+    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+
     let datosResp = data;
     let arrayData = [];
 
@@ -814,8 +819,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
         { text: [{ text: this.formatearFecha(datosResp[i].fecha_aprobacion_contrato), style: 'textDatoT', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].monto_variacion, alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: datosResp[i].monto_total, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico5), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
@@ -827,14 +832,19 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   // Función para poblar la tabla de modificación Actual
     buildModActual(data: any) {
+    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+
     let datosResp = data;
     let arrayData = [];
 
     for (let i = 0; i < datosResp.length; i++) {
       let rowData = [
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: datosResp[i].monto_variacion, alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: datosResp[i].monto_total, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico5), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].nuevo_plazo, style: 'textDatoT', alignment: 'center', }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
@@ -869,6 +879,16 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
 // Función para cargar las tablas de modificaciones INCREMENTO-DECREMENTO-ADICION
   buildItemsIDA(data: any) {
+    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+
+    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+  
   let datosResp = data;
   let arrayData = [];
   let totalReordenamientoSum = 0;
@@ -883,10 +903,10 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       { text: [{ text: datosResp[i].desc_item, alignment: 'left', style: 'textDatoT' }] },
       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
-      { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'center' }] },
-      { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'center' }] },
-      { text: [{ text: datosResp[i].cantidad_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
-      { text: [{ text: datosResp[i].total_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
+      { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: datosResp[i].cantidad_reordenamiento, style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].total_reordenamiento,formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
     ];
     arrayData.push(rowData);
   }
@@ -896,16 +916,12 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     {
       colSpan: 7,
       text: 'TOTAL:',
-      style: 'textTituloT',
-      alignment: 'right',
-      border: [false, true, false, true],
+      style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
     {
-      text: totalReordenamientoSum.toFixed(2),
-      style: 'textTituloT',
-      alignment: 'right',
-      border: [false, true, false, true],
+      text: this.formatIfNumber(totalReordenamientoSum, formatoNumerico2),
+      style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
   ];
 
@@ -1043,7 +1059,15 @@ private getCurrencyWord(currency: string): string {
   }
 }
 
+// FORMATO DE NUMEROS
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
+  
+  const num = Number(value);
+  if (isNaN(num)) return '';
 
+  return formatter.format(num);
+}
   
 
 }
