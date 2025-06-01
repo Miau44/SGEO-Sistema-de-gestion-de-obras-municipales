@@ -35,7 +35,8 @@ export class PlanillaReordenamiento {
 
     datosEnvio: any = [];
     datosSup: any = [];
-    datosComputo: any = [];
+    datosFis: any = [];
+    datosPlanilla: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -59,6 +60,35 @@ export class PlanillaReordenamiento {
     return resultado[0];
   }
 
+   // SUPERVISORES designados por obra 
+   async supervisorDesignado(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+   // FISCALES designados por obra 
+   async fiscalDesignado(obra: number) {
+    const query1 = `
+        SELECT * 
+        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
+    const resultado = await this.sequelize.query(query1);
+    return resultado[0];
+   }
+
+    // Tabla Planilla Reordenamiento
+
+   async planillaReordenamiento(solicitud: number) {
+    const query3 = `
+        SELECT * 
+        FROM public.vista_reporte_planilla WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
+
+
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
 
@@ -68,7 +98,25 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   }
   this.datosEnvio = datosGenerales;
 
-  console.log('DATOS COMPUTO',this.datosComputo);
+  const res1 = await this.supervisorDesignado(obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosSup = res1;
+
+  const res2 = await this.fiscalDesignado(obra);
+  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosFis = res2;
+
+  const res3 = await this.planillaReordenamiento(id_modificacion_pago);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos de la planilla');
+  }
+  this.datosPlanilla = res3;
+
+  console.log('DATOS PLANILLA',this.datosPlanilla);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -76,8 +124,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     const imgLogo = 'assets/images/logoSGEO.png'
 
   const documentDefinition: TDocumentDefinitions = {
-  pageSize: 'LEGAL', // ✅ en minúsculas
-  pageOrientation: 'landscape', // ✅ literal exacto
+  pageSize: 'LEGAL', 
+  pageOrientation: 'landscape', 
     
     header: {
       columns: [
@@ -89,24 +137,40 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     content: [ 
       
       {
-        text:[
-            { text: 'PLANILLA DE ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'subheader', alignment: 'center' },
-            { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
-        ],
+        text: 'PLANILLA DE ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion, 
+        style: 'subheader', alignment: 'center', 
       },
       {
         text: '\n',
       },
       {
         text:[
+            { text: 'CONTRATISTA: ', style: 'textDato', bold:true },
+            { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato'}
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
             { text: 'NOMBRE DE LA OBRA: ', style: 'textDato', bold:true },
             { text: this.datosEnvio[0].desc_carpeta, style: 'textDato'}
-            ], margin: [0,0,0,6],    
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
+            { text: 'U.E.: ', style: 'textDato', bold:true },
+            { text: this.datosEnvio[0].nombre_ue, style: 'textDato'}
+            ], margin: [0,0,0,3],    
+      },
+      {
+        text:[
+            { text: 'ZONA: ', style: 'textDato', bold:true },
+            { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato'}
+            ], margin: [0,0,0,5],    
       },
       {
         table: {
           headerRows: 2,
-          widths: [10, 40, '*', 30, 30, 30, 30, 30, 30, 30, 30,30,30,30,30], // 15 columnas
+          widths: [10, 45, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
           body: [
             [
               { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -114,11 +178,11 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'PU', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 2, text: 'MODIFICACIÓN APROBADA', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {}, {},
-              { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 2, text: 'REORDENAMIENTO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
+              { colSpan: 2, text: 'MODIFICACIÓN APROBADA', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },   {}, 
+              { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
             ],
             [
               {}, {}, {}, {}, {},//
@@ -134,17 +198,57 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               { text: 'MONTO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
               
             ],
-           //...this.buildContenidoComputo(this.datosComputo) 
+           ...this.buildContenidoPlanilla(this.datosPlanilla) 
 
           ]
         }
+      },
+      {
+        text: '\n\n\n\n\n',
+      },
+      {
+          table: {
+            widths: ['*', '*', '*'],
+            body: [
+              [
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosFis)
+                                ? this.datosFis
+                                    .filter(f => f && f.fiscal)
+                                    .map(f => f.fiscal)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                },
 
-      },
-      {
-        text: '\n\n\n',
-      },
-      {
-          
+                { text: [
+                          { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
+                          { text: 'CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                ]
+                  },
+
+                {
+                  text:
+                      [
+                        { text: 
+                              (Array.isArray(this.datosSup)
+                                ? this.datosSup
+                                    .filter(f => f && f.supervisor)
+                                    .map(f => f.supervisor)
+                                    .join(' | ')
+                                : ''
+                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      ]
+                }
+              ]
+            ]
+          }, layout: 'noBorders'
       },
       {
         
@@ -185,7 +289,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         opacity: 0.8,
       },
     },
-    pageMargins: [30, 55, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [20, 55, 20, 20] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
@@ -203,6 +307,80 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     pdfDoc.end();
   });
 
+}
+
+//Cargar tabla de computos metricos
+buildContenidoPlanilla(data: any[]) {
+  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+  let totalReordenSum= 0;
+
+  for (let i = 0; i < datosPl.length; i++) {
+    const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
+    totalReordenSum += totalReorden;
+
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'textDato' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+   // Fila final con total
+  const totalRow = [
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    { text: this.datosEnvio[0].monto_contrato, style: 'textDato', alignment: 'right', bold: true }, 
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    {
+      text: 'Suma vertical:', 
+      style: 'textDato',
+      alignment: 'right',
+      border: [false, true, false, true],
+    },
+    {
+      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+      style: 'textDato', bold: true,
+      alignment: 'right',
+      border: [true, true, true, true],
+    },
+  ];
+
+  arrayData.push(totalRow);
+  return arrayData;
+}
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
+  
+  const num = Number(value);
+  if (isNaN(num)) return '';
+
+  return formatter.format(num);
 }
 
 
