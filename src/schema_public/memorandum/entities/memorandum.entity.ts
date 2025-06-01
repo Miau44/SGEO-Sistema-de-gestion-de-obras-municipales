@@ -15,7 +15,7 @@ export class Memorandum {
     @Column()
     id_tipo_memo:number;    
 
-    @Column()
+    @Column({nullable:true})
     id_correlativo:number;
 
     @Column({type: 'timestamp without time zone', nullable:true})

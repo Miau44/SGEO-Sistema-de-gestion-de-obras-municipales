@@ -253,22 +253,58 @@ export class PlanillaService {
 
 
 
+  // async finalizarPlanilla(data: FinalizarPlanillaDto) {
+  //   try {
+  //     let query =
+  //       ` UPDATE public.planilla 
+  //         SET finalizado =true WHERE id_modificacion_pago = $1 AND id_estado = 1`;
+  //     const params = [data.id_modificacion_pago];
+  //     await this.planillaRepositorio.query(query, params);
+
+  //     let queryrespuesta = `SELECT finalizado, id_modificacion_pago  FROM planilla WHERE id_modificacion_pago = $1 AND id_estado = 1 `;
+
+  //     const resultado = await this.planillaRepositorio.query(queryrespuesta, params);
+  //     return this.responseService.success(resultado, "Actualizado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
   async finalizarPlanilla(data: FinalizarPlanillaDto) {
     try {
-      let query =
-        ` UPDATE public.planilla 
-          SET finalizado =true WHERE id_modificacion_pago = $1 AND id_estado = 1`;
       const params = [data.id_modificacion_pago];
-      await this.planillaRepositorio.query(query, params);
+  
+      //Actualizar planillas
+      const updateQuery = `UPDATE public.planilla 
+                           SET finalizado = true 
+                           WHERE id_modificacion_pago = $1 AND id_estado = 1`;
+      await this.planillaRepositorio.query(updateQuery, params);
+  
+      //Consultar resultado del update
+      const selectQuery = `SELECT finalizado, id_modificacion_pago  
+                           FROM planilla 
+                           WHERE id_modificacion_pago = $1 AND id_estado = 1`;
+      const resultado = await this.planillaRepositorio.query(selectQuery, params);
+      
+  
+      //Ejecutar el SP
+      const spQuery = `SELECT * FROM sp_crear_informe_y_opcional_memorandum($1)`;
+      console.log('🟡 Ejecutando SP sp_crear_informe_y_opcional_memorandum...');
+      const spResult = await this.planillaRepositorio.query(spQuery, [data.id_modificacion_pago]);
 
-      let queryrespuesta = `SELECT finalizado, id_modificacion_pago  FROM planilla WHERE id_modificacion_pago = $1 AND id_estado = 1 `;
-
-      const resultado = await this.planillaRepositorio.query(queryrespuesta, params);
-      return this.responseService.success(resultado, "Actualizado Correctamente.")
+  
+      return this.responseService.success(
+        { planilla: resultado, 
+          resultadoSP: spResult,
+         mensaje: spResult[0]?.mensaje},
+        spResult[0]?.mensaje ?? 'Planilla finalizada correctamente.'
+      );
+  
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al finalizar la planilla.');
     }
   }
+  
 
 
 
