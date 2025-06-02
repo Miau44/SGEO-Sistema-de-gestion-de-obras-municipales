@@ -37,6 +37,7 @@ export class PlanillaReordenamiento {
     datosSup: any = [];
     datosFis: any = [];
     datosPlanilla: any = [];
+    datosPlanillaR: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -78,8 +79,7 @@ export class PlanillaReordenamiento {
     return resultado[0];
    }
 
-    // Tabla Planilla Reordenamiento
-
+   // Tabla Planilla Reordenamiento
    async planillaReordenamiento(solicitud: number) {
     const query3 = `
         SELECT * 
@@ -88,6 +88,14 @@ export class PlanillaReordenamiento {
     return resultado3[0];
    }
 
+   // Tabla Planilla Reordenamiento
+   async planillaResumen(solicitud: number) {
+    const query4 = `
+        SELECT * 
+        FROM public.vista_reporte_planilla_resumen WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado4 = await this.sequelize.query(query4);
+    return resultado4[0];
+   }
 
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
@@ -115,6 +123,12 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
       throw new Error('No se encontraron datos de la planilla');
   }
   this.datosPlanilla = res3;
+
+  const res4 = await this.planillaResumen(id_modificacion_pago);
+  if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
+      throw new Error('No se encontraron datos de la planilla');
+  }
+  this.datosPlanillaR = res4;
 
   console.log('DATOS PLANILLA',this.datosPlanilla);
   
@@ -395,7 +409,39 @@ buildContenidoPlanilla(data: any[]) {
     },
   ];
 
+  const porc1Row = [
+    {}, {}, 
+    { text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+  ];
+
+  const montoVarRow = [
+    {}, {}, 
+    { text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
+  const porcVarRow = [
+    {}, {}, 
+    { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
+  const porcTotalRow = [
+    {}, {}, 
+    { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
   arrayData.push(totalRow);
+  arrayData.push(porc1Row);
+  arrayData.push(montoVarRow);
+  arrayData.push(porcVarRow);
+  arrayData.push(porcTotalRow);
+
   return arrayData;
 }
 
