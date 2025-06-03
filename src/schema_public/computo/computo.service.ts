@@ -49,6 +49,23 @@ export class ComputoService {
 
   async create(createComputoDto: CreateComputoDto) {
     try {
+      const info_obra = await this.modificacionService.findOne(createComputoDto.id_modificacion_pago);
+      const id_obra =  info_obra.data.id_obra;
+      if (!info_obra || info_obra.data.length === 0) {
+        throw new NotFoundException(`Obra with ID ${createComputoDto.id_modificacion_pago} not found`);
+      }
+      const obra = await this.obraservice.findOne(id_obra);
+      const modalidad = obra.data[0].modalidad;
+      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
+      
+      createComputoDto.alto = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.alto), this.var_decimal);
+      createComputoDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.largo), this.var_decimal);
+      createComputoDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.ancho), this.var_decimal);
+      createComputoDto.area = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.area), this.var_decimal);
+      createComputoDto.area_total = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.area_total), this.var_decimal);
+      createComputoDto.volumen = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.volumen), this.var_decimal);
+      createComputoDto.volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.volumen_total), this.var_decimal);
+      createComputoDto.parcial = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.parcial), this.var_decimal);
       const resultado = await this.computoRepositorio.save(createComputoDto);
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
@@ -66,7 +83,23 @@ export class ComputoService {
 
   async update(id: number, updateComputoPlanillaDto: UpdateComputoDto) {
     try {
-      const resultado = await this.computoRepositorio.update(id, updateComputoPlanillaDto)
+      const info_obra = await this.modificacionService.findOne(updateComputoPlanillaDto.id_modificacion_pago??0);
+      const id_obra =  info_obra.data.id_obra;
+      if (!info_obra || info_obra.data.length === 0) {
+        throw new NotFoundException(`Obra with ID ${updateComputoPlanillaDto.id_modificacion_pago} not found`);
+      }
+      const obra = await this.obraservice.findOne(id_obra);
+      const modalidad = obra.data[0].modalidad;
+      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
+      updateComputoPlanillaDto.alto = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.alto), this.var_decimal);
+      updateComputoPlanillaDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.largo), this.var_decimal);
+      updateComputoPlanillaDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.ancho), this.var_decimal);
+      updateComputoPlanillaDto.area = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area), this.var_decimal);
+      updateComputoPlanillaDto.area_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area_total), this.var_decimal);
+      updateComputoPlanillaDto.volumen = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen), this.var_decimal);
+      updateComputoPlanillaDto.volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen_total), this.var_decimal);
+      updateComputoPlanillaDto.parcial = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.parcial), this.var_decimal);
+      await this.computoRepositorio.update(id, updateComputoPlanillaDto);
       return this.responseService.success(id, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -477,10 +510,28 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
           const dArea = DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal) || 1;
           const eVolumen = DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal) || 1;
 
-
+          
           const calculo_parcial = noVeces * aLargo * bAncho * cAlto * dArea * eVolumen;
-          const calculoparcial =DecimalUtil.roundToDecimals(this.ensureNumber(calculo_parcial), this.var_decimal)
+          const calculoparcial =DecimalUtil.roundToDecimals(this.ensureNumber(calculo_parcial), this.var_decimal);
 
+          
+       /*   //***************************Calcular area_total o volumen_total según la unidad*****************************
+          let area_total = 0;
+          let volumen_total = 0
+
+          const unidad = (row.unidad || '').toLowerCase();
+          if (unidad === 'm2') {
+            area_total = DecimalUtil.roundToDecimals(
+              this.ensureNumber(aLargo * bAncho * cAlto * dArea * eVolumen),
+              this.var_decimal
+            );
+          } else if (unidad === 'm3') {
+            volumen_total = DecimalUtil.roundToDecimals(
+              this.ensureNumber(aLargo * bAncho * cAlto * dArea * eVolumen),
+              this.var_decimal
+            );
+          }
+          //***************************Calcular area_total o volumen_total según la unidad****************************/
           return {
             id_item: row.id_item || '',
             id_modificacion_pago: dataadicional.id_modificacion,
@@ -493,12 +544,15 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
             ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),            
             area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),            
             
-            
+           //***************************Calcular area_total o volumen_total según la unidad****************************/ 
+          /*  area_total: area_total,
+            volumen_total: volumen_total,*/
+           //***************************Calcular area_total o volumen_total según la unidad****************************/            
             area_total: 0,
+            volumen_total: 0,
         // volumen: this.ensureNumber(row.volumen),
           volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),            
 
-            volumen_total: 0,
             parcial: calculoparcial,
             // id_tipo_computo: dataadicional.id_tipo_computo,
             version: nueva_version,
@@ -514,7 +568,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         id_modificacion_pago: dataadicional.id_modificacion,
         id_item: 0
       }
-      //actualizar toda la planilla
+      //actualizar toda la planilla 30052025 
       await this.planillaService.actualizarPlanilla(datos);
       await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
 
@@ -623,17 +677,46 @@ INNER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo
 
 ////////////////////////////COMPUTO OBSERVACION//////////////////////////////////
 
+  // async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
+  //   try {
+  //     console.log('createComputoDto', createComputoDto);
+      
+  //     const resultado = await this.computoObsRepositorio.save(createComputoDto);
+  //     console.log('resultado', resultado );
+  //     return this.responseService.success(resultado, "Registrado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
   async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
     try {
-      console.log('createComputoDto', createComputoDto);
-      
-      const resultado = await this.computoObsRepositorio.save(createComputoDto);
-      console.log('resultado', resultado );
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+      const { id_computo, id_solicitud_historial, observacion_fiscal, id_usuario_registro, id_estado } = createComputoDto;
+
+      const query = `SELECT public.sp_modificacion_computo_observacion($1, $2, $3, $4, $5) as mensaje`;
+      const params = [id_computo, id_solicitud_historial, observacion_fiscal, id_usuario_registro, id_estado];
+
+      const result = await this.computoObsRepositorio.query(query, params);
+      const mensaje = result[0]?.mensaje ?? 'Operación completada.';
+
+      return this.responseService.success({ mensaje }, mensaje);
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al registrar/modificar la observación.');
     }
   }
+
+  async listarComputoObservaciones(id_computo: number): Promise<any> {
+    try {
+      const query = `SELECT * FROM sp_computo_observacion_listar($1)`;
+      const resultado = await this.computoObsRepositorio.query(query, [id_computo]);
+
+      return this.responseService.success(resultado, 'Observaciones listadas correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al listar observaciones de cómputo.');
+    }
+  }
+
+
 
 
 

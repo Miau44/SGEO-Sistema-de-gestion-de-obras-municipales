@@ -140,4 +140,15 @@ listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
     }
   }
 
+  
+  @Get('planilla-observaciones/:id')
+  listarObservaciones(@Param('id') id: number) {
+    return this.planillaService.listarObservacionesPlanilla(id);
+  }
+
+  @Get('planilla-justificaciones/:id')
+  listarJustificaciones(@Param('id') id: number) {
+    return this.planillaService.listarJustificacionesPlanilla(id);
+  }
+
 }

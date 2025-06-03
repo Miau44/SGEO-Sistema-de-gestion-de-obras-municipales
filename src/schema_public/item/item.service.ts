@@ -49,13 +49,35 @@ export class ItemService {
 
   async guardarItemNuevos(createItemDto: CreateItemDto) {
     try {
-
+    
+    ///nuevo
+      const count = await this.itemRepository
+      .createQueryBuilder('item')
+      .where('item.id_obra = :idObra', { idObra: createItemDto.id_obra })
+      .andWhere('item.id_estado = :idEstado', { idEstado: 1 })
+      .getCount();
+      createItemDto.orden_sim = count + 1;
+   //nuevo
       const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });
 
       if (!existente) {      
       const resultado = await this.itemRepository.save(createItemDto);
+ 
+      // nuevo CREAR PLANILLA ITEM
+             const datos = {
+          id_item: resultado.id_item,
+          id_modificacion_pago: createItemDto.id_modificacion_pago,
+          id_usuario_registro: resultado.id_usuario_registro
+              }
 
-      return this.responseService.success(resultado, "Registrado Correctamente.")      
+              console.log('nuevos item planilla',datos);
+              
+      await this.planillaService.copiarItemXItem(datos)
+      //FIN CREAR PLANILLA ITEM
+      
+      return this.responseService.success(resultado, "Registrado Correctamente.")     
+        
+      
       }
       else {
 
@@ -321,12 +343,37 @@ export class ItemService {
 
   async actualizarEstado(data: ItemEstadoDto) {
     try {
-      ;
       let query =
         ` UPDATE public.item 
         SET id_estado =$2 WHERE id_item = $1 AND id_estado = 1`;
       const params: any[] = [data.id_item, data.id_estado];
       const resultado: any[] = await this.itemRepository.query(query, params);
+      
+      ///nuevo codigo
+        const item = await this.itemRepository
+        .createQueryBuilder('item')
+        .select('item.orden_sim', 'orden_sim')
+        .where('item.id_item = :idItem', { idItem: data.id_item })
+        .getRawOne();
+
+        await this.itemRepository
+        .createQueryBuilder()
+        .update()
+        .set({ orden_sim: () => 'orden_sim - 1' })
+        .where('orden_sim > :ordenEliminado', { ordenEliminado: item.orden_sim })
+        .andWhere('id_estado = :estado', { estado: 1 })
+        .execute();
+        ///fin nuevo codigo
+	
+
+        //PARA ELIMINAR PLANILLA
+        let queryEliminarPlanilla =
+        ` UPDATE public.planilla 
+        SET id_estado =0  WHERE id_item = $1 AND id_modificacion_pago =$2  AND id_estado = 1`;
+           const param2=[data.id_item, data.id_modificacion_pago];      
+     await this.itemRepository.query(queryEliminarPlanilla, param2);  
+     //nuevo codigo
+
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
