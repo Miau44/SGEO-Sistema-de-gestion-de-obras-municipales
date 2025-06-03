@@ -145,7 +145,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       {
         table: {
           headerRows: 2,
-          widths: [10, '*', 30, 30, 30, 30, 30, 30, 30, 30, 30], // 11 columnas
+          widths: [10, '*', 25, 20, 30, 30, 30, 30, 30, 35, 35], // 11 columnas
           body: [
             [
               { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -181,7 +181,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
             body: [
               ...this.buildsupervisores(this.datosSup)
               ]
-          }, margin: [20,0,20,0]
+          }, //margin: [20,0,20,0]
         },
       {
         
@@ -327,12 +327,18 @@ buildContenidoComputo(data: any[]) {
   return arrayData;
 }
 
-private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
-  if (value === null || value === undefined || value === '') return '';
+// private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+//   if (value === null || value === undefined || value === '') return '';
   
+//   const num = Number(value);
+//   if (isNaN(num)) return '';
+
+//   return formatter.format(num);
+// }
+formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
   const num = Number(value);
   if (isNaN(num)) return '';
-
+  if (num === 0) return '';
   return formatter.format(num);
 }
 
