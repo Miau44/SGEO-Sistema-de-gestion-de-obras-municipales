@@ -328,4 +328,38 @@ WHERE
     }
   }
 
+    async listarObservacionesPlanilla(idPlanilla: number): Promise<any> {
+    try {
+      const query = `SELECT * FROM sp_planilla_observacion_list($1)`;
+      const observaciones = await this.planillaRepositorio.query(query, [idPlanilla]);
+
+      return this.responseService.success(
+        observaciones,
+        'Observaciones recuperadas correctamente.'
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar observaciones de la planilla.'
+      );
+    }
+  }
+
+  async listarJustificacionesPlanilla(idPlanilla: number): Promise<any> {
+    try {
+      const query = `SELECT * FROM sp_planilla_justificacion_list($1)`;
+      const justificaciones = await this.planillaRepositorio.query(query, [idPlanilla]);
+
+      return this.responseService.success(
+        justificaciones,
+        'Justificaciones recuperadas correctamente.'
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar justificaciones de la planilla.'
+      );
+    }
+  }
+
 }
