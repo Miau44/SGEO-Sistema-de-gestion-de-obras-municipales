@@ -4,7 +4,7 @@ import { Item } from 'src/schema_public/item/entities/item.entity'; //relacion c
 export class PlanillaJustificacion {
 
     @PrimaryGeneratedColumn()
-    id_planilla_obervacion: number;
+    id_planilla_justificacion: number;
 
     @Column()
     id_planilla: number;    
