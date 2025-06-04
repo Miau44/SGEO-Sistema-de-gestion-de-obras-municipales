@@ -22,8 +22,8 @@ export class Computo {
     @Column({ type: 'varchar' })
     descripcion: string;
 
-   // @Column()
-    @Column({ type: 'decimal', precision: 15, scale: 5}) 
+    //@Column()
+    @Column({ type: 'decimal', precision: 15, scale: 2})        
     numero_veces: number;
 
     @Column({ type: 'decimal', precision: 15, scale: 5 })

@@ -58,7 +58,9 @@ export class ItemService {
       .getCount();
       createItemDto.orden_sim = count + 1;
    //nuevo
-      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });
+      //const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });
+
+      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item, id_obra: createItemDto.id_obra, id_estado: 1  } });
 
       if (!existente) {      
       const resultado = await this.itemRepository.save(createItemDto);
