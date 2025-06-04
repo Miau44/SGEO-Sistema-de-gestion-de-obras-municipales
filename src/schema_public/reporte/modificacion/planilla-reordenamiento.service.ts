@@ -102,7 +102,7 @@ export class PlanillaReordenamiento {
    async modificacionesAprobadas(obra: number) {
     const query5 = `
         SELECT count (finalizado) AS num_modif 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND finalizado = 't'`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
     const resultado5 = await this.sequelize.query(query5);
     return resultado5[0];
    }
@@ -141,7 +141,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   this.datosPlanillaR = res4;
 
   const res5 = await this.modificacionesAprobadas(obra);
-this.num_modif = res5;
+  this.num_modif = res5;
   
 
   console.log('DATOS PLANILLA',this.num_modif);
@@ -150,10 +150,16 @@ this.num_modif = res5;
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const imgLogo = 'assets/images/logoSGEO.png'
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
   const documentDefinition: TDocumentDefinitions = {
   pageSize: 'LEGAL', 
   pageOrientation: 'landscape', 
+
+  ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
     
     header: {
       columns: [
@@ -405,8 +411,6 @@ buildContenidoPlanilla(data: any[]) {
   let totalIncrementoSum = 0;
   let totalDecrementoSum = 0;
 
-
-
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
     totalReordenSum += totalReorden;
@@ -481,14 +485,14 @@ buildContenidoPlanilla(data: any[]) {
     {}, {}, 
     { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   const porcTotalRow = [
     {}, {}, 
     { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porc_aprobado, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   arrayData.push(totalRow);

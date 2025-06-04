@@ -68,8 +68,9 @@ export class AnexoOC {
   this.datosEnvio = datosGenerales;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-     const imgPath = 'assets/images/membretado_carta.png';
+  const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+  const imgPath = 'assets/images/membretado_carta.png';
+  const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
    
      //console.log('DATOS ITEMS',this.datosIncremento);
 
@@ -83,7 +84,10 @@ export class AnexoOC {
         absolutePosition: {x: 0, y: 0}
             } },
 
-    //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
+    ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
     
     header: {
       columns: [{ 
