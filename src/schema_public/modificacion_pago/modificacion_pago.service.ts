@@ -220,37 +220,8 @@ export class ModificacionPagoService {
   async listaModificacion(data: listaModDto) {
     try {
       ;
-      let query = `  SELECT m.finalizado, s.id_obra, vo.desc_cod_ue,  mp.id_modificacion_pago, s.id_solicitud,   
-      tmp.id_correlativo_subtipo AS id_tipo_modificacion,      
-          tmp.desc_subtipo AS tipo_modificacion,
-           co.correlativo as nro_modificacion,
-           cog.correlativo AS nro_correlativo,
-           es.desc_estado as estado,
-		   public.formato_numerico(m.monto_total,5) AS monto_total, 
- public.formato_numerico(m.monto_variacion,5) AS monto_variacion, 		 
-            m.fecha_registro AS fecha_modificacion
-           ,param.detalle AS porcentaje_permitido, sh.id_solicitud_historial	  
-           FROM public.modificacion_pago AS mp
-           INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago
-           INNER JOIN public.solicitud AS s ON mp.id_solicitud = s.id_solicitud 
-
-LEFT JOIN (
-    SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, id_solicitud
-    FROM public.solicitud_historial  
-    ORDER BY id_solicitud, id_solicitud_historial DESC
-) AS sh ON s.id_solicitud = sh.id_solicitud
-
---           LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)          
---           AS sh ON s.id_solicitud = sh.id_solicitud    	  
-
-           INNER JOIN public.estado_general AS eg ON s.id_estado_general = eg.id_estado_general 
-           INNER JOIN public.estado_solicitud  AS es ON s.id_estado_solicitud = es.id_estado_solicitud 
-         INNER JOIN public.tipo_modificacion_pago AS tmp ON mp.id_tipo_mod_pago = tmp.id_tipo_mod_pago
-         INNER JOIN public.vista_datos_ficha_obra AS vo ON mp.id_obra = vo.id_obra
-     LEFT JOIN  public.correlativo  AS co ON mp.id_correlativo_tipo = co.id_correlativo   
-     LEFT JOIN  public.correlativo  AS cog ON mp.id_correlativo_subtipo = cog.id_correlativo
-     LEFT JOIN (select * from parametrica where id_tipo =33) AS param ON param.id_subtipo = tmp.id_correlativo_subtipo
-           WHERE mp.id_obra =$1   AND mp.id_estado =1 AND s.id_estado_registro =1  ORDER BY CAST(co.correlativo as INTEGER ) ASC`;
+      let query = ` SELECT * FROM  public.vista_modificacion_lista
+           WHERE id_obra =$1  `;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.modPagoRepositorio.query(query, params);
