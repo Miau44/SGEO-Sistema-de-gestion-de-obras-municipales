@@ -250,7 +250,7 @@ LEFT JOIN (
      LEFT JOIN  public.correlativo  AS co ON mp.id_correlativo_tipo = co.id_correlativo   
      LEFT JOIN  public.correlativo  AS cog ON mp.id_correlativo_subtipo = cog.id_correlativo
      LEFT JOIN (select * from parametrica where id_tipo =33) AS param ON param.id_subtipo = tmp.id_correlativo_subtipo
-           WHERE mp.id_obra =$1  ORDER BY CAST(co.correlativo as INTEGER ) ASC`;
+           WHERE mp.id_obra =$1   AND mp.id_estado =1 AND s.id_estado_registro =1  ORDER BY CAST(co.correlativo as INTEGER ) ASC`;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.modPagoRepositorio.query(query, params);
