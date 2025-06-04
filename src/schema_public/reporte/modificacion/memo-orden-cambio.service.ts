@@ -117,6 +117,7 @@ export class MemoOrdenCambio {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -128,7 +129,12 @@ export class MemoOrdenCambio {
           absolutePosition: { x: 0, y: 0 }
         }
       },
-      //watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
+
+      ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
+      
       header: {
         columns: [
           
