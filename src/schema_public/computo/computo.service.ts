@@ -677,17 +677,46 @@ INNER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo
 
 ////////////////////////////COMPUTO OBSERVACION//////////////////////////////////
 
+  // async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
+  //   try {
+  //     console.log('createComputoDto', createComputoDto);
+      
+  //     const resultado = await this.computoObsRepositorio.save(createComputoDto);
+  //     console.log('resultado', resultado );
+  //     return this.responseService.success(resultado, "Registrado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
   async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
     try {
-      console.log('createComputoDto', createComputoDto);
-      
-      const resultado = await this.computoObsRepositorio.save(createComputoDto);
-      console.log('resultado', resultado );
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+      const { id_computo, id_solicitud_historial, observacion_fiscal, id_usuario_registro, id_estado } = createComputoDto;
+
+      const query = `SELECT public.sp_modificacion_computo_observacion($1, $2, $3, $4, $5) as mensaje`;
+      const params = [id_computo, id_solicitud_historial, observacion_fiscal, id_usuario_registro, id_estado];
+
+      const result = await this.computoObsRepositorio.query(query, params);
+      const mensaje = result[0]?.mensaje ?? 'Operación completada.';
+
+      return this.responseService.success({ mensaje }, mensaje);
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al registrar/modificar la observación.');
     }
   }
+
+  async listarComputoObservaciones(id_computo: number): Promise<any> {
+    try {
+      const query = `SELECT * FROM sp_computo_observacion_listar($1)`;
+      const resultado = await this.computoObsRepositorio.query(query, [id_computo]);
+
+      return this.responseService.success(resultado, 'Observaciones listadas correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al listar observaciones de cómputo.');
+    }
+  }
+
+
 
 
 
