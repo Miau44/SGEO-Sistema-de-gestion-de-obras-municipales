@@ -38,6 +38,7 @@ export class PlanillaReordenamiento {
     datosFis: any = [];
     datosPlanilla: any = [];
     datosPlanillaR: any = [];
+    num_modif: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -97,6 +98,15 @@ export class PlanillaReordenamiento {
     return resultado4[0];
    }
 
+   // Resumen de Modificaciones Aprobadas por obra 
+   async modificacionesAprobadas(obra: number) {
+    const query5 = `
+        SELECT count (finalizado) AS num_modif 
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
+    const resultado5 = await this.sequelize.query(query5);
+    return resultado5[0];
+   }
+
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
 
@@ -130,16 +140,26 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   }
   this.datosPlanillaR = res4;
 
-  console.log('DATOS PLANILLA',this.datosPlanilla);
+  const res5 = await this.modificacionesAprobadas(obra);
+  this.num_modif = res5;
+  
+
+  console.log('DATOS PLANILLA',this.num_modif);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const imgLogo = 'assets/images/logoSGEO.png'
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
   const documentDefinition: TDocumentDefinitions = {
   pageSize: 'LEGAL', 
   pageOrientation: 'landscape', 
+
+  ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
     
     header: {
       columns: [
@@ -181,41 +201,81 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
             { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato'}
             ], margin: [0,0,0,5],    
       },
-      {
-        table: {
-          headerRows: 2,
-          widths: [10, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
-          body: [
-            [
-              { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'PU', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
-              { colSpan: 2, text: 'MODIFICACIÓN APROBADA', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },   {}, 
-              { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
-              { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
-              { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
-            ],
-            [
-              {}, {}, {}, {}, {},//
-              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-              
-            ],
-           ...this.buildContenidoPlanilla(this.datosPlanilla) 
+      ...(
+      this.num_modif[0].num_modif > 0 
+      ?[
+        {
+          table: {
+            headerRows: 2,
+            widths: [10, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
+            body: [
+              [
+                { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'PU', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
+                { colSpan: 2, text: 'MODIFICACIÓN APROBADA', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },   {}, 
+                { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+                { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+                { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              ],
+              [
+                {}, {}, {}, {}, {},//
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                
+              ],
+            ...this.buildContenidoPlanilla(this.datosPlanilla) 
 
-          ]
-        }
+            ]
+          }
+        } ]
+      :[
+        {
+          table: {
+            headerRows: 2,
+            widths: [10, 60, '*', 30, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 15 columnas
+            body: [
+              [
+                { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'PU', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
+                { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+                { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+                { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+              ],
+              [
+                {}, {}, {}, {}, {},//
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                
+              ],
+            ...this.buildContenidoPlanilla2(this.datosPlanilla) 
+            ]
+          }
+        }]
+      ),
+      {
+        
       },
       {
         text: '\n\n\n\n\n',
@@ -330,7 +390,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 
 //Cargar tabla de computos metricos
 buildContenidoPlanilla(data: any[]) {
-  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+
+   const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
     
@@ -349,8 +410,6 @@ buildContenidoPlanilla(data: any[]) {
   let totalModifApSum = 0;
   let totalIncrementoSum = 0;
   let totalDecrementoSum = 0;
-
-
 
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
@@ -426,14 +485,14 @@ buildContenidoPlanilla(data: any[]) {
     {}, {}, 
     { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   const porcTotalRow = [
     {}, {}, 
     { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porc_aprobado, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   arrayData.push(totalRow);
@@ -442,16 +501,125 @@ buildContenidoPlanilla(data: any[]) {
   arrayData.push(porcVarRow);
   arrayData.push(porcTotalRow);
 
-  return arrayData;
-}
+    return arrayData;
+  }
 
-private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
-  if (value === null || value === undefined || value === '') return '';
-  
-  const num = Number(value);
-  if (isNaN(num)) return '';
+buildContenidoPlanilla2(data: any[]) {
 
-  return formatter.format(num);
+   const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+  let totalReordenSum= 0;
+  let totalContratoSum = 0;
+  let totalModifApSum = 0;
+  let totalIncrementoSum = 0;
+  let totalDecrementoSum = 0;
+
+
+
+  for (let i = 0; i < datosPl.length; i++) {
+    const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
+    totalReordenSum += totalReorden;
+
+    const totalContrato = Number(datosPl[i].total_adjudicado) || 0;
+    totalContratoSum += totalContrato;
+
+    const totalIncremento = Number(datosPl[i].total_incremento) || 0;
+    totalIncrementoSum += totalIncremento;
+
+    const totalDecremento = Number(datosPl[i].total_decremento) || 0;
+    totalDecrementoSum += totalDecremento;
+
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+   // Fila final con totales
+  const totalRow = [
+    {}, {}, {}, {}, {}, {}, // celdas vacias
+    { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, // celdas vacias
+    { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {}, 
+    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+    {},
+    {
+      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+      style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+    },
+  ];
+
+  const porc1Row = [
+    {}, {}, 
+    { text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+  ];
+
+  const montoVarRow = [
+    {}, {}, 
+    { text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
+  const porcVarRow = [
+    {}, {}, 
+    { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
+  const porcTotalRow = [
+    {}, {}, 
+    { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+  ];
+
+  arrayData.push(totalRow);
+  arrayData.push(porc1Row);
+  arrayData.push(montoVarRow);
+  arrayData.push(porcVarRow);
+  arrayData.push(porcTotalRow);
+
+    return arrayData;
+  }
+
+  private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+    if (value === null || value === undefined || value === '') return '';
+    
+    const num = Number(value);
+    if (isNaN(num)) return '';
+
+    return formatter.format(num);
 }
 
 

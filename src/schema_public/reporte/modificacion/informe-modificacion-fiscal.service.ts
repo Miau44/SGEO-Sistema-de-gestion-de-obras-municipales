@@ -75,7 +75,7 @@ export class InformeModificacionFiscal {
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_aprobacion_contrato IS NOT NULL`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -179,7 +179,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-   const imgPath = 'assets/images/membretado_oficio.png';
+  const imgPath = 'assets/images/membretado_oficio.png';
+  const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -191,8 +192,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         absolutePosition: {x: 0, y: 0}
             } },
 
-    //watermark: { text: 'Pendiente', color: 'blue', opacity: 0.1, bold: true, italics: false },
-    
+    ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
+   
     header: {
       columns: [{ 
 
