@@ -302,9 +302,14 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
 
   //Cargar tabla de computos metricos
 buildContenidoComputo(data: any[]) {
-  const formatoNumerico = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 
   let datosCM = data;
@@ -315,14 +320,14 @@ buildContenidoComputo(data: any[]) {
       { text: datosCM[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
       { text: datosCM[i].desc_item ?? '', style: 'textDato' },
       { text: datosCM[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: datosCM[i].numero_veces ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].area_total, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].volumen_total, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+      { text: this.formatIfNumber(datosCM[i].numero_veces,formatoNumerico2) ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].area_total, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].volumen_total, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
     arrayData.push(rowData);
   }
