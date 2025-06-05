@@ -153,15 +153,27 @@ export class ComputoController {
   }  
 
 
-
-
   @Post('create-computo-observacion')
-  async  createComputoObservacion(@Body() createComputoDto: CreateComputoObservacionDto) {
-        try {
-    return this.computoService.createComputoObservacion(createComputoDto);
-     } catch (error) {
+  async createComputoObservacion(@Body() createComputoDto: CreateComputoObservacionDto) {
+    try {
+      return this.computoService.createComputoObservacion(createComputoDto);
+    } catch (error) {
     }
   }
+
+  @Get('listar-observaciones/:id_computo')
+async listarObservaciones(@Param('id_computo') id_computo: number) {
+  try {
+    return this.computoService.listarComputoObservaciones(id_computo);
+  } catch (error:any) {
+    return {
+      success: false,
+      message: 'Error inesperado al listar observaciones.',
+      error: error?.message ?? 'Error ',
+    };
+  }
+}
+
 
  /* @UseInterceptors(FileInterceptor('file'))
   async importarExcel(@UploadedFile() file: Express.Multer.File) {

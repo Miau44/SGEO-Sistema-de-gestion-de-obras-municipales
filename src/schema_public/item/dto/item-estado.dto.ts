@@ -9,6 +9,8 @@ export class ItemEstadoDto {
     @ApiProperty()
     id_estado: number;
 
+    @ApiProperty()
+    id_modificacion_pago: number;
 
     
 }
