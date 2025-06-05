@@ -11,7 +11,7 @@ import { LogModule } from '../log/log.module';
 
 @Module({
   imports: [ 
-    TypeOrmModule.forFeature([Documento, GarantiaSeguro, Informe]),LogModule],  
+    TypeOrmModule.forFeature([Documento, GarantiaSeguro, Informe]), LogModule],  
   
   controllers: [DocumentoController],
   providers: [DocumentoService, ResponseService],
