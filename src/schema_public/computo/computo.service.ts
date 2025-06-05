@@ -28,6 +28,7 @@ import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pag
 import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
 import { ComputoObservacion } from './entities/computo_observacion.entity';
 import { ListaFiscalDto } from './dto/lista-fiscal.dto';
+import { LogService } from '../log/log.service';
 
 @Injectable()
 export class ComputoService {
@@ -43,6 +44,7 @@ export class ComputoService {
     private planillaService: PlanillaService,
     private obraservice: ObraService,
     private modificacionService: ModificacionPagoService,
+    private logService:LogService,
 
   ) { }
 
@@ -67,8 +69,39 @@ export class ComputoService {
       createComputoDto.volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.volumen_total), this.var_decimal);
       createComputoDto.parcial = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.parcial), this.var_decimal);
       const resultado = await this.computoRepositorio.save(createComputoDto);
+
+      // LOG DE ÉXITO
+    await this.logService.create({
+      id_usuario: createComputoDto.id_usuario_registro,
+      mensaje: 'Cómputo registrado correctamente',
+      parametro: `id_modificacion_pago: ${createComputoDto.id_modificacion_pago}`,
+      funcionalidad: 'creacion-computo',
+      respuesta: JSON.stringify(resultado),
+    });
+
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
+
+      let mensajeError = '';
+    let stackError = null;
+
+    if (error instanceof Error) {
+      mensajeError = error.message;
+      stackError = error.stack;
+    } else {
+      mensajeError = String(error);
+    }
+    // LOG DE ERROR
+    await this.logService.create({
+      id_usuario: createComputoDto?.id_usuario_registro || 0,
+      mensaje: 'Error al registrar cómputo',
+      parametro: `id_modificacion_pago: ${createComputoDto?.id_modificacion_pago || 'no definido'}`,
+      funcionalidad: 'create-computo',
+      respuesta: JSON.stringify({
+        error: mensajeError,
+        stack: stackError,
+      }),
+    });
       return this.responseService.error(error);
     }
   }
@@ -121,24 +154,46 @@ export class ComputoService {
     try {
 
       let query = ` 
-      SELECT   p.id_planilla,  mp.id_modificacion_pago, i.id_item, i.orden_sim,  codigo_item, i.desc_item, unidad_medida_sim, 
-      public.formato_numerico(i.cantidad_sim,2) AS  cantidad_sim,      
-       public.formato_numerico(cantidad_planilla,5) as cantidad_planilla, monto_planilla,      
-      public.formato_numerico(p_unitario_adjudicado,5) as p_unitario_adjudicado,	
-      public.formato_numerico(total_adjudicado,5) as total_adjudicado,       
-	    public.formato_numerico(i.cantidad_autorizada,2) AS cantidad_autorizada, 
-	    public.formato_numerico(cantidad_reordenamiento,2) as reordenamiento,
-      public.formato_numerico(total_reordenamiento,5) as total_reordenamiento,       
-      i.id_obra, 
-      --p.justificacion_supervisor, observacion_fiscal, estado_observacion_fis,
-	  mp.id_solicitud, sh.id_solicitud_historial	  
+         SELECT   
+        p.id_planilla,  
+        mp.id_modificacion_pago, 
+        i.id_item, 
+        i.orden_sim,  
+        codigo_item, 
+        i.desc_item, 
+        unidad_medida_sim, 
+        public.formato_numerico(i.cantidad_sim,2) AS cantidad_sim,      
+        public.formato_numerico(cantidad_planilla,5) AS cantidad_planilla, 
+        monto_planilla,      
+        public.formato_numerico(p_unitario_adjudicado,5) AS p_unitario_adjudicado,	
+        public.formato_numerico(total_adjudicado,5) AS total_adjudicado,       
+        public.formato_numerico(i.cantidad_autorizada,2) AS cantidad_autorizada, 
+        public.formato_numerico(cantidad_reordenamiento,2) AS reordenamiento,
+        public.formato_numerico(total_reordenamiento,5) AS total_reordenamiento,       
+        i.id_obra, 
+        mp.id_solicitud, 
+        sh.id_solicitud_historial,
+        po.estado_observacion_fis -- Campo del último registro por planilla
       FROM public.item AS i
       LEFT JOIN public.planilla AS p ON i.id_item = p.id_item 
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
       INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago 
-      LEFT JOIN ( SELECT id_solicitud_historial, id_solicitud FROM  public.solicitud_historial  ORDER BY id_solicitud_historial DESC LIMIT 1)
-      AS sh ON mp.id_solicitud = sh.id_solicitud       
-      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
+      LEFT JOIN (
+        SELECT id_solicitud_historial, id_solicitud 
+        FROM public.solicitud_historial  
+        ORDER BY id_solicitud_historial DESC 
+        LIMIT 1
+      ) AS sh ON mp.id_solicitud = sh.id_solicitud 
+      LEFT JOIN (
+        SELECT DISTINCT ON (id_planilla) id_planilla, estado_observacion_fis
+        FROM public.planilla_observacion
+        WHERE id_estado = 1
+        ORDER BY id_planilla, fecha_registro DESC
+      ) AS po ON po.id_planilla = p.id_planilla
+      WHERE i.id_obra = $2 
+        AND mp.id_modificacion_pago = $1 
+        AND i.id_estado = 1 
+      ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.computoRepositorio.query(query, params);
@@ -475,7 +530,9 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         throw new NotFoundException(`Obra with ID ${dataadicional.id_modificacion} not found`);
       }
         const obra = await this.obraservice.findOne(id_obra);
-        const modalidad = obra.data[0].modalidad; 
+        const modalidad = obra.data[0].modalidad;
+
+
         console.log('modalidad', modalidad);                    
         if (modalidad === 'CONTRATACION DIRECTA') {
           this.var_decimal = 2;
@@ -496,6 +553,14 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       const nueva_version = max_version + 1;
       //borrar computos por id_modificacion y tipo de computo
       await this.deleteXModificacion(dataadicional.id_modificacion)
+      
+      await this.logService.create({
+      id_usuario: dataadicional.id_usuario,
+      mensaje: `Insertando cómputos métricos con versión ${nueva_version}`,
+      funcionalidad: 'insertarDatosLotes',
+      parametro: `Total registros en Excel: ${datosExcel.length}`,
+      respuesta: `Nueva versión: ${nueva_version}`
+    });
 
       //await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
 
@@ -573,6 +638,13 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
 
     } catch (error: any) {
+      await this.logService.create({
+      id_usuario: dataadicional?.id_usuario || 0,
+      mensaje: 'Error al insertar datos de cómputos métricos',
+      funcionalidad: 'insertar-DatosLotesExcel',
+      parametro: JSON.stringify(dataadicional),
+      respuesta: error.message
+    });
       throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
     }
   }

@@ -20,12 +20,13 @@ import { Modificacion } from '../modificacion_pago/entities/modificacion.entity'
 import { SolicitudService } from '../solicitud/solicitud.service';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { ComputoObservacion } from './entities/computo_observacion.entity';
+import { LogModule } from '../log/log.module';
 
 
 @Module({
 
   imports: [ 
-    TypeOrmModule.forFeature([Computo,  ComputoCriterio, Planilla, Obra, ModificacionPago, Correlativo, Pago, Solicitud, SolicitudHistorial, Modificacion, ComputoObservacion])],  
+    TypeOrmModule.forFeature([Computo,  ComputoCriterio, Planilla, Obra, ModificacionPago, Correlativo, Pago, Solicitud, SolicitudHistorial, Modificacion, ComputoObservacion]),LogModule],  
 
   controllers: [ComputoController],
   providers: [ComputoService, ResponseService, PlanillaService, ObraService, ModificacionPagoService, SolicitudService, CorrelativoService],
