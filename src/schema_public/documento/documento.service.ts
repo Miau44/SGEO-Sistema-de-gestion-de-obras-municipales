@@ -158,8 +158,8 @@ export class DocumentoService {
     formData.append('palabraClave', palabraClave);
     formData.append('usuario', this.user_registro);
     try {
-      usuario = this.user_registro;
-      const datos = { sistema, ruta, resumen, palabraClave, usuario };
+      //usuario = this.user_registro;
+      const datos = { sistema, ruta, resumen, palabraClave, usuario: usuario_servicio };
       const response = await this.subirArchivo(file, datos);
       const parsed = JSON.parse(response);
 
@@ -180,13 +180,7 @@ export class DocumentoService {
         resumen,
         palabraClave,
       };
-    }
-    catch (error) {
-      console.log("error:",error);
-      
-    }
-
-    /*} catch (error: any) {
+    }catch (error: any) {
       const responseData = error?.response?.data;
 
       // ⛔ Log de error
@@ -194,8 +188,8 @@ export class DocumentoService {
         id_usuario:0,
         parametro: JSON.stringify({ ...jsonDebug,sistema,ruta, resumen, palabraClave,usuario_servicio }),
         mensaje: `Error al subir archivo: ${file.originalname}`,
-        funcionalidad: 'Adjuntos',   
-        respuesta: JSON.stringify(res),
+        funcionalidad: 'Adjuntos',
+        respuesta: JSON.stringify(responseData),
       });
   
       console.error('⛔ Error al subir archivo:', {
@@ -211,11 +205,10 @@ export class DocumentoService {
         resumen,
         palabraClave,
         usuario_servicio
-      }
-    }*/
+      };
+    }
   }
   
-
   async obtenerDocumentosPorInforme(idInforme: number): Promise<Documento[]> {
     const query = `
       SELECT * FROM documento 
