@@ -13,10 +13,11 @@ import { SolicitudService } from '../solicitud/solicitud.service';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 import { PlanillaService } from '../planilla/planilla.service';
 import { Planilla } from '../planilla/entities/planilla.entity';
+import { LogModule } from '../log/log.module';
 
 @Module({
 
-imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, Modificacion, Correlativo, Planilla])],
+imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, Modificacion, Correlativo, Planilla]), LogModule],
 
   controllers: [ModificacionPagoController],
   providers: [ModificacionPagoService, ResponseService, CorrelativoService ,SolicitudService, PlanillaService],
