@@ -458,7 +458,7 @@ buildContenidoPlanilla(data: any[]) {
     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, 
-    { text: '-' + this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {},
     {
