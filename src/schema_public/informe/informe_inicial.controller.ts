@@ -174,12 +174,13 @@ export class InformeController {
   /**
    * obtendra los datos que tiene el informe
    */
-  @Get(':idSolicitud/:idModificacion')
+  @Get(':idSolicitud/:idModificacion/:idTipoInforme')
   async obtenerFormulario(
     @Param('idSolicitud') idSolicitud: number,
     @Param('idModificacion') idModificacion: number,
+    @Param('idTipoInforme') idTipoInforme: number,
   ) {
-    return this.informeService.obtenerDatosFormulario(idSolicitud, idModificacion);
+    return this.informeService.obtenerDatosFormulario(idSolicitud, idModificacion, idTipoInforme);
   }
 
   /**
