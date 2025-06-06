@@ -935,7 +935,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
-    const totalReordenamiento = Number(datosResp[i].total_reordenamiento) || 0;
+    const totalReordenamiento = Number(datosResp[i].total_incremento) || 0;
     totalReordenamientoSum += totalReordenamiento;
 
     let rowData = [
@@ -1016,7 +1016,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
-    const totalReordenamiento = Number(datosResp[i].total_reordenamiento) || 0;
+    const totalReordenamiento = Number(datosResp[i].total_decremento) || 0;
     totalReordenamientoSum += totalReordenamiento;
 
     let rowData = [
