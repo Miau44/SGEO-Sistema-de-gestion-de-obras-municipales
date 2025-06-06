@@ -75,7 +75,7 @@ export class InformeModificacionFiscal {
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -181,6 +181,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+
+  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -210,7 +215,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         style: 'header', alignment: 'center'
       } as any,
       {
-        text: this.datosEnvio[0].cod_carpeta + '-' + 'FIS' + '-' + '',
+        text: this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis,
         style: 'subheader', alignment: 'center'
       },
       {
@@ -297,8 +302,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ],
               [
                 { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n' + this.datosInf[0].referencia, 
-                  style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: [
+                    { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                    { text: this.datosInf[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
+                        ]
+                }
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
@@ -343,11 +351,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs.' + this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Bs.' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'PLAZO DE EJECUCIÓN,CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato, style: 'textDato' }] }
+              { text: [{ text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].plazo_contrato + 'd.c.', style: 'textDato' }], margin: [0,5,0,0] }
             ],
             [
               { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -355,7 +363,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva) + '\n\n', style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n\n', style: 'textDato' }] }
             ],
             [
               { text: [{ text: 'TOTAL AMPLIACIÓN DE PLAZO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -373,13 +381,13 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         text: '\n2.   ANTECEDENTES',
         style: 'textTitulo', margin: [0, 0, 0, 5] 
       },
-      ...(
-    this.buildModAprobadas(this.datosModAp).length > 0 
-    ?[
+    //   ...(
+    // this.buildModAprobadas(this.datosModAp).length > 0 
+    // ?[
       {
         
         table: {
-          widths: [20, '*', 60, 60, 60, 60, 60], // 6 columnas
+          widths: [20, '*', 60, 60, 60, 60, 60],
           body: [
             [
               { text: 'N°', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -393,9 +401,10 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ...this.buildModAprobadas(this.datosModAp)
           ]
         }, margin: [10, 0, 0, 0] 
-      },]
-      :[]
-    ),
+    //   },]
+    //   :[]
+    // ),
+      },
       {
         text: '\n'
       },
@@ -593,26 +602,70 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
 
     // Función para poblar la tabla de modificaciones aprobadas
-    buildModAprobadas(data: any) {
+     buildModAprobadas(data: any) {
+    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
     let datosResp = data;
     let arrayData = [];
+    let totalvariacion = 0;
+    let totalplazo = 0;
 
     var c = 0;
     for (let i = 0; i < datosResp.length; i++) {
+      const totalmodif = Number(datosResp[i].monto_variacion) || 0;
+      totalvariacion += totalmodif;
+
+      const plazo = Number(datosResp[i].dias_variacion) || 0;
+      totalplazo += plazo;
+
       c = c + 1;
       let rowData = [
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatearFecha(datosResp[i].fecha_aprobacion_contrato), style: 'textDatoT', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].monto_variacion, alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: datosResp[i].monto_total, style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].fecha_memo_minuta), style: 'textDatoT', alignment: 'center', }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico5), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
       arrayData.push(rowData);
-
     }
+    // Fila final con total
+      const totalRow = [
+        {
+          colSpan: 2,
+          text: 'TOTAL:',
+          style: 'textTituloT', alignment: 'center',
+        },
+        {}, {}, 
+        { text: this.formatIfNumber(totalvariacion, formatoNumerico5),
+          style: 'textTituloT', alignment: 'right' }, 
+        {}, 
+        { text: totalplazo,
+          style: 'textTituloT', alignment: 'center' },
+        { text: ' ',
+          style: 'textTituloT', alignment: 'center', },
+      ];
+
+    arrayData.push(totalRow);
     return arrayData;
   }
+
+  // FORMATO DE NUMEROS
+  private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+    if (value === null || value === undefined || value === '') return '';
+    
+    const num = Number(value);
+    if (isNaN(num)) return '';
+
+    return formatter.format(num);
+}
 
 }

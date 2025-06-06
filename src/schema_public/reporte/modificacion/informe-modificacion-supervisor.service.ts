@@ -195,10 +195,10 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-   const imgPath = 'assets/images/membretado_oficio.png';
-   const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+    const imgPath = 'assets/images/membretado_oficio.png';
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
-   const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
@@ -338,7 +338,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ],
             [
               { text: [{ text: 'PLAZO DE EJECUCIÓN,CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }], margin: [0,5,0,0]  }
+              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }], margin: [0,5,0,0] }
             ],
             [
               { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -361,7 +361,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       // ?[
         {
           table: {
-            widths: [20, '*', 60, 60, 60, 60, 60], // 6 columnas
+            widths: [20, '*', 60, 60, 60, 60, 60], 
             body: [
               [
                 { text: 'N°', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
