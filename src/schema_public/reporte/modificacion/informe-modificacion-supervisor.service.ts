@@ -96,7 +96,7 @@ export class InformeModificacionSupervisor {
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -195,11 +195,16 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-   const imgPath = 'assets/images/membretado_oficio.png';
-   const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
- 
-   //console.log('DATOS ITEMS',this.datosIncremento);
+    const imgPath = 'assets/images/membretado_oficio.png';
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
+    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+ 
+   console.log('DATOS MODIFICACION',this.datosEnvio);
+   
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -329,11 +334,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ],
             [
               { text: [{ text: 'MONTO CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs.' + this.datosEnvio[0].monto_contrato, style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
               { text: [{ text: 'PLAZO DE EJECUCIÓN,CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato, style: 'textDato' }] }
+              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }], margin: [0,5,0,0] }
             ],
             [
               { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -341,7 +346,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ],
             [
               { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva), style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
             ],
           ]
         }, margin: [10, 0, 0, 5] 
@@ -351,12 +356,12 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n2.   ANTECEDENTES',
         style: 'subheader', margin: [0, 0, 0, 5] 
       },
-      ...(
-      this.buildModAprobadas(this.datosModAp).length > 0 
-      ?[
+      // ...(
+      // this.buildModAprobadas(this.datosModAp).length > 0 
+      // ?[
         {
           table: {
-            widths: [20, '*', 60, 60, 60, 60, 60], // 6 columnas
+            widths: [20, '*', 60, 60, 60, 60, 60], 
             body: [
               [
                 { text: 'N°', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -370,9 +375,10 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
               ...this.buildModAprobadas(this.datosModAp)
             ]
           }, margin: [10, 0, 0, 0] 
-        },]
-        :[]
-      ),
+        },
+      // ]
+      //   :[]
+      // ),
       {
         text: '\n'
       },
@@ -604,12 +610,12 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: 'El presente ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs.' +
-        'XXXX' + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + ' % referente a la última modificación aprobada.\n',
+        this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente a la última modificación aprobada.\n',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
-        'respecto al contrato principal, de ', 
+        'respecto al contrato principal, de ' + this.datosEnvio[0].porcentaje_total + '%.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
@@ -819,12 +825,16 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     let datosResp = data;
     let arrayData = [];
-    let totalmodifaprobadas = 0;
+    let totalvariacion = 0;
+    let totalplazo = 0;
 
     var c = 0;
     for (let i = 0; i < datosResp.length; i++) {
-      const totalmodif = Number(datosResp[i].monto_total) || 0;
-      totalmodifaprobadas += totalmodif;
+      const totalmodif = Number(datosResp[i].monto_variacion) || 0;
+      totalvariacion += totalmodif;
+
+      const plazo = Number(datosResp[i].dias_variacion) || 0;
+      totalplazo += plazo;
 
       c = c + 1;
       let rowData = [
@@ -841,17 +851,21 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     // Fila final con total
       const totalRow = [
         {
-          colSpan: 5,
+          colSpan: 2,
           text: 'TOTAL:',
-          style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
+          style: 'textTituloT', alignment: 'center',
         },
-        {}, {}, {},  // estos serán ignorados por el colSpan
-        {
-          text: this.formatIfNumber(totalmodifaprobadas, formatoNumerico2),
-          style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
-        },
+        {}, {}, 
+        { text: this.formatIfNumber(totalvariacion, formatoNumerico5),
+          style: 'textTituloT', alignment: 'right' }, 
+        {}, 
+        { text: totalplazo,
+          style: 'textTituloT', alignment: 'center' },
+        { text: ' ',
+          style: 'textTituloT', alignment: 'center', },
       ];
 
+    arrayData.push(totalRow);
     return arrayData;
   }
 
@@ -917,6 +931,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   let datosResp = data;
   let arrayData = [];
   let totalReordenamientoSum = 0;
+  let porc_modif = 0;
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
@@ -951,7 +966,13 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   ];
 
   // Porcentaje adicional 
-  const porcentaje = 0; 
+  //const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+
+    if (!isNaN(montoContrato) && montoContrato !== 0) {
+      porc_modif = (totalReordenamientoSum * 100) / montoContrato;
+      
+    } 
 
   const porcentajeRow = [
     {
@@ -963,7 +984,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     },
     {}, {}, {}, {}, {}, {}, // omitidos por colSpan
     {
-      text: `${porcentaje.toFixed(2)}%`,
+      text: `${porc_modif.toFixed(2)}%`,
       style: 'textTituloT',
       alignment: 'right',
       border: [false, true, false, true],

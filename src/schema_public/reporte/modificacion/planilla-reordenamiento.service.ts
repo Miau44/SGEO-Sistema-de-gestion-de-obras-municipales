@@ -140,11 +140,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   }
   this.datosPlanillaR = res4;
 
-  const res5 = await this.modificacionesAprobadas(obra);
-  this.num_modif = res5;
-  
 
-  console.log('DATOS PLANILLA',this.num_modif);
+  //console.log('DATOS PLANILLA',this.num_modif);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -202,7 +199,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
             ], margin: [0,0,0,5],    
       },
       ...(
-      this.num_modif[0].num_modif > 0 
+      this.datosEnvio[0].modificacion_gral != 1 
       ?[
         {
           table: {
@@ -410,7 +407,8 @@ buildContenidoPlanilla(data: any[]) {
   let totalModifApSum = 0;
   let totalIncrementoSum = 0;
   let totalDecrementoSum = 0;
-
+  //let porc_parcial = 0;
+  let porc_total = 0;
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
     totalReordenSum += totalReorden;
@@ -440,7 +438,7 @@ buildContenidoPlanilla(data: any[]) {
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: '-' + datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
@@ -449,7 +447,8 @@ buildContenidoPlanilla(data: any[]) {
 
    // Fila final con totales
   const totalRow = [
-    {}, {}, {}, {}, {}, {}, // celdas vacias
+    {colSpan: 3, text:'TOTALES', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+    {}, {}, {}, // celdas vacias
     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, 
@@ -459,7 +458,7 @@ buildContenidoPlanilla(data: any[]) {
     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, 
-    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+    { text: '-' + this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {},
     {
@@ -469,30 +468,25 @@ buildContenidoPlanilla(data: any[]) {
   ];
 
   const porc1Row = [
-    {}, {}, 
-    { text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    {colSpan: 15, text: ' ', style: 'textDato' }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
   ];
 
   const montoVarRow = [
-    {}, {}, 
-    { text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan:3, text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right' }
   ];
-
+  //porc_parcial = (this.datosPlanillaR[0].monto_variacion * 100)/ totalContratoSum;
   const porcVarRow = [
-    {}, {}, 
-    { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan:3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
   ];
-
+  porc_total = (totalReordenSum * 100)/ totalContratoSum;
   const porcTotalRow = [
-    {}, {}, 
-    { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan:3, text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porc_aprobado, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
   ];
 
   arrayData.push(totalRow);
@@ -509,24 +503,19 @@ buildContenidoPlanilla2(data: any[]) {
    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
-    
   });
 
   const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-    
   });
 
   let datosPl = data;
   let arrayData = [];
   let totalReordenSum= 0;
   let totalContratoSum = 0;
-  let totalModifApSum = 0;
   let totalIncrementoSum = 0;
   let totalDecrementoSum = 0;
-
-
 
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
@@ -552,7 +541,7 @@ buildContenidoPlanilla2(data: any[]) {
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: '-' + datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
@@ -561,14 +550,15 @@ buildContenidoPlanilla2(data: any[]) {
 
    // Fila final con totales
   const totalRow = [
-    {}, {}, {}, {}, {}, {}, // celdas vacias
+    {colSpan: 3, text:'TOTALES', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+    {}, {}, {}, // celdas vacias
     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, // celdas vacias
     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, 
-    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+    { text: '-' + this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {},
     {
@@ -578,28 +568,24 @@ buildContenidoPlanilla2(data: any[]) {
   ];
 
   const porc1Row = [
-    {}, {}, 
-    { text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    {colSpan: 13, text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
   ];
 
   const montoVarRow = [
-    {}, {}, 
-    { text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan: 3, text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   const porcVarRow = [
-    {}, {}, 
-    { text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan: 3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   const porcTotalRow = [
-    {}, {}, 
-    { text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato' }, 
+    {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
