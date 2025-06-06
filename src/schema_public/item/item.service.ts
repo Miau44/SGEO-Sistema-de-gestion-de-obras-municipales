@@ -122,7 +122,7 @@ export class ItemService {
   async updateItem(id: number, updateItemDto: UpdateItemDto) {
     try {
 
-      const obra = await this.obraService.findOne(updateItemDto.id_obra);
+     /* const obra = await this.obraService.findOne(updateItemDto.id_obra);
       if (!obra || !obra.data || obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${updateItemDto.id_obra} not found`);
       }
@@ -133,11 +133,16 @@ export class ItemService {
 
       const precio_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.p_unitario_adjudicado), this.var_decimal);
       updateItemDto.p_unitario_adjudicado = precio_adjudicado;
-      var total_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.total_adjudicado), this.var_decimal);
+      var total_adjudicado = DecimalUtil.roundToDecimals(this.ensureNumber(updateItemDto.p_unitario_adjudicado* 52.75), this.var_decimal);
+      console.log('total_adjudicado', total_adjudicado);
+      
       updateItemDto.total_adjudicado = total_adjudicado;
-      //console.log('UpdateItemDto2hoy29', updateItemDto);
+      //console.log('UpdateItemDto2hoy29', updateItemDto);*/
 
-      const resultado = await this.itemRepository.update(+id, updateItemDto);
+    const query = `SELECT * FROM  public.sp_update_item_x_item(${id}, ${updateItemDto.id_obra}, ${updateItemDto.p_unitario_adjudicado});`;
+//SELECT * FROM  public.sp_update_item_x_item(7945, 450, 21.18)
+const resultado = await this.itemRepository.query(query);
+    //  const resultado = await this.itemRepository.update(+id, updateItemDto);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
