@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CorreoService } from './correo.service';
 import { CreateCorreoDto } from './dto/create-correo.dto';
 import { UpdateCorreoDto } from './dto/update-correo.dto';
-import { EnviarCorreoDto } from './dto/enviar-correo.dto';
+import { EnviarCorreoProcesoDto } from './dto/enviar-correo-proceso.dto';
 
 @Controller('correo')
 export class CorreoController {
@@ -24,7 +24,7 @@ export class CorreoController {
   }
 
   @Post('enviar')
-  async enviarCorreo(@Body() dto: EnviarCorreoDto) {
-    return this.correoService.enviarCorreo(dto);
+  async enviarCorreo(@Body() dto: EnviarCorreoProcesoDto) {
+    return this.correoService.enviarCorreoProceso(dto);
   }
 }
