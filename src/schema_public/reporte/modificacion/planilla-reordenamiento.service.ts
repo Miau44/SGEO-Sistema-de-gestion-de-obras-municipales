@@ -438,7 +438,7 @@ buildContenidoPlanilla(data: any[]) {
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
-      { text: '-' + datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
@@ -458,7 +458,7 @@ buildContenidoPlanilla(data: any[]) {
     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {}, 
-    { text: '-' + this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
     {},
     {
@@ -539,8 +539,8 @@ buildContenidoPlanilla2(data: any[]) {
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_incremento,formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: '-' + datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
       { text: '-' + datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
