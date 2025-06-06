@@ -335,9 +335,9 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
   /**
    * Obtener los datos del formulario
    */
-  async obtenerDatosFormulario(idSolicitud: number, idModificacion: number) {
-    const query = `SELECT * FROM sp_obtener_datos_formulario($1, $2)`;
-    const result = await this.dataSource.query(query, [idSolicitud, idModificacion]);
+  async obtenerDatosFormulario(idSolicitud: number, idModificacion: number, idTipoInforme: number) {
+    const query = `SELECT * FROM sp_obtener_datos_formulario($1, $2, $3)`;
+    const result = await this.dataSource.query(query, [idSolicitud, idModificacion, idTipoInforme]);
 
     return result.length ? result[0] : null; // Retorna el primer resultado o null si no hay datos
 }
