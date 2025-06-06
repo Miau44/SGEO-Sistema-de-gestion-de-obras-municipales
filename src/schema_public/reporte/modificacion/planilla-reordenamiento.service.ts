@@ -550,7 +550,7 @@ buildContenidoPlanilla2(data: any[]) {
 
    // Fila final con totales
   const totalRow = [
-    {colSpan: 3, text:'TOTALES', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+    {colSpan: 3, text:'TOTALES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
     {}, {}, {}, // celdas vacias
     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
