@@ -175,7 +175,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
       throw new Error('No se encontraron del Secretario de la SMIP');
     }
-    this.datosSaf = res7;
+    this.datosSec = res7;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
