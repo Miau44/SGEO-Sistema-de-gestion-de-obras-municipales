@@ -141,14 +141,14 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       },
       {
         text:[
-            { text: 'NOMBRE DE LA OBRA: ', style: 'textDato', bold:true },
-            { text: this.datosEnvio[0].desc_carpeta, style: 'textDato'}
+            { text: 'NOMBRE DE LA OBRA: ', style: 'textDato2', bold:true },
+            { text: this.datosEnvio[0].desc_carpeta, style: 'textDato2'}
             ], margin: [0,0,0,6],    
       },
       {
         table: {
           headerRows: 2,
-          widths: [10, '*', 25, 20, 30, 30, 30, 30, 30, 35, 35], // 11 columnas
+          widths: [10, '*', 25, 30, 30, 30, 30, 30, 30, 40, 40], // 11 columnas
           body: [
             [
               { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -219,6 +219,12 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         bold: false,          
       },
       textDato: {
+        fontSize: 6,
+        bold: false,
+        //color: 'gray', 
+        opacity: 0.8,
+      },
+      textDato2: {
         fontSize: 7,
         bold: false,
         //color: 'gray', 
@@ -289,11 +295,11 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   
         const rowData = [
           { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR(ES) DE OBRA', bold: true, style: 'textDato' }
+                { text: nombreCompleto + '\n', style: 'textDato2' },
+                { text: 'SUPERVISOR(ES) DE OBRA', bold: true, style: 'textDato2' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+          { text: '(Firma y Sello)', style: 'textDato2', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
