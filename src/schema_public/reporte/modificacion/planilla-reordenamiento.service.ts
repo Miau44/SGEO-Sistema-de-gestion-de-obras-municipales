@@ -147,7 +147,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const imgLogo = 'assets/images/logoSGEO.png'
-    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
   const documentDefinition: TDocumentDefinitions = {
   pageSize: 'LEGAL', 
@@ -539,10 +539,10 @@ buildContenidoPlanilla2(data: any[]) {
       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
