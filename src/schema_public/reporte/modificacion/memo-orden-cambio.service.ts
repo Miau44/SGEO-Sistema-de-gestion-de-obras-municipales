@@ -251,7 +251,7 @@ export class MemoOrdenCambio {
               text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
               ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis + ' de fecha ' + 
               this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion + 
-              ' por ' + this.datosInf[0].referencia + ', XXX SI EL TIEMPO VARIA con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_provisional) + '.\n\n',
+              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_provisional) + '.\n\n',
               style: 'textDato',  alignment: 'justify'
             },
             {
