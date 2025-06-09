@@ -516,6 +516,7 @@ buildContenidoPlanilla2(data: any[]) {
   let totalContratoSum = 0;
   let totalIncrementoSum = 0;
   let totalDecrementoSum = 0;
+  let porc_total = 0;
 
   for (let i = 0; i < datosPl.length; i++) {
     const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
@@ -539,7 +540,7 @@ buildContenidoPlanilla2(data: any[]) {
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_incremento,formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
@@ -583,11 +584,11 @@ buildContenidoPlanilla2(data: any[]) {
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
-
+porc_total = (totalReordenSum * 100)/ totalContratoSum;
   const porcTotalRow = [
     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   arrayData.push(totalRow);
