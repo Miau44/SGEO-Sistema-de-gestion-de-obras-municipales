@@ -413,7 +413,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
           text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
-          ' de fecha ' + this.datosEnvio[0].fecha_supervisor + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
+          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
           'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
           style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       }, 
