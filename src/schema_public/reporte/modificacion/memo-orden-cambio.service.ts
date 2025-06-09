@@ -117,7 +117,7 @@ export class MemoOrdenCambio {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
-    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,

@@ -104,7 +104,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
   const imgLogo = 'assets/images/logoSGEO.png'
-  const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
  
     const documentDefinition = {
     
