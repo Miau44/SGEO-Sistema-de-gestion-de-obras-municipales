@@ -156,17 +156,29 @@ export class ComputoService {
         throw new NotFoundException(`Item with ID ${updateComputoPlanillaDto.id_item} not found`);
       }
       const unidad = (items.unidad_medida_sim || '').toLowerCase();
-      if (unidad === 'm2') {
-        v_area_total = DecimalUtil.roundToDecimals(
-          this.ensureNumber(aalto * aancho * aalto * aarea),
-          this.var_decimal
-        );
-      } else if (unidad === 'm3') {
-        v_volumen_total = DecimalUtil.roundToDecimals(
-          this.ensureNumber(alargo * aancho * aalto * avolumen),
-          this.var_decimal
-        );
-      }
+
+
+        if (unidad === 'm2') {
+    
+          v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aalto * aancho * aalto * aarea), this.var_decimal
+          );
+
+        } else if (unidad === 'm3') {
+        
+          v_volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(alargo * aancho * aalto * avolumen),this.var_decimal);
+
+          
+          if (aarea > 0 ) {
+            v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aarea), this.var_decimal );
+          }
+        }
+
+
+
+
+
+
+
       updateComputoPlanillaDto.area_total = v_area_total;
       updateComputoPlanillaDto.volumen_total = v_volumen_total;
       //***************************Calcular area_total o volumen_total según la unidad****************************/
@@ -633,6 +645,12 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
               this.ensureNumber(aLargo * bAncho * cAlto * eVolumen),
               this.var_decimal
             );
+
+      // solo se calcula área si se proporciona un valor válido en aarea
+                if (dArea > 0 ) {
+                  v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(dArea), this.var_decimal );
+                }
+
           }
           //***************************Calcular area_total o volumen_total según la unidad****************************/
           return {
