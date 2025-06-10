@@ -119,6 +119,16 @@ export class MemoOrdenCambio {
     const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
       background: function (currentPage: any, pageSize: any) {
@@ -255,7 +265,7 @@ export class MemoOrdenCambio {
               style: 'textDato',  alignment: 'justify'
             },
             {
-              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' es de Bs.' + this.datosEnvio[0].monto_contrato + '(' + this.convertToWords(this.datosEnvio[0].monto_contrato, 'Bs.') + ')' + 
+              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' es de Bs.' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.') + ')' + 
               ', tiene una variación de ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + '.\n\n',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
@@ -514,6 +524,15 @@ private getCurrencyWord(currency: string): string {
       throw new Error(`Moneda no soportada: ${currency}`);
   }
 }
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+    if (value === null || value === undefined || value === '') return '';
+    
+    const num = Number(value);
+    if (isNaN(num)) return '';
+
+    return formatter.format(num);
+ }
 
 
 }
