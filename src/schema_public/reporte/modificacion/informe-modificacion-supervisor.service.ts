@@ -198,7 +198,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
-    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
@@ -427,7 +427,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
               { text: 'PRECIO UNITARIO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'CANTIDAD VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO VIGENTE', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'CANTIDAD PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'CANTIDAD PROPUESTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'MONTO PROPUESTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }
             ],
             ...this.buildItemsIncremento(this.datosIncremento)

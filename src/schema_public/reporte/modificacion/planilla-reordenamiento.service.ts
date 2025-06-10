@@ -388,13 +388,13 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 //Cargar tabla de computos metricos
 buildContenidoPlanilla(data: any[]) {
 
-   const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
     
   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     
@@ -500,12 +500,12 @@ buildContenidoPlanilla(data: any[]) {
 
 buildContenidoPlanilla2(data: any[]) {
 
-   const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -607,7 +607,28 @@ porc_total = (totalReordenSum * 100)/ totalContratoSum;
     if (isNaN(num)) return '';
 
     return formatter.format(num);
-}
+ }
 
+ private formatNumero(value: any, decimales: number = 2): string {
+    if (value === null || value === undefined || value === '') return '';
+
+    const num = Number(value);
+    if (isNaN(num)) return '';
+
+    // 1. Fija el número de decimales y convierte a string
+    const fixedNumStr = num.toFixed(decimales);
+
+    const [integerPart, decimalPart] = fixedNumStr.split('.');
+
+    // 2. Agrega puntos como separadores de miles a la parte entera
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    // 3. Retorna con la cantidad de decimales especificada (si decimales > 0)
+    if (decimales > 0 && decimalPart) {
+      return `${formattedInteger},${decimalPart}`;
+    }
+
+    return formattedInteger;
+ }
 
 }
