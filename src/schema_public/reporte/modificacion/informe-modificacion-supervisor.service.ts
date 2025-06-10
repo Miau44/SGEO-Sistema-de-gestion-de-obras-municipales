@@ -945,8 +945,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: datosResp[i].cant_incremento, style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: datosResp[i].total_incremento, style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].cant_incremento, formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].total_incremento, formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
     ];
     arrayData.push(rowData);
   }
@@ -1026,8 +1026,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: datosResp[i].cant_decremento, style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: datosResp[i].total_decremento, style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].cant_decremento, formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].total_decremento, formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
     ];
     arrayData.push(rowData);
   }
