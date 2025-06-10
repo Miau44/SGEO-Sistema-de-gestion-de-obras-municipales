@@ -117,7 +117,7 @@ export class MemoOrdenCambio {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
-    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -248,20 +248,20 @@ export class MemoOrdenCambio {
           text: [
             { text: 'Señor(es): \n', style: 'textDato' },
             {
-              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
-              ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + ' de fecha ' + 
+              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
+              ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis + ' de fecha ' + 
               this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion + 
-              ' por ' + this.datosInf[0].referencia + ', XXX SI EL TIEMPO VARIA con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_definitiva) + '.\n\n',
+              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_provisional) + '.\n\n',
               style: 'textDato',  alignment: 'justify'
             },
             {
-              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' de Bs.' + 'MONTO VIGENTE ' + '(' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
+              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' es de Bs.' + this.datosEnvio[0].monto_contrato + '(' + this.convertToWords(this.datosEnvio[0].monto_contrato, 'Bs.') + ')' + 
               ', tiene una variación de ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + '.\n\n',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {
               text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') +  
-              ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%',
+              ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%.',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {

@@ -180,12 +180,14 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
+  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
+
+    //console.log('DATOS MODIFICACION',this.datosAF);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -248,6 +250,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                         ];
                       }
                     } else {
+                      console.log('DATOS MODIFICACION',this.datosAF);
                       if (monto > 500000) {
                         return [
                           { text: this.datosSec[0].nombre_sec + '\n', style: 'textDato' },
@@ -347,11 +350,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato' }] }
+              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }] }
             ],
             [
               { text: [{ text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs.' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Bs.' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
               { text: [{ text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
@@ -363,7 +366,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ],
             [
               { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n\n', style: 'textDato' }] }
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
             ],
             [
               { text: [{ text: 'TOTAL AMPLIACIÓN DE PLAZO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
@@ -410,7 +413,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
           text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
-          ' de fecha ' + this.datosEnvio[0].fecha_supervisor + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
+          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
           'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
           style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       }, 
@@ -423,7 +426,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
         text: 'Habiendo la fiscalización designada revisado y analizado el informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + 
-              '-' + this.datosInf[0].correlativosup + ' de fecha ' + this.datosEnvio[0].fecha_supervisor + ' emitido por la supervisión ' + 
+              '-' + this.datosInf[0].correlativosup + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión ' + 
               'de obra y en atención a que evidentemente se requiere la modificación a ser introducida a través de ' + this.datosEnvio[0].desc_subtipo + ' N°' + 
               this.datosEnvio[0].numero_modificacion + ', a fin de garantizar la conclusión de la obra, así como su utilidad, ésta Fiscalización aprueba el ' + 
               'Informe de Supervisor y recomienda la elaboración y suscripción del ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + 
