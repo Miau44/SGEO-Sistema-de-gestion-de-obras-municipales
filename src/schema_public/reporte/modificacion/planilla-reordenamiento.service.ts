@@ -388,13 +388,13 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 //Cargar tabla de computos metricos
 buildContenidoPlanilla(data: any[]) {
 
-   const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
     
   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     
