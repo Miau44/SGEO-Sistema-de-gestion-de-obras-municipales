@@ -28,6 +28,9 @@ import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pag
 import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
 import { ComputoObservacion } from './entities/computo_observacion.entity';
 import { ListaFiscalDto } from './dto/lista-fiscal.dto';
+import { ItemService } from '../item/item.service';
+import { ExternoService } from 'src/schema_private/externo/externo.service';
+import { Log } from '../log/entities/log.entity';
 import { LogService } from '../log/log.service';
 
 @Injectable()
@@ -39,12 +42,16 @@ export class ComputoService {
     @InjectRepository(Computo) private computoRepositorio: Repository<Computo>,
     @InjectRepository(ComputoObservacion) readonly computoObsRepositorio: Repository<ComputoObservacion>,
     @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
+    @InjectRepository(Item) private itemRepositorio: Repository<Item>,
+    @InjectRepository(Log) private logPagoRepositorio: Repository<Log>,
 
     private responseService: ResponseService,
     private planillaService: PlanillaService,
     private obraservice: ObraService,
     private modificacionService: ModificacionPagoService,
-    private logService:LogService,
+    private itemService: ItemService,
+    private externoService: ExternoService,
+      private logService: LogService,
 
   ) { }
 
@@ -128,12 +135,56 @@ export class ComputoService {
       updateComputoPlanillaDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.largo), this.var_decimal);
       updateComputoPlanillaDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.ancho), this.var_decimal);
       updateComputoPlanillaDto.area = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area), this.var_decimal);
-      updateComputoPlanillaDto.area_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area_total), this.var_decimal);
+      // updateComputoPlanillaDto.area_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area_total), this.var_decimal);
       updateComputoPlanillaDto.volumen = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen), this.var_decimal);
-      updateComputoPlanillaDto.volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen_total), this.var_decimal);
+      //  updateComputoPlanillaDto.volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen_total), this.var_decimal);
       updateComputoPlanillaDto.parcial = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.parcial), this.var_decimal);
-      await this.computoRepositorio.update(id, updateComputoPlanillaDto);
-      return this.responseService.success(id, "Actualizado Correctamente.")
+
+      //***************************Calcular area_total o volumen_total según la unidad*****************************
+
+      const aalto = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.alto), this.var_decimal) || 1;
+      const alargo = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.largo), this.var_decimal) || 1;
+      const aancho = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.ancho), this.var_decimal) || 1;
+      const aarea = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area), this.var_decimal) || 1;
+      // updateComputoPlanillaDto.area_total = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.area_total), this.var_decimal);
+      const avolumen = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.volumen), this.var_decimal) || 1;
+      let v_area_total = 0;
+      let v_volumen_total = 0
+      const items = await this.itemService.findOne(updateComputoPlanillaDto.id_item ? updateComputoPlanillaDto.id_item : 0);
+      console.log('items', items);
+      if (!items) {
+        throw new NotFoundException(`Item with ID ${updateComputoPlanillaDto.id_item} not found`);
+      }
+      const unidad = (items.unidad_medida_sim || '').toLowerCase();
+
+
+        if (unidad === 'm2') {
+    
+          v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aalto * aancho * aalto * aarea), this.var_decimal
+          );
+
+        } else if (unidad === 'm3') {
+        
+          v_volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(alargo * aancho * aalto * avolumen),this.var_decimal);
+
+          
+          if (aarea > 0 ) {
+            v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aarea), this.var_decimal );
+          }
+        }
+
+
+
+
+
+
+
+      updateComputoPlanillaDto.area_total = v_area_total;
+      updateComputoPlanillaDto.volumen_total = v_volumen_total;
+      //***************************Calcular area_total o volumen_total según la unidad****************************/
+      
+      const resultado = await this.computoRepositorio.update(id, updateComputoPlanillaDto);
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -579,45 +630,43 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
           const calculo_parcial = noVeces * aLargo * bAncho * cAlto * dArea * eVolumen;
           const calculoparcial =DecimalUtil.roundToDecimals(this.ensureNumber(calculo_parcial), this.var_decimal);
 
-          
-       /*   //***************************Calcular area_total o volumen_total según la unidad*****************************
-          let area_total = 0;
-          let volumen_total = 0
+          //***************************Calcular area_total o volumen_total según la unidad*****************************
+          let v_area_total = 0;
+          let v_volumen_total = 0
 
           const unidad = (row.unidad || '').toLowerCase();
           if (unidad === 'm2') {
-            area_total = DecimalUtil.roundToDecimals(
-              this.ensureNumber(aLargo * bAncho * cAlto * dArea * eVolumen),
+            v_area_total = DecimalUtil.roundToDecimals(
+              this.ensureNumber(aLargo * bAncho * cAlto * dArea),
               this.var_decimal
             );
           } else if (unidad === 'm3') {
-            volumen_total = DecimalUtil.roundToDecimals(
-              this.ensureNumber(aLargo * bAncho * cAlto * dArea * eVolumen),
+            v_volumen_total = DecimalUtil.roundToDecimals(
+              this.ensureNumber(aLargo * bAncho * cAlto * eVolumen),
               this.var_decimal
             );
+
+      // solo se calcula área si se proporciona un valor válido en aarea
+                if (dArea > 0 ) {
+                  v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(dArea), this.var_decimal );
+                }
+
           }
           //***************************Calcular area_total o volumen_total según la unidad****************************/
           return {
             id_item: row.id_item || '',
             id_modificacion_pago: dataadicional.id_modificacion,
             tramo: row.tramo || '',
-            descripcion: row.descripcion || '',  
+            descripcion: row.descripcion || '',
 
-            numero_veces: DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal),            
-            alto: DecimalUtil.roundToDecimals(this.ensureNumber(row.alto), this.var_decimal),            
-            largo: DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal),            
-            ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),            
-            area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),            
-            
-           //***************************Calcular area_total o volumen_total según la unidad****************************/ 
-          /*  area_total: area_total,
-            volumen_total: volumen_total,*/
-           //***************************Calcular area_total o volumen_total según la unidad****************************/            
-            area_total: 0,
-            volumen_total: 0,
-        // volumen: this.ensureNumber(row.volumen),
-          volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),            
-
+            numero_veces: DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal),
+            alto: DecimalUtil.roundToDecimals(this.ensureNumber(row.alto), this.var_decimal),
+            largo: DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal),
+            ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),
+            area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),
+            area_total: v_area_total,
+            volumen_total: v_volumen_total,
+            volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),
             parcial: calculoparcial,
             // id_tipo_computo: dataadicional.id_tipo_computo,
             version: nueva_version,
