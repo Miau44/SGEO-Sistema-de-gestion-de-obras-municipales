@@ -187,6 +187,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     maximumFractionDigits: 2
     });
 
+    const var1 = 'del';
+    const var2 = 'de la';
+
     //console.log('DATOS MODIFICACION',this.datosAF);
  
     const documentDefinition = {
@@ -306,7 +309,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               [
                 { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                 { text: [
-                    { text: this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                    { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
                     { text: this.datosInf[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
                         ]
                 }
@@ -377,18 +380,14 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               { text: [{ text: this.formatearFecha(this.datosMod[0].nueva_conclusion), style: 'textDato' }] }
             ],
           ]
-        }, margin: [10, 0, 0, 5] 
+        }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
       {
-        text: '\n2.   ANTECEDENTES',
-        style: 'textTitulo', margin: [0, 0, 0, 5] 
+        text: 'MODIFICACIONES',
+        style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
-    //   ...(
-    // this.buildModAprobadas(this.datosModAp).length > 0 
-    // ?[
       {
-        
         table: {
           widths: [25, '*', 60, 60, 60, 60, 60],
           body: [
@@ -403,12 +402,10 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             ...this.buildModAprobadas(this.datosModAp)
           ]
         }, margin: [10, 0, 0, 0] 
-    //   },]
-    //   :[]
-    // ),
       },
       {
-        text: '\n'
+        text: '\n2.   ANTECEDENTES',
+        style: 'textTitulo', margin: [0, 0, 0, 5] 
       },
       {
           text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
@@ -426,7 +423,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       {
         text: 'Habiendo la fiscalización designada revisado y analizado el informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + 
               '-' + this.datosInf[0].correlativosup + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión ' + 
-              'de obra y en atención a que evidentemente se requiere la modificación a ser introducida a través de ' + this.datosEnvio[0].desc_subtipo + ' N°' + 
+              'de obra y en atención a que evidentemente se requiere la modificación a ser introducida a través de ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + 
               this.datosEnvio[0].numero_modificacion + ', a fin de garantizar la conclusión de la obra, así como su utilidad, ésta Fiscalización aprueba el ' + 
               'Informe de Supervisor y recomienda la elaboración y suscripción del ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + 
               ' por ' + this.datosInf[0].referencia + '. Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra.',
