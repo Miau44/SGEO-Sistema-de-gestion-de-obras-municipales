@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { ContratoService } from './contrato.service';
 import { Contrato } from './entities/contrato.entity';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { ContratoDlcDto } from './dto/contrato-dlc.dto';
@@ -77,6 +77,7 @@ export class ContratoController {
   @Public()
   @Post('cargarUrlContratosDlc/:gestion')
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
+  @UseGuards(AuthGuard('jwt'))
   async llenarUrlContratos(@Param('gestion') gestion: number): Promise<any> {
     try {
       const gestionNumber = Number(gestion);
@@ -91,6 +92,8 @@ export class ContratoController {
   //generar una funcion a partir del dto contrato-dlc.dto.ts
   @Public()
   @Post('RegistrarContratoSicom')
+  @ApiBody({ type: ContratoDlcDto })
+  @UseGuards(AuthGuard('jwt'))
   async RegistrarContratoSicom(@Body() contratoDlc: ContratoDlcDto): Promise<any> {
     try {
       const r = await this.contratoService.obtenerToken();

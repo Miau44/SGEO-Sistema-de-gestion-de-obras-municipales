@@ -98,7 +98,7 @@ export class AnexoOC {
 
     content: [ 
       {
-        text: 'ANEXO 1\n ACTAS DE CONFORMIDAD\nORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion,
+        text: 'ANEXO 1\n ACTAS DE CONFORMIDAD\nORDEN DE CAMBIO Nro.' + this.datosEnvio[0].numero_modificacion,
         style: 'header', alignment: 'center'
       } as any,
       {
@@ -121,7 +121,7 @@ export class AnexoOC {
                 [
                     { text: [
                         { text: 'EMPRESA CONTRATISTA\n', style: 'textTitulo', alignment: 'center'},
-                        { text: 'Firmo dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio N°' + this.datosEnvio[0].numero_modificacion,
+                        { text: 'Firmo dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio Nro.' + this.datosEnvio[0].numero_modificacion,
                       style: 'textDato', alignment: 'left'},
                     ] 
             }
@@ -147,7 +147,7 @@ export class AnexoOC {
                 [
                     { text: [
                         { text: 'SUPERVISIÓN DE OBRA\n', style: 'textTitulo', alignment: 'center'},
-                        { text: 'Firmo(amos) dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio N°' + this.datosEnvio[0].numero_modificacion,
+                        { text: 'Firmo(amos) dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio Nro.' + this.datosEnvio[0].numero_modificacion,
                       style: 'textDato', alignment: 'left'},
                     ] 
             }
@@ -173,7 +173,7 @@ export class AnexoOC {
                 [
                     { text: [
                         { text: 'FISCALIZACIÓN DE OBRA\n', style: 'textTitulo', alignment: 'center'},
-                        { text: 'Firmo(amos) dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio N°' + this.datosEnvio[0].numero_modificacion,
+                        { text: 'Firmo(amos) dando conformidad a las modificaciones a ser introducidas a través de la Orden Cambio Nro.' + this.datosEnvio[0].numero_modificacion,
                       style: 'textDato', alignment: 'left'},
                     ] 
             }

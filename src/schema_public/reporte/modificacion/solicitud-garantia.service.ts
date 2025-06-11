@@ -142,7 +142,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
         style: 'textDato', decoration: 'underline'
       },
       {
-        text: '\nREF.:SOLICITUD DE GARANTÍA ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + ' - ' + this.datosEnvio[0].cod_carpeta + ' ' + this.datosEnvio[0].desc_carpeta , 
+        text: '\nREF.:SOLICITUD DE GARANTÍA ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' - ' + this.datosEnvio[0].cod_carpeta + ' ' + this.datosEnvio[0].desc_carpeta , 
         style: 'titulo', alignment: 'right', decoration: 'underline', margin: [80,0,0,0]
       },
     //   {
@@ -359,7 +359,7 @@ convertToWords(value: string, currency: string): string {
   const decimalWords = `${decimalNumber.toString().padStart(2, '0')}/100`;
   const currencyWords = this.getCurrencyWord(currency);
 
-  return `${integerWords} CON ${decimalWords} ${currencyWords}`;
+  return `${integerWords} ${decimalWords} ${currencyWords}`;
 }
 
 private numberToWords(value: number): string {
