@@ -389,7 +389,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: this.datosInfSup[0].analisis,
-        style: 'textDato', alignment:'justify'
+        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
       },
       {
         text: '3.   JUSTIFICACION TÉCNICA GENERAL\n',
