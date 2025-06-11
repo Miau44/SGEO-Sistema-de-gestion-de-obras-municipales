@@ -215,7 +215,7 @@ export class MemoOrdenCambio {
           text: '\n'
         } as any,
         {
-          text: 'REF.: ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion, 
+          text: 'REF.: ORDEN DE CAMBIO Nro.' + this.datosEnvio[0].numero_modificacion, 
           style: 'coloredText', alignment: 'center', decoration: 'underline' 
         },
         {
@@ -243,7 +243,7 @@ export class MemoOrdenCambio {
                 { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
               ],
               [
-                { text: [{ text: 'CONTRATO N°:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },] },
+                { text: [{ text: 'CONTRATO Nro.:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },] },
                 { text: [{ text: this.datosEnvio[0].numero_contrato + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }] }
               ]
 
@@ -260,17 +260,17 @@ export class MemoOrdenCambio {
             {
               text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
               ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis + ' de fecha ' + 
-              this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO N°' + this.datosEnvio[0].numero_modificacion + 
+              this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO Nro.' + this.datosEnvio[0].numero_modificacion + 
               ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_provisional) + '.\n\n',
               style: 'textDato',  alignment: 'justify'
             },
             {
-              text: 'Asimismo, el monto de la modificación N°' + this.datosEnvio[0].numero_modificacion + ' es de Bs.' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.') + ')' + 
-              ', tiene una variación de ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + '.\n\n',
+              text: 'Asimismo, el monto del contrato inicial es de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.') + ')' + 
+              ', tiene una variación de Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs') + ')' + '.\n\n',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
             {
-              text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') +  
+              text: 'Por lo que el monto autorizado será de Bs' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +  
               ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%.',
               style: 'textDato', alignment: 'justify', lineHeight: 1
             },
@@ -289,7 +289,7 @@ export class MemoOrdenCambio {
             body: [
               [
                 {
-                  text: 'CONTRATANTE', style: 'textTitulo', alignment: 'center'
+                  text: '\nCONTRATANTE', style: 'textTitulo', alignment: 'center'
                 },
                 {
                   text:
@@ -473,7 +473,7 @@ convertToWords(value: string, currency: string): string {
   const decimalWords = `${decimalNumber.toString().padStart(2, '0')}/100`;
   const currencyWords = this.getCurrencyWord(currency);
 
-  return `${integerWords} CON ${decimalWords} ${currencyWords}`;
+  return `${integerWords} ${decimalWords} ${currencyWords}`;
 }
 
 private numberToWords(value: number): string {
