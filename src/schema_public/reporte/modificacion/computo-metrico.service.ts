@@ -132,7 +132,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       
       {
         text:[
-            { text: 'PLANILLA COMPUTO METRICO ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + '\n', style: 'subheader', alignment: 'center' },
+            { text: 'PLANILLA COMPUTO METRICO ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'subheader', alignment: 'center' },
             { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
         ],
       },
@@ -148,13 +148,13 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       {
         table: {
           headerRows: 2,
-          widths: [10, '*', 25, 30, 30, 30, 30, 30, 30, 40, 40], // 11 columnas
+          widths: [15, '*', 25, 30, 30, 30, 30, 30, 30, 40, 40], // 11 columnas
           body: [
             [
-              { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'Nro', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'Nº de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'Nro de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { colSpan: 5, text: 'MEDIDAS', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {}, {},
               { rowSpan: 2, text: 'PARCIAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'TOTAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -308,12 +308,12 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
 
   //Cargar tabla de computos metricos
 buildContenidoComputo(data: any[]) {
-  const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -330,8 +330,8 @@ buildContenidoComputo(data: any[]) {
       { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].area_total, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].volumen_total, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].area, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].volumen, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico5), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
     ];
