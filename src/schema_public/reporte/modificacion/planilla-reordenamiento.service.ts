@@ -252,7 +252,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 { colSpan: 2, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' }, {},
                 { colSpan: 2, text: 'INCREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
                 { colSpan: 2, text: 'DECREMENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
-                { colSpan: 2, text: 'REORDENAMIENTO**', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
+                { colSpan: 2, text: 'REORDENAMIENTO', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },{},
               ],
               [
                 {}, {}, {}, {}, {},//
