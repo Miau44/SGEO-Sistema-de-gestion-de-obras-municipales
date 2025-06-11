@@ -360,9 +360,9 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
   }
 
   //funcion para actualizar la fecha de informe para la aprobacion, abl, 11/06/2025, la fecha debe ser la actual
-  async aprobarInforme(idInforme: number) {
+  async aprobarInforme(idSolicitud: number) {
     try {
-      const informe = await this.informeRepositorio.findOneBy({ id_informe: idInforme });
+      const informe = await this.informeRepositorio.findOneBy({ id_solicitud: idSolicitud });
       if (!informe) {
         throw new NotFoundException('Informe no encontrado');
       }
