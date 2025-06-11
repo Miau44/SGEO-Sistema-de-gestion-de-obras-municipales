@@ -168,7 +168,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     content: [ 
       
       {
-        text: 'PLANILLA DE ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion, 
+        text: 'PLANILLA DE ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion, 
         style: 'subheader', alignment: 'center', 
       },
       {
@@ -204,10 +204,10 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         {
           table: {
             headerRows: 2,
-            widths: [10, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
+            widths: [15, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
             body: [
               [
-                { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -221,15 +221,15 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               [
                 {}, {}, {}, {}, {},//
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
             ...this.buildContenidoPlanilla(this.datosPlanilla) 
@@ -241,10 +241,10 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         {
           table: {
             headerRows: 2,
-            widths: [10, 60, '*', 30, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 15 columnas
+            widths: [15, 60, '*', 30, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 15 columnas
             body: [
               [
-                { rowSpan: 2, text: 'Nº', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
                 { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
@@ -257,13 +257,13 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               [
                 {}, {}, {}, {}, {},//
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO Bs.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
             ...this.buildContenidoPlanilla2(this.datosPlanilla) 
@@ -330,7 +330,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
           { //return currentPage.toString() + ' of ' + pageCount; 
             return {
               columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,20,0]} 
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
                       ]
               }            
           } as any,
@@ -447,7 +447,7 @@ buildContenidoPlanilla(data: any[]) {
 
    // Fila final con totales
   const totalRow = [
-    {colSpan: 3, text:'TOTALES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+    {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
     {}, {}, {}, // celdas vacias
     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
@@ -467,30 +467,25 @@ buildContenidoPlanilla(data: any[]) {
     },
   ];
 
-  const porc1Row = [
-    {colSpan: 15, text: ' ', style: 'textDato' }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-  ];
-
   const montoVarRow = [
-    {colSpan:3, text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
+    {colSpan:3, text: 'MONTO EN VARIACIÓN RESPECTO AL CONTRATO INICIAL(Bs)', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right' }
   ];
   //porc_parcial = (this.datosPlanillaR[0].monto_variacion * 100)/ totalContratoSum;
   const porcVarRow = [
-    {colSpan:3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
+    {colSpan:3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
   ];
   porc_total = (totalReordenSum * 100)/ totalContratoSum;
   const porcTotalRow = [
-    {colSpan:3, text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+    {colSpan:3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
   ];
 
   arrayData.push(totalRow);
-  arrayData.push(porc1Row);
   arrayData.push(montoVarRow);
   arrayData.push(porcVarRow);
   arrayData.push(porcTotalRow);
@@ -551,7 +546,7 @@ buildContenidoPlanilla2(data: any[]) {
 
    // Fila final con totales
   const totalRow = [
-    {colSpan: 3, text:'TOTALES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+    {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
     {}, {}, {}, // celdas vacias
     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
       style: 'textTitulo2', alignment: 'right', bold: true }, 
@@ -568,31 +563,25 @@ buildContenidoPlanilla2(data: any[]) {
     },
   ];
 
-  const porc1Row = [
-    {colSpan: 13, text: ' ', style: 'textDato', margin: [0,5,0,0] }, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-  ];
-
   const montoVarRow = [
-    {colSpan: 3, text: 'MONTO EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
+    {colSpan: 3, text: 'MONTO EN VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   const porcVarRow = [
-    {colSpan: 3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+    {colSpan: 3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico2) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 porc_total = (totalReordenSum * 100)/ totalContratoSum;
   const porcTotalRow = [
-    {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+    {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
   ];
 
   arrayData.push(totalRow);
-  arrayData.push(porc1Row);
   arrayData.push(montoVarRow);
   arrayData.push(porcVarRow);
   arrayData.push(porcTotalRow);
