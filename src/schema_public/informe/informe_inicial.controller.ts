@@ -198,7 +198,9 @@ export class InformeController {
     /**
    * actualizara fecha de informe formulario para la aprobacion, abl, 11/06/2025
    */
-  @Patch(':idInforme')
+  //modificar el servicio a post, con el parametro idInforme
+  @Public()
+  @Post('aprobarInforme/:idInforme')
   async AprobarInforme(
     @Param('idInforme') idInforme: number
   ) {
