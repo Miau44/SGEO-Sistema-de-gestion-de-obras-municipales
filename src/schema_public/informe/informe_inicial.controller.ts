@@ -194,4 +194,16 @@ export class InformeController {
   ) {
     return this.informeService.actualizarFormulario(idModificacion, idInforme, datosFormulario);
   }
+
+    /**
+   * actualizara fecha de informe formulario para la aprobacion, abl, 11/06/2025
+   */
+  //modificar el servicio a post, con el parametro idSolicitud
+  @Public()
+  @Post('aprobarInforme/:idSolicitud')
+  async AprobarInforme(
+    @Param('idSolicitud') idSolicitud: number
+  ) {
+    return this.informeService.aprobarInforme(idSolicitud);
+  }
 }
