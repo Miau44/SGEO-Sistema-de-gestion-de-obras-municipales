@@ -33,7 +33,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class SolicitudGarantia {
 
     datosEnvio: any = [];
-    datosFis: any = [];
+    datosSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -57,15 +57,14 @@ export class SolicitudGarantia {
     return resultado[0];
   }
 
-     // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
+    // SUPERVISORES designados por obra 
+   async supervisorDesignado(obra: number) {
     const query1 = `
         SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
+        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
     const resultado1 = await this.sequelize.query(query1);
     return resultado1[0];
    }
-
 
     
 
@@ -78,11 +77,11 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
   }
   this.datosEnvio = datosGenerales;
 
-  const res1 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
+  const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
   if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
       throw new Error('No se encontraron datos del fiscal designado');
   }
-  this.datosFis = res1;
+  this.datosSup = res1;
 
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
@@ -121,7 +120,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
       {
         text:[
             { text: '\n\nNOTA DE SOLICITUD DE GARANTÍA', style: 'titulo', alignment: 'center' },
-            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + ' SG-1', style: 'titulo', alignment: 'center' },
+            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + '-SG-1', style: 'titulo', alignment: 'center' },
         ],
       },
       {
@@ -171,13 +170,13 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
         text: [
           { text: 'De mi consideración:\n\n', style: 'textDato' },
           {
-            text: 'Cómo es de su conocimiento, a la fecha se está tramitando la modificación del Contrato Administrativo Municipal de la Obra N° ' + this.datosEnvio[0].numero_contrato + 
+            text: 'Cómo es de su conocimiento, a la fecha se está tramitando la modificación del Contrato Administrativo Municipal de la Obra Nro. ' + this.datosEnvio[0].numero_contrato + 
             ' emergente del proceso de contratación bajo la modalidad: ' + this.datosEnvio[0].modalidad + 
-            ' incrementándose el monto en Bs.' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n\n', 
+            ' incrementándose el monto en Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n\n', 
             style: 'textDato', alignment: 'justify', lineHeight: 1,
           },
           {
-            text: 'Por lo señalado anteriormente, y a fin de formalizar  la modificación del contrato mediante ' + this.datosEnvio[0].desc_subtipo + ' N°' +  this.datosEnvio[0].numero_modificacion + 
+            text: 'Por lo señalado anteriormente, y a fin de formalizar  la modificación del contrato mediante ' + this.datosEnvio[0].desc_subtipo + ' Nro.' +  this.datosEnvio[0].numero_modificacion + 
             ' en el plazo de 5 días hábiles, computables a partir de la recepción de la presente nota, deberá presentar ante la ' + this.datosEnvio[0].nombre_da +
             ', la Garantía de cumplimiento de contrato (de igual o mayor solvencia a la presentada ' + 
             'en el proceso de contratación) equivalente al siete porciento (7%) del monto incrementado.\n\n',
@@ -199,7 +198,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
           table: {
             widths: ['50%','50%'],
             body: [
-              ...this.buildFiscales(this.datosFis)
+              ...this.buildFiscales(this.datosSup)
               ]
           }, margin: [20,0,20,0]
         },
@@ -295,7 +294,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
     return formattedDate;
   }
 
-    //Cargar tabla de fiscales - con recuadro
+    //Cargar tabla de Supervisores - con recuadro
     buildFiscales(data: any[]) {
       const arrayData = [];
   
@@ -312,7 +311,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
         const rowData = [
           { text: [
                 { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
+                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
           { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
