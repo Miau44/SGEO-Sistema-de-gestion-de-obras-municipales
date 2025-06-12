@@ -120,7 +120,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
       {
         text:[
             { text: '\n\nNOTA DE SOLICITUD DE GARANTÍA', style: 'titulo', alignment: 'center' },
-            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + ' SG-1', style: 'titulo', alignment: 'center' },
+            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + '-SG-1', style: 'titulo', alignment: 'center' },
         ],
       },
       {
@@ -170,13 +170,13 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
         text: [
           { text: 'De mi consideración:\n\n', style: 'textDato' },
           {
-            text: 'Cómo es de su conocimiento, a la fecha se está tramitando la modificación del Contrato Administrativo Municipal de la Obra N° ' + this.datosEnvio[0].numero_contrato + 
+            text: 'Cómo es de su conocimiento, a la fecha se está tramitando la modificación del Contrato Administrativo Municipal de la Obra Nro. ' + this.datosEnvio[0].numero_contrato + 
             ' emergente del proceso de contratación bajo la modalidad: ' + this.datosEnvio[0].modalidad + 
-            ' incrementándose el monto en Bs.' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n\n', 
+            ' incrementándose el monto en Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n\n', 
             style: 'textDato', alignment: 'justify', lineHeight: 1,
           },
           {
-            text: 'Por lo señalado anteriormente, y a fin de formalizar  la modificación del contrato mediante ' + this.datosEnvio[0].desc_subtipo + ' N°' +  this.datosEnvio[0].numero_modificacion + 
+            text: 'Por lo señalado anteriormente, y a fin de formalizar  la modificación del contrato mediante ' + this.datosEnvio[0].desc_subtipo + ' Nro.' +  this.datosEnvio[0].numero_modificacion + 
             ' en el plazo de 5 días hábiles, computables a partir de la recepción de la presente nota, deberá presentar ante la ' + this.datosEnvio[0].nombre_da +
             ', la Garantía de cumplimiento de contrato (de igual o mayor solvencia a la presentada ' + 
             'en el proceso de contratación) equivalente al siete porciento (7%) del monto incrementado.\n\n',
