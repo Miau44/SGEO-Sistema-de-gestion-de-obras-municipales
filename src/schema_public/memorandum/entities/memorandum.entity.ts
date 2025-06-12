@@ -49,6 +49,18 @@ export class Memorandum {
 
     @Column()
     id_usuario:number;   
+  
+    @Column({ type: 'date', nullable: true })
+    fecha_actual: Date;
+
+    @Column({ type: 'time without time zone', nullable: true })
+    hora_registro: string;
+
+    @Column({ type: 'text', nullable: true })
+    observaciones: string;
+
+    @Column("json", { nullable: true })
+    id_documento: { id_documento: number }[];
 
     @ManyToOne(() => Obra, (obra) => obra.memorandum1)
     @JoinColumn({ name: 'id_obra' })
