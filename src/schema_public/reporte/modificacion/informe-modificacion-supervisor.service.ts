@@ -399,14 +399,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
       },
       {
-        text: '3.   JUSTIFICACION TÉCNICA GENERAL\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: this.datosInfSup[0].analisis,
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
-      },
-      {
         text: '4.   REORDENAMIENTO DE CANTIDADES\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
