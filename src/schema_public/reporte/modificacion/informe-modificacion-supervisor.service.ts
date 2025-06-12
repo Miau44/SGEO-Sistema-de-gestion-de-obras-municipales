@@ -358,7 +358,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
           table: {
-            widths: [20, '*', 60, 60, 60, 60, 60], 
+            widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'], 
             body: [
               [
                 { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
@@ -606,10 +606,14 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
-        text: 'El presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs' +
+        text: [
+          { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
+            ? 'El '
+            : 'La '},
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs' +
         this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
-        ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+        ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n' },
+        ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
