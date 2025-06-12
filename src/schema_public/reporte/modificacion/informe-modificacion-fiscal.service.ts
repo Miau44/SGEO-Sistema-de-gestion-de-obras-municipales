@@ -389,14 +389,14 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
         table: {
-          widths: [25, '*', 60, 60, 60, 60, 60],
+          widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'],
           body: [
             [
-              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
             ],
             ...this.buildModAprobadas(this.datosModAp)
@@ -421,13 +421,27 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
-        text: 'Habiendo la fiscalización designada revisado y analizado el informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + 
+        text: [
+          { text: 'Habiendo la fiscalización designada revisado y analizado el informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + 
               '-' + this.datosInf[0].correlativosup + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión ' + 
-              'de obra y en atención a que evidentemente se requiere la modificación a ser introducida a través de ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + 
+              'de obra y en atención a que evidentemente se requiere la modificación a ser introducida a través ' 
+          },
+          { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
+            ? 'del '
+            : 'de la '
+          },
+          { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + 
               this.datosEnvio[0].numero_modificacion + ', a fin de garantizar la conclusión de la obra, así como su utilidad, ésta Fiscalización aprueba el ' + 
-              'Informe de Supervisor y recomienda la elaboración y suscripción del ' + this.datosEnvio[0].desc_subtipo + ' N°' + this.datosEnvio[0].numero_modificacion + 
-              ' por ' + this.datosInf[0].referencia + '. Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra.',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
+              'Informe de Supervisor y recomienda la elaboración y suscripción ' 
+          },
+          {
+            text: this.datosEnvio[0].id_tipo_mod_pago == 1 
+            ? 'del '
+            : 'de la '
+          },
+          { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + 
+              ' por ' + this.datosInf[0].referencia + '. Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra.',}
+        ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       },
       {
         text: ['\n'],
