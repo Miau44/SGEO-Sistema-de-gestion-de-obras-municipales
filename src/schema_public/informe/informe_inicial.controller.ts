@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, InternalServerErrorException, BadRequestException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, InternalServerErrorException, BadRequestException, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { InformeService } from './informe_inicial.service';
 import { CreateInformeDto } from './dto/create-informe.dto';
 import { UpdateInformeDto } from './dto/update-informe.dto';
 import { ResponseService } from 'src/response.service';
 import { Public } from 'src/common/decorators/public.decorator';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ListaInformeDto } from './dto/lista-informe.dto';
 import { CreateInformeInicialDto } from './dto/create-informe-inicial.dto';
 import { UpdateInformeInicialDto } from './dto/update-informe-inicial.dto';
@@ -12,6 +12,10 @@ import { InformeObraDto } from './dto/informe-obra.dto';
 import { InformeOpcionDto } from './dto/informe-opcion.dto';
 import { InformeActividadesDto } from './dto/informe-actividades.dto';
 import { DocumentoService } from '../documento/documento.service';
+import { CreateInformeObraDto } from './dto/create-informe-obra.dto';
+import { get } from 'axios';
+import { ListaInformeObraDto } from './dto/listar_informe_obra.dto';
+import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
 
 
 @ApiTags('informe')
@@ -45,6 +49,15 @@ export class InformeController {
   }
 
   @Public()
+  @Patch('editar-informe-obra')
+  @ApiOperation({ summary: 'Actualizar un informe de obra' })
+  
+  async actualizarInformeObra(@Body() dto: UpdateInformeObraDto) {
+    console.log('Actualizando informe de obra con datos:', dto);
+    return this.informeService.actualizarInformeObra(dto);
+  }
+
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInformeDto: UpdateInformeDto) {
     try {
@@ -52,6 +65,7 @@ export class InformeController {
     } catch (error) {
     }
   }
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -138,7 +152,7 @@ export class InformeController {
   } 
 
 
-  
+
   // Para hacer registros de los documentos de un informe
   
   @Post('updateDocumentosInforme')
@@ -195,15 +209,40 @@ export class InformeController {
     return this.informeService.actualizarFormulario(idModificacion, idInforme, datosFormulario);
   }
 
-    /**
-   * actualizara fecha de informe formulario para la aprobacion, abl, 11/06/2025
-   */
-  //modificar el servicio a post, con el parametro idSolicitud
-  @Public()
+  @Post('informe-obra-save')
+  @ApiResponse({ status: 201, description: 'Informe creado exitosamente' })
+  @ApiResponse({ status: 400, description: 'Datos inv�lidos' })
+  async guardarInformeObra(@Body() data: CreateInformeObraDto) {
+    return this.informeService.guardarInformeObra(data);
+  }
+
+  @Post('informe-obra-fiscal-save')
+  @ApiResponse({ status: 201, description: 'Informe creado exitosamente' })
+  @ApiResponse({ status: 400, description: 'Datos inv�lidos' })
+  async guardarInformeObraFiscal(@Body() data: CreateInformeObraDto) {
+    return this.informeService.guardarInformeObraFiscal(data);
+  }
+
+  @Post('listar-informe-obra')
+async listarInformeObra(@Body() dto: ListaInformeObraDto) {
+  return this.informeService.listarInformeObra(dto);
+}
+
+
+
+  @Get('infObra/:id')
+  @ApiOperation({ summary: 'Obtener informe obra por ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID del informe' })
+  async obtenerInformePorId(@Param('id', ParseIntPipe) id: number) {
+    return this.informeService.obtenerInformeObraPorId(id);
+  }
+  
+    @Public()
   @Post('aprobarInforme/:idSolicitud')
   async AprobarInforme(
-    @Param('idSolicitud') idSolicitud: number
-  ) {
+    @Param('idSolicitud') idSolicitud: number) {
     return this.informeService.aprobarInforme(idSolicitud);
   }
+
+
 }
