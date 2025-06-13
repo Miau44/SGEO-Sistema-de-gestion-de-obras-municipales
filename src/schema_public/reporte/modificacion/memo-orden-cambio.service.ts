@@ -36,6 +36,7 @@ export class MemoOrdenCambio {
     datosFis: any = [];
     datosInf: any = [];
     datosSup: any = [];
+    datosMod: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -84,6 +85,15 @@ export class MemoOrdenCambio {
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
+
+   // Resumen de Modificacion Actual 
+   async modificacionActual(obra: number) {
+    const query4 = `
+        SELECT * 
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+    const resultado4 = await this.sequelize.query(query4);
+    return resultado4[0];
+   }
   
 // REPORTE - MEMORANDUM ORDEN DE CAMBIO
   async generateOrdenCambio(id_modif_pago: number): Promise<Buffer> {
@@ -111,6 +121,12 @@ export class MemoOrdenCambio {
       throw new Error('No se encontraron datos del supervisor designado');
     }
     this.datosSup = res2;
+
+    const res3 = await this.modificacionActual(this.datosEnvio[0].id_obra);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos de las modificación');
+  }
+  this.datosMod = res3;
    
     //console.log("DATOS, ", res);
 
@@ -261,7 +277,7 @@ export class MemoOrdenCambio {
               text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
               ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis + ' de fecha ' + 
               this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO Nro.' + this.datosEnvio[0].numero_modificacion + 
-              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].fecha_recep_provisional) + '.\n\n',
+              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosMod[0].nueva_conclusion) + '.\n\n',
               style: 'textDato',  alignment: 'justify'
             },
             {
