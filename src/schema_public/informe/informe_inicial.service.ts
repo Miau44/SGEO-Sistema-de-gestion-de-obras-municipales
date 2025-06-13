@@ -21,6 +21,7 @@ import { CreateSolicitudDto } from '../solicitud/dto/create-solicitud.dto';
 import { ListaInformeObraDto } from './dto/listar_informe_obra.dto';
 import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
+import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 
 
 
@@ -526,18 +527,31 @@ async guardarInformeObraFiscal(data: any) {
   }
 }
 
-async listarInformeObra(dto: ListaInformeObraDto) {
-  const { id_obra, id_subtipo_cite } = dto;
+async listarInformeObraSup(dto: ListaInformeObraDto) {
+  const { id_obra } = dto;
   try {
     const resultado = await this.informeRepositorio.query(
-      `SELECT * FROM sp_listar_informe_obra($1, $2)`,
-      [id_obra, id_subtipo_cite]
+      `SELECT * FROM sp_listar_informe_obra_sup($1)`,
+      [id_obra]
     );
-
     return this.responseService.success(resultado);
   } catch (error) {
-    console.error('Error al ejecutar SP sp_listar_informe_obra:', error);
+    console.error('Error al ejecutar sp_listar_informe_obra_sup:', error);
     return this.responseService.error('No se pudo listar los informes');
+  }
+}
+
+async listarInformeObraFis(dto: ListaInformeObraDto) {
+  const { id_obra } = dto;
+  try {
+    const resultado = await this.informeRepositorio.query(
+      `SELECT * FROM sp_listar_informe_obra_fis($1)`,
+      [id_obra]
+    );
+    return this.responseService.success(resultado);
+  } catch (error) {
+    console.error('Error al ejecutar sp_listar_informe_obra_fis:', error);
+    return this.responseService.error('No se pudo listar los informes para el fiscal.');
   }
 }
 
@@ -678,6 +692,30 @@ async actualizarInformeObra(dto: UpdateInformeObraDto) {
       return this.responseService.error(error);
     }
   }
+
+  async obtenerTipoInformePorSolicitud(dto: BuscarTipoInformeDto) {
+  const { id_solicitud } = dto;
+
+  try {
+    const resultado = await this.informeRepositorio.findOne({
+      where: {
+        id_solicitud,
+        id_estado: 1 
+      },
+      select: ['id_tipo_informe'] 
+    });
+
+    if (!resultado) {
+      return this.responseService.error('No se encontró un informe con esos datos.');
+    }
+
+    return this.responseService.success(resultado);
+  } catch (error) {
+    console.error('Error al consultar tipo de informe:', error);
+    return this.responseService.error('No se pudo obtener el tipo de informe.');
+  }
+}
+
 
 
 
