@@ -16,6 +16,7 @@ import { CreateInformeObraDto } from './dto/create-informe-obra.dto';
 import { get } from 'axios';
 import { ListaInformeObraDto } from './dto/listar_informe_obra.dto';
 import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
+import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 
 
 @ApiTags('informe')
@@ -223,12 +224,15 @@ export class InformeController {
     return this.informeService.guardarInformeObraFiscal(data);
   }
 
-  @Post('listar-informe-obra')
-async listarInformeObra(@Body() dto: ListaInformeObraDto) {
-  return this.informeService.listarInformeObra(dto);
+  @Post('listar-informe-obra-sup')
+async listarInformeObraSup(@Body() dto: ListaInformeObraDto) {
+  return this.informeService.listarInformeObraSup(dto);
 }
 
-
+  @Post('listar-informe-obra-fis')
+async listarInformeObraFis(@Body() dto: ListaInformeObraDto) {
+  return this.informeService.listarInformeObraFis(dto);
+}
 
   @Get('infObra/:id')
   @ApiOperation({ summary: 'Obtener informe obra por ID' })
@@ -243,6 +247,12 @@ async listarInformeObra(@Body() dto: ListaInformeObraDto) {
     @Param('idSolicitud') idSolicitud: number) {
     return this.informeService.aprobarInforme(idSolicitud);
   }
+
+  @Post('obtener-tipo-informe')
+  async obtenerTipoInforme(@Body() dto: BuscarTipoInformeDto) {
+    return this.informeService.obtenerTipoInformePorSolicitud(dto);
+  }
+
 
 
 }

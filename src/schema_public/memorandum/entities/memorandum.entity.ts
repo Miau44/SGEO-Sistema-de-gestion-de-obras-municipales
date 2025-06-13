@@ -29,7 +29,7 @@ export class Memorandum {
     @Column({ type: 'varchar'})
     referencia:string;
 
-    @Column({ type: 'varchar'})
+    @Column({ type: 'varchar', nullable:true})
     descripcion:string;   
 
     @Column({ type: 'varchar'})
