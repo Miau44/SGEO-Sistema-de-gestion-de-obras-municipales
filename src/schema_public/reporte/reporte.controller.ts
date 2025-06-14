@@ -11,6 +11,8 @@ import { InformeModificacionFiscal } from './modificacion/informe-modificacion-f
 import { ComputoMetrico } from './modificacion/computo-metrico.service';
 import { AnexoOC } from './modificacion/anexo-oc.service';
 import { PlanillaReordenamiento } from './modificacion/planilla-reordenamiento.service';
+import { InformeObraSupervisor } from './Informe_obra/informe_supervisor.service';
+import { InformeObraFiscal } from './Informe_obra/informe_fiscal.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -24,6 +26,8 @@ export class ReportController {
     private readonly computometrico: ComputoMetrico,
     private readonly anexooc: AnexoOC,
     private readonly planillareorden: PlanillaReordenamiento,
+    private readonly informeobrasupervisor: InformeObraSupervisor,
+    private readonly informeobrafiscal: InformeObraFiscal,
   ) {}
 
 
@@ -176,7 +180,6 @@ export class ReportController {
  } 
  
  
-
  @Public()
   @Get('nota-instruccion-OrdenProceder')
   async generateInstruccionOrdenProceder(@Res() res: Response,
@@ -189,8 +192,6 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   } 
-
-
 
 
   @Public()
@@ -207,8 +208,6 @@ export class ReportController {
   }   
 
 
-
-
   @Public()
   @Get('Orden-Proceder')
   async generateOrdProcRev01(@Res() res: Response,
@@ -221,7 +220,6 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   } 
-
 
 
   @Public()
@@ -337,6 +335,38 @@ export class ReportController {
     });
     res.send(pdfBuffer);
   }
+
+
+  ///////////////////////// INFORME DE OBRA //////////////////////////////////
+  @Public()
+    @Get('informe-obra-sup')
+    async InformeObrasupervisor(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    @Query('id_informe') id_informe: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.informeobrasupervisor.generateInformeObraSupervisor(id_obra, id_informe);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
+
+    @Public()
+    @Get('informe-obra-fis')
+    async InformeObraFiscal(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    @Query('id_informe') id_informe: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.informeobrafiscal.generateInformeObraFiscal(id_obra, id_informe);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
 
 
 }
