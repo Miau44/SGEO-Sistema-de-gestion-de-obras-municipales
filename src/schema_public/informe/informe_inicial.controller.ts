@@ -17,6 +17,8 @@ import { get } from 'axios';
 import { ListaInformeObraDto } from './dto/listar_informe_obra.dto';
 import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
 import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
+import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
+import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
 
 
 @ApiTags('informe')
@@ -252,7 +254,36 @@ async listarInformeObraFis(@Body() dto: ListaInformeObraDto) {
   async obtenerTipoInforme(@Body() dto: BuscarTipoInformeDto) {
     return this.informeService.obtenerTipoInformePorSolicitud(dto);
   }
+   /************************************actas de entrega provisional ************************************/
+  @Post('crear-acta-entrega-provicional')
+  async crearActaEntregaProvicional(@Body() dto: CreateActaEntregaProvicionalDto) {
+    return this.informeService.createActaEntregaProvicional(dto);
+  }
 
+  @Post('listar-actas-entrega-provisional')
+  @ApiBody({ type: ListaInformeObraDto })
+  async listarActasEntregaProvisional(@Body() dto: ListaInformeObraDto) {
+    return this.informeService.listarActasEntregaProvisional(dto);
+  }
 
+  @Get('acta-entrega-provisional/:id')
+  @ApiOperation({ summary: 'Obtener datos del acta de entrega provisional para edición' })
+  async getActaEntregaProvisional(@Param('id') id: number) {
+    return this.informeService.getActaEntregaProvisionalById(id);
+  }
+
+  // @Patch('acta-entrega-provisional')
+  // @ApiOperation({ summary: 'Actualizar acta de entrega provisional' })
+  // async updateActaEntregaProvisional(@Body() dto: UpdateActaEntregaProvDto) {
+  //   return this.informeService.updateActaEntregaProvisional(dto);
+  // }
+
+  @Post('actualizar-acta-entrega-provisional')
+@ApiOperation({ summary: 'Actualizar acta de entrega provisional' })
+@ApiBody({ type: UpdateActaEntregaProvDto })
+async updateActaEntregaProvisional(@Body() dto: UpdateActaEntregaProvDto) {
+  return this.informeService.updateActaEntregaProvisional(dto);
+}
+  
 
 }
