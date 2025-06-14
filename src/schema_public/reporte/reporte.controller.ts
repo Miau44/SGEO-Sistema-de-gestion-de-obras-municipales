@@ -13,6 +13,7 @@ import { AnexoOC } from './modificacion/anexo-oc.service';
 import { PlanillaReordenamiento } from './modificacion/planilla-reordenamiento.service';
 import { InformeObraSupervisor } from './Informe_obra/informe_supervisor.service';
 import { InformeObraFiscal } from './Informe_obra/informe_fiscal.service';
+import { ActaProvisional } from './actas/acta_provisional.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -28,6 +29,7 @@ export class ReportController {
     private readonly planillareorden: PlanillaReordenamiento,
     private readonly informeobrasupervisor: InformeObraSupervisor,
     private readonly informeobrafiscal: InformeObraFiscal,
+    private readonly actaprovisional: ActaProvisional,
   ) {}
 
 
@@ -367,6 +369,19 @@ export class ReportController {
       res.send(pdfBuffer);
     }
 
-
+///////////////////////// ACTA DE ENTREGA //////////////////////////////////
+  @Public()
+    @Get('acta-provisional')
+    async ActaProvisional(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    @Query('id_informe') id_informe: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.actaprovisional.generateActaProvisional(id_obra, id_informe);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
 
 }
