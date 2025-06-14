@@ -22,6 +22,8 @@ import { ListaInformeObraDto } from './dto/listar_informe_obra.dto';
 import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
+import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
+import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
 
 
 
@@ -367,319 +369,280 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
     return { message: 'Formulario actualizado correctamente' };
   }
 
+  // Guardar informe de obra con correlativo y solicitud
   async guardarInformeObra(data: any) {
-  try {
-    const { 
-      id_obra,
-      usuario_registro,
-      id_tipo_informe,
-      antecedentes,
-      analisis,
-      obs_general,
-      conclusion,
-      recomendacion,
-      referencia,
-      informe_modificacion,
-      anexos,
-      id_documento
-     } = data;
+    try {
+      const {
+        id_obra, usuario_registro, id_tipo_informe, antecedentes,
+        analisis, obs_general, conclusion, recomendacion, 
+        referencia, informe_modificacion, anexos, id_documento
+      } = data;
 
-    // 1. Crear correlativo
-    const correlativoResp  = await this.correlativoService.create({
-      id_obra,
-      id_tipo_documento: 295, // tipo documento "informe"
-      correlativo: '',
-      usuario_registro,
-      id_estado: 1,
-    });
-
-    const correlativo = correlativoResp.data;
-    if (!correlativo || !correlativo.id_correlativo) {
-      throw new Error('No se pudo crear el correlativo');
-    }
-
-    // 2. Crear solicitud
-    const solicitudDto: CreateSolicitudDto = {
-      id_tipo_solicitud: 1,
-      id_estado_solicitud: 2,
-      id_obra,
-      id_estado_general: 10,
-      id_usuario: usuario_registro,
-      proveido: '',
-      usuario_registro,
-      id_estado_registro: 1,
-    };
-
-    const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
-    const solicitud = respuestaSolicitud.data; // por tu estructura de responseService
-
-    if (!solicitud || !solicitud.id_solicitud) {
-      throw new Error('No se pudo crear la solicitud');
-    }
-
-    // 3. Crear informe
-    const informeData = {
-      // Campos que te corresponden para informe...
-      id_obra,
-      usuario_registro,
-      id_tipo_informe,
-      antecedentes,
-      analisis,
-      obs_general,
-      conclusion,
-      recomendacion,
-      referencia,
-      informe_modificacion,
-      anexos,
-      id_documento, // opcional, puede ser null
-      id_correlativo: correlativo.id_correlativo,
-      id_solicitud: solicitud.id_solicitud,
-      id_estado: 1
-    };
-
-    const nuevoInforme = await this.informeRepositorio.save(informeData);
-
-    return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
-
-  } catch (error) {
-    console.error('Error en guardarInformeConSolicitud:', error);
-    return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
-  }
-}
-
-async guardarInformeObraFiscal(data: any) {
-  try {
-    const { 
-      id_obra,
-      usuario_registro,
-      id_tipo_informe,
-      antecedentes,
-      analisis,
-      obs_general,
-      conclusion,
-      recomendacion,
-      referencia,
-      informe_modificacion,
-      anexos,
-      id_documento
-     } = data;
-
-    // 1. Crear correlativo
-    const correlativoResp  = await this.correlativoService.create({
-      id_obra,
-      id_tipo_documento: 296, // tipo documento "informe"
-      correlativo: '',
-      usuario_registro,
-      id_estado: 1,
-    });
-
-    const correlativo = correlativoResp.data;
-    if (!correlativo || !correlativo.id_correlativo) {
-      throw new Error('No se pudo crear el correlativo');
-    }
-
-    // 2. Crear solicitud
-    const solicitudDto: CreateSolicitudDto = {
-      id_tipo_solicitud: 12,
-      id_estado_solicitud: 2,
-      id_obra,
-      id_estado_general: 10,
-      id_usuario: usuario_registro,
-      proveido: '',
-      usuario_registro,
-      id_estado_registro: 1,
-    };
-
-    const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
-    const solicitud = respuestaSolicitud.data; 
-
-    if (!solicitud || !solicitud.id_solicitud) {
-      throw new Error('No se pudo crear la solicitud');
-    }
-
-    // 3. Crear informe
-    const informeData = {
-      // Campos que te corresponden para informe...
-      id_obra,
-      usuario_registro,
-      id_tipo_informe,
-      antecedentes,
-      analisis,
-      obs_general,
-      conclusion,
-      recomendacion,
-      referencia,
-      informe_modificacion,
-      anexos,
-      id_documento, // opcional, puede ser null
-      id_correlativo: correlativo.id_correlativo,
-      id_solicitud: solicitud.id_solicitud,
-      id_estado: 1
-    };
-
-    const nuevoInforme = await this.informeRepositorio.save(informeData);
-
-    return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
-
-  } catch (error) {
-    console.error('Error en guardarInformeConSolicitud:', error);
-    return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
-  }
-}
-
-async listarInformeObraSup(dto: ListaInformeObraDto) {
-  const { id_obra } = dto;
-  try {
-    const resultado = await this.informeRepositorio.query(
-      `SELECT * FROM sp_listar_informe_obra_sup($1)`,
-      [id_obra]
-    );
-    return this.responseService.success(resultado);
-  } catch (error) {
-    console.error('Error al ejecutar sp_listar_informe_obra_sup:', error);
-    return this.responseService.error('No se pudo listar los informes');
-  }
-}
-
-async listarInformeObraFis(dto: ListaInformeObraDto) {
-  const { id_obra } = dto;
-  try {
-    const resultado = await this.informeRepositorio.query(
-      `SELECT * FROM sp_listar_informe_obra_fis($1)`,
-      [id_obra]
-    );
-    return this.responseService.success(resultado);
-  } catch (error) {
-    console.error('Error al ejecutar sp_listar_informe_obra_fis:', error);
-    return this.responseService.error('No se pudo listar los informes para el fiscal.');
-  }
-}
-
-async actualizarInformeObra(dto: UpdateInformeObraDto) {
-  try {
-    console.log('📥 DTO recibido:', JSON.stringify(dto));
-
-    const {
-      id_informe,
-      antecedentes,
-      analisis,
-      obs_general,
-      conclusion,
-      recomendacion,
-      referencia,
-      informe_modificacion,
-      anexos,
-      id_documento,
-    } = dto;
-
-    // Buscar el informe existente
-    const informe = await this.informeRepositorio.findOne({
-      where: { id_informe, id_estado: 1 },
-    });
-
-    if (!informe) {
-      throw new Error('No se encontró el informe para actualizar');
-    }
-
-    // Validar usuario_registro e id_estado
-    if (typeof informe.usuario_registro !== 'number' || isNaN(informe.usuario_registro)) {
-      throw new Error('usuario_registro inválido');
-    }
-
-    if (typeof informe.id_estado !== 'number' || isNaN(informe.id_estado)) {
-      throw new Error('id_estado inválido');
-    }
-
-    // Validación de id_documento si se envía
-    if (id_documento !== undefined) {
-      if (typeof id_documento === 'string') {
-        try {
-          informe.id_documento = JSON.parse(id_documento);
-        } catch {
-          throw new Error('id_documento tiene formato incorrecto');
-        }
-      } else if (Array.isArray(id_documento)) {
-        for (const doc of id_documento) {
-          if (!doc || typeof doc.id_documento !== 'number' || isNaN(doc.id_documento)) {
-            throw new Error('Cada objeto en id_documento debe tener un id_documento numérico válido');
-          }
-        }
-        informe.id_documento = id_documento;
-      } else {
-        throw new Error('id_documento debe ser un arreglo de objetos o un string JSON válido');
+      // 1. Crear correlativo
+      const correlativoResp = await this.correlativoService.create({
+        id_obra,
+        id_tipo_documento: 295,
+        correlativo: '',
+        usuario_registro,
+        id_estado: 1,
+      });
+      const correlativo = correlativoResp.data;
+      if (!correlativo || !correlativo.id_correlativo) {
+        throw new Error('No se pudo crear el correlativo');
       }
+      // 2. Crear solicitud
+      const solicitudDto: CreateSolicitudDto = {
+        id_tipo_solicitud: 1,
+        id_estado_solicitud: 2,
+        id_obra,
+        id_estado_general: 10,
+        id_usuario: usuario_registro,
+        proveido: '',
+        usuario_registro,
+        id_estado_registro: 1,
+      };
+      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
+      const solicitud = respuestaSolicitud.data; // por tu estructura de responseService
+      if (!solicitud || !solicitud.id_solicitud) {
+        throw new Error('No se pudo crear la solicitud');
+      }
+      // 3. Crear informe
+      const informeData = {
+        id_obra,
+        usuario_registro,
+        id_tipo_informe,
+        antecedentes,
+        analisis,
+        obs_general,
+        conclusion,
+        recomendacion,
+        referencia,
+        informe_modificacion,
+        anexos,
+        id_documento, 
+        id_correlativo: correlativo.id_correlativo,
+        id_solicitud: solicitud.id_solicitud,
+        id_estado: 1
+      };
+      const nuevoInforme = await this.informeRepositorio.save(informeData);
+      return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
+    } catch (error) {
+      console.error('Error en guardarInformeConSolicitud:', error);
+      return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
     }
-
-    // Asignar campos actualizables
-    informe.antecedentes = antecedentes;
-    informe.analisis = analisis;
-    informe.obs_general = obs_general;
-    informe.conclusion = conclusion;
-    informe.recomendacion = recomendacion;
-    if (referencia !== undefined) {
-      informe.referencia = referencia;
-    }
-
-    if (informe_modificacion !== undefined) {
-      informe.informe_modificacion = informe_modificacion;
-    }
-
-    if (anexos !== undefined) {
-      informe.anexos = anexos;
-    }
-
-    const actualizado = await this.informeRepositorio.save(informe);
-    return this.responseService.success(actualizado, 'Informe actualizado correctamente');
-
-  } catch (error) {
-    console.error(' Error en actualizarInformeObra:', error);
-    return this.responseService.error(
-      error instanceof Error ? error.message : 'Error inesperado al actualizar el informe'
-    );
   }
-}
 
+  // Guardar informe de obra con correlativo y solicitud
+  async guardarInformeObraFiscal(data: any) {
+    try {
+      const {
+        id_obra,
+        usuario_registro,
+        id_tipo_informe,
+        antecedentes,
+        analisis,
+        obs_general,
+        conclusion,
+        recomendacion,
+        referencia,
+        informe_modificacion,
+        anexos,
+        id_documento
+      } = data;
+      // 1. Crear correlativo
+      const correlativoResp = await this.correlativoService.create({
+        id_obra,
+        id_tipo_documento: 296, // tipo documento "informe"
+        correlativo: '',
+        usuario_registro,
+        id_estado: 1,
+      });
+      const correlativo = correlativoResp.data;
+      if (!correlativo || !correlativo.id_correlativo) {
+        throw new Error('No se pudo crear el correlativo');
+      }
+      // 2. Crear solicitud
+      const solicitudDto: CreateSolicitudDto = {
+        id_tipo_solicitud: 12,
+        id_estado_solicitud: 2,
+        id_obra,
+        id_estado_general: 10,
+        id_usuario: usuario_registro,
+        proveido: '',
+        usuario_registro,
+        id_estado_registro: 1,
+      };
 
+      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
+      const solicitud = respuestaSolicitud.data;
+
+      if (!solicitud || !solicitud.id_solicitud) {
+        throw new Error('No se pudo crear la solicitud');
+      }
+      // 3. Crear informe
+      const informeData = {
+        id_obra,
+        usuario_registro,
+        id_tipo_informe,
+        antecedentes,
+        analisis,
+        obs_general,
+        conclusion,
+        recomendacion,
+        referencia,
+        informe_modificacion,
+        anexos,
+        id_documento, 
+        id_correlativo: correlativo.id_correlativo,
+        id_solicitud: solicitud.id_solicitud,
+        id_estado: 1
+      };
+      const nuevoInforme = await this.informeRepositorio.save(informeData);
+      return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
+    } catch (error) {
+      console.error('Error en guardarInformeConSolicitud:', error);
+      return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
+    }
+  }
+
+  //listar informes de obra para el supervisor
+  async listarInformeObraSup(dto: ListaInformeObraDto) {
+    const { id_obra } = dto;
+    try {
+      const resultado = await this.informeRepositorio.query(
+        `SELECT * FROM sp_listar_informe_obra_sup($1)`,
+        [id_obra]
+      );
+      return this.responseService.success(resultado);
+    } catch (error) {
+      console.error('Error al ejecutar sp_listar_informe_obra_sup:', error);
+      return this.responseService.error('No se pudo listar los informes');
+    }
+  }
+
+  //listar informes de obra para el fiscal
+  async listarInformeObraFis(dto: ListaInformeObraDto) {
+    const { id_obra } = dto;
+    try {
+      const resultado = await this.informeRepositorio.query(
+        `SELECT * FROM sp_listar_informe_obra_fis($1)`,
+        [id_obra]
+      );
+      return this.responseService.success(resultado);
+    } catch (error) {
+      console.error('Error al ejecutar sp_listar_informe_obra_fis:', error);
+      return this.responseService.error('No se pudo listar los informes para el fiscal.');
+    }
+  }
+
+  // Actualizar informe de obra
+  async actualizarInformeObra(dto: UpdateInformeObraDto) {
+    try {
+      console.log('📥 DTO recibido:', JSON.stringify(dto));
+
+      const {
+        id_informe,
+        antecedentes,
+        analisis,
+        obs_general,
+        conclusion,
+        recomendacion,
+        referencia,
+        informe_modificacion,
+        anexos,
+        id_documento,
+      } = dto;
+
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe, id_estado: 1 },
+      });
+
+      if (!informe) {
+        throw new Error('No se encontró el informe para actualizar');
+      }
+      if (typeof informe.usuario_registro !== 'number' || isNaN(informe.usuario_registro)) {
+        throw new Error('usuario_registro inválido');
+      }
+      if (typeof informe.id_estado !== 'number' || isNaN(informe.id_estado)) {
+        throw new Error('id_estado inválido');
+      }
+
+      if (id_documento !== undefined) {
+        if (typeof id_documento === 'string') {
+          try {
+            informe.id_documento = JSON.parse(id_documento);
+          } catch {
+            throw new Error('id_documento tiene formato incorrecto');
+          }
+        } else if (Array.isArray(id_documento)) {
+          for (const doc of id_documento) {
+            if (!doc || typeof doc.id_documento !== 'number' || isNaN(doc.id_documento)) {
+              throw new Error('Cada objeto en id_documento debe tener un id_documento numérico válido');
+            }
+          }
+          informe.id_documento = id_documento;
+        } else {
+          throw new Error('id_documento debe ser un arreglo de objetos o un string JSON válido');
+        }
+      }
+      informe.antecedentes = antecedentes;
+      informe.analisis = analisis;
+      informe.obs_general = obs_general;
+      informe.conclusion = conclusion;
+      informe.recomendacion = recomendacion;
+      if (referencia !== undefined) {
+        informe.referencia = referencia;
+      }
+
+      if (informe_modificacion !== undefined) {
+        informe.informe_modificacion = informe_modificacion;
+      }
+
+      if (anexos !== undefined) {
+        informe.anexos = anexos;
+      }
+      const actualizado = await this.informeRepositorio.save(informe);
+      return this.responseService.success(actualizado, 'Informe actualizado correctamente');
+    } catch (error) {
+      console.error(' Error en actualizarInformeObra:', error);
+      return this.responseService.error(
+        error instanceof Error ? error.message : 'Error inesperado al actualizar el informe'
+      );
+    }
+  }
+
+  // Obtener informe de obra por ID
   async obtenerInformeObraPorId(id: number) {
-  const informe = await this.informeRepositorio.findOne({
-    where: { id_informe: id, id_estado: 1 },
-  });
-
-  if (!informe) {
-    throw new NotFoundException('Informe no encontrado');
-  }
-
-  // Extraer IDs del JSON
-  const idDocumentos = (informe.id_documento || []).map(d => d.id_documento);
-
-  // Si hay documentos, hacer query
-  let documentos: Partial<Documento>[] = [];
-  if (idDocumentos.length > 0) {
-    documentos = await this.documentoRepositorio.find({
-      where: idDocumentos.map(id => ({ id_documento: id })),
-      select: ['id_documento', 'ruta_documento', 'nombre_documento', 'fecha_registro', 'id_estado'],
+    const informe = await this.informeRepositorio.findOne({
+      where: { id_informe: id, id_estado: 1 },
+    });
+    if (!informe) {
+      throw new NotFoundException('Informe no encontrado');
+    }
+    const idDocumentos = (informe.id_documento || []).map(d => d.id_documento);
+    let documentos: Partial<Documento>[] = [];
+    if (idDocumentos.length > 0) {
+      documentos = await this.documentoRepositorio.find({
+        where: idDocumentos.map(id => ({ id_documento: id })),
+        select: ['id_documento', 'ruta_documento', 'nombre_documento', 'fecha_registro', 'id_estado'],
+      });
+    }
+    console.log({ ...informe, documentos });
+    return this.responseService.success({
+      ...informe,
+      documentos
     });
   }
-  console.log({ ...informe, documentos });
-  // Devolver informe + documentos
-  return this.responseService.success({
-    ...informe,
-    documentos
-  });
-}
-  
-    //funcion para actualizar la fecha de informe para la aprobacion, abl, 11/06/2025, la fecha debe ser la actual
+
+  //funcion para actualizar la fecha de informe para la aprobacion, abl, 11/06/2025, la fecha debe ser la actual
   async aprobarInforme(idSolicitud: number) {
     try {
       const informe = await this.informeRepositorio.findOneBy({ id_solicitud: idSolicitud });
       if (!informe) {
         throw new NotFoundException('Informe no encontrado');
       }
-
       informe.fecha_aprobacion = new Date();
       await this.informeRepositorio.save(informe);
-
-      //actualizar el campo id_estado_solicitud de la tabla solicitud por el id_solicitud
       const solicitud = await this.solicitudRepositorio.findOne({ where: { id_solicitud: idSolicitud } });
       if (!solicitud) {
         throw new NotFoundException('Solicitud no encontrada');
@@ -693,28 +656,155 @@ async actualizarInformeObra(dto: UpdateInformeObraDto) {
     }
   }
 
+  // Función para obtener el tipo de informe por solicitud
   async obtenerTipoInformePorSolicitud(dto: BuscarTipoInformeDto) {
-  const { id_solicitud } = dto;
+    const { id_solicitud } = dto;
+    try {
+      const resultado = await this.informeRepositorio.findOne({
+        where: {
+          id_solicitud,
+          id_estado: 1
+        },
+        select: ['id_tipo_informe']
+      });
 
-  try {
-    const resultado = await this.informeRepositorio.findOne({
-      where: {
-        id_solicitud,
-        id_estado: 1 
-      },
-      select: ['id_tipo_informe'] 
-    });
-
-    if (!resultado) {
-      return this.responseService.error('No se encontró un informe con esos datos.');
+      if (!resultado) {
+        return this.responseService.error('No se encontró un informe con esos datos.');
+      }
+      return this.responseService.success(resultado);
+    } catch (error) {
+      console.error('Error al consultar tipo de informe:', error);
+      return this.responseService.error('No se pudo obtener el tipo de informe.');
     }
+  }
 
-    return this.responseService.success(resultado);
+  async createActaEntregaProvicional(data: CreateActaEntregaProvicionalDto) {
+    try {
+      const {
+        id_obra,
+        hora_registro,
+        obs_general,
+        id_documento,
+        usuario_registro
+      } = data;
+
+      // 1. Crear solicitud
+      const solicitudDto: CreateSolicitudDto = {
+        id_tipo_solicitud: 1,
+        id_estado_solicitud: 2,
+        id_obra,
+        id_estado_general: 10,
+        id_usuario: usuario_registro,
+        proveido: '',
+        usuario_registro,
+        id_estado_registro: 1,
+      };
+
+      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
+      const solicitud = respuestaSolicitud.data;
+
+      if (!solicitud || !solicitud.id_solicitud) {
+        throw new Error('No se pudo crear la solicitud');
+      }
+
+      // 2. Crear informe sin correlativo
+      const nuevoInforme = this.informeRepositorio.create({
+        id_obra,
+        id_tipo_informe: 342,
+        hora_registro,
+        obs_general,
+        id_documento,
+        usuario_registro,
+        id_solicitud: solicitud.id_solicitud,
+        id_estado: 1,
+        antecedentes: '',
+        analisis: '',
+        conclusion: '',
+        recomendacion: ''
+      });
+
+      const resultado = await this.informeRepositorio.save(nuevoInforme);
+      return this.responseService.success(resultado, "Acta de entrega provisional registrada correctamente.");
+    } catch (error) {
+      console.error('Error en createActaEntregaProvicional:', error);
+      return this.responseService.error('No se pudo registrar el acta de entrega provisional.');
+    }
+  }
+
+  async listarActasEntregaProvisional(dto: ListaInformeObraDto) {
+  const { id_obra } = dto;
+  try {
+    const resultado = await this.informeRepositorio.query(
+      `SELECT * FROM sp_listar_acta_entrega_provisional($1)`,
+      [id_obra]
+    );
+    return this.responseService.success(resultado, "Actas de entrega provisional listadas correctamente.");
   } catch (error) {
-    console.error('Error al consultar tipo de informe:', error);
-    return this.responseService.error('No se pudo obtener el tipo de informe.');
+    console.error('Error al ejecutar sp_listar_acta_entrega_provisional:', error);
+    return this.responseService.error('No se pudo listar las actas de entrega provisional.');
   }
 }
+
+async getActaEntregaProvisionalById(id_informe: number) {
+  try {
+    const informe = await this.informeRepositorio.findOne({
+      where: { id_informe, id_estado: 1 },
+    });
+
+    if (!informe) {
+      return this.responseService.error('No se encontró el acta.');
+    }
+
+    const idDocumentos = (informe.id_documento || []).map(doc => doc.id_documento);
+    let documentos: Partial<Documento>[] = [];
+
+    if (idDocumentos.length > 0) {
+      documentos = await this.documentoRepositorio.find({
+        where: idDocumentos.map(id => ({ id_documento: id })),
+        select: ['id_documento', 'nombre_documento', 'ruta_documento', 'fecha_registro'],
+      });
+    }
+
+    return this.responseService.success({
+      ...informe,
+      documentos
+    }, "Acta cargada correctamente.");
+  } catch (error) {
+    console.error('Error al cargar acta:', error);
+    return this.responseService.error('No se pudo obtener el acta para edición.');
+  }
+}
+
+async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
+  try {
+    const { id_informe, hora_registro, obs_general, id_documento } = dto;
+
+    const informe = await this.informeRepositorio.findOne({
+      where: { id_informe, id_estado: 1 },
+    });
+
+    if (!informe) {
+      throw new Error('Acta no encontrada para actualizar');
+    }
+
+    if (hora_registro !== undefined) informe.hora_registro = hora_registro;
+    if (obs_general !== undefined) informe.obs_general = obs_general;
+
+    if (id_documento !== undefined) {
+      if (!Array.isArray(id_documento)) {
+        throw new Error('id_documento debe ser un arreglo de objetos');
+      }
+      informe.id_documento = id_documento;
+    }
+
+    const actualizado = await this.informeRepositorio.save(informe);
+    return this.responseService.success(actualizado, 'Acta actualizada correctamente.');
+  } catch (error) {
+    console.error('Error en updateActaEntregaProvisional:', error);
+    return this.responseService.error('No se pudo actualizar el acta.');
+  }
+}
+
 
 
 
