@@ -310,7 +310,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         },
       {
         text: '1.   DATOS DE LA OBRA',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         table: {
@@ -349,19 +349,16 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
               { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
             ],
           ]
-        }, margin: [10, 0, 0, 5] 
+        }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
       {
-        text: '\n2.   ANTECEDENTES',
-        style: 'subheader', margin: [0, 0, 0, 5] 
+        text: 'MODIFICACIONES',
+        style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
-      // ...(
-      // this.buildModAprobadas(this.datosModAp).length > 0 
-      // ?[
-        {
+      {
           table: {
-            widths: [20, '*', 60, 60, 60, 60, 60], 
+            widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'], 
             body: [
               [
                 { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
@@ -374,6 +371,16 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
               ...this.buildModAprobadas(this.datosModAp)
             ]
           }, margin: [10, 0, 0, 7], 
+      },
+      {
+        text: '\n2.   ANTECEDENTES',
+        style: 'textTitulo', margin: [0, 0, 0, 5] 
+      },
+      // ...(
+      // this.buildModAprobadas(this.datosModAp).length > 0 
+      // ?[
+        {
+          
         },
       // ]
       //   :[]
@@ -385,15 +392,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       }, 
       {
         text: '3.   JUSTIFICACION TÉCNICA GENERAL\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
-      },
-      {
-        text: this.datosInfSup[0].analisis,
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
-      },
-      {
-        text: '3.   JUSTIFICACION TÉCNICA GENERAL\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         text: this.datosInfSup[0].analisis,
@@ -401,11 +400,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '4.   REORDENAMIENTO DE CANTIDADES\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         text: '4.1. ÍTEMS CON CANTIDADES EN INCREMENTO\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
         table: {
@@ -441,8 +440,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n'
       },
       {
-        text: '4.1.1. JUSTIFICACIÓN POR ÍTEMS CON CANTIDADES EN INCREMENTO\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        text: '4.1.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN INCREMENTO\n',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
        ul: Array.isArray(this.datosIncremento)
@@ -459,7 +458,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '4.2. ÍTEMS CON CANTIDADES EN DECREMENTO\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
         table: {
@@ -492,8 +491,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         
       },
       {
-        text: '4.2.1. JUSTIFICACIÓN POR ÍTEMS CON CANTIDADES EN DECREMENTO\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        text: '4.2.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN DECREMENTO\n',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
        ul: Array.isArray(this.datosDecremento)
@@ -514,7 +513,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       ?[
       {
         text: '4.3. ÍTEMS A ADICIONAR\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
         table: {
@@ -548,7 +547,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '4.3.1. JUSTIFICACIÓN DE ÍTEMS NUEVOS\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
        ul: Array.isArray(this.datosAdicion)
@@ -565,7 +564,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '4.3.2. TABLA DE PRECIOS UNITARIOS NUEVOS\n',
-        style: 'subheader', margin: [10, 0, 0, 5]
+        style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
         table: {
@@ -588,7 +587,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       ),
       {
         text: '5.   MODIFICACIÓN AL PLAZO CONTRACTUAL\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         text: this.datosInfSup[0].obs_general,
@@ -596,21 +595,26 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '6.   MODIFICACIÓN AL MONTO CONTRACTUAL\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
-        text: 'El presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs.' +
-        this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+        text: [
+          { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
+            ? 'El '
+            : 'La '},
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs' +
+        this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
+        ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n' },
+        ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
-        'respecto al contrato principal, de ' + this.datosEnvio[0].porcentaje_total + '%.', 
+        'respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_modificacion + '%.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
         text: '7.   CONCLUSIÓN\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         text: 'Habiendo descrito los antecedentes, justificaciones y otros inherentes a la pertinencia del presente ' + this.datosEnvio[0].desc_subtipo + ' y contando con la conformidad ' + 
@@ -639,7 +643,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         text: '8.   ANEXOS\n',
-        style: 'subheader', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
         text: this.datosInfSup[0].anexos + '\n',
@@ -664,7 +668,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           }, margin: [20,0,20,0]
         },
       {
-        text: ['\n\n\ncc:Archivo Supervisor Carpeta' ],
+        text: ['\n\n\nCc.Arch.Supervisor' ],
         style: 'footerText'
       },
       {

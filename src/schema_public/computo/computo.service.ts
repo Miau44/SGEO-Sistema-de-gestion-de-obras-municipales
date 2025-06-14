@@ -230,21 +230,18 @@ export class ComputoService {
       INNER JOIN public.modificacion_pago AS mp ON p.id_modificacion_pago = mp.id_modificacion_pago
       INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago 
       LEFT JOIN (
-        SELECT id_solicitud_historial, id_solicitud 
-        FROM public.solicitud_historial  
-        ORDER BY id_solicitud_historial DESC 
-        LIMIT 1
-      ) AS sh ON mp.id_solicitud = sh.id_solicitud 
+    SELECT DISTINCT ON (id_solicitud)
+        id_solicitud_historial, id_solicitud, id_obra
+    FROM public.solicitud_historial
+    ORDER BY id_solicitud, id_solicitud_historial DESC
+) AS sh ON mp.id_solicitud = sh.id_solicitud
       LEFT JOIN (
         SELECT DISTINCT ON (id_planilla) id_planilla, estado_observacion_fis
         FROM public.planilla_observacion
         WHERE id_estado = 1
         ORDER BY id_planilla, fecha_registro DESC
-      ) AS po ON po.id_planilla = p.id_planilla
-      WHERE i.id_obra = $2 
-        AND mp.id_modificacion_pago = $1 
-        AND i.id_estado = 1 
-      ORDER BY i.orden_sim ASC;`
+      ) AS po ON po.id_planilla = p.id_planilla     
+      WHERE i.id_obra= $2   AND mp.id_modificacion_pago = $1 AND i.id_estado =1 ORDER BY i.orden_sim ASC;`
 
       const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.computoRepositorio.query(query, params);
