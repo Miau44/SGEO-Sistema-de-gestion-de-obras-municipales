@@ -677,7 +677,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       return this.responseService.error('No se pudo obtener el tipo de informe.');
     }
   }
-
+/*****************************************************************************************************************************/
   async createActaEntregaProvicional(data: CreateActaEntregaProvicionalDto) {
     try {
       const {
@@ -685,7 +685,8 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         hora_registro,
         obs_general,
         id_documento,
-        usuario_registro
+        usuario_registro,
+        periodo_correccion
       } = data;
 
       // 1. Crear solicitud
@@ -715,6 +716,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         obs_general,
         id_documento,
         usuario_registro,
+        periodo_correccion,
         id_solicitud: solicitud.id_solicitud,
         id_estado: 1,
         antecedentes: '',
@@ -777,7 +779,7 @@ async getActaEntregaProvisionalById(id_informe: number) {
 
 async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
   try {
-    const { id_informe, hora_registro, obs_general, id_documento } = dto;
+    const { id_informe, hora_registro, periodo_correccion, obs_general, id_documento } = dto;
 
     const informe = await this.informeRepositorio.findOne({
       where: { id_informe, id_estado: 1 },
@@ -788,6 +790,7 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
     }
 
     if (hora_registro !== undefined) informe.hora_registro = hora_registro;
+    if (periodo_correccion !== undefined) informe.periodo_correccion = periodo_correccion;
     if (obs_general !== undefined) informe.obs_general = obs_general;
 
     if (id_documento !== undefined) {

@@ -5,10 +5,13 @@ export class CreateActaEntregaProvicionalDto {
 
   @ApiProperty()
   id_obra: number;
-  
+
   @IsString()
   @ApiProperty({ example: '08:30:00' })
   hora_registro: string;
+
+  @ApiProperty()
+  periodo_correccion: number;
 
   @ApiProperty()
   obs_general: string;
