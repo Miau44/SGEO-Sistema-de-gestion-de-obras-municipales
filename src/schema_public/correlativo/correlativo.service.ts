@@ -12,33 +12,67 @@ export class CorrelativoService {
     private responseService: ResponseService, 
   ) { }
 
+async create(createCorrelativoDto: CreateCorrelativoDto) {
+    try {
+      const gruposEspeciales = [
+        [235,295,237,238], 
+        [236,296],     
+      ];
+  
+      let count = 0;
+      let grupoEncontrado: number[] | null = null;
+  
 
-  async create(createCorrelativoDto: CreateCorrelativoDto) {
-    try {    
-      const productCount = await this.coorrelativoRepo
-      const query = `
-      SELECT COUNT(*) 
-      FROM correlativo 
-      WHERE id_obra = $1 
-        AND id_tipo_documento = $2
-    `;
-    const values = [
-      createCorrelativoDto.id_obra,
-      createCorrelativoDto.id_tipo_documento,
-    ];
-    const result = await this.coorrelativoRepo.query(query, values);
-    const count = parseInt(result[0].count, 10);    
-      //return productCount;
-      let numero_correlativo =  this.countNumber(count+1,0)
+      for (const grupo of gruposEspeciales) {
+        if (grupo.includes(createCorrelativoDto.id_tipo_documento)) {
+          grupoEncontrado = grupo;
+          break;
+        }
+      }
+  
+      if (grupoEncontrado) {
+ 
+        const query = `
+          SELECT COUNT(*) 
+          FROM correlativo 
+          WHERE id_obra = $1 
+            AND id_tipo_documento = ANY($2)
+        `;
+        const values = [
+          createCorrelativoDto.id_obra,
+          grupoEncontrado,
+        ];
+        const result = await this.coorrelativoRepo.query(query, values);
+        count = parseInt(result[0].count, 10);
+      } else {
+
+        const query = `
+          SELECT COUNT(*) 
+          FROM correlativo 
+          WHERE id_obra = $1 
+            AND id_tipo_documento = $2
+        `;
+        const values = [
+          createCorrelativoDto.id_obra,
+          createCorrelativoDto.id_tipo_documento,
+        ];
+        const result = await this.coorrelativoRepo.query(query, values);
+        count = parseInt(result[0].count, 10);
+      }
+  
+      // Generar el correlativo con el número siguiente
+      const numero_correlativo = this.countNumber(count + 1, 0);
       createCorrelativoDto.correlativo = numero_correlativo.toString();
-   const resultado = await this.coorrelativoRepo.save(createCorrelativoDto);     
-    //return this.coorrelativoRepo.save(createCorrelativoDto);      
-    return this.responseService.success( resultado, "Registrado Correctamente.")
+  
+      const resultado = await this.coorrelativoRepo.save(createCorrelativoDto);
+      return this.responseService.success(resultado, "Registrado Correctamente.");
     } catch (error: any) {
       return this.responseService.error(error);
     }
-
+    
   }
+
+
 
 
     countNumber(number: any, width: number): string {

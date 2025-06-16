@@ -49,34 +49,63 @@ export class ItemService {
 
   async guardarItemNuevos(createItemDto: CreateItemDto) {
     try {
-    
 
-      //const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });
+      const queryObra =
+        `SELECT  COUNT(*) 
+    FROM item 
+    WHERE id_obra = $1 AND id_estado = 1`;
+      const values = [createItemDto.id_obra];
+      const result = await this.itemRepository.query(queryObra, values);
 
-      const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item, id_obra: createItemDto.id_obra, id_estado: 1  } });
 
-      if (!existente) {      
-      const resultado = await this.itemRepository.save(createItemDto);
- 
-      // nuevo CREAR PLANILLA ITEM
-             const datos = {
-          id_item: resultado.id_item,
-          id_modificacion_pago: createItemDto.id_modificacion_pago,
-          id_usuario_registro: resultado.id_usuario_registro
-              }
+      const nuevoOrden = parseInt(result[0].count, 10);
+      console.log(nuevoOrden);
 
-              console.log('nuevos item planilla',datos);
-              
-      await this.planillaService.copiarItemXItem(datos)
-      //FIN CREAR PLANILLA ITEM
-      
-      return this.responseService.success(resultado, "Registrado Correctamente.")     
-        
-      
+      //return productCount;
+      let numero_correlativo = nuevoOrden + 1
+      console.log('numero_correlativo', numero_correlativo);
+
+      //const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });      
+      //const existente = await this.itemRepository.findOne({ where: { codigo_item: createItemDto.codigo_item, id_obra: createItemDto.id_obra, id_estado: 1 } });
+      console.log('createItemDto', createItemDto);
+
+      const queryObra1 = `
+  SELECT codigo_item
+  FROM item
+  WHERE id_obra = $1
+    AND codigo_item = $2
+    AND id_estado = 1
+`;
+
+      const parametros = [createItemDto.id_obra, createItemDto.codigo_item];
+      console.log('Query ejecutado:', queryObra1);
+      console.log('Parámetros:', parametros);
+
+      const existente = await this.itemRepository.query(queryObra1, parametros);
+
+      if (existente.length > 0) {
+
+        return this.responseService.error("El ítem ya existe. No puede guardar.")
       }
       else {
+        //  createItemDto.orden_sim = numero_correlativo; // Asignar el nuevo orden
+        createItemDto.orden_sim = numero_correlativo; // Asignar el nuevo orden
+        if (numero_correlativo > 0) {
+          const resultado = await this.itemRepository.save(createItemDto);
 
-        return this.responseService.error( "El ítem ya existe. No puede guardar.")      
+          // nuevo CREAR PLANILLA ITEM
+          const datos = {
+            id_item: resultado.id_item,
+            id_modificacion_pago: createItemDto.id_modificacion_pago,
+            id_usuario_registro: resultado.id_usuario_registro
+          }
+          // console.log('nuevos item planilla',datos);
+
+          await this.planillaService.copiarItemXItem(datos)
+          //FIN CREAR PLANILLA ITem
+          return this.responseService.success(resultado, "Registrado Correctamente.")
+
+        }
       }
       
     } catch (error) {
@@ -341,7 +370,7 @@ const resultado = await this.itemRepository.query(query);
     
     
 
-  async actualizarEstado(data: ItemEstadoDto) {
+ /* async actualizarEstado(data: ItemEstadoDto) {
     try {
       let query =
         ` UPDATE public.item 
@@ -364,8 +393,8 @@ const resultado = await this.itemRepository.query(query);
     } catch (error) {
       return this.responseService.error(error);
     }
-  }  
-
+  }
+*/
 
   async finalizarOrdenItem(data: ItemFinalizarDto) {
     try {
@@ -431,9 +460,65 @@ const resultado = await this.itemRepository.query(query);
     } catch (error) {
       return this.responseService.error(error);
     }
-  
+
 
   }
 
+
+
+  async actualizarEstado(data: ItemEstadoDto) {
+    try {
+      let query =
+        ` UPDATE public.item 
+        SET id_estado =$2 WHERE id_item = $1 AND id_estado = 1`;
+      const params: any[] = [data.id_item, data.id_estado];
+      const resultado: any[] = await this.itemRepository.query(query, params);
+//PARA REORDENAR
+
+const queryDefault = `
+      SELECT id_obra,  orden_sim
+      FROM public.item 
+      WHERE  id_obra = $1 AND id_tipo_item = 264 AND id_estado = 1 
+      ORDER BY orden_sim asc
+    `;
+    const params1: any[] = [data.id_obra];
+    const productosPorDefecto = await this.itemRepository.query(queryDefault, params1);
+    const cantidadPorDefecto = productosPorDefecto.length;
+   
+    const queryAgregados = `
+      SELECT id_item,  orden_sim
+      FROM public.item 
+      WHERE id_obra = $1 AND  id_tipo_item = 265 AND id_estado = 1 
+      ORDER BY orden_sim asc
+    `;
+    const params2: any[] = [data.id_obra];
+
+    const productosAdicionales = await this.itemRepository.query(queryAgregados, params2);
+    const updates = [];
+    let nuevoOrden = cantidadPorDefecto + 1;
+
+    for (const prod of productosAdicionales) {
+      const updateQuery = `
+        UPDATE public.item 
+        SET orden_sim = $1 
+        WHERE id_item = $2
+      `;
+      await this.itemRepository.query(updateQuery, [nuevoOrden, prod.id_item]);
+      nuevoOrden++;
+    }
+
+      //PARA ELIMINAR PLANILLA
+      let queryEliminarPlanilla =
+        ` UPDATE public.planilla 
+        SET id_estado =0  WHERE id_item = $1 AND id_modificacion_pago =$2  AND id_estado = 1`;
+      const param2 = [data.id_item, data.id_modificacion_pago];
+      await this.itemRepository.query(queryEliminarPlanilla, param2);
+      //nuevo codigo
+
+      return this.responseService.success(resultado, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 }
