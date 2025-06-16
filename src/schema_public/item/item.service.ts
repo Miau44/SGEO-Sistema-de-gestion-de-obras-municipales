@@ -52,43 +52,21 @@ export class ItemService {
 
       const queryObra =
         `SELECT  COUNT(*) 
-    FROM item 
-    WHERE id_obra = $1 AND id_estado = 1`;
+         FROM item WHERE id_obra = $1 AND id_estado = 1`;
       const values = [createItemDto.id_obra];
       const result = await this.itemRepository.query(queryObra, values);
-
-
       const nuevoOrden = parseInt(result[0].count, 10);
-      console.log(nuevoOrden);
-
       //return productCount;
       let numero_correlativo = nuevoOrden + 1
-      console.log('numero_correlativo', numero_correlativo);
-
-      //const existente = await this.itemRepository.findOne({ where: {  codigo_item: createItemDto.codigo_item,  id_estado: 1  } });      
-      //const existente = await this.itemRepository.findOne({ where: { codigo_item: createItemDto.codigo_item, id_obra: createItemDto.id_obra, id_estado: 1 } });
-      console.log('createItemDto', createItemDto);
-
       const queryObra1 = `
-  SELECT codigo_item
-  FROM item
-  WHERE id_obra = $1
-    AND codigo_item = $2
-    AND id_estado = 1
-`;
-
+      SELECT codigo_item
+      FROM item WHERE id_obra = $1 AND codigo_item = $2 AND id_estado = 1`;
       const parametros = [createItemDto.id_obra, createItemDto.codigo_item];
-      console.log('Query ejecutado:', queryObra1);
-      console.log('Parámetros:', parametros);
-
       const existente = await this.itemRepository.query(queryObra1, parametros);
-
       if (existente.length > 0) {
-
         return this.responseService.error("El ítem ya existe. No puede guardar.")
       }
       else {
-        //  createItemDto.orden_sim = numero_correlativo; // Asignar el nuevo orden
         createItemDto.orden_sim = numero_correlativo; // Asignar el nuevo orden
         if (numero_correlativo > 0) {
           const resultado = await this.itemRepository.save(createItemDto);
@@ -99,8 +77,6 @@ export class ItemService {
             id_modificacion_pago: createItemDto.id_modificacion_pago,
             id_usuario_registro: resultado.id_usuario_registro
           }
-          // console.log('nuevos item planilla',datos);
-
           await this.planillaService.copiarItemXItem(datos)
           //FIN CREAR PLANILLA ITem
           return this.responseService.success(resultado, "Registrado Correctamente.")
@@ -463,55 +439,41 @@ const resultado = await this.itemRepository.query(query);
 
 
   }
-
-
-
-  async actualizarEstado(data: ItemEstadoDto) {
+  
+   async actualizarEstado(data: ItemEstadoDto) {
     try {
       let query =
         ` UPDATE public.item 
         SET id_estado =$2 WHERE id_item = $1 AND id_estado = 1`;
       const params: any[] = [data.id_item, data.id_estado];
       const resultado: any[] = await this.itemRepository.query(query, params);
-//PARA REORDENAR
+      //PARA REORDENAR
 
-const queryDefault = `
-      SELECT id_obra,  orden_sim
-      FROM public.item 
-      WHERE  id_obra = $1 AND id_tipo_item = 264 AND id_estado = 1 
-      ORDER BY orden_sim asc
+      const queryDefault = `
+      SELECT id_obra,  orden_sim FROM public.item 
+      WHERE  id_obra = $1 AND id_tipo_item = 264 AND id_estado = 1 ORDER BY orden_sim asc;
     `;
       const params1: any[] = [data.id_obra];
       const itemsPorDefecto = await this.itemRepository.query(queryDefault, params1);
       const cantidadPorDefecto = itemsPorDefecto.length;
 
       const queryAgregados = `
-      SELECT id_item,  orden_sim
-      FROM public.item 
-      WHERE id_obra = $1 AND  id_tipo_item = 265 AND id_estado = 1 
-      ORDER BY orden_sim asc
-    `;
+      SELECT id_item,  orden_sim FROM public.item 
+      WHERE id_obra = $1 AND  id_tipo_item = 265 AND id_estado = 1  ORDER BY orden_sim asc;`;
       const params2: any[] = [data.id_obra];
-
       const itemsAdicionales = await this.itemRepository.query(queryAgregados, params2);
       const updates = [];
       let nuevoOrden = cantidadPorDefecto + 1;
-
       for (const prod of itemsAdicionales) {
         const updateQuery = `
-        UPDATE public.item 
-        SET orden_sim = $1,
-        fecha_modificacion = NOW()
-        WHERE id_item = $2
-      `;
-      await this.itemRepository.query(updateQuery, [nuevoOrden, prod.id_item]);
-      nuevoOrden++;
-    }
-
+        UPDATE public.item SET orden_sim = $1, fecha_modificacion = NOW()  WHERE id_item = $2;`;
+        await this.itemRepository.query(updateQuery, [nuevoOrden, prod.id_item]);
+        nuevoOrden++;
+      }
       //PARA ELIMINAR PLANILLA
       let queryEliminarPlanilla =
         ` UPDATE public.planilla 
-        SET id_estado =0  WHERE id_item = $1 AND id_modificacion_pago =$2  AND id_estado = 1`;
+        SET id_estado =0  WHERE id_item = $1 AND id_modificacion_pago =$2  AND id_estado = 1;`;
       const param2 = [data.id_item, data.id_modificacion_pago];
       await this.itemRepository.query(queryEliminarPlanilla, param2);
       //nuevo codigo
@@ -521,5 +483,10 @@ const queryDefault = `
       return this.responseService.error(error);
     }
   }
+
+
+
+
+
 
 }
