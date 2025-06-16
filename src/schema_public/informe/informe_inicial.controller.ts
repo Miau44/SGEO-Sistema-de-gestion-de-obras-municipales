@@ -219,13 +219,6 @@ export class InformeController {
     return this.informeService.guardarInformeObra(data);
   }
 
-  @Post('informe-obra-fiscal-save')
-  @ApiResponse({ status: 201, description: 'Informe creado exitosamente' })
-  @ApiResponse({ status: 400, description: 'Datos inv�lidos' })
-  async guardarInformeObraFiscal(@Body() data: CreateInformeObraDto) {
-    return this.informeService.guardarInformeObraFiscal(data);
-  }
-
   @Post('listar-informe-obra-sup')
 async listarInformeObraSup(@Body() dto: ListaInformeObraDto) {
   return this.informeService.listarInformeObraSup(dto);
