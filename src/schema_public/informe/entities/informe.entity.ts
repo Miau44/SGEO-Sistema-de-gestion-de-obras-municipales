@@ -64,6 +64,9 @@ export class Informe {
     
     @Column({ type: 'time without time zone', nullable: true })
     hora_registro: string;
+
+    @Column({nullable:true})
+    periodo_correccion: number;
     
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
