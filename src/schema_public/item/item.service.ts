@@ -481,26 +481,27 @@ const queryDefault = `
       WHERE  id_obra = $1 AND id_tipo_item = 264 AND id_estado = 1 
       ORDER BY orden_sim asc
     `;
-    const params1: any[] = [data.id_obra];
-    const productosPorDefecto = await this.itemRepository.query(queryDefault, params1);
-    const cantidadPorDefecto = productosPorDefecto.length;
-   
-    const queryAgregados = `
+      const params1: any[] = [data.id_obra];
+      const itemsPorDefecto = await this.itemRepository.query(queryDefault, params1);
+      const cantidadPorDefecto = itemsPorDefecto.length;
+
+      const queryAgregados = `
       SELECT id_item,  orden_sim
       FROM public.item 
       WHERE id_obra = $1 AND  id_tipo_item = 265 AND id_estado = 1 
       ORDER BY orden_sim asc
     `;
-    const params2: any[] = [data.id_obra];
+      const params2: any[] = [data.id_obra];
 
-    const productosAdicionales = await this.itemRepository.query(queryAgregados, params2);
-    const updates = [];
-    let nuevoOrden = cantidadPorDefecto + 1;
+      const itemsAdicionales = await this.itemRepository.query(queryAgregados, params2);
+      const updates = [];
+      let nuevoOrden = cantidadPorDefecto + 1;
 
-    for (const prod of productosAdicionales) {
-      const updateQuery = `
+      for (const prod of itemsAdicionales) {
+        const updateQuery = `
         UPDATE public.item 
-        SET orden_sim = $1 
+        SET orden_sim = $1,
+        fecha_modificacion = NOW()
         WHERE id_item = $2
       `;
       await this.itemRepository.query(updateQuery, [nuevoOrden, prod.id_item]);
