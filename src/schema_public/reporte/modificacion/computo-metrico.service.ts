@@ -32,7 +32,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class ComputoMetrico {
 
-  datosEnvio: any = [];
+    datosEnvio: any = [];
     datosSup: any = [];
     datosComputo: any = [];
 
@@ -98,14 +98,27 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   }
   this.datosComputo = res2;
 
-  console.log('DATOS COMPUTO',this.datosComputo);
+  //console.log('DATOS COMPUTO',this.datosComputo);
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
   const imgLogo = 'assets/images/logoSGEO.png'
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
- 
+  let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
+
+    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } else {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 5,
+        maximumFractionDigits: 5
+      });
+    }
+    //console.log('NUMERO DECIMALES', formatoNumerico);
     const documentDefinition = {
     
     pageSize: 'LEGAL' as any,
@@ -169,7 +182,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
               {}, // vacío para PARCIAL
               {}, // vacío para TOTAL
             ],
-           ...this.buildContenidoComputo(this.datosComputo) 
+           ...this.buildContenidoComputo(this.datosComputo, formatoNumerico) 
 
           ]
         }
@@ -307,16 +320,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
     }
 
   //Cargar tabla de computos metricos
-buildContenidoComputo(data: any[]) {
-  const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-  });
-
-  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+buildContenidoComputo(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   let datosCM = data;
   let arrayData = [];
@@ -326,14 +330,14 @@ buildContenidoComputo(data: any[]) {
       { text: datosCM[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
       { text: datosCM[i].desc_item ?? '', style: 'textDato' },
       { text: datosCM[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosCM[i].numero_veces,formatoNumerico2) ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].area, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].volumen, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+      { text: this.formatIfNumber(datosCM[i].numero_veces, formatoNumerico) ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosCM[i].largo, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].ancho, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].alto, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].area, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].volumen, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].parcial, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosCM[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
     ];
     arrayData.push(rowData);
   }
@@ -341,19 +345,20 @@ buildContenidoComputo(data: any[]) {
   return arrayData;
 }
 
-// private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
-//   if (value === null || value === undefined || value === '') return '';
-  
-//   const num = Number(value);
-//   if (isNaN(num)) return '';
+//formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+//  const num = Number(value);
+//  if (isNaN(num)) return '';
+//  if (num === 0) return '';
+//  return formatter.format(num);
+//}
 
-//   return formatter.format(num);
-// }
 formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+  if (value === null || value === undefined || value === '') return '';
+
   const num = Number(value);
   if (isNaN(num)) return '';
-  if (num === 0) return '';
-  return formatter.format(num);
+
+  return formatter.format(num); // incluye el 0 --por fin
 }
 
 }
