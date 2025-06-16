@@ -665,7 +665,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
           id_solicitud,
           id_estado: 1
         },
-        select: ['id_tipo_informe']
+        select: ['id_tipo_informe', 'id_informe']
       });
 
       if (!resultado) {
