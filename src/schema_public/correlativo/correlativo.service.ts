@@ -34,11 +34,8 @@ async create(createCorrelativoDto: CreateCorrelativoDto) {
       if (grupoEncontrado) {
  
         const query = `
-          SELECT COUNT(*) 
-          FROM correlativo 
-          WHERE id_obra = $1 
-            AND id_tipo_documento = ANY($2)
-        `;
+          SELECT COUNT(*) FROM correlativo 
+          WHERE id_obra = $1 AND id_tipo_documento = ANY($2) AND id_estado = 1;`;
         const values = [
           createCorrelativoDto.id_obra,
           grupoEncontrado,
@@ -48,11 +45,8 @@ async create(createCorrelativoDto: CreateCorrelativoDto) {
       } else {
 
         const query = `
-          SELECT COUNT(*) 
-          FROM correlativo 
-          WHERE id_obra = $1 
-            AND id_tipo_documento = $2
-        `;
+          SELECT COUNT(*) FROM correlativo 
+          WHERE id_obra = $1 AND id_tipo_documento = $2 AND id_estado = 1 `;
         const values = [
           createCorrelativoDto.id_obra,
           createCorrelativoDto.id_tipo_documento,
@@ -60,8 +54,7 @@ async create(createCorrelativoDto: CreateCorrelativoDto) {
         const result = await this.coorrelativoRepo.query(query, values);
         count = parseInt(result[0].count, 10);
       }
-  
-      // Generar el correlativo con el número siguiente
+
       const numero_correlativo = this.countNumber(count + 1, 0);
       createCorrelativoDto.correlativo = numero_correlativo.toString();
   
@@ -79,11 +72,8 @@ async create(createCorrelativoDto: CreateCorrelativoDto) {
     try {
       const productCount = await this.coorrelativoRepo
       const query = `
-      SELECT COUNT(*) 
-      FROM correlativo 
-      WHERE id_obra = $1 
-        AND id_tipo_documento = $2
-    `;
+      SELECT COUNT(*) FROM correlativo  
+      WHERE id_obra = $1  AND id_tipo_documento = $2 AND id_estado = 1;`;
       const values = [
         createCorrelativoDto.id_obra,
         createCorrelativoDto.id_tipo_documento,
@@ -175,7 +165,7 @@ async actualizarFaltantes(data: TipoInformeDto) {
       `
       UPDATE public.informe
       SET id_correlativo = $1
-      WHERE id_informe = $2
+      WHERE id_informe = $2 AND id_estado = 1;
       `,
       [nuevoCorrelativo, id_informe]
     );
