@@ -4,6 +4,7 @@ import { CreateCorrelativoDto } from './dto/create-correlativo.dto';
 import { UpdateCorrelativoDto } from './dto/update-correlativo.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
+import { TipoInformeDto } from './dto/tipo_informe.dto';
 
 @ApiTags('correlativo')
 @Controller('correlativo')
@@ -38,4 +39,24 @@ export class CorrelativoController {
   remove(@Param('id') id: string) {
     return this.correlativoService.remove(+id);
   }
+
+    @Public()
+  @Post()
+  createNormal(@Body() createCorrelativoDto: CreateCorrelativoDto) {
+    try {
+    return this.correlativoService.createNormal(createCorrelativoDto);
+  } catch (error) {
+  }
+  }
+
+
+    @Public()
+  @Post('actualizar-correlativo')
+  actualizarCorrelativo(@Body() data: TipoInformeDto) {
+    try {
+    return this.correlativoService.actualizarFaltantes(data);
+  } catch (error) {
+  }
+  }
+
 }

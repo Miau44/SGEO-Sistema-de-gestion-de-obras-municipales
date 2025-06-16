@@ -44,12 +44,9 @@ export class Informe {
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_aprobacion: Date; 
 
-
-
     @Column({ type: 'text', nullable:true }) // Este campo almacenará el texto enriquecido como HTML
     informe_modificacion: string;
   
-
     @Column()
     usuario_registro: number;
 
@@ -63,7 +60,13 @@ export class Informe {
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
-    fecha_modificacion: Date     
+    fecha_modificacion: Date 
+    
+    @Column({ type: 'time without time zone', nullable: true })
+    hora_registro: string;
+
+    @Column({nullable:true})
+    periodo_correccion: number;
     
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
