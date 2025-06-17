@@ -344,7 +344,7 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
           }, margin: [20,0,20,0]
         },
       {
-        text: ['\n\n\ncc:Arch:' ],
+        text: ['\n\n\nCc.Arch.' ],
         style: 'footerText'
       },
       {
