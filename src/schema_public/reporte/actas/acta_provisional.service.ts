@@ -35,6 +35,7 @@ datosEnvio: any = [];
 datosSup: any = [];
 datosFis: any = [];
 datosInf: any = [];
+datosVariacion: any = [];
    
     constructor(
       private readonly responseService: ResponseService,
@@ -58,11 +59,11 @@ datosInf: any = [];
     return resultado[0];
   }
 
-    // Datos generales Informe 
-  async datosInformeObra(id_informe: number) {
+    // Datos generales Acta 
+  async datosActaObra(id_informe: number) {
     const query2 = `
         SELECT * 
-        FROM public."vista_reporte_InformeObra" WHERE id_informe = ${id_informe}`;
+        FROM public."vista_reporte_Actas" WHERE id_informe = ${id_informe}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
@@ -85,6 +86,14 @@ datosInf: any = [];
     return resultado4[0];
    }
 
+   // Datos datos de Variación de la Acta 
+    async datosCuadroActa(obra: number) {
+    const query5 = `
+        SELECT * 
+        FROM public."vista_reporte_variacion_Acta" WHERE id_obra = ${obra}`;
+    const resultado5 = await this.sequelize.query(query5);
+    return resultado5[0];
+   }
  
 // REPORTE - RECEPCION PROVISIONAL
 
@@ -96,9 +105,9 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   }
   this.datosEnvio = datosGenerales;
 
-  const datosInforme = await this.datosInformeObra(id_informe);
+  const datosInforme = await this.datosActaObra(id_informe);
   if ((!datosInforme || (Array.isArray(datosInforme) && datosInforme.length === 0) || (typeof datosInforme === 'object' && Object.keys(datosInforme).length === 0))){
-    throw new Error('No se encontraron datos para del informe de obra');
+    throw new Error('No se encontraron datos del Acta');
   }
   this.datosInf = datosInforme;
 
@@ -114,10 +123,23 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   }
   this.datosFis = res2;
 
+   const res3 = await this.datosCuadroActa(id_obra);
+  if ((!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0))){
+    throw new Error('No se encontraron datos de las modificaciones');
+  }
+  this.datosVariacion = res3;
+
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+
+  //Cálculo del plazo real
+  const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
+  const fechaFin = new Date(this.datosInf[0].fecha_registro);
+  const diffMs = fechaFin.getTime() - fechaInicio.getTime();
+  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
+  const plazo_real = diffDias;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -125,6 +147,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
     });
 
     console.log('DATOS obra',this.datosEnvio);
+    console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -154,107 +177,112 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         style: 'header', alignment: 'center'
       } as any,
       {
-        text: this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_informe + '-1',
+        text: this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_acta + '-1',
         style: 'subheader', alignment: 'center'
       },
       {
         text: '\n',
       },
       {
-        text: 'En la ciudad de La Paz a Hrs. ' + this.datosInf[0].hora_registro + ' del día ' + this.fechaString(this.datosInf[0].fecha_registro) + 
-              ', en presencia de las autoridades de la comisión de recepción de obras del GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ ' + 
-              ' y el contratista ' + this.datosEnvio[0].proponente_razon_social + ', se procedió a la recepción provisional de la siguiente obra:',
-        style: 'textDato', alignment:'justify'
-      },
-      {
-        text: '\n',
+        text: 'En la ciudad de La Paz a hrs. ' + this.datosInf[0].hora_registro + ' del día ' + this.fechaString(this.datosInf[0].fecha_registro) + 
+              ', en presencia de las autoridades de la Comisión de Recepción de obras del Gobierno Autónomo Municipal de La Paz ' + 
+              ' y la empresa contratista ' + this.datosEnvio[0].proponente_razon_social + ', se procedió a la recepción provisional de la siguiente obra:',
+        style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
       {
         text: 'DATOS GENERALES',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5],
       },
       {
         table: {
           widths: ['*', 300],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true }], fillColor: '#dddddd' }
+              { text: [{ text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDatoT', bold:true }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              { text: [{ text: 'OBRA:\n', style: 'textTituloT', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDatoT' }] }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'ZONA:\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
           ]
         }, margin: [10, 0, 10, 7] 
         //layout: 'noBorders'
       },
       {
-        text: 'Realizada la inspección correspondiente por la comisión de recepción de obras, se constató que la obra fue ejecutada ' +
-              'conforme a las especificaciones técnicas y económicas del contrato.',
-        style: 'textDato', alignment:'justify'
+        text: 'Realizada la inspección correspondiente por la Comisión de Recepción de Obras, se constató que la obra fue ejecutada ' +
+              'conforme a las especificaciones técnicas del contrato.',
+        style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
       {
-        text: '\n',
-      },
-      {
+        
         table: {
           widths: ['*', 300],
           body: [
             [
-              { text: [{ text: 'Monto del contrato (Bs):', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'left' },] },
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' }] }
             ],
             [
-              { text: [{ text: 'Monto con Orden de Cambio (Bs):\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: ' ' + '\n', style: 'textDato' }] }
+              { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'Plazo según contrato:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'left' }] },
+                    { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }] }
+                  ]]
+            ),
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }], fillColor: '#dddddd' }
+                  ]]
+            ),
             [
-              { text: [{ text: 'Fecha de Orden de Proceder:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'left' },] },
+              { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }] }
             ],
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: plazo_real, style: 'textDatoT' }], fillColor: '#dddddd' }
+                  ]]
+            ),
             [
-              { text: [{ text: 'Fecha conclusión programada según contrato:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n', style: 'textDato' }], margin:[0,5,0,0] }
+              { text: [{ text: 'Monto Contrato Inicial (Bs):', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
-            [
-              { text: [{ text: 'Ampliación de plazo:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: '' + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-            ],
-            [
-              { text: [{ text: 'Nueva fecha de conclusión:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: '', style: 'textDato', bold:true }], fillColor: '#dddddd' }
-            ],
-            [
-              { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: '' + '\n', style: 'textDato' }] }
-            ],
-            [
-              { text: [{ text: 'Plazo real de ejecución:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: '' + '\n', style: 'textDato' }], fillColor: '#dddddd' }
-            ],
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'left' },] },
+                    { text: [{ text: this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
+                  ]]
+            ),
+               
           ]
         }, margin: [10, 0, 10, 7] 
         //layout: 'noBorders'
       },
       {
-        text: '\n'
-      },
-      {
-        text: 'La obra se recibe con las siguientes observaciones a ser subsanadas durante el periodo de corrección de defectos, ' +
-              'computables a partir de las fecha de Recepción Provisional:',
-        style: 'textDato', alignment:'justify'
-      },
-      {
-        text: '\n'
+        text: 'La obra se recibe con las siguientes observaciones a ser subsanadas durante el periodo de corrección de defectos: ',
+        style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
       {
         text: this.datosInf[0].obs_general,
@@ -264,78 +292,58 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         text: ['\n'],
       }, 
       {
-        text: 'Se establece, en función al tipo de obra, un plazo de ' + this.datosEnvio[0].plazo_prov_definitiva + ' días calendario para la realización de la ' + 
+        text: 'Se establece, en función al tipo de obra, un plazo de ' + this.datosInf[0].periodo_correccion + ' d.c. para la realización de la ' + 
               'Recepción Definitiva, plazo que correrá a partir de la fecha de RECEPCIÓN PROVISIONAL.\n\n' + 
               'En constancia por la Comisión de Recepción de Obras, firman:',
         style: 'textDato', alignment:'justify'
       },
       {
-        text: ['\n\n\n\n'],
+        text: ['\n'],
       },
       {
           table: {
             widths: ['*', '*'],
             body: [
               [
-                {
-                  text: '\nÁREA SOLICITANTE', style: 'textTitulo', alignment: 'center'
-                },
-                {
-                  text:
+                { text: '\nREPRESENTANTE UNIDAD EJECUTORA', style: 'textTitulo', alignment: 'center', margin: [0, 20, 0, 0] },
+                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
+              ],
+              [
+                { text: '\nREPRESENTANTE ÁREA ADMINISTRATIVA', style: 'textTitulo', alignment: 'center', margin: [0, 20, 0, 0] },
+                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
+              ],
+              [
+                { text:
                       [
                         { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center' },
                         { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center' }
-                      ]
+                      ], margin: [0, 20, 0, 0]
                 },
-              ]
+                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] },
+              ],
             ]
-          }, layout: 'noBorders'
-      },
-      {
-        text: ['\n\n\n\n\n'],
+          }, //layout: 'noBorders'
       },
       {
           table: {
-            widths: ['*', '*'],
+            widths: ['50%','50%'],
             body: [
-              [
-                {
-                  text:
-                      [
-                        { text: (Array.isArray(this.datosSup)
-                                ? this.datosSup
-                                    .filter(s => s && s.supervisor)
-                                    .map(s => s.supervisor)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
-                      ]
-                },
-                {
-                  text:
-                      [
-                        { text: (Array.isArray(this.datosFis)
-                                ? this.datosFis
-                                    .filter(f => f && f.fiscal)
-                                    .map(f => f.fiscal)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
-                      ]
-                }
+              ...this.buildSupervisores(this.datosSup)
               ]
-            ]
-          }, layout: 'noBorders'
+          }, 
       },
       {
-        text: ['\n\ncc.Arch.' ],
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildFiscales(this.datosFis)
+              ]
+          }, 
+      },
+      {
+        text: ['\n\nCc.Arch.' ],
         style: 'footerText'
-      },
-      {
-        
-      } as any,
+      } as any, 
     ],
 
     footer: function(currentPage: { toString: () => string; }, pageCount: string) 
@@ -353,7 +361,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         bold: true,
       },
       subheader: {
-        fontSize: 10,
+        fontSize: 12,
         bold: true,
       },
       textTitulo: {
@@ -382,7 +390,6 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       },
     },
     pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
-
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
@@ -442,14 +449,54 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
     return formattedDate;
   }
 
-    //Cargar tabla de Supervisores
-    buildFiscales2(data: any) {
-      let datosFiscal = data;
-      let arrayData = [];
+   //Cargar tabla de SUPERVISORES - CON RECUADRO
+    buildSupervisores(data: any[]) {
+      const arrayData = [];
   
-      for (let i = 0; i < datosFiscal.length; i++) {
-        let rowData = [
-          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textTitulo' }
+                  ],
+                alignment: 'center', margin: [0, 20, 0, 0]},
+          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+     //Cargar tabla de FISCAL - CON RECUADRO
+    buildFiscales(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', bold: true, style: 'textTitulo' }
+                  ],
+                alignment: 'center', margin: [0, 20, 0, 0]},
+          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
         ];
         arrayData.push(rowData);
       }

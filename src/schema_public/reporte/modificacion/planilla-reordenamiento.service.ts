@@ -149,6 +149,20 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     const imgLogo = 'assets/images/logoSGEO.png'
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+    let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
+
+    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } else {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 5,
+        maximumFractionDigits: 5
+      });
+    }
+
   const documentDefinition: TDocumentDefinitions = {
   pageSize: 'LEGAL', 
   pageOrientation: 'landscape', 
@@ -221,18 +235,18 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
               [
                 {}, {}, {}, {}, {},//
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
-            ...this.buildContenidoPlanilla(this.datosPlanilla) 
+            ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico) 
 
             ]
           }
@@ -261,12 +275,12 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO(Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
-            ...this.buildContenidoPlanilla2(this.datosPlanilla) 
+            ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico) 
             ]
           }
         }]
@@ -386,18 +400,16 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 }
 
 //Cargar tabla de computos metricos
-buildContenidoPlanilla(data: any[]) {
+buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5
-    
   });
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-    
   });
 
   let datosPl = data;
@@ -430,17 +442,17 @@ buildContenidoPlanilla(data: any[]) {
       { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico5), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
       { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
     ];
     arrayData.push(rowData);
   }
@@ -493,7 +505,7 @@ buildContenidoPlanilla(data: any[]) {
     return arrayData;
   }
 
-buildContenidoPlanilla2(data: any[]) {
+buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -531,15 +543,15 @@ buildContenidoPlanilla2(data: any[]) {
       { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico5), style: 'textDato', alignment: 'right' }
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
     ];
     arrayData.push(rowData);
   }
