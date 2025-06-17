@@ -35,6 +35,7 @@ datosEnvio: any = [];
 datosSup: any = [];
 datosFis: any = [];
 datosInf: any = [];
+datosVariacion: any = [];
    
     constructor(
       private readonly responseService: ResponseService,
@@ -58,7 +59,7 @@ datosInf: any = [];
     return resultado[0];
   }
 
-    // Datos generales Informe 
+    // Datos generales Acta 
   async datosActaObra(id_informe: number) {
     const query2 = `
         SELECT * 
@@ -85,6 +86,14 @@ datosInf: any = [];
     return resultado4[0];
    }
 
+   // Datos datos de Variación de la Acta 
+    async datosCuadroActa(obra: number) {
+    const query5 = `
+        SELECT * 
+        FROM public."vista_reporte_variacion_Acta" WHERE id_obra = ${obra}`;
+    const resultado5 = await this.sequelize.query(query5);
+    return resultado5[0];
+   }
  
 // REPORTE - RECEPCION PROVISIONAL
 
@@ -114,10 +123,23 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   }
   this.datosFis = res2;
 
+   const res3 = await this.datosCuadroActa(id_obra);
+  if ((!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0))){
+    throw new Error('No se encontraron datos de las modificaciones');
+  }
+  this.datosVariacion = res3;
+
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+
+  //Cálculo del plazo real
+  const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
+  const fechaFin = new Date(this.datosInf[0].fecha_registro);
+  const diffMs = fechaFin.getTime() - fechaInicio.getTime();
+  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
+  const plazo_real = diffDias;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -125,6 +147,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
     });
 
     console.log('DATOS obra',this.datosEnvio);
+    console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -168,7 +191,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       },
       {
         text: 'DATOS GENERALES',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
+        style: 'textTitulo', margin: [0, 0, 0, 5],
       },
       {
         table: {
@@ -196,6 +219,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
       {
+        
         table: {
           widths: ['*', 300],
           body: [
@@ -208,33 +232,50 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'Fecha conclusión programada contrato inicial:\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional) + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
-            [
-              { text: [{ text: 'Variación de plazo (d.c.):\n', style: 'textTituloT', alignment: 'left' },] },
-              { text: [{ text: '' + '\n', style: 'textDatoT' }] }
-            ],
-            [
-              { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
-              { text: [{ text: '', style: 'textDatoT', bold:true }], fillColor: '#dddddd' }
-            ],
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'left' }] },
+                    { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }] }
+                  ]]
+            ),
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }], fillColor: '#dddddd' }
+                  ]]
+            ),
             [
               { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'left' },] },
               { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }] }
             ],
-            [
-              { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
-              { text: [{ text: '' + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
-            ],
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: plazo_real, style: 'textDatoT' }], fillColor: '#dddddd' }
+                  ]]
+            ),
             [
               { text: [{ text: 'Monto Contrato Inicial (Bs):', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
               { text: [{ text: this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
-            [
-              { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'left' },] },
-              { text: [{ text: ' ', style: 'textDatoT' }] }
-            ],            
+            ...(
+              this.datosVariacion[0].conteo === '0'
+                ? []
+                : [[ // agrega la fila
+                    { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'left' },] },
+                    { text: [{ text: this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
+                  ]]
+            ),
+               
           ]
         }, margin: [10, 0, 10, 7] 
         //layout: 'noBorders'
