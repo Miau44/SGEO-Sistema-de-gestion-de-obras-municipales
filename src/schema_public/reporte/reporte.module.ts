@@ -19,6 +19,7 @@ import { PlanillaReordenamiento } from './modificacion/planilla-reordenamiento.s
 import { InformeObraSupervisor } from './Informe_obra/informe_supervisor.service';
 import { InformeObraFiscal } from './Informe_obra/informe_fiscal.service';
 import { ActaProvisional } from './actas/acta_provisional.service';
+import { InformeInicialService } from './actividades_previas/informe_inicial/informe_inicial.service';
 
 @Module({
 
@@ -29,7 +30,7 @@ import { ActaProvisional } from './actas/acta_provisional.service';
 
   providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,
               InformeModificacionSupervisor,MemoOrdenCambio,SolicitudGarantia,InformeModificacionFiscal,ComputoMetrico,AnexoOC,
-              PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional],
+              PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional, InformeInicialService],
   controllers: [ReportController],
 })
 export class ReporteModule {}

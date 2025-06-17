@@ -134,7 +134,7 @@ async actualizarFaltantes(data: TipoInformeDto) {
     SELECT id_informe, i.id_obra, id_tipo_informe, i.usuario_registro
     FROM informe AS i
     LEFT JOIN correlativo AS c ON i.id_correlativo = c.id_correlativo
-    WHERE id_tipo_informe = ${data.id_tipo_informe}
+    WHERE id_tipo_informe = ${data.id_tipo_informe} AND i.id_correlativo IS NULL
   `);
 
   if (!informes || informes.length === 0) {
