@@ -839,7 +839,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
         { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
-        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion2), style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
       arrayData.push(rowData);
     }
