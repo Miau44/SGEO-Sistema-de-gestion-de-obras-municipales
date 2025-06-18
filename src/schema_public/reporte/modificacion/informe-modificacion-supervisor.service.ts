@@ -231,7 +231,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     content: [ 
       {
-        text: 'INFORME\n',
+        text: 'INFORME DE ' + this.datosEnvio[0].desc_subtipo,
         style: 'header', alignment: 'center'
       } as any,
       {
@@ -689,11 +689,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     
     styles: {
       header: {
-        fontSize: 16,
+        fontSize: 14,
         bold: true,
       },
       subheader: {
-        fontSize: 10,
+        fontSize: 12,
         bold: true,
       },
       textTitulo: {
