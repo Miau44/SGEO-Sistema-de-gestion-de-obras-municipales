@@ -699,13 +699,13 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
    ];
 
    const montoVarRow = [
-     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
+     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textTitulo2', alignment: 'right', bold: 'true' }, {}, {},
      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
      { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
 
    const porcVarRow = [
-     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
@@ -713,7 +713,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
   totalContratoSum = datosPl[0].total_adjudicado;
   porc_total = (totalReordenSum * 100)/ totalContratoSum;
    const porcTotalRow = [
-     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
@@ -765,13 +765,13 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
    ];
 
    const montoVarRow = [
-     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
+     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textTitulo2', alignment: 'right' }, {}, {},
      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
      { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
 
    const porcVarRow = [
-     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
@@ -779,7 +779,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
   totalContratoSum = datosPl[0].total_adjudicado;
   porc_total = (totalReordenSum * 100)/ totalContratoSum;
    const porcTotalRow = [
-     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
