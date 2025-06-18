@@ -359,7 +359,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
           { //return currentPage.toString() + ' of ' + pageCount; 
             return {
               columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,20,0]} 
                       ]
               }            
           } as any,
@@ -394,7 +394,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         opacity: 0.8,
       },
     },
-    pageMargins: [20, 55, 20, 20] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [20, 55, 20, 25] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
