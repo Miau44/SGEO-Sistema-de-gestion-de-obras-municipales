@@ -473,7 +473,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
           }, margin: [20,0,20,0]
         },
       {
-        text: ['\n\n\ncc:Arch:' ],
+        text: ['\n\ncc:Arch:' ],
         style: 'footerText'
       },
       {
@@ -650,8 +650,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       let rowData = [
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico), alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
