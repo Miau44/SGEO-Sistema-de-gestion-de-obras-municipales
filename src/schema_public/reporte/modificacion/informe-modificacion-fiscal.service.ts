@@ -182,13 +182,24 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+  let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
+
+    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } else {
+      formatoNumerico = new Intl.NumberFormat('de-DE', {
+        minimumFractionDigits: 5,
+        maximumFractionDigits: 5
+      });
+    }
+
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
-
-    const var1 = 'del';
-    const var2 = 'de la';
 
     //console.log('DATOS MODIFICACION',this.datosAF);
  
@@ -399,7 +410,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
               { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
             ],
-            ...this.buildModAprobadas(this.datosModAp)
+            ...this.buildModAprobadas(this.datosModAp,formatoNumerico)
           ]
         }, margin: [10, 0, 0, 0] 
       },
@@ -615,16 +626,13 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
 
     // Función para poblar la tabla de modificaciones aprobadas
-     buildModAprobadas(data: any) {
-    const formatoNumerico5 = new Intl.NumberFormat('es-ES', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-    });
-    const formatoNumerico2 = new Intl.NumberFormat('es-ES', {
+     buildModAprobadas(data: any, formatoNumerico: Intl.NumberFormat) {
+
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
-
+    
     let datosResp = data;
     let arrayData = [];
     let totalvariacion = 0;
@@ -642,8 +650,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       let rowData = [
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico5), alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico5), style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
@@ -657,7 +665,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
           style: 'textTituloT', alignment: 'center',
         },
         {},
-        { text: this.formatIfNumber(totalvariacion, formatoNumerico5),
+        { text: this.formatIfNumber(totalvariacion, formatoNumerico2),
           style: 'textTituloT', alignment: 'right' }, 
         {}, 
         { text: totalplazo,
