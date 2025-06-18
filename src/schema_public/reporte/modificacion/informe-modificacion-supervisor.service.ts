@@ -814,10 +814,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   // Función para poblar la tabla de MODIFICACIONES APROBADAS
     buildModAprobadas(data: any,formatoNumerico: Intl.NumberFormat) {
-    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-    });
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -840,10 +836,10 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       let rowData = [
         { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico), alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
-        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion2), style: 'textDatoT', alignment: 'center' }] },
       ];
       arrayData.push(rowData);
     }
@@ -870,15 +866,19 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
   // Función para poblar la tabla de modificación Actual
     buildModActual(data: any, formatoNumerico: Intl.NumberFormat) {
-   
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
     let datosResp = data;
     let arrayData = [];
 
     for (let i = 0; i < datosResp.length; i++) {
       let rowData = [
         { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico), alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
         { text: [{ text: datosResp[i].nuevo_plazo, style: 'textDatoT', alignment: 'center', }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
