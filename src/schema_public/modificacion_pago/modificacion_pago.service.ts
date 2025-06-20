@@ -321,7 +321,6 @@ export class ModificacionPagoService {
 
   async aprobarModificacion(AprobarDto: ValidarModificacionDto) {
     try {
-
       // Validar los datos de entrada
       if (!AprobarDto.id_modificacion_pago) {
         throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
@@ -331,19 +330,18 @@ export class ModificacionPagoService {
       SELECT public.sp_aprobacion_x_tipo($1)	`;
       const params3 = [AprobarDto.id_modificacion_pago];
       const resultado = await this.modificacionRepo.query(query2, params3);
+
       if (resultado) {
-    
         //adicionar el correlativo para el informe del fiscal  266 SCM, 267 FIS CM, 268 SUP OC, 269 FIS OC
         //257 CheckMetadata, 257 OC
+        //256 CheckMetadata, 256 CM
 
         let tipoCorrelativo: number | 0 = 0; // Valor por defecto
         if (AprobarDto.id_tipo_modificacion === 257) {
-          tipoCorrelativo = 267;
-        } else if (AprobarDto.id_tipo_modificacion === 256) {
           tipoCorrelativo = 269;
+        } else if (AprobarDto.id_tipo_modificacion === 256) {
+          tipoCorrelativo = 267;
         }
-
-            //   console.log('⬅️ Respuesta de correlativoService.create:', correlativoMemoRes);
         const correlativoMemoRes = await this.correlativoService.create({
           id_obra: AprobarDto.id_obra,
           id_tipo_documento: tipoCorrelativo,
@@ -351,7 +349,6 @@ export class ModificacionPagoService {
           usuario_registro: AprobarDto.id_usuario,
           id_estado: 1
         });
-        console.log('⬅️ Respuesta de correlativoService.create:', correlativoMemoRes);
 
         const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
 
