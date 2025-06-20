@@ -262,7 +262,7 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
             ],
             [
               { text: [{ text: 'MONTO CONTRATO VIGENTE:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_vigente,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
               { text: [{ text: 'FECHA CONTRATO:\n', style: 'textTitulo', alignment: 'right' },] },
