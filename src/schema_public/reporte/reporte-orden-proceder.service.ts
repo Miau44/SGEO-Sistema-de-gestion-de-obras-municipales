@@ -40,6 +40,7 @@ export class ReporteOrdenProcederService {
     datosPreguntaInforme: any = [];
     datosPreguntaInformeRestante: any = [];
     datosSup: any = [];
+    datosJU: any = [];
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -68,6 +69,15 @@ export class ReporteOrdenProcederService {
         FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
+   }
+
+    // JEFE UNIDAD por obra 
+   async jefeUnidad(obra: number) {
+    const query4 = `
+        SELECT * 
+        FROM public."vista_reporte_jefeUnidad_Obra" WHERE id_obra = ${obra}`;
+    const resultado4 = await this.sequelize.query(query4);
+    return resultado4[0];
    }
 
   // //Datos tabla documentos SGEO
@@ -1146,6 +1156,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     }
     this.datosSup = res1;
     console.log("datosSup", this.datosSup);
+
+    const res2 = await this.jefeUnidad(obra);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+        throw new Error('No se encontraron datos del jefe de unidad');
+    }
+    this.datosJU = res2;
     
 
     } catch (error) {
@@ -1192,7 +1208,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: this.datosEnvio[0].profesion + ' ' + this.datosEnvio[0].nombre_sol + ' ' + this.datosEnvio[0].paterno_sol + ' ' + this.datosEnvio[0].materno_sol + '\n', style: 'textDato' },
+                  { text: this.datosJU[0].nom_jefe + '\n', style: 'textDato', alignment: 'left' },
                   { text: 'JEFE DE UNIDAD', style: 'textTitulo' }
                 ] 
               }
@@ -1317,19 +1333,18 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         
             { text: '\n- Fecha estimada de Recepción Definitiva: ', style: 'textDato' },
             { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_definitiva) + '\n', style: 'textDato', bold: true }
-          ],
-          margin: [20, 0, 0, 0]
+          ], margin: [20, 0, 0, 7]
         },
         {
-          text: '\n 3. CONCLUSIONES',
+          text: '3. CONCLUSIONES',
           style: 'textTitulo', margin: [0, 0, 0, 5]
         },
         {
-          text: 'En base a lo anterior, se concluye que:\nSe tiene previsto ' + this.datosEnvio[0].numero_pago + ' certificado(s) de pago para la Obra ' + this.datosEnvio[0].cod_carpeta + ' - ' + this.datosEnvio[0].desc_carpeta + '.',
-          style: 'textDato', alignment: 'justify'
+          text: 'En base a lo anterior, se concluye que:\n\nSe tiene previsto ' + this.datosEnvio[0].numero_pago + ' certificado(s) de pago para la Obra ' + this.datosEnvio[0].cod_carpeta + ' - ' + this.datosEnvio[0].desc_carpeta + '.',
+          style: 'textDato', alignment: 'justify', margin: [0, 0, 0, 5]
         },
         {
-          text: '\n 4. RECOMENDACÍON',
+          text: '4. RECOMENDACÍON',
           style: 'textTitulo', margin: [0, 0, 0, 5]
         },
         {
