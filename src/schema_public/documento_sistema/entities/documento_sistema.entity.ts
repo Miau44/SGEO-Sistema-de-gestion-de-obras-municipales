@@ -26,7 +26,7 @@ export class DocumentoSistema {
         @Column()
         ruta_documento: string;   
 
-        @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+        @CreateDateColumn({ type: 'timestamp without time zone', default: () => 'CURRENT_TIMESTAMP' })
         fecha_registro: Date
     
         @Column({ type: 'timestamp without time zone', nullable: true })
