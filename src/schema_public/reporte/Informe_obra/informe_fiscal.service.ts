@@ -116,7 +116,7 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -206,7 +206,7 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.datosInf[0].fecha_aprobacion, style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style:'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
