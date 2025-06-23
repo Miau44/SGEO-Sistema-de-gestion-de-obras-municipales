@@ -117,14 +117,14 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
 
-    console.log('DATOS obra',this.datosEnvio);
+    console.log('DATOS obra',this.datosInf);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -200,7 +200,7 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.datosInf[0].fecha_aprobacion, style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato', margin: [0, 5, 0, 5] },
               ],
             ],
           },
