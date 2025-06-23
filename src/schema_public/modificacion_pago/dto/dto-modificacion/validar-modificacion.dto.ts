@@ -16,6 +16,7 @@ export class ValidarModificacionDto {
     @ApiProperty()
     id_solicitud: number;    
 
+    @ApiProperty()
     id_usuario: number;
     
 }
