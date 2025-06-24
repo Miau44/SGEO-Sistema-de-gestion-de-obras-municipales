@@ -326,8 +326,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 }
               ],
               [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
               ],
             ],
           },
@@ -470,7 +470,13 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             body: [
               ...this.buildFiscales(this.datosFis)
               ]
-          }, margin: [20,0,20,0]
+          }, margin: [20,0,20,0],
+            layout: {
+            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+            vLineColor: () => '#444444', // color gris opaco para líneas verticales
+            hLineWidth: () => 0.7,       // grosor más fino
+            vLineWidth: () => 0.7
+            } 
         },
       {
         text: ['\n\ncc:Arch:' ],
