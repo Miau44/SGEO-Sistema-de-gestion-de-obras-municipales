@@ -18,6 +18,7 @@ import { ObraService } from '../obra/obra.service';
 import { SolicitudService } from '../solicitud/solicitud.service';
 import { Persona } from '../persona/entities/persona.entity';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
+import { LogService } from '../log/log.service';
 
 
 @Injectable()
@@ -34,6 +35,7 @@ export class DesignacionService {
     private responseService: ResponseService,
     private obraService: ObraService,
     private serviceSolicitud: SolicitudService,
+    private logService:LogService,
     @InjectDataSource() private readonly dataSource: DataSource,
     @InjectConnection() private readonly connection: Connection,
   ) { }
@@ -285,6 +287,7 @@ export class DesignacionService {
             const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
     
             if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+              await this.registrarLog('aprobarDesignacion', 'No se encontró usuario destino', AprobarDto, 'Sin resultado', 0);
               return {
                 statusCode: 500,
                 message: false,
@@ -309,8 +312,11 @@ export class DesignacionService {
 
             //para general historial
             if (!respuesta_etapa) {
+
+              await this.registrarLog('aprobarDesignacion', 'Error al guardar la solicitud', data_solicitud, 'null', usuario);
               return this.responseService.error("Error al guardar la solicitud.");
             }
+            await this.registrarLog('aprobarDesignacion', 'Solicitud creada correctamente', data_solicitud, respuesta_etapa, usuario);
             const datosHistorialetapa = {
               id_solicitud: respuesta_etapa.id_solicitud,
               id_tipo_solicitud: respuesta_etapa.id_tipo_solicitud,
@@ -328,6 +334,7 @@ export class DesignacionService {
             };
       
             const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorialetapa)
+            await this.registrarLog('aprobarDesignacion', 'Historial creado', datosHistorialetapa, solicitud_historial, usuario);
             debeGenerarSolicitud = false; // prevenir que genere más de una en caso de múltiples designaciones
           } else {
             await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud
@@ -352,10 +359,13 @@ export class DesignacionService {
           id_estado_registro: respuesta_solicitud.data.id_estado_registro,
         };    
         await this.serviceSolicitud.createHistorial(datosHistorial);
+         await this.registrarLog('aprobarDesignacion', 'Historial final registrado', datosHistorial, 'OK', 0);
     
         return this.responseService.success("Solicitud generada correctamente.");
       } catch (error) {
         console.error("Error en aprobarDesignacion:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        await this.registrarLog('aprobarDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
         return this.responseService.error(error);
       }
     }    
@@ -383,7 +393,7 @@ export class DesignacionService {
           const params4 = [desc_cod_ue];
           const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
           if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
-
+            await this.registrarLog('aprobarDesignacionR', 'No se encontró usuario destino', AprobarDto, 'Sin resultado', 0);
             return {
               statusCode: 500,
               message: false,
@@ -404,14 +414,18 @@ export class DesignacionService {
           };
 
           const resultado = await this.solicitudRepocitorio.save(data_solicitud);
+          await this.registrarLog('aprobarDesignacionR', 'Solicitud creada', data_solicitud, resultado, usuario);
         }
         else {
           await actualizarEstado()
         };
       }
+      await this.registrarLog('aprobarDesignacionR', 'Solicitud(es) procesada(s)', AprobarDto, 'OK', 0);
       return this.responseService.success("Solicitud generada correctamente.");
     } catch (error) {
       console.error("Error en aprobarDesignacion:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.registrarLog('aprobarDesignacionR', 'Error inesperado', AprobarDto, errorMessage, 0);
       return this.responseService.error(error);
     }
   }  
@@ -762,6 +776,16 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
       throw new InternalServerErrorException('Error al actualizar solicitudes');
     }
   }
+
+  private async registrarLog(funcionalidad: string, mensaje: string, param: any, resp: any, user = 0) {
+  await this.logService.create({
+    id_usuario: user,
+    funcionalidad,
+    mensaje,
+    parametro: JSON.stringify(param),
+    respuesta: typeof resp === 'string' ? resp : JSON.stringify(resp)
+  });
+}
   
 
   

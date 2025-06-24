@@ -29,7 +29,7 @@ export class Documento {
     @Column({ default: 0 })
     id_estado: number;
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    @CreateDateColumn({ type: 'timestamp without time zone', default: () => 'CURRENT_TIMESTAMP' })
     fecha_registro: Date
 
     @Column({ type: 'timestamp without time zone', nullable: true })

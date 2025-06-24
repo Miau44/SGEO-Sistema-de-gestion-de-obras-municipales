@@ -381,9 +381,9 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       // 1. Crear correlativo
       const correlativoResp = await this.correlativoService.create({
         id_obra,
-        id_tipo_documento: 295,
+        id_tipo_documento: id_tipo_informe,
         correlativo: '',
-        usuario_registro,
+        usuario_registro: usuario_registro,
         id_estado: 1,
       });
       const correlativo = correlativoResp.data;
@@ -392,13 +392,13 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       }
       // 2. Crear solicitud
       const solicitudDto: CreateSolicitudDto = {
-        id_tipo_solicitud: 1,
+        id_tipo_solicitud: 0,
         id_estado_solicitud: 2,
         id_obra,
-        id_estado_general: 10,
+        id_estado_general: 23,
         id_usuario: usuario_registro,
         proveido: '',
-        usuario_registro,
+        usuario_registro: usuario_registro,
         id_estado_registro: 1,
       };
       const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
@@ -432,79 +432,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
     }
   }
 
-  // Guardar informe de obra con correlativo y solicitud
-  async guardarInformeObraFiscal(data: any) {
-    try {
-      const {
-        id_obra,
-        usuario_registro,
-        id_tipo_informe,
-        antecedentes,
-        analisis,
-        obs_general,
-        conclusion,
-        recomendacion,
-        referencia,
-        informe_modificacion,
-        anexos,
-        id_documento
-      } = data;
-      // 1. Crear correlativo
-      const correlativoResp = await this.correlativoService.create({
-        id_obra,
-        id_tipo_documento: 296, // tipo documento "informe"
-        correlativo: '',
-        usuario_registro,
-        id_estado: 1,
-      });
-      const correlativo = correlativoResp.data;
-      if (!correlativo || !correlativo.id_correlativo) {
-        throw new Error('No se pudo crear el correlativo');
-      }
-      // 2. Crear solicitud
-      const solicitudDto: CreateSolicitudDto = {
-        id_tipo_solicitud: 12,
-        id_estado_solicitud: 2,
-        id_obra,
-        id_estado_general: 10,
-        id_usuario: usuario_registro,
-        proveido: '',
-        usuario_registro,
-        id_estado_registro: 1,
-      };
-
-      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
-      const solicitud = respuestaSolicitud.data;
-
-      if (!solicitud || !solicitud.id_solicitud) {
-        throw new Error('No se pudo crear la solicitud');
-      }
-      // 3. Crear informe
-      const informeData = {
-        id_obra,
-        usuario_registro,
-        id_tipo_informe,
-        antecedentes,
-        analisis,
-        obs_general,
-        conclusion,
-        recomendacion,
-        referencia,
-        informe_modificacion,
-        anexos,
-        id_documento, 
-        id_correlativo: correlativo.id_correlativo,
-        id_solicitud: solicitud.id_solicitud,
-        id_estado: 1
-      };
-      const nuevoInforme = await this.informeRepositorio.save(informeData);
-      return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
-    } catch (error) {
-      console.error('Error en guardarInformeConSolicitud:', error);
-      return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
-    }
-  }
-
+  
   //listar informes de obra para el supervisor
   async listarInformeObraSup(dto: ListaInformeObraDto) {
     const { id_obra } = dto;
@@ -677,7 +605,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       return this.responseService.error('No se pudo obtener el tipo de informe.');
     }
   }
-
+/*****************************************************************************************************************************/
   async createActaEntregaProvicional(data: CreateActaEntregaProvicionalDto) {
     try {
       const {
@@ -685,7 +613,8 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         hora_registro,
         obs_general,
         id_documento,
-        usuario_registro
+        usuario_registro,
+        periodo_correccion
       } = data;
 
       // 1. Crear solicitud
@@ -693,10 +622,10 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         id_tipo_solicitud: 1,
         id_estado_solicitud: 2,
         id_obra,
-        id_estado_general: 10,
+        id_estado_general: 25,
         id_usuario: usuario_registro,
         proveido: '',
-        usuario_registro,
+        usuario_registro: usuario_registro,
         id_estado_registro: 1,
       };
 
@@ -715,6 +644,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         obs_general,
         id_documento,
         usuario_registro,
+        periodo_correccion,
         id_solicitud: solicitud.id_solicitud,
         id_estado: 1,
         antecedentes: '',
@@ -777,7 +707,7 @@ async getActaEntregaProvisionalById(id_informe: number) {
 
 async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
   try {
-    const { id_informe, hora_registro, obs_general, id_documento } = dto;
+    const { id_informe, hora_registro, periodo_correccion, obs_general, id_documento } = dto;
 
     const informe = await this.informeRepositorio.findOne({
       where: { id_informe, id_estado: 1 },
@@ -788,6 +718,7 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
     }
 
     if (hora_registro !== undefined) informe.hora_registro = hora_registro;
+    if (periodo_correccion !== undefined) informe.periodo_correccion = periodo_correccion;
     if (obs_general !== undefined) informe.obs_general = obs_general;
 
     if (id_documento !== undefined) {
