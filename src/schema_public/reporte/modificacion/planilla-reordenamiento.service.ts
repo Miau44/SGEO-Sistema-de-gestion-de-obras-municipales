@@ -260,7 +260,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 
               ],
             ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico), 
-            ...this.buildContenidoPlanilla1(this.datosNuevos, formatoNumerico) 
+            ...this.buildContenidoPlanilla1(this.datosNuevos, formatoNumerico),
+            ...this.buildResumenPlanilla1(this.datosPlanillaR) 
             ]
           }
         } ]
@@ -441,7 +442,6 @@ buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
     ];
     arrayData.push(rowData);
   }
-
   
   if (this.datosNuevos && this.datosNuevos.length > 0) {
     const textonuevo = [
@@ -451,7 +451,6 @@ buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
   arrayData.push(textonuevo);
   } else {
   }
-  
     return arrayData;
   }
 
@@ -512,14 +511,6 @@ buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
     ];
     arrayData.push(rowData);
   }
-
-  const textonuevo = [
-    {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-  ];
-
-  arrayData.push(textonuevo);
-
     return arrayData;
   }
 
