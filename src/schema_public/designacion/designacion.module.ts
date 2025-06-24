@@ -14,13 +14,14 @@ import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_u
 import { ObraService } from '../obra/obra.service';
 import { SolicitudService } from '../solicitud/solicitud.service';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
+import { LogModule } from '../log/log.module';
 
 
 @Module({
   imports: [ ConfigModule.forRoot({
     isGlobal: true
   }),
-  TypeOrmModule.forFeature([Designacion, Obra, Correlativo, Solicitud, PersonapermisoUe, SolicitudHistorial])],
+  TypeOrmModule.forFeature([Designacion, Obra, Correlativo, Solicitud, PersonapermisoUe, SolicitudHistorial]),LogModule],
 
   controllers: [DesignacionController],
   providers: [DesignacionService, ResponseService, ObraService, SolicitudService, ], 

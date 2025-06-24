@@ -154,7 +154,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       },
       {
         text:[
-            { text: 'NOMBRE DE LA OBRA: ', style: 'textDato2', bold:true },
+            { text: 'NOMBRE DE LA OBRA: ', style: 'textTitulo2', bold:true },
             { text: this.datosEnvio[0].desc_carpeta, style: 'textDato2'}
             ], margin: [0,0,0,6],    
       },
@@ -186,10 +186,9 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
 
           ]
         }
-
       },
       {
-        text: '\n\n\n',
+        text: '\n\n',
       },
       {
           table: {
@@ -197,7 +196,12 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
             body: [
               ...this.buildsupervisores(this.datosSup)
               ]
-          }, //margin: [20,0,20,0]
+          }, layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
+          vLineWidth: () => 0.7
+          } //margin: [20,0,20,0]
         },
       {
         
@@ -224,6 +228,11 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
       },
       textTitulo: {
         fontSize: 6,
+        bold: true,
+        //opacity: 0.8,
+      },
+      textTitulo2: {
+        fontSize: 7,
         bold: true,
         //opacity: 0.8,
       },
