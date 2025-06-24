@@ -134,7 +134,7 @@ export class ficha_itemService {
     // console.log("id_parm",resParam);
 
     const body = gestion_; //corregir esto... ***
-    console.log(body);
+    //console.log(body);
     //consultar a la base de datos en tabla parametrica, con select
 
 
@@ -151,12 +151,12 @@ export class ficha_itemService {
       this.arrayUes = data.datos;
       const nuevoArray = this.arrayUes ? this.arrayUes.map((item: { l_ue: any[] }) => item.l_ue).flat() : [];
       nuevoArray.sort((a: { codigo_ue: number }, b: { codigo_ue: number }) => a.codigo_ue - b.codigo_ue);
-      console.log(nuevoArray);
+      //console.log(nuevoArray);
       for (const valor of nuevoArray) {//saltar a un valor mayor a 100
         // if (valor.codigo_ue < 100) {
         //   continue; // Salta a la siguiente iteración si el valor es mayor a 100
         // }
-        console.log("gestion, " + gestion_ + ", CODIGO UE" + valor.codigo_ue);
+        //console.log("gestion, " + gestion_ + ", CODIGO UE " + valor.codigo_ue);
         await this.obtenerFichas(valor.codigo_ue, id_usuario);
         //resultados.push(resultado);
       }
@@ -169,7 +169,7 @@ export class ficha_itemService {
   async obtenerFichas(desc_cod_ue_: number, id_usuario: number): Promise<any> {
     try {
       var corr_carpeta = 0
-      console.log("desc_cod_ue_",desc_cod_ue_);
+      //console.log("desc_cod_ue_",desc_cod_ue_);
       var maxCorrelativo = await this.fichaRepository.findOne({
         select: { correlativo_carpeta: true },
         order: { correlativo_carpeta: 'DESC' },
@@ -180,7 +180,6 @@ export class ficha_itemService {
         corr_carpeta = maxCorrelativo?.correlativo_carpeta;
         corr_carpeta++;
       }
-      console.log("corr_carpeta", corr_carpeta);
       // OBTENER PARAMETROS DE URL DESDE .env
       const url_sim = process.env.URL_SIM2;
       // realizar la llamada al servicio externo metodo POST
@@ -196,7 +195,7 @@ export class ficha_itemService {
         }),
       });
       const data = await response.json();
-      console.log(data);
+      //console.log(data);
       
       if (data.res == "OK") {
         for (const fichaJson of data.datos) {
@@ -262,35 +261,60 @@ export class ficha_itemService {
     console.log(data);
     if (data.res == "OK") {
       for (const fichaJson of data.datos) {
-        //verificar si existe la ficha en la base de datos, si existe no guardar
-        const fichaExistente = await this.fichaRepository.findOne({ where: { cod_carpeta: fichaJson.cod_carpeta } });
-        if (fichaExistente) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
-          continue; // Si ya existe, continuar con la siguiente ficha
-        }
-
         //validar que codigo_ficha tenga el texto 2025
         if (!fichaJson.codigo_ficha.includes("2025")) {
           console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
           continue; // Si no contiene el texto, continuar con la siguiente ficha
         }
 
-        const nueva_ficha = this.transformarFicha2(fichaJson, id_usuario);
-        //console.log(nueva_ficha);
         try {
+        let id_ficha = 0;let objFicha = null;let objObra = null;
+        //verificar si existe la ficha en la base de datos, si existe no guardar
+        const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
+        if (fichaExistente) {
+          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+          id_ficha = fichaExistente.id_ficha;
+          objFicha = fichaExistente;
+        }
+        else{
+          const nueva_ficha = this.transformarFicha2(fichaJson, id_usuario);
           const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
-          const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
-          const obraGuardada = await this.obraRepository.save(nuevaObra);
-          console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
+          id_ficha = nuevaFicha.id_ficha;
+          objFicha = nuevaFicha;
+          console.log(`Ficha guardada: ` + id_ficha);
+        }
+       
+        //verificar que id_ficha no sea 0
+        if (id_ficha === 0) {
+          console.error(`Error: id_ficha es 0, no se puede guardar la obra.`);
+          throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
+        }
 
-          await this.guardarItemsIndividual(fichaJson.d_item, obraGuardada, id_usuario);
-        } catch (error) {
-          //lanzar error si no se puede guardar la ficha
+        //validar si existe la obra en la base de datos, si existe no guardar
+        let id_obra = 0;
+        const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: id_ficha } });
+        if (obraExistente) {
+          console.log(`Obra con id_ficha ${obraExistente.id_ficha} ya existe en la base de datos.`);
+          id_obra = obraExistente.id_obra;
+          objObra = obraExistente;
+        }
+        else{
+          const nuevaObra = this.crearObraDesdeFicha(objFicha, id_usuario);
+          const obraGuardada = await this.obraRepository.save(nuevaObra);
+          console.log(`Obra guardada`, obraGuardada.id_obra);
+          objObra = obraGuardada;
+        }
+
+        const items = await this.guardarItemsIndividual(fichaJson.d_item, objObra, id_usuario);
+        console.log(`Items guardados`, items);
+
+      } catch (error) {
+        //lanzar error si no se puede guardar la ficha
 
           //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
           //mandar  error si no se puede guardar la obra, trwow error
-          console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
-          throw new Error(`Error al guardar la obra: ${error}`);
+          console.error(`❌ Error al procesar la ficha: correlativo:  ${id_correlativo}:`, (error as any).message);
+          throw new Error(`Error al procesar la ficha: ${error}`);
         }
       }
     } else {
@@ -475,8 +499,8 @@ export class ficha_itemService {
     }
   }
 
-  private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
-    if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
+  private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<number> {
+    if (!itemsJson || itemsJson.length === 0) return 0; // No hay items que guardar
 
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
 
@@ -528,9 +552,11 @@ export class ficha_itemService {
             })
           )
         );
-        console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
+        //console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
+        return itemsFiltrados.length;
       } else {
-        console.log(`No se guardaron nuevos items porque todos fueron ignorados.`);
+        //console.log(`No se guardaron nuevos items porque todos fueron ignorados.`);
+        return 0;
       }
     } catch (error) {
       console.error(`Error al guardar items: ${error}`);
