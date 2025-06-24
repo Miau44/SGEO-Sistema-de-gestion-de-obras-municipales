@@ -294,8 +294,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
                 },
               ],
               [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
               ],
             ],
           },
@@ -610,7 +610,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
-        text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs.') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
+        text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
         'respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_modificacion + '%.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
@@ -667,7 +667,13 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             body: [
               ...this.buildSupervisores(this.datosSup)
               ]
-          }, margin: [20,0,20,0]
+          }, margin: [20,0,20,0],
+            layout: {
+            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+            vLineColor: () => '#444444', // color gris opaco para líneas verticales
+            hLineWidth: () => 0.7,       // grosor más fino
+            vLineWidth: () => 0.7
+            } 
         },
       {
         text: ['\n\n\nCc.Arch.Supervisor' ],
