@@ -184,7 +184,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         text: '\n',
       },
       {
-        text: 'En la ciudad de La Paz a hrs. ' + this.datosInf[0].hora_registro + ' del día ' + this.fechaString(this.datosInf[0].fecha_registro) + 
+        text: 'En la ciudad de La Paz a hrs. ' + this.datosInf[0].hora_registro.substring(0, 5) + ' del día ' + this.fechaString(this.datosInf[0].fecha_registro) + 
               ', en presencia de las autoridades de la Comisión de Recepción de obras del Gobierno Autónomo Municipal de La Paz ' + 
               ' y la empresa contratista ' + this.datosEnvio[0].proponente_razon_social + ', se procedió a la recepción provisional de la siguiente obra:',
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
@@ -224,22 +224,22 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
           widths: ['*', 300],
           body: [
             [
-              { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'left' },] },
+              { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'right' },] },
               { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' }] }
             ],
             [
-              { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
               { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
               { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             ...(
               this.datosVariacion[0].conteo === '0'
                 ? []
                 : [[ // agrega la fila
-                    { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'left' }] },
+                    { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'right' }] },
                     { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }] }
                   ]]
             ),
@@ -247,31 +247,31 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               this.datosVariacion[0].conteo === '0'
                 ? []
                 : [[ // agrega la fila
-                    { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
                     { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }], fillColor: '#dddddd' }
                   ]]
             ),
             [
-              { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'left' },] },
+              { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'right' },] },
               { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }] }
             ],
             ...(
               this.datosVariacion[0].conteo === '0'
                 ? []
                 : [[ // agrega la fila
-                    { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+                    { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
                     { text: [{ text: plazo_real, style: 'textDatoT' }], fillColor: '#dddddd' }
                   ]]
             ),
             [
-              { text: [{ text: 'Monto Contrato Inicial (Bs):', style: 'textTituloT', alignment: 'left' },], fillColor: '#dddddd' },
+              { text: [{ text: 'Monto Contrato Inicial (Bs):', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
               { text: [{ text: this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             ...(
               this.datosVariacion[0].conteo === '0'
                 ? []
                 : [[ // agrega la fila
-                    { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'left' },] },
+                    { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'right' },] },
                     { text: [{ text: this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
                   ]]
             ),
@@ -301,45 +301,111 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         text: ['\n'],
       },
       {
-          table: {
-            widths: ['*', '*'],
-            body: [
-              [
-                { text: '\nREPRESENTANTE UNIDAD EJECUTORA', style: 'textTitulo', alignment: 'center', margin: [0, 20, 0, 0] },
-                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-              ],
-              [
-                { text: '\nREPRESENTANTE ÁREA ADMINISTRATIVA', style: 'textTitulo', alignment: 'center', margin: [0, 20, 0, 0] },
-                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-              ],
-              [
-                { text:
-                      [
-                        { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center' }
-                      ], margin: [0, 20, 0, 0]
-                },
-                { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] },
-              ],
-            ]
-          }, //layout: 'noBorders'
+        table: {
+          widths: ['*', '*'],
+          body: [
+            [
+              { text: [
+                { text: '\n\n\n\nREPRESENTANTE UNIDAD EJECUTORA', style: 'textTitulo', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center' }
+              ]},
+              { text: [
+                { text: '\n\n\n\nREPRESENTANTE ÁREA ADMINISTRATIVA', style: 'textTitulo', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center' }
+              ] }
+            ],
+          ]
+        }, margin: [20,0,20,0], 
+        layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
+          vLineWidth: () => 0.7
+          } //layout: 'noBorders'
+      },
+      {
+        text: ['\n'],
+      },
+      {
+        table: {
+          widths: ['*'],
+          body: [
+            [
+              { text:
+                    [
+                      { text: '\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
+                      { text: '\nEMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center' },
+                      { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                    ], 
+              },
+            ],
+          ]
+        }, margin: [100,0,100,0],
+        layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
+          vLineWidth: () => 0.7
+          } //layout: 'noBorders'
+      },
+      {
+        text: ['\n'],
       },
       {
           table: {
             widths: ['50%','50%'],
             body: [
-              ...this.buildSupervisores(this.datosSup)
+              [ 
+                { text: [
+                  {
+                    text: '\n\n\n\n' + (
+                          Array.isArray(this.datosSup)
+                            ? this.datosSup
+                                .filter(s => s && s.supervisor)
+                                .map(s => s.supervisor)
+                                .join('\n')  // salto de linea 
+                            : ''
+                        ),
+                        style: 'textDato', alignment: 'center'
+                  },
+                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' },
+                  { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                ]},
+                {
+                  text: [
+                  {
+                    text: '\n\n\n\n' + (
+                          Array.isArray(this.datosFis)
+                            ? this.datosFis
+                                .filter(f => f && f.fiscal)
+                                .map(f => f.fiscal)
+                                .join('\n')  // salto de linea 
+                            : ''
+                        ),
+                        style: 'textDato', alignment: 'center'
+                  },
+                  { text: '\nFISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' },
+                  { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                ]}
               ]
-          }, 
-      },
-      {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildFiscales(this.datosFis)
+                //...this.buildSupervisores(this.datosSup),
               ]
-          }, 
+          }, margin: [20,0,20,0],
+          layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
+          vLineWidth: () => 0.7
+          }
       },
+      // {
+      //     table: {
+      //       widths: ['50%','50%'],
+      //       body: [
+      //         ...this.buildFiscales(this.datosFis)
+      //         ]
+      //     }, 
+      // },
       {
         text: ['\n\nCc.Arch.' ],
         style: 'footerText'
@@ -385,7 +451,6 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       },
       textDatoT: {
         fontSize: 7,
-        bold: false,
         opacity: 0.8,
       },
     },

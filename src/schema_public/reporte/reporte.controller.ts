@@ -14,6 +14,7 @@ import { PlanillaReordenamiento } from './modificacion/planilla-reordenamiento.s
 import { InformeObraSupervisor } from './Informe_obra/informe_supervisor.service';
 import { InformeObraFiscal } from './Informe_obra/informe_fiscal.service';
 import { ActaProvisional } from './actas/acta_provisional.service';
+import { InformeInicialService } from './actividades_previas/informe_inicial/informe_inicial.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -30,6 +31,7 @@ export class ReportController {
     private readonly informeobrasupervisor: InformeObraSupervisor,
     private readonly informeobrafiscal: InformeObraFiscal,
     private readonly actaprovisional: ActaProvisional,
+    private readonly informeInicialService: InformeInicialService,
   ) {}
 
 
@@ -113,6 +115,20 @@ export class ReportController {
 
 
 //////////////////////////////////////////////MÓDULO ACTIVIDADES PREVIAS/////////////////////////////// 
+  @Public()
+  @Get('informe-inicial-informe')
+  async InformeInicialService(@Res() res: Response,
+  @Query('id_obra') id_obra: number
+  ): Promise<void> {
+    const pdfBuffer = await this.informeInicialService.generateInformeInicial(id_obra);    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdfBuffer.length,      
+    });
+    res.send(pdfBuffer);
+  }
+
+
 
 @Public()
   @Get('envio-documentacion')

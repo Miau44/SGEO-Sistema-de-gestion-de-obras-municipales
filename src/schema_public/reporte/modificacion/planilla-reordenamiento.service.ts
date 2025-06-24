@@ -39,6 +39,7 @@ export class PlanillaReordenamiento {
     datosPlanilla: any = [];
     datosPlanillaR: any = [];
     num_modif: any = [];
+    datosNuevos: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -66,7 +67,7 @@ export class PlanillaReordenamiento {
    async supervisorDesignado(obra: number) {
     const query1 = `
         SELECT * 
-        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
+        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
    }
@@ -75,7 +76,7 @@ export class PlanillaReordenamiento {
    async fiscalDesignado(obra: number) {
     const query1 = `
         SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
+        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
    }
@@ -84,16 +85,16 @@ export class PlanillaReordenamiento {
    async planillaReordenamiento(solicitud: number) {
     const query3 = `
         SELECT * 
-        FROM public.vista_reporte_planilla WHERE id_modificacion_pago = ${solicitud}`;
+        FROM public."vista_reporte_planilla" WHERE id_modificacion_pago = ${solicitud}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
 
-   // Tabla Planilla Reordenamiento
-   async planillaResumen(solicitud: number) {
+   // Tabla Planilla Resumen
+   async planillaResumen(obra: number, solicitud: number) {
     const query4 = `
         SELECT * 
-        FROM public.vista_reporte_planilla_resumen WHERE id_modificacion_pago = ${solicitud}`;
+        FROM public.f_reporte_resumen_planilla(${obra},${solicitud});`;
     const resultado4 = await this.sequelize.query(query4);
     return resultado4[0];
    }
@@ -105,6 +106,15 @@ export class PlanillaReordenamiento {
         FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND fecha_memo_minuta IS NOT NULL`;
     const resultado5 = await this.sequelize.query(query5);
     return resultado5[0];
+   }
+
+   // Tabla Planilla Reordenamiento ITEMS ADICIONALES
+   async planillaItemsNuevos(solicitud: number) {
+    const query6 = `
+        SELECT * 
+        FROM public."vista_reporte_planilla_adicion" WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado6 = await this.sequelize.query(query6);
+    return resultado6[0];
    }
 
 // REPORTE - PLANILLA DE REORDENAMIENTO
@@ -134,11 +144,14 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   }
   this.datosPlanilla = res3;
 
-  const res4 = await this.planillaResumen(id_modificacion_pago);
+  const res4 = await this.planillaResumen(obra, id_modificacion_pago);
   if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
       throw new Error('No se encontraron datos de la planilla');
   }
   this.datosPlanillaR = res4;
+
+  const res5 = await this.planillaItemsNuevos(id_modificacion_pago);
+  this.datosNuevos = res5;
 
 
   //console.log('DATOS PLANILLA',this.num_modif);
@@ -246,8 +259,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
-            ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico) 
-
+            ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico), 
+            ...this.buildContenidoPlanilla1(this.datosNuevos, formatoNumerico) 
             ]
           }
         } ]
@@ -280,7 +293,9 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                 
               ],
-            ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico) 
+            ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico), 
+            ...this.buildContenidoPlanilla22(this.datosNuevos, formatoNumerico),
+            ...this.buildResumenPlanilla2(this.datosPlanillaR)
             ]
           }
         }]
@@ -344,7 +359,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
           { //return currentPage.toString() + ' of ' + pageCount; 
             return {
               columns:[
-                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
+                  { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,20,0]} 
                       ]
               }            
           } as any,
@@ -379,7 +394,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         opacity: 0.8,
       },
     },
-    pageMargins: [20, 55, 20, 20] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: [20, 55, 20, 25] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
@@ -399,8 +414,49 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 
 }
 
-//Cargar tabla de computos metricos
+//Cargar tabla de PLANILLA - EXISTE MODIFICACIONES
 buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
+
+  let datosPl = data;
+  let arrayData = [];
+
+  for (let i = 0; i < datosPl.length; i++) {
+    
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+
+  
+  if (this.datosNuevos && this.datosNuevos.length > 0) {
+    const textonuevo = [
+    {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    ];
+  arrayData.push(textonuevo);
+  } else {
+  }
+  
+    return arrayData;
+  }
+
+//TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES
+buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -457,55 +513,97 @@ buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
     arrayData.push(rowData);
   }
 
-   // Fila final con totales
-  const totalRow = [
-    {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-    {}, {}, {}, // celdas vacias
-    { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {}, 
-    { text: this.formatIfNumber(totalModifApSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {}, // celdas vacias
-    { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {}, 
-    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {},
-    {
-      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
-      style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
-    },
+  const textonuevo = [
+    {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
   ];
 
-  const montoVarRow = [
-    {colSpan:3, text: 'MONTO EN VARIACIÓN RESPECTO AL CONTRATO INICIAL(Bs)', style: 'textDato', alignment: 'right' }, {}, {},
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right' }
-  ];
-  //porc_parcial = (this.datosPlanillaR[0].monto_variacion * 100)/ totalContratoSum;
-  const porcVarRow = [
-    {colSpan:3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {},
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
-  ];
-  porc_total = (totalReordenSum * 100)/ totalContratoSum;
-  const porcTotalRow = [
-    {colSpan:3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right' }
-  ];
-
-  arrayData.push(totalRow);
-  arrayData.push(montoVarRow);
-  arrayData.push(porcVarRow);
-  arrayData.push(porcTotalRow);
+  arrayData.push(textonuevo);
 
     return arrayData;
   }
 
+  //Cargar tabla de PLANILLA - PRIMERA MODIFICACION
 buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
+
+  let datosPl = data;
+  let arrayData = [];
+
+  for (let i = 0; i < datosPl.length; i++) {
+    
+    let rowData = [
+      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+    ];
+    arrayData.push(rowData);
+  }
+    if (this.datosNuevos && this.datosNuevos.length > 0) {
+      const textonuevo = [
+      {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
+      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    ];
+    arrayData.push(textonuevo);
+    } else {
+    }
+//    // Fila final con totales
+//   const totalRow = [
+//     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+//     {}, {}, {}, // celdas vacias
+//     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
+//       style: 'textTitulo2', alignment: 'right', bold: true }, 
+//     {}, // celdas vacias
+//     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
+//       style: 'textTitulo2', alignment: 'right', bold: true }, 
+//     {}, 
+//     { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+//       style: 'textTitulo2', alignment: 'right', bold: true }, 
+//     {},
+//     {
+//       text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+//       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+//     },
+//   ];
+
+//   const montoVarRow = [
+//     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
+//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+//     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+//   ];
+
+//   const porcVarRow = [
+//     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+//     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+//   ];
+// porc_total = (totalReordenSum * 100)/ totalContratoSum;
+//   const porcTotalRow = [
+//     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+//     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+//   ];
+
+  
+  // arrayData.push(totalRow);
+  // arrayData.push(montoVarRow);
+  // arrayData.push(porcVarRow);
+  // arrayData.push(porcTotalRow);
+
+    return arrayData;
+  }
+
+  //TABLA PLANILLA CON ITEMS NUEVOS 2 - PRIMERA MODIFICACION
+  buildContenidoPlanilla22(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -556,51 +654,145 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
     arrayData.push(rowData);
   }
 
-   // Fila final con totales
-  const totalRow = [
-    {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-    {}, {}, {}, // celdas vacias
-    { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {}, // celdas vacias
-    { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {}, 
-    { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-    {},
-    {
-      text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
-      style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
-    },
-  ];
+    return arrayData;
+  }
 
-  const montoVarRow = [
-    {colSpan: 3, text: 'MONTO EN VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-  ];
+  //RESUME PLANILLA 1
+  buildResumenPlanilla1(data: any[]) {
 
-  const porcVarRow = [
-    {colSpan: 3, text: 'PORCENTAJE EN VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-  ];
-porc_total = (totalReordenSum * 100)/ totalContratoSum;
-  const porcTotalRow = [
-    {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-    { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-  ];
+   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+  });
 
-  arrayData.push(totalRow);
-  arrayData.push(montoVarRow);
-  arrayData.push(porcVarRow);
-  arrayData.push(porcTotalRow);
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+  let totalReordenSum= 0;
+  let totalContratoSum = 0;
+  let porc_total = 0;
+
+  // Fila final con totales
+   const totalRow = [
+     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, // celdas vacias
+     { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {}, // celdas vacias
+     { text: this.formatIfNumber(datosPl[0].total_autorizado,formatoNumerico2),
+      style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {}, // celdas vacias
+     { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {}, 
+     { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {},
+     {
+       text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
+       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+     },
+   ];
+
+   const montoVarRow = [
+     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textTitulo2', alignment: 'right', bold: 'true' }, {}, {},
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+
+   const porcVarRow = [
+     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+  totalReordenSum = datosPl[0].total_reo;
+  totalContratoSum = datosPl[0].total_adjudicado;
+  porc_total = (totalReordenSum * 100)/ totalContratoSum;
+   const porcTotalRow = [
+     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+  
+   arrayData.push(totalRow);
+   arrayData.push(montoVarRow);
+   arrayData.push(porcVarRow);
+   arrayData.push(porcTotalRow);
 
     return arrayData;
   }
 
+  //RESUME PLANILLA 2
+  buildResumenPlanilla2(data: any[]) {
+
+   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+  });
+
+  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  let datosPl = data;
+  let arrayData = [];
+  let totalReordenSum= 0;
+  let totalContratoSum = 0;
+  let porc_total = 0;
+
+  // Fila final con totales
+   const totalRow = [
+     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, // celdas vacias
+     { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {}, // celdas vacias
+     { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {}, 
+     { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
+       style: 'textTitulo2', alignment: 'right', bold: true }, 
+     {},
+     {
+       text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
+       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+     },
+   ];
+
+   const montoVarRow = [
+     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textTitulo2', alignment: 'right' }, {}, {},
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+
+   const porcVarRow = [
+     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+  totalReordenSum = datosPl[0].total_reo;
+  totalContratoSum = datosPl[0].total_adjudicado;
+  porc_total = (totalReordenSum * 100)/ totalContratoSum;
+   const porcTotalRow = [
+     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+   ];
+  
+   arrayData.push(totalRow);
+   arrayData.push(montoVarRow);
+   arrayData.push(porcVarRow);
+   arrayData.push(porcTotalRow);
+
+    return arrayData;
+  }
+
+  //Formatear Números
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
     if (value === null || value === undefined || value === '') return '';
     

@@ -117,14 +117,14 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
 
-    console.log('DATOS obra',this.datosEnvio);
+    console.log('DATOS obra',this.datosInf);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -195,12 +195,12 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
                 },       
               ],
               [
-                { text: 'REF.:', style: 'textTitulo', margin: [0, 0, 0, 5], alignment:'right' },
+                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
                 { text: this.datosInf[0].referencia, style: 'textDato' },
               ],
               [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.datosInf[0].fecha_aprobacion, style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+                { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato' },
               ],
             ],
           },
@@ -243,29 +243,49 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
               { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'FECHA ORDEN DE PROCEDER:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'NÚMERO DE CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },] },
+              ...(
+                this.datosEnvio[0].numero_contrato 
+                ? [ { text: [ { text: this.datosEnvio[0].numero_contrato, style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ] } ]
+              )
+            ],
+            [
+              { text: [{ text: 'FECHA CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              ...(
+                this.datosEnvio[0].fecha_numeracion 
+                ? [ { text: [ { text: this.formatearFecha(this.datosEnvio[0].fecha_numeracion), style: 'textDato' } ], fillColor: '#dddddd' } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ], fillColor: '#dddddd' } ]
+              )
             ],
             [
               { text: [{ text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }] }
+              ...(
+                this.datosEnvio[0].proponente_razon_social 
+                ? [ { text: [ { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ] } ]
+              )
             ],
             [
-              { text: [{ text: 'NÚMERO DE CONTRATO:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].numero_contrato, style: 'textDato' }] }
+              { text: [{ text: 'MONTO CONTRATO INICIAL (Bs):\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              ...(
+                this.datosEnvio[0].monto_contrato 
+                ? [ { text: [ { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' } ], fillColor: '#dddddd' } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ], fillColor: '#dddddd' } ]
+              )
             ],
             [
-              { text: [{ text: 'MONTO CONTRATO VIGENTE:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_vigente,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: [{ text: 'FECHA ORDEN DE PROCEDER:', style: 'textTitulo', alignment: 'right' },] },
+              ...(
+                this.datosEnvio[0].fecha_inicio_ejecucion 
+                ? [ { text: [ { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin emisión de Orden de Proceder', style: 'textTitulo' } ] } ]
+              )
             ],
-            [
-              { text: [{ text: 'FECHA CONTRATO:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_numeracion), style: 'textDato' }] }
-            ],
-            [
-              { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
-            ],
+            // [
+            //   { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+            //   { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }], fillColor: '#dddddd' }
+            // ],
           ]
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
@@ -312,17 +332,6 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
         text: ['\n'],
       },
       {
-        text: '6.   ANEXOS\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: 'Documentación adjunta',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0] 
-      },
-      {
-        text: ['\n'],
-      },
-      {
         text: 'Es cuánto se informa para los fines consiguientes.',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       },
@@ -335,10 +344,23 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
             body: [
               ...this.buildSupervisores(this.datosSup)
               ]
-          }, margin: [20,0,20,0]
+          }, margin: [20,0,20,0],
+          layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
+          vLineWidth: () => 0.7
+          }
         },
       {
-        text: ['\n\n\nCc.Arch.' ],
+        text: [
+        { text: '\n\n\nCc.Arch.'},
+        ...(
+            this.datosInf[0].id_documento 
+            ? [ { text: [ { text: '\nDocumentación adjunta' } ] } ]
+            : [ { text: [ { text: '', style: 'textDato' } ] } ]
+            )
+        ],
         style: 'footerText'
       },
       {
