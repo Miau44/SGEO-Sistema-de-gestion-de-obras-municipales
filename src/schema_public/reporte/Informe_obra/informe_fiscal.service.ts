@@ -439,16 +439,33 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
 //------------------FUNCIONES ------------------------
 
 //funcion para generar la fecha en formato dd/mm/aaa
-    formatearFecha(iso: string | null | undefined): string | undefined {
-    if (!iso) return undefined; // No hace nada si iso es null, undefined o ''
-    
+  formatearFecha(iso: string | null | undefined): string | undefined {
+    if (!iso) return undefined;
+
+    if (typeof iso !== 'string') {
+      // Si no es string, lo convertimos a string (opcional) o devolvemos undefined
+      iso = String(iso);
+    }
+
+    // Intentamos detectar el formato YYYY-MM-DD
+    const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const [, anio, mes, dia] = match;
+      return `${dia}/${mes}/${anio}`;
+    }
+
+    // Si no coincide, probamos con Date
     const fecha = new Date(iso);
+    if (isNaN(fecha.getTime())) {
+      return undefined;  // Fecha inválida
+    }
+
     const dia = String(fecha.getDate()).padStart(2, '0');
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Enero = 0
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
     const anio = fecha.getFullYear();
-    
+
     return `${dia}/${mes}/${anio}`;
-   }
+  }
 
    //Funcion para generar la fecha de manera escrita
   fechaString(iso: string): string {
