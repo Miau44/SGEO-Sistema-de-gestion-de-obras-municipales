@@ -246,12 +246,20 @@ export class ModificacionPagoService {
         .where('id_modificacion = :id_modificacion', { id_modificacion })
         .execute();
 
+        console.log(resultado);
+        
       if (resultado.affected === 0) {
-        return this.responseService.error('Registro no encontrado', '404');
+        return this.responseService.error(
+          new Error(`Registro no encontrado, id: ${id_modificacion}`),
+          'Registro no encontrado',
+          404
+        );
       }
 
       return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
     } catch (error) {
+      console.log('Error en updateDiasVariacion:', error);
+
       return this.responseService.error(error);
     }
   }
