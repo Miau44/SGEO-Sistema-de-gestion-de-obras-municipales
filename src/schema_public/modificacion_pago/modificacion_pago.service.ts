@@ -238,6 +238,13 @@ export class ModificacionPagoService {
 
   async updateDiasVariacion(id_modificacion: number, dias_variacion: number) {
     try {
+
+      //validar exista en base el id_modificacion
+      const modificacion = await this.modificacionRepo.findOne({ where: { id_modificacion } });
+      if (!modificacion) {
+        return this.responseService.error('Registro no encontrado', '404');
+      }
+
       // Actualizar el campo directamente en la base de datos con QueryBuilder
       const resultado = await this.modificacionRepo
         .createQueryBuilder()
