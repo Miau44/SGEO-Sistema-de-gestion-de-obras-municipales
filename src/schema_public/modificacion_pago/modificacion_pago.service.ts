@@ -238,13 +238,6 @@ export class ModificacionPagoService {
 
   async updateDiasVariacion(id_modificacion: number, dias_variacion: number) {
     try {
-
-      //validar exista en base el id_modificacion
-      const modificacion = await this.modificacionRepo.findOne({ where: { id_modificacion } });
-      if (!modificacion) {
-        return this.responseService.error('Registro no encontrado', '404');
-      }
-
       // Actualizar el campo directamente en la base de datos con QueryBuilder
       const resultado = await this.modificacionRepo
         .createQueryBuilder()
@@ -253,12 +246,20 @@ export class ModificacionPagoService {
         .where('id_modificacion = :id_modificacion', { id_modificacion })
         .execute();
 
+        console.log(resultado);
+        
       if (resultado.affected === 0) {
-        return this.responseService.error('Registro no encontrado', '404');
+        return this.responseService.error(
+          new Error(`Registro no encontrado, id: ${id_modificacion}`),
+          'Registro no encontrado',
+          404
+        );
       }
 
       return this.responseService.success({ id_modificacion, dias_variacion }, "Días de variación actualizado correctamente.");
     } catch (error) {
+      console.log('Error en updateDiasVariacion:', error);
+
       return this.responseService.error(error);
     }
   }
