@@ -374,6 +374,43 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
       return this.responseService.error(error, 'Error al actualizar el documento.');
     }
   }
+
+/****************************************************************************************
+**************************Generacion de documentos hacia atras**************************/
+
+  async listarInformesDeObraPendientesDeDocumento(): Promise<any> {
+  try {
+    const query = `
+     SELECT i.id_informe, i.id_obra, i.id_tipo_informe
+          FROM solicitud s
+          JOIN informe i ON s.id_obra = i.id_obra
+          WHERE i.fecha_aprobacion is not null
+                AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
+                AND i.id_estado = 1
+                AND i.id_tipo_informe IN (295, 296)
+    `;
+
+    const resultado: { id_informe: number; id_obra: number; id_tipo_informe: number }[] =
+      await this.documentoRepositorio.query(query);
+
+    return this.responseService.success(
+      resultado.map((item) => ({
+        ...item,
+        servicioReporte:
+          item.id_tipo_informe === 295
+            ? 'informeDeObraSupervisor'
+            : 'informeDeObraFiscal',
+        nombre_archivo: `informe_${item.id_informe}.pdf`
+      })),
+      'Informes sin documento listados correctamente.'
+    );
+  } catch (error) {
+    return this.responseService.error(error, 'Error al listar informes sin documentos.');
+  }
+}
+
+
+
   
 
 
