@@ -166,4 +166,13 @@ export class DocumentoController {
       } catch (error) {
       }
   }
+
+  /****************************************************************************************
+   **************************Generacion de documentos hacia atras**************************/
+
+  @Get('infObra-sin-documento')
+  async obtenerInformesObraSinDocumento() {
+    return this.documentoService.listarInformesDeObraPendientesDeDocumento();
+  }
+
 }
