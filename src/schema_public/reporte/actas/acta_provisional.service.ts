@@ -264,15 +264,15 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                   ]]
             ),
             [
-              { text: [{ text: 'Monto Contrato Inicial (Bs):', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
+              { text: [{ text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
             ...(
               this.datosVariacion[0].conteo === '0'
                 ? []
                 : [[ // agrega la fila
-                    { text: [{ text: 'Monto autorizado (Bs):\n', style: 'textTituloT', alignment: 'right' },] },
-                    { text: [{ text: this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
+                    { text: [{ text: 'Monto autorizado:\n', style: 'textTituloT', alignment: 'right' },] },
+                    { text: [{ text: 'Bs' + this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
                   ]]
             ),
                
@@ -306,12 +306,12 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
           body: [
             [
               { text: [
-                { text: '\n\n\n\nREPRESENTANTE UNIDAD EJECUTORA', style: 'textTitulo', alignment: 'center' },
-                { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center' }
+                { text: '\n\n\n\n\nREPRESENTANTE UNIDAD EJECUTORA', style: 'textTituloT', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center' }
               ]},
               { text: [
-                { text: '\n\n\n\nREPRESENTANTE ÁREA ADMINISTRATIVA', style: 'textTitulo', alignment: 'center' },
-                { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center' }
+                { text: '\n\n\n\n\nREPRESENTANTE ÁREA ADMINISTRATIVA', style: 'textTituloT', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center' }
               ] }
             ],
           ]
@@ -333,9 +333,9 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
             [
               { text:
                     [
-                      { text: '\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
-                      { text: '\nEMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center' },
-                      { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                      { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDatoT', alignment: 'center' },
+                      { text: '\nEMPRESA CONTRATISTA', style: 'textTituloT', alignment: 'center' },
+                      { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
                     ], 
               },
             ],
@@ -358,7 +358,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               [ 
                 { text: [
                   {
-                    text: '\n\n\n\n' + (
+                    text: '\n\n\n\n\n' + (
                           Array.isArray(this.datosSup)
                             ? this.datosSup
                                 .filter(s => s && s.supervisor)
@@ -366,15 +366,15 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                                 .join('\n')  // salto de linea 
                             : ''
                         ),
-                        style: 'textDato', alignment: 'center'
+                        style: 'textDatoT', alignment: 'center'
                   },
-                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' },
-                  { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
+                  { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
                 ]},
                 {
                   text: [
                   {
-                    text: '\n\n\n\n' + (
+                    text: '\n\n\n\n\n' + (
                           Array.isArray(this.datosFis)
                             ? this.datosFis
                                 .filter(f => f && f.fiscal)
@@ -382,10 +382,10 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                                 .join('\n')  // salto de linea 
                             : ''
                         ),
-                        style: 'textDato', alignment: 'center'
+                        style: 'textDatoT', alignment: 'center'
                   },
-                  { text: '\nFISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' },
-                  { text: '\nSELLO Y FIRMA', style: 'textTituloT', bold: 'true', alignment: 'center'}
+                  { text: '\nFISCAL(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
+                  { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
                 ]}
               ]
                 //...this.buildSupervisores(this.datosSup),
@@ -442,7 +442,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       },
       footerText: {
         fontSize: 6,
-        bold: false,          
+        //bold: false,          
       },
       textDato: {
         fontSize: 9,
