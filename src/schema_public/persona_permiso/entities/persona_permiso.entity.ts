@@ -14,6 +14,17 @@ export class PersonaPermiso {
 
     @Column({default:null})
     id_rol:number;
+
+    @Column({default:null})
+    cargo:string;
+
+
+    @Column({type: 'timestamp without time zone', nullable: true})
+    fecha_inicio: Date;
+
+    @Column({type: 'timestamp without time zone',  nullable: true})
+    fecha_fin: Date;   
+        
     
     @Column()
     usuario_registro: number;

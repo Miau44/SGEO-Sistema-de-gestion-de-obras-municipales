@@ -58,16 +58,16 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     total_decremento: number;    
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     porcentaje_incremento: number;
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     porcentaje_decremento: number;    
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     total_item_nuevo: number;         
     
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     pocentaje_item_nuevo: number;    
 
     @Column({nullable: true})
