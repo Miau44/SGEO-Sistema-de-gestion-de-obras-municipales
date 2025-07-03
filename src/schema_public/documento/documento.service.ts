@@ -553,4 +553,46 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   }
 }
 
+async actualizarSoloRutaDocumento(id_documento: number, ruta: string) {
+  try {
+    await this.documentoRepositorio.update(id_documento, {
+      ruta_documento: ruta,
+      fecha_modificacion: new Date()
+    });
+    return this.responseService.success(
+      {},
+      'Ruta del documento actualizada correctamente.'
+    );
+  } catch (error) {
+    return this.responseService.error(error, 'Error al actualizar la ruta del documento.');
+  }
+}
+
+
+/***coreccion de informe incial */
+async listarInformesInicialesConDocumento(): Promise<any> {
+  try {
+    const query = `
+      SELECT i.id_informe, i.id_obra, i.id_tipo_informe, 
+             doc.id_documento, doc.ruta_documento
+      FROM informe i
+      JOIN LATERAL jsonb_array_elements(i.id_documento::jsonb) AS d(doc_json)
+        ON true
+      JOIN documento doc ON doc.id_documento = (d.doc_json->>'id_documento')::INT
+      WHERE i.id_tipo_informe = 235
+        AND i.fecha_aprobacion IS NOT NULL
+        AND i.id_estado = 1
+      ORDER BY i.id_informe DESC;
+    `;
+
+    const resultado = await this.informeRepositorio.query(query);
+
+    return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
+  } catch (error) {
+    return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+  }
+}
+
+
+
 }
