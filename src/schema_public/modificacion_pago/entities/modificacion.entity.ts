@@ -55,11 +55,11 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     total_incremento: number;
 
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
+    porcentaje_incremento: number;    
+
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     total_decremento: number;    
-
-    @Column("decimal", { precision: 15, scale: 2, nullable: true })
-    porcentaje_incremento: number;
 
     @Column("decimal", { precision: 15, scale: 2, nullable: true })
     porcentaje_decremento: number;    
@@ -71,7 +71,7 @@ export class Modificacion {
     pocentaje_item_nuevo: number;    
 
     @Column({nullable: true})
-    total_dia_ampliados: number;
+    total_dia_ampliado: number;
 
     @Column({nullable:true})
     total_plazo_autorizado: number;

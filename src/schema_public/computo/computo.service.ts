@@ -296,7 +296,7 @@ export class ComputoService {
        AND m.id_modificacion = $2
 	  AND i.id_estado=1`;*/
   let query =` SELECT   c.id_computo,
-    m.id_modificacion_pago,
+    c.id_modificacion_pago,
     i.id_item, i.orden_sim, c.id_computo, 
     codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
     total_adjudicado,  numero_veces,  tramo, descripcion, 
@@ -317,8 +317,6 @@ export class ComputoService {
     co.observacion_fiscal, i.id_obra, sh.id_solicitud_historial FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     LEFT OUTER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo 
-    INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
-
     LEFT JOIN (
     SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, mp.id_solicitud, mp.id_modificacion_pago
     FROM public.solicitud_historial as sh  
@@ -326,7 +324,7 @@ export class ComputoService {
     ORDER BY id_solicitud, id_solicitud_historial DESC
 ) AS sh ON c.id_modificacion_pago = sh.id_modificacion_pago
     WHERE i.id_item =$1
-    AND m.id_modificacion_pago = $2
+    AND c.id_modificacion_pago = $2
     AND i.id_estado=1 ORDER BY c.id_computo`;
 
       const params = [data.id_item, data.id_modificacion_pago];

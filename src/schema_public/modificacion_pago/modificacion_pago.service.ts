@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
 import { ResponseService } from 'src/response.service';
@@ -301,11 +301,11 @@ export class ModificacionPagoService {
     }
     console.log(' planillaQuery.rows[0].total', planillaQuery[0].total);
 
-
+    const params3 = [data.id_obra, data.id_solicitud]
     // 2️⃣ Validar que exista al menos un registro en `informe`
     const informeQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total FROM public.informe 
-     WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_estado = 1`, params1);
+     WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_solicitud = $2 AND id_estado = 1`, params3);
 
     if (Number(informeQuery[0].total) === 0) {
       mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
@@ -338,18 +338,30 @@ export class ModificacionPagoService {
       SELECT public.sp_aprobacion_x_tipo($1)	`;
       const params3 = [AprobarDto.id_modificacion_pago];
       const resultado = await this.modificacionRepo.query(query2, params3);
-
+      const MAPEO_TIPO_CORRELATIVO: Record<number, number> = {
+        257: 269, // FIS OC
+        256: 267  // FIS CM
+      };
       if (resultado) {
-        //adicionar el correlativo para el informe del fiscal  266 SCM, 267 FIS CM, 268 SUP OC, 269 FIS OC
-        //257 CheckMetadata, 257 OC
-        //256 CheckMetadata, 256 CM
+        const tipoCorrelativo = MAPEO_TIPO_CORRELATIVO[AprobarDto.id_tipo_modificacion];
+        if (!tipoCorrelativo) return; 
+          const queryVerifica = `
+          SELECT id_informe, id_correlativo 
+          FROM public.informe
+          WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1
+          LIMIT 1`;
 
-        let tipoCorrelativo: number | 0 = 0; // Valor por defecto
-        if (AprobarDto.id_tipo_modificacion === 257) {
-          tipoCorrelativo = 269;
-        } else if (AprobarDto.id_tipo_modificacion === 256) {
-          tipoCorrelativo = 267;
+        const paramsVerifica = [ AprobarDto.id_obra,tipoCorrelativo,AprobarDto.id_solicitud
+        ];
+        const [informeExistente] = await this.modPagoRepositorio.query(queryVerifica, paramsVerifica);
+        if (!informeExistente) {
+          throw new NotFoundException('No se encontró el informe para actualizar');
         }
+
+        if (informeExistente.id_correlativo) {
+          throw new BadRequestException('Este informe ya tiene un correlativo asignado');
+        }
+        // Generar el nuevo correlativo
         const correlativoMemoRes = await this.correlativoService.create({
           id_obra: AprobarDto.id_obra,
           id_tipo_documento: tipoCorrelativo,
@@ -357,21 +369,22 @@ export class ModificacionPagoService {
           usuario_registro: AprobarDto.id_usuario,
           id_estado: 1
         });
-
-        const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
-
+        const idCorrelativoMemo = correlativoMemoRes?.data?.id_correlativo;
+        if (!idCorrelativoMemo) {
+          throw new InternalServerErrorException('No se pudo generar el correlativo');
+        }
         const query4 = `
-      UPDATE public.informe
-      SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
-       WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
-      const params4 = [AprobarDto.id_obra,  tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario];
-      const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
-
-        if (!resultadoinforme) {
-          throw new NotFoundException('Modificación no encontrada');
+        UPDATE public.informe
+        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
+        WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
+        const params4 = [
+          AprobarDto.id_obra,tipoCorrelativo, AprobarDto.id_solicitud,idCorrelativoMemo,AprobarDto.id_usuario
+        ];
+        const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
+        if (!resultadoinforme || resultadoinforme.rowCount === 0) {
+          throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
         }
       }
-
       return this.responseService.success(resultado, "aprobada correctamente.");
     } catch (error) {
       console.error("Error en aprobarDesignacion:", error);
