@@ -7,7 +7,7 @@ import { And, Any, Not, Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { Ficha } from './entities/ficha.entity';
 import { EstructuraFichaDto } from './dto/estructura-fichaDto';
-import { TipoObraModDto } from './dto/tipo-obra-modalidad.dto';
+//import { TipoObraModDto } from './dto/tipo-obra-modalidad.dto';
 
 @Injectable()
 export class FichaService {
@@ -79,8 +79,7 @@ export class FichaService {
 
 
    const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, 
-   
-   REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
    eo.desc_cod_da, eo.nombre_ue, eo.gestion,
    f.fecha_registro
    FROM public.Ficha as f
@@ -126,13 +125,13 @@ export class FichaService {
   }  
 
 
-  actualizar(id_ficha: number, tipoObraModDto: TipoObraModDto) {
-    this.obraRepositorio.update(id_ficha, tipoObraModDto);
-    return {
-      mensaje:'Actualizado con éxito',
-      estado: true,   
-      data: id_ficha  
-    }
-  }  
+  // actualizar(id_ficha: number, tipoObraModDto: TipoObraModDto) {
+  //   this.obraRepositorio.update(id_ficha, tipoObraModDto);
+  //   return {
+  //     mensaje:'Actualizado con exito',
+  //     estado: true,   
+  //     data: id_ficha  
+  //   }
+  // }  
 
 }

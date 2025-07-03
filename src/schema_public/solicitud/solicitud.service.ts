@@ -18,6 +18,8 @@ import { UpdateSolicitudHistorialDto } from './dto/update-solicitud-historial.dt
 import { HistorialObraDto } from './dto/historial-obra.dto';
 import { HistorialSolicitudDto } from './dto/historial-solicitud.dto';
 import { ContadorGestionDto } from './dto/contador-gestion.dto';
+import { UsuarioSolicitudXObraDto } from './dto/usuario-solicitud-obra.dto';
+import { ActualizarSolicitudDto } from './dto/datos-modificacion.dto';
 
 
 
@@ -34,8 +36,29 @@ export class SolicitudService {
 
 async  create(createSolicitudDto: CreateSolicitudDto) {
     try {
-      const resultado = await this.solicitudRepositorio.save(createSolicitudDto);
-      return this.responseService.success(resultado, "Registrado Correctamente.")
+      const respuesta_solicitud = await this.solicitudRepositorio.save(createSolicitudDto);
+      if (!respuesta_solicitud) {
+        return this.responseService.error("Error al guardar la solicitud.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.id_estado_solicitud,
+        id_obra: respuesta_solicitud.id_obra,
+        id_estado_general: respuesta_solicitud.id_estado_general,
+        id_usuario: respuesta_solicitud.id_usuario,
+        proveido: respuesta_solicitud.proveido,
+        data_solicitud: respuesta_solicitud.data_solicitud,
+        fecha_envio: respuesta_solicitud.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.usuario_registro,
+        id_estado_registro: respuesta_solicitud.id_estado_registro,
+      };
+
+      const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorial)
+      return this.responseService.success(respuesta_solicitud, "Registrado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -102,7 +125,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
       eg.desc_modulo,   s.id_estado_solicitud,
       s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
-      s.proveido, s.fecha_envio
+      s.proveido, s.fecha_envio, eg.tooltip
       FROM obra AS o   
       INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
       INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion FROM public.estructura_organizacional
@@ -115,7 +138,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       INNER JOIN  (SELECT id_usuario, id_estado
       FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
       WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3
-AND f.gestion_carpeta = $1 ORDER BY  s.id_solicitud DESC`;
+AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_registro DESC`;
       const values = [bandeja.gestion, bandeja.usuario, bandeja.estado]
       const resultado = await this.solicitudRepositorio.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -179,7 +202,7 @@ AND f.gestion_carpeta = $1 ORDER BY  s.id_solicitud DESC`;
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
-        WHERE id_solicitud =$1  AND id_estado_general= $2
+        WHERE id_solicitud =$1  AND id_estado_general= $2 AND p.id_estado IN(1,5) AND pp.id_estado =1
         LIMIT 1;  `;
 
         const values = [data.solicitud, data.estado_general]        
@@ -200,7 +223,7 @@ AND f.gestion_carpeta = $1 ORDER BY  s.id_solicitud DESC`;
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
-        WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso})
+        WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso}) AND p.id_estado IN(1,5) AND pp.id_estado =1
         LIMIT 1; `;
        // const values = [data.obra, data.permiso]        
       const resultado = await this.solicitudRepositorio.query(query);
@@ -300,7 +323,7 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
         WHERE id_estado IN(1,5) )AS p ON   sh.id_usuario =  p.id_usuario
         --INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo      
         WHERE s.id_solicitud =$1 AND
-        p.id_estado IN (1,5) ORDER BY sh.id_solicitud_historial DESC; `;
+        p.id_estado IN (1,5) AND sh.id_estado_general <>0  AND  sh.id_estado_registro <>0  ORDER BY sh.id_solicitud_historial DESC; `;
     const params = [data.id_solicitud]        
     const resultado = await this.solicitudRepositorio.query(query, params);
     return this.responseService.success(resultado, "Listado Correctamente.")
@@ -308,6 +331,69 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
     return this.responseService.error(error);
   }
 } 
+
+
+async usuarioSolicitudXObra(data: UsuarioSolicitudXObraDto) {
+  try {
+    const query = `
+      SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
+        FROM solicitud_historial sh
+        INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) 
+		AS per ON pp.id_permiso = per.id_permiso  
+        WHERE id_obra =$1  AND id_estado_general= $2
+        LIMIT 1; `;
+
+      const values = [data.id_obra, data.estado_general]        
+    const resultado = await this.solicitudRepositorio.query(query, values);
+    return this.responseService.success(resultado, "Listado Correctamente.")
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+
+
+async guardarHistorialYActualizar(data: ActualizarSolicitudDto) {
+  try {
+
+    console.log(data);
+    
+    console.log('Ejecutando sp_modificacion_historial con:');
+    console.log('Solicitud:', data.p_id_solicitud);
+    console.log('Usuario:', data.p_id_usuario);
+    console.log('Usuario Registro:', data.p_usuario_registro);
+    console.log('Estado:', data.p_id_estado_general);
+    console.log('Proveído:', data.p_proveido);
+
+   /* const query = `SELECT public.sp_modificacion_historial(${data.p_id_solicitud}, 
+    ${data.p_id_usuario}, ${data.p_usuario_registro}, ${data.p_id_estado_general}, ${data.p_proveido}) AS id_historial`;*/
+
+const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5) AS id_historial`;    
+    const params = [
+      data.p_id_solicitud,
+      data.p_id_usuario,
+      data.p_usuario_registro,
+      data.p_id_estado_general,
+      data.p_proveido,
+    ];
+
+    const resultado = await this.solicitudRepositorio.query(query, params);
+    console.log('Resultado del SP:', resultado);
+
+    return this.responseService.success(resultado, "Ejecutado correctamente.");
+  } catch (error:any) {
+    console.error('❌ Error al ejecutar sp_modificacion_historial:', {
+      message: error.message,
+      detail: error.detail,
+      stack: error.stack,
+    });
+    return this.responseService.error(error);
+  }
+}
+
+
+
 
 
 }

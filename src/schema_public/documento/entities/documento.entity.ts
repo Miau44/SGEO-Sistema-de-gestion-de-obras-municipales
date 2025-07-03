@@ -26,13 +26,13 @@ export class Documento {
     @Column()
     usuario_registro: number;
 
-    @Column({ default: 1 })
+    @Column({ default: 0 })
     id_estado: number;
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    @CreateDateColumn({ type: 'timestamp without time zone', default: () => 'CURRENT_TIMESTAMP' })
     fecha_registro: Date
 
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_modificacion: Date    
     
     @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.documento)

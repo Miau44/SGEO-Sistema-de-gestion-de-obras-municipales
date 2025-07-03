@@ -19,26 +19,35 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_total: number;
 
-    @Column()
+    //@Column()
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
     porcentaje_modificacion: number;
 
-    @Column()
+    // @Column()
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
     porcentaje_total: number;
 
-    @Column()
-    num_contrato_modificatorio: number;
+    
+    @Column({ nullable:true })
+    numero_contrato_modificatorio: string;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_aprobacion_contrato: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_supervisor: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_fiscal: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_memo_minuta: Date|null;
+
+    @Column({ type: 'timestamp without time zone', nullable:true})
+    fecha_aprobacion: Date |null; 
+
+    @Column({ nullable:true })
+    finalizado: boolean;
 
     ///campos de tabla generales
 

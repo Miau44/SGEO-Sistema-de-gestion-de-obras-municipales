@@ -5,6 +5,8 @@ import { Empresa } from "src/schema_public/empresa/entities/empresa.entity";
 import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 import { Solicitud } from "src/schema_public/solicitud/entities/solicitud.entity";
+import { IsDate, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @Entity()
 export class Obra {
@@ -26,11 +28,16 @@ export class Obra {
     @Column({default:false})
     anticipo:boolean;
    
-    @Column({type: 'date', nullable:true,})
-    fecha_orden_proceder: Date;    
+    //1paola
+    @Column({type: 'timestamp without time zone', nullable:true})
+   // @Column({type: 'date', nullable:true,})
+    fecha_orden_proceder: Date | null;  
 
-    @Column({type: 'date', nullable:true})
-    fecha_inicio_ejecucion: Date;    
+    //2paola
+    @Column({type: 'timestamp without time zone', nullable:true})
+   // @Column({type: 'date', nullable:true})
+    fecha_inicio_ejecucion: Date | null;    
+   
 
     @Column({nullable:true})
     plazo_ejecucion: number;    
@@ -44,11 +51,16 @@ export class Obra {
     @Column({nullable:true})
     planilla_anticipo: number;    
 
-    @Column({type: 'date',  nullable: true })
-    fecha_recep_provisional: Date;
+    //3paola
+   //@Column({type: 'date',  nullable: true })
+    @Column({type: 'timestamp without time zone', nullable:true})    
+    fecha_recep_provisional: Date | null;
 
-    @Column({type: 'date',  nullable: true})
-    fecha_recep_definitiva: Date;    
+  //4paola
+    @Column({type: 'timestamp without time zone', nullable:true})
+   // @Column({type: 'date',  nullable: true})
+    fecha_recep_definitiva: Date | null;    
+    
 
     @Column({nullable:true})
     plazo_prov_definitiva: number;
@@ -56,11 +68,19 @@ export class Obra {
     @Column({nullable:true})
     procede:number;
 
-    @Column({type: 'date',  nullable: true })
+   //5paola
+    @Column({type: 'timestamp without time zone', nullable: true })    
+   // @Column({type: 'date',  nullable: true })
     fecha_pago_anticipo: Date | null;
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_anticipo: number;
+
+
+  //6paola
+  @Column({type: 'timestamp without time zone', nullable: true })    
+  // @Column({type: 'date',  nullable: true })
+   fecha_instruccion_op: Date | null;
 
     ///---------campos genericos-----//////
 
@@ -68,7 +88,7 @@ export class Obra {
     usuario_registro: number;
 
     @Column({default:1})
-    id_estado: number;    
+    id_estado: number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
     fecha_registro: Date

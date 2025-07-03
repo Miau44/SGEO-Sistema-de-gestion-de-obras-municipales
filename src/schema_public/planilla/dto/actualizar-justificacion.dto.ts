@@ -9,9 +9,13 @@ export class actualizarJustificacionDto {
     id_item: number;
 
     @ApiProperty()
-    justificacion_supervisor: string;
+    id_solicitud_historial: number;    
 
+    @ApiProperty({required:false})
+    justificacion_supervisor: string;
+        
     @ApiProperty()
     id_usuario_registro: number;
+
 
 }

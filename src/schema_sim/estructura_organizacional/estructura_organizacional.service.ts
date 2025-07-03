@@ -13,8 +13,10 @@ export class EstructuraOrganizacionalService {
 
   constructor(
     @InjectRepository(EstructuraOrganizacional) private tipoDocRepositorio: Repository<EstructuraOrganizacional>,
-    private responseService: ResponseService
+    private responseService: ResponseService,
 
+    @InjectRepository(EstructuraOrganizacional)
+    private EORepository: Repository<EstructuraOrganizacional>,
   ) { }    
   create(createEstructuraOrganizacionalDto: CreateEstructuraOrganizacionalDto) {
     return 'This action adds a new estructuraOrganizacional';
@@ -73,4 +75,47 @@ export class EstructuraOrganizacionalService {
       return this.responseService.error(error);
     }
   }  
+
+    async llenarUEDesdeServicio(): Promise<void> {
+      try {
+        console.log('Iniciando el proceso de llenado de la base de datos...');
+        // Consumir el servicio externo
+        var response = await fetch('http://192.168.7.16:3001/simv2-genera-token/estructura', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            "gestion": 2025,
+            "desc_cod_da": 0,
+            "desc_cod_ue": 0,
+            "cod_poa": 0,
+            "cod_carpeta": 0
+          })
+        });
+        const data = await response.json();
+        console.log(data);
+
+        // Iterar sobre los datos y guardarlos en la base de datos
+        for (const item of data.datos) {
+          const nuevaEstructura = this.EORepository.create({
+            gestion: item.gestion,
+            cod_da: item.cod_da,
+            desc_cod_da: item.desc_cod_da,
+            nombre_da: item.nombre_da,
+            sigla_da: item.sigla_da || null,
+            cod_ue: item.cod_ue,
+            desc_cod_ue: item.desc_cod_ue,
+            nombre_ue: item.nombre_ue,
+            sigla_ue: item.sigla_ue || null,
+            id_estado: 1, // Valor por defecto
+            usuario_registro: 0, // Valor por defecto
+          });
+
+          await this.EORepository.save(nuevaEstructura);
+        }
+        console.log('Datos insertados correctamente');
+      } catch (error) {
+        console.error('Error al consumir el servicio o insertar datos:', error);
+      }
+    }
+
 }

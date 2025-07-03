@@ -11,7 +11,7 @@ export class RolDto {
   @ApiProperty({ type: Number, description: 'valor de gestion' })
   gestion: number;
 
-  @ApiProperty()
-  desc_cod_ue: number
+  @ApiProperty({ type: [Number], description: 'Array de IDs' })
+  desc_cod_ue: number[];
 
 }

@@ -8,94 +8,237 @@ import { Documento } from './entities/documento.entity';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
-import axios from 'axios';
+import { Informe } from 'src/schema_public/informe/entities/informe.entity';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
+import { LogService } from '../log/log.service';
+import * as http from 'http';
 
 @Injectable()
 export class DocumentoService {
-
+  private readonly host: string;
   private readonly uploadUrl: string;
+  private readonly sistema: string;
+  private readonly user_registro: string;
 
   constructor(
-    @InjectRepository(Documento) private documentoRepositorio: Repository<Documento>,
+    @InjectRepository(Documento)
+    private documentoRepositorio: Repository<Documento>,
+    @InjectRepository(Informe)
+    private readonly informeRepositorio: Repository<Informe>,
     private responseService: ResponseService,
     private configService: ConfigService,
     private entityManager: EntityManager,
+    private logService: LogService,
   ) {
-    this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.7.35:3300/documento/saveFile';
+    this.host = String(process.env.HOST_ADJUNTO);
+    this.uploadUrl = String(process.env.URL_ADJUNTO);
+    this.sistema = String(process.env.SISTEMA);
+    this.user_registro = String(process.env.USR_REGISTRO);
+
+    //this.uploadUrl = this.configService.get<string>('WEB_UPLOAD_URL') || 'http://192.168.6.140:3300/documento/saveFile/';
   }
 
   async create(createDocumentoDto: CreateDocumentoDto) {
     try {
-      const resultado = await this.documentoRepositorio.save(createDocumentoDto);
-      return this.responseService.success(resultado, "Guardado Correctamente.")
-        } catch (error) {
-          return this.responseService.error(error);
-        }      
+      const resultado =
+        await this.documentoRepositorio.save(createDocumentoDto);
+      return this.responseService.success(resultado, 'Guardado Correctamente.');
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-
 
   async generateDocumentRoute(
     id_obra: number,
     id_tipo_documento: number,
     usuario_registro: number,
     ciNitFuncionario: string,
-    usuario_desc:string
+    usuario_desc: string,
   ): Promise<string> {
     const fecha = new Date();
     const formattedDate = fecha.toISOString().slice(0, 10).replace(/-/g, '');
     const timestamp = Date.now().toString().slice(-6);
     const ruta = `${ciNitFuncionario}/${usuario_desc}/${id_obra}/${id_tipo_documento}/${id_obra}_${id_tipo_documento}_${formattedDate}_${timestamp}`;
-    console.log('ruta nueva agregando funcionario',ruta);
-    console.log('Body recibido:', { id_obra, id_tipo_documento, usuario_registro, ciNitFuncionario, usuario_desc });
+    console.log('ruta nueva agregando funcionario', ruta);
+    console.log('Body recibido:', {
+      id_obra,
+      id_tipo_documento,
+      usuario_registro,
+      ciNitFuncionario,
+      usuario_desc,
+    });
     return ruta;
   }
 
-    
   normalizeFileName(fileName: string): string {
     return fileName
-      .normalize("NFD") // Separa los caracteres acentuados de sus componentes
-      .replace(/[\u0300-\u036f]/g, "") // Elimina los caracteres diacríticos (tildes)
-      .replace(/[^a-zA-Z0-9.-]/g, "_"); // Reemplaza caracteres especiales con "_"
+      .normalize('NFD') // Separa los caracteres acentuados de sus componentes
+      .replace(/[\u0300-\u036f]/g, '') // Elimina los caracteres diacríticos (tildes)
+      .replace(/[^a-zA-Z0-9.-]/g, '_'); // Reemplaza caracteres especiales con "_"
   }
 
-  async saveDocumentoUrl(id_documento: number, url_file: string): Promise<void> {
-    await this.documentoRepositorio.update(id_documento, { ruta_documento: url_file });
+  async saveDocumentoUrl(
+    id_documento: number,
+    url_file: string,
+  ): Promise<void> {
+    await this.documentoRepositorio.update(id_documento, {
+      ruta_documento: url_file,
+      id_estado: 1,
+    });
   }
 
   async createDocumento(documento: Documento): Promise<Documento> {
     return await this.documentoRepositorio.save(documento);
   }
-  
+
+  async subirArchivo(file: Express.Multer.File, datos: any): Promise<any> {
+    const form = new FormData();
+    console.log('datos:', datos);
+
+    form.append('file', file.buffer, file.originalname);
+    // form.append('file', file.buffer, {
+    //   filename: file.originalname,
+    //   contentType: file.mimetype,
+    // });
+    form.append('sistema', datos.sistema);
+    form.append('ruta', datos.ruta);
+    form.append('resumen', datos.resumen);
+    form.append('palabraClave', datos.palabraClave);
+    form.append('usuario', datos.usuario);
+
+    const options: http.RequestOptions = {
+      method: 'POST',
+      host: this.host,
+      port: 3300,
+      path: '/documento/saveFile',
+      headers: form.getHeaders(),
+    };
+
+    return new Promise((resolve, reject) => {
+      console.log('respuesta directa:', resolve, reject);
+
+      const req = http.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          console.log('respuesta end:');
+          resolve(data); // ← se devuelve como string, tal como viene del servicio
+        });
+      });
+
+      req.on('error', (err) => {
+        console.log('respuesta error:', err);
+        reject(err); // ← solo se devuelve el error sin adornos
+      });
+
+      form.pipe(req);
+    });
+  }
+
   async uploadFileToExternalService(
     file: Express.Multer.File,
     ruta: string,
     resumen: string,
     palabraClave: string,
-    usuario: string
+    usuario: string,
   ): Promise<any> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file.buffer, file.originalname);
-      formData.append('sistema', 'SICOM'); // Valor fijo
-      formData.append('ruta', ruta);
-      formData.append('resumen', resumen);
-      formData.append('palabraClave', palabraClave);
-      formData.append('usuario', usuario);
+    const sistema = this.sistema;
+    const usuario_servicio = this.user_registro;
 
-      const response = await axios.post(this.uploadUrl, formData, {
-        headers: formData.getHeaders(),
+    const jsonDebug: Record<string, any> = {
+      sistema: this.sistema,
+      ruta,
+      resumen,
+      palabraClave,
+      usuario: this.user_registro,
+      file: {
+        originalname: file.originalname,
+        size: file.buffer.length,
+        mimetype: file.mimetype,
+      },
+    };
+
+    const formData = new FormData();
+    formData.append('file', file.buffer, file.originalname);
+    formData.append('sistema', this.sistema); // Valor fijo
+    formData.append('ruta', ruta);
+    formData.append('resumen', resumen);
+    formData.append('palabraClave', palabraClave);
+    formData.append('usuario', this.user_registro);
+    try {
+      //usuario = this.user_registro;
+      const datos = {
+        sistema,
+        ruta,
+        resumen,
+        palabraClave,
+        usuario: usuario_servicio,
+      };
+      const response = await this.subirArchivo(file, datos);
+      const parsed = JSON.parse(response);
+
+      // ✅ Log de éxito
+      await this.logService.create({
+        id_usuario: 0,
+        parametro: JSON.stringify({
+          ...jsonDebug,
+          sistema,
+          ruta,
+          resumen,
+          palabraClave,
+          usuario_servicio,
+        }),
+        mensaje: `Archivo subido: ${file.originalname}`,
+        funcionalidad: 'Adjuntos',
+        respuesta: parsed,
       });
 
-      return response.data;
-    } catch (error) {
-      throw new HttpException(
-        `Error al enviar el archivo: ${(error as Error).message}`,
-        HttpStatus.BAD_GATEWAY
-      );
+      return {
+        parsed,
+        uploadUrl: this.uploadUrl,
+        ruta,
+        resumen,
+        palabraClave,
+      };
+    } catch (error: any) {
+      const responseData = error?.response?.data;
+
+      // ⛔ Log de error
+      await this.logService.create({
+        id_usuario: 0,
+        parametro: JSON.stringify({
+          ...jsonDebug,
+          sistema,
+          ruta,
+          resumen,
+          palabraClave,
+          usuario_servicio,
+        }),
+        mensaje: `Error al subir archivo: ${file.originalname}`,
+        funcionalidad: 'Adjuntos',
+        respuesta: JSON.stringify(responseData),
+      });
+
+      console.error('⛔ Error al subir archivo:', {
+        mensaje: error.message,
+        data: responseData,
+      });
+      return {
+        ...jsonDebug,
+        sistema,
+        ...responseData,
+        uploadUrl: this.uploadUrl,
+        ruta,
+        resumen,
+        palabraClave,
+        usuario_servicio,
+      };
     }
   }
-
 
   async obtenerDocumentosPorInforme(idInforme: number): Promise<Documento[]> {
     const query = `
@@ -119,24 +262,22 @@ export class DocumentoService {
     }
   }
 
-
-  //variables para la visualizacion de 
+  //variables para la visualizacion de
   id_obra: number;
-  id_tipo_documento: number[]; 
+  id_tipo_documento: number[];
 
+  //servico para listar y visualizar los documentos pdf (para borrar)
+  /**
+   * modificar esto este servicio TEMPORAL, ya que no esta del todo bien, esto es para listar los documetnos
+   * en la parte de seguimiento por obra
+   */
+  async obtenerDocsPdfxObra(idObra: number): Promise<any[]> {
+    try {
+      if (!idObra) {
+        throw new Error('id_obra es requerido');
+      }
 
-//servico para listar y visualizar los documentos pdf (para borrar)
-/**
- * modificar esto este servicio TEMPORAL, ya que no esta del todo bien, esto es para listar los documetnos 
- * en la parte de seguimiento por obra
- */
- async obtenerDocsPdfxObra(idObra: number): Promise<any[]> {
-  try {
-    if (!idObra) {
-      throw new Error('id_obra es requerido');
-    }
-
-    const query = `
+      const query = `
       SELECT 
         o.id_obra,
         f.desc_carpeta AS nombre_obra,
@@ -169,16 +310,20 @@ export class DocumentoService {
       // Parámetros de la consulta
       const params = [idObra];
 
-      const result: { id_obra: number; nombre_obra: string; tipos_documentos: any[] }[] =
-        await this.documentoRepositorio.query(query, params);
+      const result: {
+        id_obra: number;
+        nombre_obra: string;
+        tipos_documentos: any[];
+      }[] = await this.documentoRepositorio.query(query, params);
 
       // 🔹 Filtrar obras sin documentos después de la consulta
       return result.filter((obra) =>
         Array.isArray(obra.tipos_documentos)
           ? obra.tipos_documentos.some(
-              (tipo: { documentos: any[] }) => Array.isArray(tipo.documentos) && tipo.documentos.length > 0
+              (tipo: { documentos: any[] }) =>
+                Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
             )
-          : false
+          : false,
       );
     } catch (error) {
       console.error('Error en obtenerDocsPdfxObra:', (error as Error).message);
@@ -186,9 +331,7 @@ export class DocumentoService {
     }
   }
 
-  
-  
-  async documentosXObra(data:DocumentoObraDto) {
+  async documentosXObra(data: DocumentoObraDto) {
     try {
       let query = `
     SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
@@ -196,63 +339,226 @@ export class DocumentoService {
     d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento, d.observacion
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1 	`;
-    if(data.anticipo){
-      query += ` WHERE   td.id_tipo_documento IN(20,31)  ORDER BY td.id_tipo_documento ASC`;
-    } else {
+    LEFT OUTER JOIN  public.vista_documentos as d ON td.id_tipo_documento=d.id_tipo_documento AND d.id_obra = $1  	`;
+      if (data.anticipo) {
+        query += ` WHERE   td.id_tipo_documento IN(20,31)  ORDER BY td.id_tipo_documento ASC`;
+      } else {
+        query += `ORDER BY td.id_tipo_documento ASC`;
+      }
 
-      query += `ORDER BY td.id_tipo_documento ASC`;
-
-    }
-
-      const params = [data.obra];  
-     const resultado = await this.documentoRepositorio.query(query, params);      
-      return this.responseService.success(resultado,  "Listado Correctamente.")
+      const params = [data.obra];
+      const resultado = await this.documentoRepositorio.query(query, params);
+      return this.responseService.success(resultado, 'Listado Correctamente.');
     } catch (error) {
       return this.responseService.error(error);
     }
   }
 
-
   async listaDocumentos(data: ListaDocumentoDto) {
-    try { 
-    ;      
-      let query = `		SELECT  td.id_tipo_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
+    try {
+      let query = `		SELECT  td.id_tipo_documento,d.nombre_documento, td.desc_tipo_documento, sub.desc_subtipo AS sistema, 
     td.id_subtipo_documento, td.id_etapa_documento,
     d.id_documento, d.id_obra , d.fecha_registro, d.usuario_registro, d.cumple,  d.ruta_documento
     FROM  tipo_documento as td
     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
     INNER  JOIN  documento as d ON td.id_tipo_documento=d.id_tipo_documento 
-    AND d.id_obra = $1	
+    AND d.id_obra = $1 
+    WHERE  d.cumple =true AND	 d.id_estado = 1	
     ${data.id_tipo_documento !== null ? ' AND td.id_tipo_documento =$2' : ''}
-    ORDER BY td.id_tipo_documento ASC `;     
-      const params : any[]  = [data.id_obra];
-      if(data.id_tipo_documento!== null) 
-      { params.push(data.id_tipo_documento);}
-      const resultado: any[] = await this.documentoRepositorio.query(query, params);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+    ORDER BY td.id_tipo_documento ASC `;
+      const params: any[] = [data.id_obra];
+      if (data.id_tipo_documento !== null) {
+        params.push(data.id_tipo_documento);
+      }
+      const resultado: any[] = await this.documentoRepositorio.query(
+        query,
+        params,
+      );
+      return this.responseService.success(resultado, 'Listado Correctamente.');
     } catch (error) {
       return this.responseService.error(error);
     }
   }
-
 
   async listaDocumentosXObraConAdjunto(data: ListaDocumentoDto) {
-    try { 
-    ;      
+    try {
       let query = `SELECT * FROM public.documento as d
 INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
-WHERE id_obra = $1 AND cumple = true`;     
-      const params : any[]  = [data.id_obra];
-     
-      const resultado: any[] = await this.documentoRepositorio.query(query, params);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
+      const params: any[] = [data.id_obra];
+
+      const resultado: any[] = await this.documentoRepositorio.query(
+        query,
+        params,
+      );
+      return this.responseService.success(resultado, 'Listado Correctamente.');
     } catch (error) {
       return this.responseService.error(error);
     }
   }
 
+  async update(id: number, updateDocumentoDto: Partial<Documento>) {
+    try {
+      updateDocumentoDto.fecha_modificacion = new Date();
+      await this.documentoRepositorio.update(id, updateDocumentoDto);
+      return this.responseService.success(
+        {},
+        'Documento actualizado correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al actualizar el documento.',
+      );
+    }
+  }
 
+  /****************************************************************************************
+   **************************Generacion de documentos hacia atras**************************/
 
-  
+  async listarInformesDeObraPendientesDeDocumento(): Promise<any> {
+    try {
+      const query = `
+     SELECT i.id_informe, i.id_obra, i.id_tipo_informe
+          FROM solicitud s
+          JOIN informe i ON s.id_obra = i.id_obra
+          WHERE i.fecha_aprobacion is not null
+                AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
+                AND i.id_estado = 1
+                AND i.id_tipo_informe IN (295, 296)
+    `;
+
+      const resultado: {
+        id_informe: number;
+        id_obra: number;
+        id_tipo_informe: number;
+      }[] = await this.documentoRepositorio.query(query);
+
+      return this.responseService.success(
+        resultado.map((item) => ({
+          ...item,
+          servicioReporte:
+            item.id_tipo_informe === 295
+              ? 'informeDeObraSupervisor'
+              : 'informeDeObraFiscal',
+          nombre_archivo: `informe_${item.id_informe}.pdf`,
+        })),
+        'Informes sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes sin documentos.',
+      );
+    }
+  }
+
+  async listarInformesInicialesSinDocumento(): Promise<any> {
+    try {
+      const query = `
+      SELECT 
+        i.id_informe,
+        i.id_tipo_informe,
+        i.id_obra,
+        i.fecha_aprobacion AS fecha_aprobacion_informe,
+        sh.fecha_registro AS fecha_aprobacion_historial
+      FROM informe i
+      JOIN solicitud s ON i.id_obra = s.id_obra
+      JOIN solicitud_historial sh ON s.id_solicitud = sh.id_solicitud
+      WHERE i.id_tipo_informe = 235
+        AND sh.id_estado_general = 15
+        AND sh.id_estado_registro = 1
+        AND i.fecha_aprobacion IS NOT NULL
+        AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
+        AND i.id_estado = 1
+      ORDER BY i.id_informe DESC
+    `;
+      const resultado = await this.informeRepositorio.query(query);
+
+      return this.responseService.success(
+        resultado.map((item: any) => ({
+          ...item,
+          servicioReporte: 'informeInicial',
+          nombre_archivo: `Informe_inicial_${item.id_informe}.pdf`,
+        })),
+        'Informes iniciales sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes iniciales sin documento.',
+      );
+    }
+  }
+
+  async listarInformesPreviosSinDocumento(): Promise<any> {
+    try {
+      const query = `
+      SELECT 
+        i.id_informe,
+        i.id_tipo_informe,
+        i.id_obra,
+        i.fecha_aprobacion
+      FROM informe i
+      WHERE i.id_tipo_informe = 236
+        AND i.id_estado = 1
+        AND i.fecha_aprobacion IS NOT NULL
+        AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
+      ORDER BY i.id_informe DESC
+    `;
+      const resultado = await this.informeRepositorio.query(query);
+
+      return this.responseService.success(
+        resultado.map((item: any) => ({
+          ...item,
+          servicioReporte: 'informeActividadesPrevias',
+          nombre_archivo: `Informe_actividades_previas_${item.id_informe}.pdf`,
+        })),
+        'Informes de actividades previas sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes de actividades previas sin documento.',
+      );
+    }
+  }
+
+  async listarInformesPrevisionPagosSinDocumento(): Promise<any> {
+  try {
+    const query = `
+      SELECT 
+        i.id_informe,
+        i.id_obra,
+        i.id_tipo_informe,
+        i.fecha_aprobacion AS fecha_aprobacion_informe,
+        me.fecha_memo AS fecha_aprobacion_memorandum
+      FROM informe i
+      JOIN memorandum me ON i.id_obra = me.id_obra
+      WHERE i.id_tipo_informe = 237
+        AND me.id_tipo_memo = 241
+        AND i.fecha_aprobacion IS NOT NULL
+        AND i.id_estado = 1
+        AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
+      ORDER BY i.id_informe DESC;
+    `;
+
+    const resultado = await this.informeRepositorio.query(query);
+
+    return this.responseService.success(
+      resultado.map((item: any) => ({
+        ...item,
+        servicioReporte: 'reportePrevisionPagos',
+        nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
+      })),
+      'Informes de previsión de pagos sin documento listados correctamente.',
+    );
+  } catch (error) {
+    return this.responseService.error(
+      error,
+      'Error al listar informes de previsión de pagos sin documento.',
+    );
+  }
+}
+
 }

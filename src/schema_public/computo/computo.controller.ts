@@ -17,6 +17,8 @@ import multer from 'multer';
 import { error } from 'console';
 import { ComputoModificacionDto } from './dto/computo-modificacion.dto';
 import { ComputoResumenDto } from './dto/computo-resumen.dto';
+import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dto';
+import { ListaFiscalDto } from './dto/lista-fiscal.dto';
 
 @ApiTags('computo')
 @Controller('computo')
@@ -26,7 +28,10 @@ export class ComputoController {
   @Public()
   @Post('create-computo')
   async  create(@Body() createComputoPlanillaDto: CreateComputoDto) {
+        try {
     return this.computoService.create(createComputoPlanillaDto);
+     } catch (error) {
+    }
   }
 
   @Public()    
@@ -68,7 +73,7 @@ export class ComputoController {
 
   @Public()
   @Post('computo-lista-fiscal')
-  listaItemFiscal(@Body() computoObraDto: ComputoModificacionDto) {
+  listaItemFiscal(@Body() computoObraDto: ListaFiscalDto) {
     try {  
       return this.computoService.listaItemComputoXObraFiscal(computoObraDto);
     } catch (error) {
@@ -146,6 +151,29 @@ export class ComputoController {
   async validarObservacion(@Body() computoDto: ComputoItemDto) {
     return this.computoService.validarObservacion(computoDto);
   }  
+
+
+  @Post('create-computo-observacion')
+  async createComputoObservacion(@Body() createComputoDto: CreateComputoObservacionDto) {
+    try {
+      return this.computoService.createComputoObservacion(createComputoDto);
+    } catch (error) {
+    }
+  }
+
+  @Get('listar-observaciones/:id_computo')
+async listarObservaciones(@Param('id_computo') id_computo: number) {
+  try {
+    return this.computoService.listarComputoObservaciones(id_computo);
+  } catch (error:any) {
+    return {
+      success: false,
+      message: 'Error inesperado al listar observaciones.',
+      error: error?.message ?? 'Error ',
+    };
+  }
+}
+
 
  /* @UseInterceptors(FileInterceptor('file'))
   async importarExcel(@UploadedFile() file: Express.Multer.File) {

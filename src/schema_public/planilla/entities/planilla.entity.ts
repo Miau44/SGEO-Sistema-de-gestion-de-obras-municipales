@@ -27,6 +27,19 @@ export class Planilla {
 
     @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
     total_reordenamiento: number;   
+
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    cantidad_incremento: number;    
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    total_incremento: number;   
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    cantidad_decremento: number;    
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    total_decremento: number;       
       
 
    /* @Column("json", {nullable:true })

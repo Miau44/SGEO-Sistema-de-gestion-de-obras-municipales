@@ -40,22 +40,15 @@ export class ObraService {
 
  async findOne(id_obra: any) {    
     try {
+     
  const query = `
 
- SELECT DISTINCT  f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, 
- f.fecha_validacion_carpeta,    
-REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
-eo.desc_cod_da, eo.nombre_ue, eo.gestion,
-f.fecha_registro,  
-tob.desc_subtipo AS desc_tipoobra , eg.desc_subestado as estado, f.desc_zona_carpeta, o.*
- FROM public.obra AS o   
-INNER JOIN public.ficha f  ON o.id_ficha = f.id_ficha
-INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from public.estructura_organizacional
-GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue  AND f.gestion_carpeta = eo.gestion
-LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
-INNER JOIN public.estado_general as eg ON  o.id_estado = eg.id_estado_general       
-     WHERE  o.id_obra = ${id_obra}`;
-     const resultado = await this.obraRepositorio.query(query);
+
+ SELECT * FROM  public.datos_generales_x_obra
+                   
+     WHERE  id_obra = $1`;
+     const params = [ id_obra];  
+     const resultado = await this.obraRepositorio.query(query, params);
 
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -151,7 +144,8 @@ LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra
 	 AND pp.id_estado =1 AND ppue.id_estado=1  ` ;*/
 
    let query:any = ` SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
-f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,
+f.fecha_validacion_carpeta, 
+public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
 f.total_carpeta as totalcarpeta,eo.desc_cod_da, eo.nombre_ue, eo.gestion,
 f.fecha_registro,  eg.desc_subestado as desc_estado_gral, tob.desc_subtipo AS desc_tipoobra, 
 mc.desc_subtipo AS desc_modalidad, (CASE  WHEN oem.codigo IS NULL THEN 0  ELSE 1 END) AS es_ema, 
@@ -341,7 +335,8 @@ WHERE sol.idusuario= ${data.usuario} ` ;
         return this.responseService.success(resultado, "Listado Correctamente.")
 
       }
-      else {
+      
+      if (misproyectos.permiso) {
 
      /*   const query = `SELECT DISTINCT o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
         f.fecha_validacion_carpeta, REPLACE(to_char(f.total_carpeta,'999G999G999G999D99'), ' ', '') as total_carpeta,

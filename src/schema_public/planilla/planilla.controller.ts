@@ -9,6 +9,8 @@ import { error } from 'console';
 import { actualizarJustificacionDto } from './dto/actualizar-justificacion.dto';
 import { actualizarPlanillaDto } from './dto/actualizar-planilla.dto';
 import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
+import { actualizarObservacionDto } from './dto/planilla_observacion/actualizar-observacion.dto';
+import { PlanillaItemDto } from './dto/obtener-planilla-item.dto';
 
 @ApiTags('planilla')
 @Controller('planilla')
@@ -63,6 +65,15 @@ export class PlanillaController {
   }
 
   @Public()
+  @Post('editar-planilla-observacion')
+  editarObservacion(@Body() data: actualizarObservacionDto) {
+    try {  
+      return this.planillaService.actualizarObservacionXItem(data);
+    } catch (error) {
+    }
+  }
+
+  @Public()
   @Post('actualizar-planilla')
   actualizarPlanilla(@Body() data: actualizarPlanillaDto) {
     try {  
@@ -110,5 +121,34 @@ listaPlanilla(@Body() listaDto: actualizarJustificacionDto) {
     }
   }*/
 
+
+  @Patch(':id')
+  updatePlanillaObservacion(@Param('id') id: string, @Body() updatePlanillaDto: UpdatePlanillaDto) {
+    try{    
+    return this.planillaService.update(+id, updatePlanillaDto);
+  }catch {error}    
+  }
+
+
+
+    @Public()
+  @Post('obtener-planilla-item')
+   listarPlanillaXItem(@Body() listaDto: PlanillaItemDto) {
+    try {  
+      return this.planillaService.listaPlanillaXItem(listaDto);
+    } catch (error) {
+    }
+  }
+
+  
+  @Get('planilla-observaciones/:id')
+  listarObservaciones(@Param('id') id: number) {
+    return this.planillaService.listarObservacionesPlanilla(id);
+  }
+
+  @Get('planilla-justificaciones/:id')
+  listarJustificaciones(@Param('id') id: number) {
+    return this.planillaService.listarJustificacionesPlanilla(id);
+  }
 
 }

@@ -5,12 +5,17 @@ export class CreateContratoDto {
   @ApiProperty({ example: 1, description: 'ID de la carpeta' })
   @IsOptional()
   @IsInt()
-  id_carpeta?: number;
+  correlativo_carpeta?: number;
 
   @ApiProperty({ example: 2, description: 'ID del proveedor' })
   @IsOptional()
   @IsInt()
   id_proveedor?: number;
+
+  @ApiProperty({ example: 2, description: 'ID del proveedor' })
+  @IsOptional()
+  @IsInt()
+  cuce?: string;
 
   @ApiProperty({ example: 'EMA-87-2024', description: 'cod_carpeta' })
   @IsString()
@@ -98,4 +103,16 @@ export class CreateContratoDto {
   @ApiProperty({ example: '2024-11-11', description: 'ID del tipo de contrato' })
   @IsDateString()
   fecha_contrato: Date;
+
+  @ApiProperty({ example: '', description: '' })
+  @IsString()
+  direccion: string;
+
+  @ApiProperty({ example: '', description: '' })
+  @IsString()
+  telefono: string;
+
+  @ApiProperty({ example: 1, description: 'ID del contrato' })
+  @IsInt()
+  id_contrato: number;
 }
