@@ -9,6 +9,7 @@ import { Item } from './../../schema_public/item/entities/item.entity';  // Impo
 import { Documento } from '../../schema_public/documento/entities/documento.entity';
 import { log } from 'node:console';
 import { NUMBER } from 'sequelize';
+import { timeout } from 'rxjs';
 
 @Injectable()
 export class ficha_itemService {
@@ -83,20 +84,6 @@ export class ficha_itemService {
           await manager.save(newItem);
         }
       }
-
-      //documentos
-      // let docs = [];
-      // docs = JSON.parse(documentos_st);
-      // //// Insertar en la tabla "documentos"
-      // for (const documento of docs) {
-      //   const newDocumento = manager.create(Documento, {
-      //     ...documento,
-      //     cumple:true,
-      //     usuario_registro:0,
-      //     id_obra: obraGuardada.id_obra,  // Relacionar el documento con la obra
-      //   });
-      //   await manager.save(newDocumento);
-      // }
     });
   }
 
@@ -129,15 +116,7 @@ export class ficha_itemService {
     const url_sim = process.env.URL_SIM2;
     const url = `${url_sim}sgeo/wsDataUnidadEjecutora`;
 
-    // const qry = `select  from parametrica where id_parametrica = ${process.env.ID_TIPO_ITEM}`;
-    // const resParam = await this.parametricaRepo.query(qry)
-    // console.log("id_parm",resParam);
-
-    const body = gestion_; //corregir esto... ***
-    //console.log(body);
-    //consultar a la base de datos en tabla parametrica, con select
-
-
+    const body = gestion_; 
     // Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
@@ -153,12 +132,7 @@ export class ficha_itemService {
       nuevoArray.sort((a: { codigo_ue: number }, b: { codigo_ue: number }) => a.codigo_ue - b.codigo_ue);
       //console.log(nuevoArray);
       for (const valor of nuevoArray) {//saltar a un valor mayor a 100
-        // if (valor.codigo_ue < 100) {
-        //   continue; // Salta a la siguiente iteración si el valor es mayor a 100
-        // }
-        //console.log("gestion, " + gestion_ + ", CODIGO UE " + valor.codigo_ue);
         await this.obtenerFichas(valor.codigo_ue, id_usuario);
-        //resultados.push(resultado);
       }
     } else {
       throw new Error(`164 Error en la llamada al servicio externo: ${response.statusText}`);
@@ -173,10 +147,10 @@ export class ficha_itemService {
       var maxCorrelativo = await this.fichaRepository.findOne({
         select: { correlativo_carpeta: true },
         order: { correlativo_carpeta: 'DESC' },
-        where: {desc_cod_ue:desc_cod_ue_}, // ← condición vacía explícita
+        where: { desc_cod_ue: desc_cod_ue_ }, // ← condición vacía explícita
       });
-      
-      if(maxCorrelativo != null ){
+
+      if (maxCorrelativo != null) {
         corr_carpeta = maxCorrelativo?.correlativo_carpeta;
         corr_carpeta++;
       }
@@ -196,7 +170,7 @@ export class ficha_itemService {
       });
       const data = await response.json();
       //console.log(data);
-      
+
       if (data.res == "OK") {
         for (const fichaJson of data.datos) {
           //verificar si existe la ficha en la base de datos, si existe no guardar
@@ -236,20 +210,17 @@ export class ficha_itemService {
         //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
       }
     } catch (error) {
-      console.log("catch error:",error);
-      
+      console.log("catch error:", error);
+
     }
   }
-
-
+  
   async obtenerFichaporCorrelativo(id_correlativo: number, id_usuario: number): Promise<any> {
-    //console.log("desc_cod_ue_",desc_cod_ue_);
-
-    // OBTENER PARAMETROS DE URL DESDE .env
+    //OBTENER PARAMETROS DE URL DESDE .env
     const url_sim = process.env.URL_SIM2;
-    // realizar la llamada al servicio externo metodo POST
+    //Realizar la llamada al servicio externo metodo POST
     const url = `${url_sim}sgeo/wsDataFichaObra`;
-    // Realizar la llamada al servicio externo
+    //Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
@@ -258,7 +229,6 @@ export class ficha_itemService {
       })
     });
     const data = await response.json();
-    console.log(data);
     if (data.res == "OK") {
       for (const fichaJson of data.datos) {
         //validar que codigo_ficha tenga el texto 2025
@@ -268,48 +238,48 @@ export class ficha_itemService {
         }
 
         try {
-        let id_ficha = 0;let objFicha = null;let objObra = null;
-        //verificar si existe la ficha en la base de datos, si existe no guardar
-        const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
-        if (fichaExistente) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
-          id_ficha = fichaExistente.id_ficha;
-          objFicha = fichaExistente;
-        }
-        else{
-          const nueva_ficha = this.transformarFicha2(fichaJson, id_usuario);
-          const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
-          id_ficha = nuevaFicha.id_ficha;
-          objFicha = nuevaFicha;
-          console.log(`Ficha guardada: ` + id_ficha);
-        }
-       
-        //verificar que id_ficha no sea 0
-        if (id_ficha === 0) {
-          console.error(`Error: id_ficha es 0, no se puede guardar la obra.`);
-          throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
-        }
+          let id_ficha = 0; let objFicha = null; let objObra = null;
+          //verificar si existe la ficha en la base de datos, si existe no guardar
+          const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
+          if (fichaExistente) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            id_ficha = fichaExistente.id_ficha;
+            objFicha = fichaExistente;
+          }
+          else {
+            const nueva_ficha = this.transformarFicha2(fichaJson, id_usuario);
+            const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
+            id_ficha = nuevaFicha.id_ficha;
+            objFicha = nuevaFicha;
+            console.log(`Ficha guardada: ` + id_ficha);
+          }
 
-        //validar si existe la obra en la base de datos, si existe no guardar
-        let id_obra = 0;
-        const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: id_ficha } });
-        if (obraExistente) {
-          console.log(`Obra con id_ficha ${obraExistente.id_ficha} ya existe en la base de datos.`);
-          id_obra = obraExistente.id_obra;
-          objObra = obraExistente;
-        }
-        else{
-          const nuevaObra = this.crearObraDesdeFicha(objFicha, id_usuario);
-          const obraGuardada = await this.obraRepository.save(nuevaObra);
-          console.log(`Obra guardada`, obraGuardada.id_obra);
-          objObra = obraGuardada;
-        }
+          //verificar que id_ficha no sea 0
+          if (id_ficha === 0) {
+            console.error(`Error: id_ficha es 0, no se puede guardar la obra.`);
+            throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
+          }
 
-        const items = await this.guardarItemsIndividual(fichaJson.d_item, objObra, id_usuario);
-        console.log(`Items guardados`, items);
+          //validar si existe la obra en la base de datos, si existe no guardar
+          let id_obra = 0;
+          const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: id_ficha } });
+          if (obraExistente) {
+            console.log(`Obra con id_ficha ${obraExistente.id_ficha} ya existe en la base de datos.`);
+            id_obra = obraExistente.id_obra;
+            objObra = obraExistente;
+          }
+          else {
+            const nuevaObra = this.crearObraDesdeFicha(objFicha, id_usuario);
+            const obraGuardada = await this.obraRepository.save(nuevaObra);
+            console.log(`Obra guardada`, obraGuardada.id_obra);
+            objObra = obraGuardada;
+          }
 
-      } catch (error) {
-        //lanzar error si no se puede guardar la ficha
+          const items = await this.guardarItemsIndividual(fichaJson.d_item, objObra, id_usuario);
+          console.log(`Items guardados`, items);
+
+        } catch (error) {
+          //lanzar error si no se puede guardar la ficha
 
           //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
           //mandar  error si no se puede guardar la obra, trwow error
@@ -323,7 +293,100 @@ export class ficha_itemService {
     }
   }
 
+  async ActualizacionItemPorCorrelativo(id_correlativo: number, id_usuario: number): Promise<any> {
+    // OBTENER PARAMETROS DE URL DESDE .env
+    const url_sim = process.env.URL_SIM2;
+    // realizar la llamada al servicio externo metodo POST
+    const url = `${url_sim}sgeo/wsDataFichaObra`;
+    // Realizar la llamada al servicio externo
+    var response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+      body: JSON.stringify({
+        "cod_carpeta": id_correlativo
+      })
+    });
 
+    const data = await response.json();
+    if (data.res == "OK") {
+      const fichaJson = data.datos[0]; // Asumimos que solo hay un objeto en datos
+      //for (const fichaJson of data.datos) {
+      //validar que codigo_ficha tenga el texto 2025
+      if (!fichaJson.codigo_ficha.includes("2025")) {
+        console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
+        return;
+      }
+
+      try {
+        let id_ficha = 0; let objFicha = null; let objObra = null;
+        //verificar si existe la ficha en la base de datos, si existe no guardar
+        const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } }); //fichaJson.cod_carpeta viene del servicio externo sim
+        if (!fichaExistente || fichaExistente.id_ficha == 0) {
+          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} no existe en la base de datos.`);
+          return;
+        }
+
+        //validar si existe la obra en la base de datos, si existe no guardar
+        id_ficha = fichaExistente.id_ficha;
+        const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: fichaExistente.id_ficha } });
+        if (!obraExistente || obraExistente.id_obra == 0) {
+          console.log(`Obra con id_ficha ${fichaExistente.id_ficha} ya existe en la base de datos.`);
+          return;
+        }
+
+        var items_actualizados = "";
+        //console.log(fichaJson)
+        fichaJson.d_item.forEach(async (item: any) => {
+          //validar que exista el item en la base de datos (por obra y por codigo_item), si existe se debe actualizar con datos del servicio externo
+          const itemExistente = await this.itemRepository.findOne({
+            where: {
+              id_obra: obraExistente.id_obra,
+              codigo_item: item.codigo_item
+            }
+          });
+          //validar que exista el item en la base de datos, si existe se debe actualizar con datos del servicio externo
+          if (itemExistente) {
+            //validar que el campo finalizado no sea 1
+            if (itemExistente.finalizado) {
+              console.log(`Item con codigo_item ${item.codigo_item} ya está finalizado y no se puede actualizar.`);
+              return;
+            }
+            // Actualizar el item existente
+            itemExistente.cantidad_sim = item.cantidad;
+            itemExistente.cantidad_autorizada = item.cantidad;
+            itemExistente.p_unitario_sim = item.real_unitario;
+            itemExistente.total_item_sim = item.total;
+            //itemExistente.orden_sim = item.orden;
+            await this.itemRepository.save(itemExistente);
+
+            items_actualizados += `${itemExistente.id_item}-${item.codigo_item},`;
+            console.log(`${itemExistente.orden_sim} actualizado`);
+            
+          } else {
+            console.log(`Item con codigo_item ${item.codigo_item} no existe en la base de datos, se omitirá.`);
+            return; // Si no existe, se omite
+          }
+        });
+        //añadir un timeout para console.log("items actualizados: ",items_actualizados);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Espera de 1 segundo
+
+        
+        console.log("items actualizados: ",items_actualizados);
+        return items_actualizados; // Retornar los items actualizados
+      } catch (error) {
+        //lanzar error si no se puede guardar la ficha
+
+        //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
+        //mandar  error si no se puede guardar la obra, trwow error
+        console.error(`❌ Error al procesar la ficha: correlativo:  ${id_correlativo}:`, (error as any).message);
+        throw new Error(`Error al procesar la ficha: ${error}`);
+      }
+      //}
+    } else {
+      console.log("error: sin datos de servicio", data.res);
+      //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
+    }
+  }
 
   private transformarFicha(fichaJson: any, desc_cod_ue: number, gestion: number, id_usuario: number): Ficha {
     //separar el campo cat_programatico en 3 partes

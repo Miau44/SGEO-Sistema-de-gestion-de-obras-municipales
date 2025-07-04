@@ -53,20 +53,28 @@ export class Informe {
     @Column({nullable:true})
     anexos: string;
 
-    @Column({ default:1})
-    id_estado: number;
-  
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' , nullable:true})
-    fecha_registro: Date
 
-    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
-    fecha_modificacion: Date 
-    
     @Column({ type: 'time without time zone', nullable: true })
     hora_registro: string;
 
     @Column({nullable:true})
     periodo_correccion: number;
+
+
+    @Column({ default:1})
+    id_estado: number;
+  
+   /* @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' , nullable:true})
+    fecha_registro: Date*/
+
+  
+    @CreateDateColumn({ type: 'timestamp without time zone', default: () => 'CURRENT_TIMESTAMP' })
+    fecha_registro: Date
+
+
+    @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
+    fecha_modificacion: Date 
+    
     
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 

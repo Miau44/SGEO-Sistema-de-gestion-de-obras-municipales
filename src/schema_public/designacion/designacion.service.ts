@@ -359,7 +359,7 @@ export class DesignacionService {
           id_estado_registro: respuesta_solicitud.data.id_estado_registro,
         };    
         await this.serviceSolicitud.createHistorial(datosHistorial);
-         await this.registrarLog('aprobarDesignacion', 'Historial final registrado', datosHistorial, 'OK', 0);
+         await this.registrarLog('Aprobar Designacion', 'Aprobacion de Designacion creada correctamente ', datosHistorial, 'OK', 0);
     
         return this.responseService.success("Solicitud generada correctamente.");
       } catch (error) {

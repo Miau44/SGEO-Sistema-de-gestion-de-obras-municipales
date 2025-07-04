@@ -166,4 +166,45 @@ export class FichaItemController {
       return { message: 'Test error' };
     });
   }
+
+  @Post('ActualizacionItemPorCorrelativo')
+  @Public()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 3315208 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+      required: ['correlativo_carpeta', 'id_usuario'],
+    },
+  })
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  async ActualizacionItemPorCorrelativo(@Body() body: { correlativo_carpeta: number, id_usuario: number }) { //añadir parametro de entrada a servicio test, gestion
+    //validar que el id_usuario no sea nulo
+
+    if (body == null) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
+    }
+    const { correlativo_carpeta, id_usuario } = body;
+    //validar que la gestion no sea nulo y mayor a 2020
+    if (correlativo_carpeta == null ) {
+      console.error('Error: gestion es nulo');
+      return { message: 'error', error: 'gestion es nulo' };
+    }
+
+     try {
+    const token = await this.ficha_itemService.obtenerToken();
+    const result = await this.ficha_itemService.ActualizacionItemPorCorrelativo(correlativo_carpeta, id_usuario);
+
+    console.log({ correlativo_carpeta, id_usuario });
+    console.log({ res: 'OK' });
+
+    return { message: 'Test successful', result };
+  } catch (error) {
+    console.error('Error:', error);
+    return { message: 'Test error', error: error || error };
+  }
+  }
 }
