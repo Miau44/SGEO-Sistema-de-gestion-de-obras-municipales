@@ -178,6 +178,12 @@ export class DocumentoController {
 
   /****************************************************************************************
    **************************Generacion de documentos hacia atras**************************/
+  @Post('actualizar-ruta-documento')
+  async actualizarRutaDocumento(
+    @Body() data: { id_documento: number; ruta_documento: string },
+  ) {
+    return this.documentoService.updateRutaDoc(data.id_documento,data.ruta_documento);
+  }
 
   @Get('infObra-sin-documento')
   async obtenerInformesObraSinDocumento() {
@@ -199,4 +205,8 @@ async listarInformesPrevisionPagosSinDocumento() {
   return this.documentoService.listarInformesPrevisionPagosSinDocumento();
 }
 
+  @Get('correccion-infoInicial-con-documento')
+  listarInformesInicialesConDocumento() {
+    return this.documentoService.listarInformesInicialesConDocumento();
+  }
 }
