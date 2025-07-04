@@ -84,20 +84,6 @@ export class ficha_itemService {
           await manager.save(newItem);
         }
       }
-
-      //documentos
-      // let docs = [];
-      // docs = JSON.parse(documentos_st);
-      // //// Insertar en la tabla "documentos"
-      // for (const documento of docs) {
-      //   const newDocumento = manager.create(Documento, {
-      //     ...documento,
-      //     cumple:true,
-      //     usuario_registro:0,
-      //     id_obra: obraGuardada.id_obra,  // Relacionar el documento con la obra
-      //   });
-      //   await manager.save(newDocumento);
-      // }
     });
   }
 
@@ -130,15 +116,7 @@ export class ficha_itemService {
     const url_sim = process.env.URL_SIM2;
     const url = `${url_sim}sgeo/wsDataUnidadEjecutora`;
 
-    // const qry = `select  from parametrica where id_parametrica = ${process.env.ID_TIPO_ITEM}`;
-    // const resParam = await this.parametricaRepo.query(qry)
-    // console.log("id_parm",resParam);
-
-    const body = gestion_; //corregir esto... ***
-    //console.log(body);
-    //consultar a la base de datos en tabla parametrica, con select
-
-
+    const body = gestion_; 
     // Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
@@ -154,12 +132,7 @@ export class ficha_itemService {
       nuevoArray.sort((a: { codigo_ue: number }, b: { codigo_ue: number }) => a.codigo_ue - b.codigo_ue);
       //console.log(nuevoArray);
       for (const valor of nuevoArray) {//saltar a un valor mayor a 100
-        // if (valor.codigo_ue < 100) {
-        //   continue; // Salta a la siguiente iteración si el valor es mayor a 100
-        // }
-        //console.log("gestion, " + gestion_ + ", CODIGO UE " + valor.codigo_ue);
         await this.obtenerFichas(valor.codigo_ue, id_usuario);
-        //resultados.push(resultado);
       }
     } else {
       throw new Error(`164 Error en la llamada al servicio externo: ${response.statusText}`);
@@ -241,16 +214,13 @@ export class ficha_itemService {
 
     }
   }
-
-
+  
   async obtenerFichaporCorrelativo(id_correlativo: number, id_usuario: number): Promise<any> {
-    //console.log("desc_cod_ue_",desc_cod_ue_);
-
-    // OBTENER PARAMETROS DE URL DESDE .env
+    //OBTENER PARAMETROS DE URL DESDE .env
     const url_sim = process.env.URL_SIM2;
-    // realizar la llamada al servicio externo metodo POST
+    //Realizar la llamada al servicio externo metodo POST
     const url = `${url_sim}sgeo/wsDataFichaObra`;
-    // Realizar la llamada al servicio externo
+    //Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
