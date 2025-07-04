@@ -16,8 +16,7 @@ export class PersonaPermiso {
     id_rol:number;
 
     @Column({default:null})
-    cargo:string;
-
+    puesto:string;
 
     @Column({type: 'timestamp without time zone', nullable: true})
     fecha_inicio: Date;
@@ -25,7 +24,6 @@ export class PersonaPermiso {
     @Column({type: 'timestamp without time zone',  nullable: true})
     fecha_fin: Date;   
         
-    
     @Column()
     usuario_registro: number;
 

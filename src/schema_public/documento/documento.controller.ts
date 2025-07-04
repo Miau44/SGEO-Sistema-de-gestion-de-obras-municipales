@@ -178,13 +178,11 @@ export class DocumentoController {
 
   /****************************************************************************************
    **************************Generacion de documentos hacia atras**************************/
-  @Patch('actualizar-ruta-documento')
+  @Post('actualizar-ruta-documento')
   async actualizarRutaDocumento(
     @Body() data: { id_documento: number; ruta_documento: string },
   ) {
-    return this.documentoService.update(data.id_documento, {
-      ruta_documento: data.ruta_documento,
-    });
+    return this.documentoService.updateRutaDoc(data.id_documento,data.ruta_documento);
   }
 
   @Get('infObra-sin-documento')
