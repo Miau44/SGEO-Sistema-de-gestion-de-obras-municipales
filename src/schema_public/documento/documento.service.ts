@@ -588,9 +588,23 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   async listarInformesInicialesConDocumento(): Promise<any> {
     try {
       const query = `
-      select documento.id_obra,ruta_documento from documento
-      join informe on informe.id_obra = documento.id_obra and informe.id_tipo_informe = 235 and informe.fecha_aprobacion is not null
-      where id_tipo_documento = 235 and documento.id_estado = 1 order by documento.id_obra asc
+     SELECT
+	documento.id_documento,
+  documento.id_obra,
+  informe.id_tipo_informe,
+  ruta_documento 
+FROM 
+  documento
+JOIN 
+  informe ON informe.id_obra = documento.id_obra 
+          AND informe.id_tipo_informe = 235 
+          AND informe.fecha_aprobacion IS NOT NULL
+WHERE 
+  documento.id_tipo_documento = 235 
+  AND documento.id_estado = 1
+ORDER BY 
+  documento.id_obra ASC
+LIMIT 25;
     `;
 
     const resultado = await this.informeRepositorio.query(query);
