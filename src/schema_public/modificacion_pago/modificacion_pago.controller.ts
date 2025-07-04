@@ -134,7 +134,7 @@ export class ModificacionPagoController {
   @Public()
   @Get('ModificacionesPorContrato/:id_contrato')
   @HttpCode(HttpStatus.OK)
-  async ModificacionesPorCarpeta(@Param('id_contrato') id_contrato: number) {
+  async ModificacionesPorContrato(@Param('id_contrato') id_contrato: number) {
     try {
       return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato);
     } catch (error) {

@@ -328,7 +328,8 @@ WHERE sol.idusuario= ${data.usuario} ` ;
         LEFT JOIN public.sp_obras_ema() AS oem  ON o.id_obra = oem.id_obra	     
         LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =3 )  as tob ON  o.id_tipo_obra = tob.id_subtipo
         LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =4 )  as mc ON  o.id_modalidad = mc.id_subtipo
-        WHERE p.id_usuario =$2   AND p.id_estado=5 AND d.id_estado =1 AND estado_designacion IN(99,102);`;
+        WHERE p.id_usuario =$2   AND p.id_estado=5 AND d.id_estado =1 AND estado_designacion IN(99,102)
+        AND o.id_estado =1 ;`;
 
         const values = [misproyectos.gestion, misproyectos.id_usuario]
         const resultado = await this.obraRepositorio.query(query, values);
