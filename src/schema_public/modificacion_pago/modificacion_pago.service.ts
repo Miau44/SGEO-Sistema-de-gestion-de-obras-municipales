@@ -393,10 +393,10 @@ export class ModificacionPagoService {
 
     let q = `SELECT ficha.correlativo_carpeta, 
         id_modificacion,
-        monto_total as montoadjudicado,
-        porcentaje_total::INTEGER as porcentaje_total,
-        monto_variacion,
-        porcentaje_modificacion::INTEGER as porcentaje_modificacion,
+        ROUND(monto_total,2) AS monto_adjudicado,
+        porcentaje_total,
+        ROUND(monto_variacion, 2) AS  monto_variacion,
+        porcentaje_modificacion,
         fecha_fiscal,
         fecha_supervisor,
         fecha_memo_minuta, 
@@ -410,7 +410,7 @@ export class ModificacionPagoService {
         JOIN obra on mp.id_obra = obra.id_obra
         JOIN ficha on obra.id_ficha = ficha.id_ficha
 				JOIN contrato on contrato.id_obra = obra.id_obra
-				where modificacion.numero_contrato_modificatorio is null`;
+				where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
     if (id_contrato > 0) {
       q = q + ` AND contrato.id_contrato_dlc = $1`
     }
