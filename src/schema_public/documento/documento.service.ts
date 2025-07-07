@@ -320,9 +320,9 @@ export class DocumentoService {
       return result.filter((obra) =>
         Array.isArray(obra.tipos_documentos)
           ? obra.tipos_documentos.some(
-              (tipo: { documentos: any[] }) =>
-                Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
-            )
+            (tipo: { documentos: any[] }) =>
+              Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
+          )
           : false,
       );
     } catch (error) {
@@ -416,12 +416,28 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   async updateRutaDoc(id: number, ruta_documento: string) {
     try {
       const params: any[] = [id, ruta_documento];
-      let query = `UPDATE documento set ruta_documento =$1  where id_documento = $2`;
-      const resultado: any[] = await this.documentoRepositorio.query(
-        query,
-        params,
+         const doc = await this.documentoRepositorio.findOne({
+      where: { id_documento: id },
+    });
+      if (!doc) {
+      return this.responseService.error(
+        null,
+        `No se encontró el documento con id ${id}`,
+        404
       );
-      return this.responseService.success(resultado, 'documento actualizado.');
+    }
+      console.log(doc);
+      if(doc!=null){
+        doc.ruta_documento=ruta_documento;
+      }
+      const  respuesta_doc =   await this.documentoRepositorio.save(doc);
+      // let query = `UPDATE documento set ruta_documento = $1  where id_documento = $2`;
+      // console.log(query);
+      // const resultado: any[] = await this.documentoRepositorio.query(
+      //   query,
+      //   params,
+      // );
+      return this.responseService.success(respuesta_doc, 'documento actualizado.');
     } catch (error) {
       return this.responseService.error(
         error,
@@ -537,8 +553,8 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   }
 
   async listarInformesPrevisionPagosSinDocumento(): Promise<any> {
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT 
         i.id_informe,
         i.id_obra,
@@ -552,23 +568,23 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
       ORDER BY i.id_informe DESC;
     `;
 
-    const resultado = await this.informeRepositorio.query(query);
+      const resultado = await this.informeRepositorio.query(query);
 
-    return this.responseService.success(
-      resultado.map((item: any) => ({
-        ...item,
-        servicioReporte: 'reportePrevisionPagos',
-        nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
-      })),
-      'Informes de previsión de pagos sin documento listados correctamente.',
-    );
-  } catch (error) {
-    return this.responseService.error(
-      error,
-      'Error al listar informes de previsión de pagos sin documento.',
-    );
+      return this.responseService.success(
+        resultado.map((item: any) => ({
+          ...item,
+          servicioReporte: 'reportePrevisionPagos',
+          nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
+        })),
+        'Informes de previsión de pagos sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes de previsión de pagos sin documento.',
+      );
+    }
   }
-}
 
   async actualizarSoloRutaDocumento(id_documento: number, ruta: string) {
     try {
@@ -592,7 +608,8 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
 	documento.id_documento,
   documento.id_obra,
   informe.id_tipo_informe,
-  ruta_documento 
+  ruta_documento ,
+        informe.id_informe
 FROM 
   documento
 JOIN 
@@ -604,17 +621,13 @@ WHERE
   AND documento.id_estado = 1
 ORDER BY 
   documento.id_obra ASC
-LIMIT 25;
-    `;
+LIMIT 5`;
 
-    const resultado = await this.informeRepositorio.query(query);
+      const resultado = await this.informeRepositorio.query(query);
 
-    return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
-  } catch (error) {
-    return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+      return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    }
   }
-}
-
-
-
 }
