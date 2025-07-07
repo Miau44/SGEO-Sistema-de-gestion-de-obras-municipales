@@ -13,7 +13,7 @@ import { ObraService } from '../obra/obra.service';
 import { ModificacionPago } from '../modificacion_pago/entities/modificacion_pago.entity';
 import { ModificacionPagoService } from '../modificacion_pago/modificacion_pago.service';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
-import { Pago } from '../modificacion_pago/entities/pago.entity';
+import { Pago } from '../pago/entities/pago.entity';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 import { Modificacion } from '../modificacion_pago/entities/modificacion.entity';

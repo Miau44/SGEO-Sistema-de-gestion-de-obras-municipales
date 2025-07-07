@@ -7,7 +7,7 @@ import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Modificacion } from './entities/modificacion.entity';
-import { Pago } from './entities/pago.entity';
+import { Pago } from '../pago/entities/pago.entity';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { ModificacionPago } from './entities/modificacion_pago.entity';
 import { CreateMaestroDto } from './dto/create-maestro.dto';
@@ -181,17 +181,21 @@ export class ModificacionPagoService {
         const pago = {
           "id_modificacion_pago": Number(respuesta_modpago.data.id_modificacion_pago),
           "monto_presente": 0,
-          "deducciones": 0,
-          "retenciones": 0,
-          "multas": 0,
+          "deduccion": 0,
+          "retencion": 0,
+          "multa": 0,
           "importe_por_pagar": 0,
           "monto_acumulado": 0,
-          "porcentaje_ejecucion": 0,
+          "porcentaje_presente": 0,
+          "porcentaje_acumulado": 0,
           "fecha_aprobacion_pago": null,
           "fecha_aprobacion_contrato": null,
           "fecha_supervisor": null,
           "fecha_fiscal": null,
           "fecha_certificado": null,
+          "fecha_frp": null,
+          "fecha_inicio_periodo": null,
+          "fecha_fin_periodo": null,
           "id_usuario_registro": dto.id_usuario,
           "id_estado": 1
         }

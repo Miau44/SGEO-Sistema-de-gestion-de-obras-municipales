@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinColumn, OneToOne } from 'typeorm';
-import { ModificacionPago } from './modificacion_pago.entity';
+import { ModificacionPago } from 'src/schema_public/modificacion_pago/entities/modificacion_pago.entity';
 
 @Entity()
 export class Pago {
@@ -14,13 +14,16 @@ export class Pago {
     monto_presente: number;
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    deducciones: number;
+    deduccion: number;
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    retenciones: number;    
+    retencion: number;    
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    multas: number;  
+    multa: number;  
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    penalidad: number;      
 
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     importe_por_pagar: number;  
@@ -28,14 +31,17 @@ export class Pago {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_acumulado: number;  
 
-    @Column()
-    porcentaje_ejecucion: number;      
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    porcentaje_presente: number;    
+    
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    porcentaje_acumulado: number;
 
     @Column({ type: 'date', nullable: true })
     fecha_aprobacion_pago: Date|null;
 
     @Column({ type: 'date', nullable: true })
-    fecha_aprobacion_contrato: Date|null;
+    fecha_frp: Date|null;
 
     @Column({ type: 'date', nullable: true })
     fecha_supervisor: Date|null;
@@ -46,8 +52,16 @@ export class Pago {
     @Column({ type: 'date', nullable: true })
     fecha_certificado: Date|null;
 
-    ///campos de tabla generales
+    @Column({ type: 'date', nullable: true })
+    fecha_inicio_periodo: Date|null;
+    
+    @Column({ type: 'date', nullable: true })
+    fecha_fin_periodo: Date|null;
 
+    @Column({ nullable:true })
+    finalizado: boolean;
+  
+    ///campos de tabla generales
     @Column()
     id_usuario_registro: number;
 

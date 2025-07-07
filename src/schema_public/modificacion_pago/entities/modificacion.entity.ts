@@ -49,38 +49,6 @@ export class Modificacion {
     @Column({ nullable:true })
     finalizado: boolean;
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    porcentaje_reordenamiento: number;     
-
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    total_incremento: number;
-
-    @Column("decimal", { precision: 15, scale: 2, nullable: true })
-    porcentaje_incremento: number;    
-
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    total_decremento: number;    
-
-    @Column("decimal", { precision: 15, scale: 2, nullable: true })
-    porcentaje_decremento: number;    
-
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
-    total_item_nuevo: number;         
-    
-    @Column("decimal", { precision: 15, scale: 2, nullable: true })
-    pocentaje_item_nuevo: number;    
-
-    @Column({nullable: true})
-    total_dia_ampliado: number;
-
-    @Column({nullable:true})
-    total_plazo_autorizado: number;
-        
-    @Column({ type: 'timestamp without time zone', nullable: true })
-    nueva_fecha_provisional: Date|null;
-
-    @Column({ type: 'timestamp without time zone', nullable: true })
-    nueva_fecha_definitiva: Date|null;
     ///campos de tabla generales
 
     @Column()

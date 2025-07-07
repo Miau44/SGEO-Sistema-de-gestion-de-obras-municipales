@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { ModificacionPagoController } from './modificacion_pago.controller';
 import { Modificacion } from './entities/modificacion.entity';
-import { Pago } from './entities/pago.entity';
+import { Pago } from '../pago/entities/pago.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResponseService } from 'src/response.service';
 import { CorrelativoService } from '../correlativo/correlativo.service';
