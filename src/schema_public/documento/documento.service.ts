@@ -493,14 +493,9 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
         i.id_informe,
         i.id_tipo_informe,
         i.id_obra,
-        i.fecha_aprobacion AS fecha_aprobacion_informe,
-        sh.fecha_registro AS fecha_aprobacion_historial
+        i.fecha_aprobacion AS fecha_aprobacion_informe
       FROM informe i
-      JOIN solicitud s ON i.id_obra = s.id_obra
-      JOIN solicitud_historial sh ON s.id_solicitud = sh.id_solicitud
       WHERE i.id_tipo_informe = 235
-        AND sh.id_estado_general = 15
-        AND sh.id_estado_registro = 1
         AND i.fecha_aprobacion IS NOT NULL
         AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
         AND i.id_estado = 1
@@ -564,12 +559,9 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
         i.id_informe,
         i.id_obra,
         i.id_tipo_informe,
-        i.fecha_aprobacion AS fecha_aprobacion_informe,
-        me.fecha_memo AS fecha_aprobacion_memorandum
+        i.fecha_aprobacion AS fecha_aprobacion_informe
       FROM informe i
-      JOIN memorandum me ON i.id_obra = me.id_obra
       WHERE i.id_tipo_informe = 237
-        AND me.id_tipo_memo = 241
         AND i.fecha_aprobacion IS NOT NULL
         AND i.id_estado = 1
         AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
