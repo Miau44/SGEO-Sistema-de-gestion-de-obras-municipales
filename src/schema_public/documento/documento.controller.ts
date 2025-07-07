@@ -201,9 +201,9 @@ export class DocumentoController {
   }
 
   @Get('infoPrevisionPagos-sin-documento')
-async listarInformesPrevisionPagosSinDocumento() {
-  return this.documentoService.listarInformesPrevisionPagosSinDocumento();
-}
+  async listarInformesPrevisionPagosSinDocumento() {
+    return this.documentoService.listarInformesPrevisionPagosSinDocumento();
+  }
 
   @Get('correccion-infoInicial-con-documento')
   listarInformesInicialesConDocumento() {
