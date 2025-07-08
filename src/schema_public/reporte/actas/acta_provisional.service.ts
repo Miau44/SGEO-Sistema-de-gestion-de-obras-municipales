@@ -146,7 +146,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
     maximumFractionDigits: 2
     });
 
-    console.log('DATOS obra',this.datosEnvio);
+    console.log('DATOS obra',this.datosVariacion.conteo);
     console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
@@ -195,7 +195,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       },
       {
         table: {
-          widths: ['*', 300],
+          widths: ['20%', '80%'],
           body: [
             [
               { text: [{ text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
@@ -210,76 +210,202 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
             ],
           ]
-        }, margin: [10, 0, 10, 7] 
-        //layout: 'noBorders'
+        }, margin: [10, 0, 10, 7], 
+           layout: 'noBorders'
       },
       {
         text: 'Realizada la inspección correspondiente por la Comisión de Recepción de Obras, se constató que la obra fue ejecutada ' +
               'conforme a las especificaciones técnicas del contrato.',
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
-      {
-        
-        table: {
-          widths: ['*', 300],
-          body: [
-            [
-              { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' }] }
-            ],
-            [
-              { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
-            ],
-            [
-              { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
-            ],
-            ...(
-              this.datosVariacion[0].conteo === '0'
-                ? []
-                : [[ // agrega la fila
-                    { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'right' }] },
-                    { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }] }
-                  ]]
-            ),
-            ...(
-              this.datosVariacion[0].conteo === '0'
-                ? []
-                : [[ // agrega la fila
-                    { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-                    { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }], fillColor: '#dddddd' }
-                  ]]
-            ),
-            [
-              { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }] }
-            ],
-            ...(
-              this.datosVariacion[0].conteo === '0'
-                ? []
-                : [[ // agrega la fila
-                    { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-                    { text: [{ text: plazo_real, style: 'textDatoT' }], fillColor: '#dddddd' }
-                  ]]
-            ),
-            [
-              { text: [{ text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
-            ],
-            ...(
-              this.datosVariacion[0].conteo === '0'
-                ? []
-                : [[ // agrega la fila
-                    { text: [{ text: 'Monto autorizado:\n', style: 'textTituloT', alignment: 'right' },] },
-                    { text: [{ text: 'Bs' + this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
-                  ]]
-            ),
+      // {
+      //   table: {
+      //     widths: ['*', 300],
+      //     body: [
+      //       [
+      //         { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+      //         { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' }], fillColor: '#dddddd' }
+      //       ],
+      //       [
+      //         { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'right' },] },
+      //         { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }] }
+      //       ],
+      //       [
+      //         { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+      //         { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
+      //       ],
+      //       ...(
+      //         this.datosVariacion[0].conteo === '0'
+      //           ? []
+      //           : [[ // agrega la fila
+      //               { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'right' }], fillColor: '#dddddd' },
+      //               { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }], fillColor: '#dddddd' }
+      //             ]]
+      //       ),
+      //       ...(
+      //         this.datosVariacion[0].conteo === '0'
+      //           ? []
+      //           : [[ // agrega la fila
+      //               { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'right' },] },
+      //               { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }] }
+      //             ]]
+      //       ),
+      //       [
+      //         { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+      //         { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }], fillColor: '#dddddd' }
+      //       ],
+      //       ...(
+      //         this.datosVariacion[0].conteo === '0'
+      //           ? []
+      //           : [[ // agrega la fila
+      //               { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'right' },] },
+      //               { text: [{ text: plazo_real, style: 'textDatoT' }] }
+      //             ]]
+      //       ),
+      //       [
+      //         { text: [{ text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
+      //         { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
+      //       ],
+      //       ...(
+      //         this.datosVariacion[0].conteo === '0'
+      //           ? []
+      //           : [[ // agrega la fila
+      //               { text: [{ text: 'Monto autorizado:\n', style: 'textTituloT', alignment: 'right' },] },
+      //               { text: [{ text: 'Bs' + this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
+      //             ]]
+      //       ),
                
-          ]
-        }, margin: [10, 0, 10, 7] 
-        //layout: 'noBorders'
-      },
+      //     ]
+      //   }, margin: [10, 0, 10, 7] 
+      //   //layout: 'noBorders'
+      // },
+      ...( this.datosVariacion[0].conteo === '0'
+        ? [
+          {
+            table: {
+              widths: ['50%', '50%'],
+              body: [
+                [
+                  { text: 'CONTRATO INICIAL', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
+                ],
+                [ { text: 'Orden de Proceder:', style: 'textTituloT', alignment: 'right' },
+                  { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' } 
+                ],
+                [
+                  { text: 'Plazo (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.datosEnvio[0].plazo_contrato, style: 'textDatoT', fillColor: '#dddddd' }
+                ],
+                [
+                  { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
+                  { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }
+                ],
+                [
+                  { text: 'Fecha real de conclusión:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT', fillColor: '#dddddd' }
+                ]
+              ]
+            }, margin: [120, 0, 120, 7], layout: 'noBorders'
+          }
+        ]
+        : [
+            {
+              table: {
+                widths: ['50%', '50%'],
+                body: [ 
+                  [
+                    { // TABLA IZQUIERDA
+                      table: {
+                        widths: ['50%', '50%'],
+                        body: [
+                          [
+                            { text: 'CONTRATO INICIAL', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
+                          ],
+                          [ { text: 'Orden de Proceder:', style: 'textTituloT', alignment: 'right' },
+                            { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' } 
+                          ],
+                          [
+                            { text: 'Plazo (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: this.datosEnvio[0].plazo_contrato, style: 'textDatoT', fillColor: '#dddddd' }
+                          ],
+                          [
+                            { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
+                            { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }
+                          ]
+                        ]
+                      }, layout: 'noBorders'
+                      // layout: {
+                      //               hLineWidth: function (i: number, node: any) {
+                      //                 return (i === 0 || i === node.table.body.length) ? 0.7 : 0;
+                      //               },
+                      //               vLineWidth: function (i: number, node: any) {
+                      //                 return (i === 0 || i === node.table.widths.length) ? 0.7 : 0;
+                      //               },
+                      //               hLineColor: function (i: number, node: any) {
+                      //                 return '#000000';
+                      //               },
+                      //               vLineColor: function (i: number, node: any) {
+                      //                 return '#000000';
+                      //               }
+                      //             }
+                    },
+                    {  //TABLA DERECHA
+                      table: {
+                        widths: ['50%', '50%'],
+                        body: [
+                          [
+                            { text: 'ULTIMA MODIFICACIÓN APROBADA ' + this.datosVariacion[0].tipo_modificacion_texto + this.datosVariacion[0].correlativo, style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
+                          ],
+                          [
+                            { text: 'Modificación plazo (d.c.):', style: 'textTituloT', alignment: 'right' },
+                            { text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }
+                          ],
+                          [
+                            { text: 'Plazo real de ejecución (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: plazo_real, style: 'textDatoT', fillColor: '#dddddd' }
+                          ],
+                          [
+                            { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
+                            { text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }
+                          ],
+                          [
+                            { text: 'Monto autorizado:\n', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: 'Bs' + this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
+                          ]
+                        ]
+                      }, layout: 'noBorders'
+                      // layout: {
+                      //               hLineWidth: function (i: number, node: any) {
+                      //                 return (i === 0 || i === node.table.body.length) ? 0.7 : 0;
+                      //               },
+                      //               vLineWidth: function (i: number, node: any) {
+                      //                 return (i === 0 || i === node.table.widths.length) ? 0.7 : 0;
+                      //               },
+                      //               hLineColor: function (i: number, node: any) {
+                      //                 return '#000000';
+                      //               },
+                      //               vLineColor: function (i: number, node: any) {
+                      //                 return '#000000';
+                      //               }
+                      //             }
+                    }
+                  ]
+                ]
+              }, margin: [10, 0, 10, 5], layout: 'noBorders'
+            },
+            {
+              table: {
+                widths: ['50%', '50%'],
+                body: [ 
+                  [
+                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT', fillColor: '#dddddd' }
+                  ]
+                ]
+              }, layout: 'noBorders', margin: [10, 0, 10, 7]
+            }
+        ]
+      ),
+      
       {
         text: 'La obra se recibe con las siguientes observaciones a ser subsanadas durante el periodo de corrección de defectos: ',
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
