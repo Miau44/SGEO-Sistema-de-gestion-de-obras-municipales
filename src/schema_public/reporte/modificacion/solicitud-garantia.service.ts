@@ -34,6 +34,7 @@ export class SolicitudGarantia {
 
     datosEnvio: any = [];
     datosSup: any = [];
+    datosSolGa: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -66,12 +67,20 @@ export class SolicitudGarantia {
     return resultado1[0];
    }
 
+     // Datos Solicitud Garantia
+  async datosSolGarantia(id_modif_pago: number) {
+    const query = `
+        SELECT * 
+        FROM public."vista_reporte_Sol_Garantia" WHERE id_modificacion_pago = ${id_modif_pago}`;
+    const resultado = await this.sequelize.query(query);
+    return resultado[0];
+  }
     
 
 // REPORTE - SOLICITUD DE GARANTIA
-async generateSolicitudGarantia(obra: number): Promise<Buffer> {
+async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
 
-  const datosGenerales = await this.datosGeneralesObraModif(obra);
+  const datosGenerales = await this.datosGeneralesObraModif(id_modif_pago);
   if ((!datosGenerales || (Array.isArray(datosGenerales) && datosGenerales.length === 0) || (typeof datosGenerales === 'object' && Object.keys(datosGenerales).length === 0))){
     throw new Error('No se encontraron datos para la ID de la obra proporcionada');
   }
@@ -79,11 +88,22 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
 
   const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
   if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del fiscal designado');
+      throw new Error('No se encontraron datos del supervisor designado');
   }
   this.datosSup = res1;
 
+  const res2 = await this.datosSolGarantia(id_modif_pago);
+  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+    this.datosSolGa = [{
+      cite_nota: '',
+      correlativo: ''
+    }];
+  } else {
+    this.datosSolGa = res2;
+  }
+  
 
+  //console.log('DATOS NULOS', 'HOLA');
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_carta.png';
@@ -120,7 +140,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
       {
         text:[
             { text: '\n\nNOTA DE SOLICITUD DE GARANTÍA', style: 'titulo', alignment: 'center' },
-            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + '-SG-1', style: 'titulo', alignment: 'center' },
+            { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + '-'+ this.datosSolGa[0].cite_nota + '-' + this.datosSolGa[0].correlativo, style: 'titulo', alignment: 'center' },
         ],
       },
       {
@@ -144,25 +164,6 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
         text: '\nREF.:SOLICITUD DE GARANTÍA ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' - ' + this.datosEnvio[0].cod_carpeta + ' ' + this.datosEnvio[0].desc_carpeta , 
         style: 'titulo', alignment: 'right', decoration: 'underline', margin: [80,0,0,0]
       },
-    //   {
-    //     table: {
-    //       widths: ['38%', '65%'],
-    //       body: [
-    //         [
-    //           { text: 'OBRA:', style: 'textDato', alignment: 'right' },
-    //           { text: this.datosEnvio[0].desc_carpeta, style: 'textDato', decoration: 'underline', bold: true }
-    //         ],
-    //         [
-    //           { text: 'CODIGO:', style: 'textDato', alignment: 'right' },
-    //           { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', decoration: 'underline', bold: true }
-    //         ],
-            
-    //       ]
-    //     },
-    //     layout: {
-    //       defaultBorder: false,
-    //     }
-    //   },
       {
         text: '\n',
       },
@@ -198,9 +199,15 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
           table: {
             widths: ['50%','50%'],
             body: [
-              ...this.buildFiscales(this.datosSup)
+              ...this.buildSupervisores(this.datosSup)
               ]
-          }, margin: [20,0,20,0]
+          }, margin: [20,0,20,0],
+            layout: {
+              hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+              vLineColor: () => '#444444', // color gris opaco para líneas verticales
+              hLineWidth: () => 0.7,       // grosor más fino
+              vLineWidth: () => 0.7
+              } 
         },
       {
         text: ['\n\n\n\n\n\n\n\n\ncc:Arch:' ],
@@ -232,7 +239,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
       titulo: {
         fontSize: 10,
         bold: true,
-        opacity: 0.8,
+        //opacity: 0.8,
       },
       footerText: {
         fontSize: 6,
@@ -240,7 +247,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
       },
       textDato: {
         fontSize: 9,
-        bold: false,
+        //bold: false,
         //color: 'gray', 
         opacity: 0.8,
       },
@@ -295,7 +302,7 @@ async generateSolicitudGarantia(obra: number): Promise<Buffer> {
   }
 
     //Cargar tabla de Supervisores - con recuadro
-    buildFiscales(data: any[]) {
+    buildSupervisores(data: any[]) {
       const arrayData = [];
   
       for (const persona of data) {
