@@ -12,6 +12,8 @@ import multer from 'multer';
 import path from 'path';
 import { Documento } from './entities/documento.entity';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
+import { VistaListadoDocsObraDto } from './dto/vistaListado-documento.dto';
+
 
 @ApiTags('documentos')
 @Controller('documento')
@@ -182,7 +184,10 @@ export class DocumentoController {
   async actualizarRutaDocumento(
     @Body() data: { id_documento: number; ruta_documento: string },
   ) {
-    return this.documentoService.updateRutaDoc(data.id_documento,data.ruta_documento);
+    return this.documentoService.updateRutaDoc(
+      data.id_documento,
+      data.ruta_documento,
+    );
   }
 
   @Get('infObra-sin-documento')
@@ -208,5 +213,12 @@ export class DocumentoController {
   @Get('correccion-infoInicial-con-documento')
   listarInformesInicialesConDocumento() {
     return this.documentoService.listarInformesInicialesConDocumento();
+  }
+
+  //lista documentos por obra
+  @Post('listar-vista-docs-por-obra')
+  @ApiBody({ type: VistaListadoDocsObraDto })
+  async listarVistaDocumentosPorObra(@Body() body: VistaListadoDocsObraDto) {
+    return this.documentoService.listarVistaDocumentosPorObra(body.id_obra);
   }
 }
