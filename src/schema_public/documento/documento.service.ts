@@ -384,7 +384,7 @@ export class DocumentoService {
     try {
       let query = `SELECT * FROM public.documento as d
 INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
-WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
+WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1 AND td.id_estado = 1;`;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.documentoRepositorio.query(
