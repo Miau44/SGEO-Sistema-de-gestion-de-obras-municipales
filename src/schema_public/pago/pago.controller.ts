@@ -7,13 +7,23 @@ import { PagoObraDto } from './dto/pago.obra.dto';
 
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PagoPlanillaDto } from './dto/pago_planilla.dto';
+import { CreateDescuentoDto } from './dto/dto-descuento/create-descuento.dto';
+import { Descuento } from './entities/descuento.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ResponseService } from 'src/response.service';
+import { Pago } from './entities/pago.entity';
+import { error } from 'console';
 
 
 
 @ApiTags('Pagos')
 @Controller('pago')
 export class PagoController {
-  constructor(private readonly pagoService: PagoService) {}
+  constructor(private readonly pagoService: PagoService
+
+
+  ) {}
 
   @Post()
   create(@Body() createPagoDto: CreatePagoDto) {
@@ -30,10 +40,10 @@ export class PagoController {
     return this.pagoService.findOne(+id);
   }
 
-  @Patch(':id')
+ /* @Patch(':id')
   update(@Param('id') id: string, @Body() updatePagoDto: UpdatePagoDto) {
     return this.pagoService.update(+id, updatePagoDto);
-  }
+  }*/
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -68,4 +78,16 @@ export class PagoController {
       }
     }
 
+//----------------------------->>>>>>>>>>>DESCUENTO<<<<<<<<<<<<--------------------------------
+  @Public()
+
+@Post('create-descuento')
+  createDescuento(@Body() createDto: CreateDescuentoDto) {
+    try{
+    return this.pagoService.createDescuento(createDto);
+  }catch {error}
+  }  
+
+ 
+ 
 }
