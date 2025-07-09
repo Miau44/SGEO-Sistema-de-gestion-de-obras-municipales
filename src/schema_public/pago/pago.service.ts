@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { PagoObraDto } from './dto/pago.obra.dto';
 import { PagoPlanillaDto } from './dto/pago_planilla.dto';
+import { CreateDescuentoDto } from './dto/dto-descuento/create-descuento.dto';
+import { Descuento } from './entities/descuento.entity';
 
 
 
@@ -15,6 +17,7 @@ export class PagoService {
   constructor(
     @InjectRepository(Pago) private pagoRepositorio: Repository<Pago>,
    private responseService: ResponseService,
+       @InjectRepository(Descuento) private descuentoRepocitorio: Repository<Descuento>,
 
 
     
@@ -86,5 +89,34 @@ export class PagoService {
       return this.responseService.error(error);
     }
   }
+
+
+
+
+
+  async createDescuento(data: CreateDescuentoDto) {
+    try {
+
+const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5, $6, $7) AS id_historial`;    
+    const params = [
+      data.p_id_descuento,
+      data.p_id_pago,
+      data.p_id_tipo_descuento,
+      data.p_monto,      
+      data.p_id_subtipo_descuento,
+      data.p_detalle,
+      data.p_id_usuario_registro
+    ];
+
+    const resultado = await this.pagoRepositorio.query(query, params);
+    console.log('Resultado del SP:', resultado);
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error: any) {
+      return this.responseService.error(error);
+    }
+
+  }  
+
+
 
 }
