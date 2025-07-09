@@ -694,7 +694,6 @@ async getActaEntregaProvisionalById(id_informe: number) {
         select: ['id_documento', 'nombre_documento', 'ruta_documento', 'fecha_registro'],
       });
     }
-
     return this.responseService.success({
       ...informe,
       documentos
@@ -736,7 +735,56 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
   }
 }
 
+/*******************************************Acta Definitiva***********************************************************/
 
+async createActaEntregaDefinitiva(data: CreateActaEntregaProvicionalDto) {
+    try {
+      const {
+        id_obra,
+        id_documento,
+        usuario_registro,
+      } = data;
+
+      // 1. Crear solicitud
+      const solicitudDto: CreateSolicitudDto = {
+        id_tipo_solicitud: 1,
+        id_estado_solicitud: 2,
+        id_obra,
+        id_estado_general: 25,
+        id_usuario: usuario_registro,
+        proveido: '',
+        usuario_registro: usuario_registro,
+        id_estado_registro: 1,
+      };
+
+      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
+      const solicitud = respuestaSolicitud.data;
+
+      if (!solicitud || !solicitud.id_solicitud) {
+        throw new Error('No se pudo crear la solicitud');
+      }
+
+      // 2. Crear informe sin correlativo
+      const nuevoInforme = this.informeRepositorio.create({
+        id_obra,
+        id_tipo_informe: 342,
+        id_documento,
+        usuario_registro,
+        id_solicitud: solicitud.id_solicitud,
+        id_estado: 1,
+        antecedentes: '',
+        analisis: '',
+        conclusion: '',
+        recomendacion: ''
+      });
+
+      const resultado = await this.informeRepositorio.save(nuevoInforme);
+      return this.responseService.success(resultado, "Acta de entrega provisional registrada correctamente.");
+    } catch (error) {
+      console.error('Error en createActaEntregaProvicional:', error);
+      return this.responseService.error('No se pudo registrar el acta de entrega provisional.');
+    }
+  }
 
 
 
