@@ -79,11 +79,11 @@ export class PagoService {
   async listaPlanillaPago(data: PagoPlanillaDto) {
     try {
 
-      let query = ` 
-        SELECT * FROM  public.vista_planilla_pago_lista   
-      WHERE id_obra= $1  AND id_modificacion_pago = $2;`
+   
 
-      const params = [data.id_obra, data.id_modificacion_pago, ];
+      let query = ` 
+      SELECT * FROM  sp_certificado_planilla_pago($1, $2, $3);`  ;
+      const params = [data.id_obra, data.id_modificacion_pago, data.id_num_pago]; 
       const resultado = await this.pagoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {

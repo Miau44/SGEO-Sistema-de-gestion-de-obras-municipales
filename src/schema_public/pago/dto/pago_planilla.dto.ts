@@ -10,8 +10,8 @@ export class PagoPlanillaDto {
     @ApiProperty()
     id_modificacion_pago: number;
 
-
-
+   @ApiProperty({required: false})
+    id_num_pago: number;
 
     
 }
