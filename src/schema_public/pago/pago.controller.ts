@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { Pago } from './entities/pago.entity';
 import { error } from 'console';
+import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 
 
 
@@ -88,6 +89,23 @@ export class PagoController {
   }catch {error}
   }  
 
+    @Public()
+    @Post('lista-descuento-pago')
+    listaDescuento(@Body() data: PagoDescuentoDto) {
+      try {  
+        return this.pagoService.listaDescuentoPago(data);
+      } catch (error) {
+      }
+    }  
  
  
+
+  @Public()
+  @Post('pago-resumen-lista')
+  listaResumen(@Body() data: PagoPlanillaDto) {
+    try {
+      return this.pagoService.listaResumenPago(data);
+    } catch (error) {
+    }
+  } 
 }

@@ -9,6 +9,7 @@ import { PagoObraDto } from './dto/pago.obra.dto';
 import { PagoPlanillaDto } from './dto/pago_planilla.dto';
 import { CreateDescuentoDto } from './dto/dto-descuento/create-descuento.dto';
 import { Descuento } from './entities/descuento.entity';
+import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 
 
 
@@ -118,5 +119,38 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
   }  
 
 
+
+  async listaDescuentoPago(data: PagoDescuentoDto) {
+    try {
+
+      let query = ` 
+        SELECT * FROM  public.vista_pago_lista_descuento   
+      WHERE id_pago= $1;`
+
+      const params = [data.id_pago];
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+ 
+
+  
+  async listaResumenPago(data: PagoPlanillaDto) {
+    try {
+
+      let query = ` 
+        SELECT * FROM  public.vista_pago_resumen   
+      WHERE id_obra= $1  AND id_modificacion_pago = $2;`   
+
+      const params = [data.id_obra, data.id_modificacion_pago];
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
 
 }
