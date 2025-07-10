@@ -81,7 +81,7 @@ export class PlanillaPago {
     return resultado[0];
    }
 
-   // Tabla Planilla Reordenamiento
+   // Tabla Planilla PAGO
    async planillaReordenamiento(solicitud: number) {
     const query3 = `
         SELECT * 
@@ -149,18 +149,16 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   //     throw new Error('No se encontraron datos del resúmen de la planilla');
   // }
   this.datosPlanillaR = res4;
-
   const res5 = await this.planillaItemsNuevos(id_modificacion_pago);
   this.datosNuevos = res5;
 
-
-  console.log('DATOS PLANILLA', this.datosPlanilla);
+  console.log('DATOS PAGO', this.datosEnvio);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const imgLogo = 'assets/images/logoSGEO.png'
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
@@ -193,10 +191,13 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
     } as any,
 
     content: [ 
-      
       {
-        text: 'PLANILLA DE CERTIFICADO DE PAGO ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion, 
-        style: 'subheader', alignment: 'center', 
+        text: 'DETALLE DEL CERTIFICADO', 
+        style: 'subheader', alignment: 'center'
+      },
+      {
+        text: 'CERTIFICADO DE PAGO ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_pago, 
+        style: 'subheader', alignment: 'center'
       },
       {
         text: '\n',
@@ -219,88 +220,158 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
             { text: this.datosEnvio[0].nombre_ue, style: 'textDato'}
             ], margin: [0,0,0,3],    
       },
-      {
-        text:[
-            { text: 'ZONA: ', style: 'textTitulo2', bold:true },
-            { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato'}
-            ], margin: [0,0,0,5],    
-      },
       ...(
-      this.datosEnvio[0].modificacion_gral != 1 
-      ?[
-        {
-          table: {
-            headerRows: 2, //para que el encabezado se repita en todas las hojas (2=doble fila de encabezado)
-            widths: [15, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
-            body: [
-              [
-                { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
-                { colSpan: 2, text: 'MODIFICACIÓN', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {},
-                { colSpan: 4, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {},
-                { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
-                
-              ],
-              [
-                {}, {}, {}, {},//
-                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD APROBADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO APROBADO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD ANTERIOR', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO ANTERIOR (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                
-              ],
-            ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico), 
-            ...this.buildResumenPlanilla1(this.datosPlanillaR) 
-            ]
+      this.datosEnvio[0].bandera_modif > 0 
+      ?[ //Existen modificaciones
+        ...(
+        this.datosEnvio[0].bandera_pago > 0 
+        ?[ //Hay pago anterior
+          {
+            table: {
+              headerRows: 2, //para que el encabezado se repita en todas las hojas (2=doble fila de encabezado)
+              widths: [15, 60, '*', 30, 45, 50, 50, 50, 50, 50, 50,50,50,50,50], // 15 columnas
+              body: [
+                [
+                  { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
+                  { colSpan: 2, text: 'MODIFICACIÓN', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {},
+                  { colSpan: 4, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {},
+                  { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
+                  
+                ],
+                [
+                  {}, {}, {}, {},//
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD APROBADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO APROBADO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD ANTERIOR', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO ANTERIOR (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  
+                ],
+              // ...this.buildContenidoPlanilla(this.datosPlanilla, formatoNumerico), 
+              // ...this.buildResumenPlanilla1(this.datosPlanillaR) 
+              ]
+            }
           }
-        } ]
-      :[
-        {
-          table: {
-            headerRows: 2,
-            widths: [15, 60, '*', 30, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 13 columnas
-            body: [
-              [
-                { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-                { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
-                { colSpan: 4, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{}, {}, {},
-                { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
-              ],
-              [
-                {}, {}, {}, {},//
-                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD ANTERIOR', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO ANTERIOR (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
-                
-              ],
-            ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico), 
-            ...this.buildResumenPlanilla2(this.datosPlanillaR)
-            ]
+         ]
+        :[ //No hay pagos anteriores
+          {
+            table: {
+              headerRows: 2,
+              widths: [15, 60, '*', 35, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 13 columnas
+              body: [
+                [
+                  { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
+                  { colSpan: 2, text: 'MODIFICACIÓN', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {},
+                  { colSpan: 2, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
+                  { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
+                ],
+                [
+                  {}, {}, {}, {},//
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD APROBADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO APROBADO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  
+                ],
+              // ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico), 
+              // ...this.buildResumenPlanilla2(this.datosPlanillaR)
+              ]
+            }
           }
-        }]
+         ]
+        ),
+       ]
+      :[ //No existen modificaciones
+        ...(
+        this.datosEnvio[0].bandera_pago > 0 
+        ?[ //Hay pago anterior
+          {
+            table: {
+              headerRows: 2,
+              widths: [15, 60, '*', 35, 45, 60, 60, 60, 60, 60, 60, 60, 60], // 13 columnas
+              body: [
+                [
+                  { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
+                  { colSpan: 4, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{}, {}, {},
+                  { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
+                ],
+                [
+                  {}, {}, {}, {},//
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD ANTERIOR', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO ANTERIOR (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  
+                ],
+              // ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico), 
+              // ...this.buildResumenPlanilla2(this.datosPlanillaR)
+              ]
+            }
+          }
+        ]
+        :[ //No hay pago anterior
+          {
+            table: {
+              headerRows: 2,
+              widths: [15, 60, '*', 40, 70, 70, 70, 70, 70, 70, 70,], // 11 columnas
+              body: [
+                [
+                  { rowSpan: 2, text: 'Nro.', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'CÓDIGO', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+                  { colSpan: 3, text: 'CONTRATO INICIAL', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {},
+                  { colSpan: 2, text: 'DETALLE CERTIFICADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{}, 
+                  { colSpan: 2, text: 'TOTAL ACUMULADO', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },{},
+                ],
+                [
+                  {}, {}, {}, {},//
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'P.U.', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD PRESENTE', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PRESENTE (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'CANTIDAD', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO (Bs)', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
+                  
+                ],
+              // ...this.buildContenidoPlanilla2(this.datosPlanilla, formatoNumerico), 
+              // ...this.buildResumenPlanilla2(this.datosPlanillaR)
+              ]
+            }
+          }
+        ]
+        ),
+        ]
       ),
-      {
-        
-      },
       {
         text: '\n\n\n\n\n',
       },
@@ -408,253 +479,253 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
 
 }
 
-//Cargar tabla de PLANILLA - EXISTE MODIFICACIONES
-buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
+// //Cargar tabla de PLANILLA - EXISTE MODIFICACIONES
+// buildContenidoPlanilla(data: any[], formatoNumerico: Intl.NumberFormat) {
 
-  let datosPl = data;
-  let arrayData = [];
+//   let datosPl = data;
+//   let arrayData = [];
 
-  for (let i = 0; i < datosPl.length; i++) {
+//   for (let i = 0; i < datosPl.length; i++) {
     
-    let rowData = [
-      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
-      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
-      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
-    ];
-    arrayData.push(rowData);
-  }
-  
-//   if (this.datosNuevos && this.datosNuevos.length > 0) {
-//     const textonuevo = [
-//     {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
-//     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+//     let rowData = [
+//       { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+//       { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+//       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+//       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+//       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cantidad_autorizada, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: datosPl[i].total_autorizado, style: 'textDato', alignment: 'right' },
+//       { text: datosPl[i].cant_incremento, style: 'textDato', alignment: 'right' },
+//       { text: datosPl[i].total_incremento, style: 'textDato', alignment: 'right' },
+//       { text: datosPl[i].cant_decremento, style: 'textDato', alignment: 'right' },
+//       { text: datosPl[i].total_decremento, style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
 //     ];
-//   arrayData.push(textonuevo);
-//   } else {
+//     arrayData.push(rowData);
 //   }
   
-    return arrayData;
-  }
+// //   if (this.datosNuevos && this.datosNuevos.length > 0) {
+// //     const textonuevo = [
+// //     {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
+// //     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+// //     ];
+// //   arrayData.push(textonuevo);
+// //   } else {
+// //   }
+  
+//     return arrayData;
+//   }
 
-  //Cargar tabla de PLANILLA - PRIMERA MODIFICACION
-buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
+//   //Cargar tabla de PLANILLA - PRIMERA MODIFICACION
+// buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
 
-  let datosPl = data;
-  let arrayData = [];
+//   let datosPl = data;
+//   let arrayData = [];
 
-  for (let i = 0; i < datosPl.length; i++) {
+//   for (let i = 0; i < datosPl.length; i++) {
     
-    let rowData = [
-      { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
-      { text: datosPl[i].desc_item ?? '', style: 'textDato' },
-      { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
-      { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
-    ];
-    arrayData.push(rowData);
-  }
-    // if (this.datosNuevos && this.datosNuevos.length > 0) {
-    //   const textonuevo = [
-    //   {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
-    //   {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-    // ];
-    // arrayData.push(textonuevo);
-    // } else {
-    // }
-//    // Fila final con totales
-//   const totalRow = [
-//     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-//     {}, {}, {}, // celdas vacias
-//     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
-//       style: 'textTitulo2', alignment: 'right', bold: true }, 
-//     {}, // celdas vacias
-//     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
-//       style: 'textTitulo2', alignment: 'right', bold: true }, 
-//     {}, 
-//     { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
-//       style: 'textTitulo2', alignment: 'right', bold: true }, 
-//     {},
-//     {
-//       text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
-//       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
-//     },
-//   ];
+//     let rowData = [
+//       { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
+//       { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
+//       { text: datosPl[i].desc_item ?? '', style: 'textDato' },
+//       { text: datosPl[i].unidad_medida_sim ?? '', style: 'textDato', alignment: 'center' },
+//       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cant_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_incremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cant_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_decremento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].cantidad_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' },
+//       { text: this.formatIfNumber(datosPl[i].total_reordenamiento, formatoNumerico), style: 'textDato', alignment: 'right' }
+//     ];
+//     arrayData.push(rowData);
+//   }
+//     // if (this.datosNuevos && this.datosNuevos.length > 0) {
+//     //   const textonuevo = [
+//     //   {colSpan:3, text: 'ITEMS CONTRATO MODIFICATORIO Nro.' + this.datosEnvio[0].numero_modificacion, style: 'textTitulo2', alignment: 'center' }, {}, {},
+//     //   {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+//     // ];
+//     // arrayData.push(textonuevo);
+//     // } else {
+//     // }
+// //    // Fila final con totales
+// //   const totalRow = [
+// //     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+// //     {}, {}, {}, // celdas vacias
+// //     { text: this.formatIfNumber(totalContratoSum,formatoNumerico2),
+// //       style: 'textTitulo2', alignment: 'right', bold: true }, 
+// //     {}, // celdas vacias
+// //     { text: this.formatIfNumber(totalIncrementoSum,formatoNumerico2),
+// //       style: 'textTitulo2', alignment: 'right', bold: true }, 
+// //     {}, 
+// //     { text: this.formatIfNumber(totalDecrementoSum,formatoNumerico2),
+// //       style: 'textTitulo2', alignment: 'right', bold: true }, 
+// //     {},
+// //     {
+// //       text: this.formatIfNumber(totalReordenSum,formatoNumerico2),
+// //       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+// //     },
+// //   ];
 
-//   const montoVarRow = [
-//     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
-//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-//     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-//   ];
+// //   const montoVarRow = [
+// //     {colSpan: 3, text: 'MONTO DE VARIACIÓN RESPECTO AL CONTRATO INICIAL (Bs)', style: 'textDato', alignment: 'right' }, {}, {},
+// //     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+// //     { text: this.formatIfNumber(this.datosPlanillaR[0].monto_variacion, formatoNumerico2), style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //   ];
 
-//   const porcVarRow = [
-//     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
-//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-//     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-//   ];
-// porc_total = (totalReordenSum * 100)/ totalContratoSum;
-//   const porcTotalRow = [
-//     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
-//     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-//     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
-//   ];
+// //   const porcVarRow = [
+// //     {colSpan: 3, text: 'PORCENTAJE DE VARIACIÓN RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+// //     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+// //     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //   ];
+// // porc_total = (totalReordenSum * 100)/ totalContratoSum;
+// //   const porcTotalRow = [
+// //     {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textDato', alignment: 'right' }, {}, {}, 
+// //     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+// //     { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //   ];
 
   
-  // arrayData.push(totalRow);
-  // arrayData.push(montoVarRow);
-  // arrayData.push(porcVarRow);
-  // arrayData.push(porcTotalRow);
+//   // arrayData.push(totalRow);
+//   // arrayData.push(montoVarRow);
+//   // arrayData.push(porcVarRow);
+//   // arrayData.push(porcTotalRow);
 
-    return arrayData;
-  }
+//     return arrayData;
+//   }
 
-  //RESUME PLANILLA 1 - 15 columnas
-  buildResumenPlanilla1(data: any[]) {
+//   //RESUME PLANILLA 1 - 15 columnas
+//   buildResumenPlanilla1(data: any[]) {
 
-   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-  });
+//    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+//     minimumFractionDigits: 5,
+//     maximumFractionDigits: 5
+//   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+//   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+//     minimumFractionDigits: 2,
+//     maximumFractionDigits: 2
+//   });
 
-  let datosPl = data;
-  let arrayData = [];
-  let totalReordenSum= 0;
-  let totalContratoSum = 0;
-  let porc_total = 0;
+//   let datosPl = data;
+//   let arrayData = [];
+//   let totalReordenSum= 0;
+//   let totalContratoSum = 0;
+//   let porc_total = 0;
 
-  // Fila final con totales
-   const totalRow = [
-     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-     {}, {}, {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_autorizado,formatoNumerico2),
-      style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {}, 
-     { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {},
-     {
-       text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
-       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
-     },
-   ];
-
-//    const montoVarRow = [
-//      { colSpan: 15}
+//   // Fila final con totales
+//    const totalRow = [
+//      {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+//      {}, {}, {}, // celdas vacias
+//      { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {}, // celdas vacias
+//      { text: this.formatIfNumber(datosPl[0].total_autorizado,formatoNumerico2),
+//       style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {}, // celdas vacias
+//      { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {}, 
+//      { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {},
+//      {
+//        text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
+//        style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+//      },
 //    ];
 
-   const porcVarRow = [
-     {colSpan: 3, text: 'PORCENTAJES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right'}
-   ];
-//   totalReordenSum = datosPl[0].total_reo;
-//   totalContratoSum = datosPl[0].total_adjudicado;
-//   porc_total = (totalReordenSum * 100)/ totalContratoSum;
-//    const porcTotalRow = [
-//      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-//      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-//      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //    const montoVarRow = [
+// //      { colSpan: 15}
+// //    ];
+
+//    const porcVarRow = [
+//      {colSpan: 3, text: 'PORCENTAJES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+//      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+//      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right'}
 //    ];
+// //   totalReordenSum = datosPl[0].total_reo;
+// //   totalContratoSum = datosPl[0].total_adjudicado;
+// //   porc_total = (totalReordenSum * 100)/ totalContratoSum;
+// //    const porcTotalRow = [
+// //      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+// //      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+// //      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //    ];
   
-   arrayData.push(totalRow);
-   //arrayData.push(montoVarRow);
-   arrayData.push(porcVarRow);
+//    arrayData.push(totalRow);
+//    //arrayData.push(montoVarRow);
+//    arrayData.push(porcVarRow);
 
-    return arrayData;
-  }
+//     return arrayData;
+//   }
 
-  //RESUME PLANILLA 2 - 13 columnas
-  buildResumenPlanilla2(data: any[]) {
+//   //RESUME PLANILLA 2 - 13 columnas
+//   buildResumenPlanilla2(data: any[]) {
 
-   const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-  });
+//    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+//     minimumFractionDigits: 5,
+//     maximumFractionDigits: 5
+//   });
 
-  const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+//   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+//     minimumFractionDigits: 2,
+//     maximumFractionDigits: 2
+//   });
 
-  let datosPl = data;
-  let arrayData = [];
-  let totalReordenSum= 0;
-  let totalContratoSum = 0;
-  let porc_total = 0;
+//   let datosPl = data;
+//   let arrayData = [];
+//   let totalReordenSum= 0;
+//   let totalContratoSum = 0;
+//   let porc_total = 0;
 
-  // Fila final con totales
-   const totalRow = [
-     {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-     {}, {}, {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {}, 
-     { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
-       style: 'textTitulo2', alignment: 'right', bold: true }, 
-     {},
-     {
-       text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
-       style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
-     },
-   ];
-
-//    const montoVarRow = [
-//      { colSpan: 13}
+//   // Fila final con totales
+//    const totalRow = [
+//      {colSpan: 3, text:'TOTALES (Bs):', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+//      {}, {}, {}, // celdas vacias
+//      { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {}, // celdas vacias
+//      { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {}, 
+//      { text: this.formatIfNumber(datosPl[0].total_dec,formatoNumerico2),
+//        style: 'textTitulo2', alignment: 'right', bold: true }, 
+//      {},
+//      {
+//        text: this.formatIfNumber(datosPl[0].total_reo,formatoNumerico2),
+//        style: 'textTitulo2', bold: true, alignment: 'right', border: [true, true, true, true],
+//      },
 //    ];
 
-   const porcVarRow = [
-     {colSpan: 3, text: 'PORCENTAJES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
-     {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right'}
-   ];
-//   totalReordenSum = datosPl[0].total_reo;
-//   totalContratoSum = datosPl[0].total_adjudicado;
-//   porc_total = (totalReordenSum * 100)/ totalContratoSum;
-//    const porcTotalRow = [
-//      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+// //    const montoVarRow = [
+// //      { colSpan: 13}
+// //    ];
+
+//    const porcVarRow = [
+//      {colSpan: 3, text: 'PORCENTAJES:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
 //      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-//      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+//      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modificacion, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right'}
 //    ];
+// //   totalReordenSum = datosPl[0].total_reo;
+// //   totalContratoSum = datosPl[0].total_adjudicado;
+// //   porc_total = (totalReordenSum * 100)/ totalContratoSum;
+// //    const porcTotalRow = [
+// //      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
+// //      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
+// //      { text: this.formatIfNumber(porc_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+// //    ];
   
-   arrayData.push(totalRow);
-   //arrayData.push(montoVarRow);
-   arrayData.push(porcVarRow);
+//    arrayData.push(totalRow);
+//    //arrayData.push(montoVarRow);
+//    arrayData.push(porcVarRow);
 
-    return arrayData;
-  }
+//     return arrayData;
+//   }
 
   //Formatear Números
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
