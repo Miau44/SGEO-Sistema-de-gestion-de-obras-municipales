@@ -145,7 +145,7 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
       
       {
         text:[
-            { text: 'PLANILLA COMPUTO MÉTRICO CERTIFICADO DE PAGO ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_pago + '\n', style: 'subheader', alignment: 'center' },
+            { text: 'PLANILLA COMPUTO MÉTRICO CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + '\n', style: 'subheader', alignment: 'center' },
             { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
         ],
       },
