@@ -108,4 +108,13 @@ export class PagoController {
     } catch (error) {
     }
   } 
+
+    @Public()
+  @Post('pago-actualizar-lista')
+  listaActualizarPago(@Body() data: PagoPlanillaDto) {
+    try {
+      return this.pagoService.actualizarPago(data);
+    } catch (error) {
+    }
+  } 
 }

@@ -153,4 +153,19 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
     }
   }  
 
+
+  async actualizarPago(data: PagoPlanillaDto) {
+    try {
+
+  
+      let query = ` 
+      SELECT * FROM  sp_certificado_actualizar($1, $2, $3);`  ;
+      const params = [data.id_obra, data.id_modificacion_pago, data.id_num_pago]; 
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
 }
