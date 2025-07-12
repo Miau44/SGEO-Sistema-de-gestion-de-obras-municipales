@@ -104,7 +104,7 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
   const imgLogo = 'assets/images/logoSGEO.png'
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
@@ -145,7 +145,7 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
       
       {
         text:[
-            { text: 'PLANILLA COMPUTO METRICO CERTIFICADO DE PAGO ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'subheader', alignment: 'center' },
+            { text: 'PLANILLA COMPUTO MÉTRICO CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + '\n', style: 'subheader', alignment: 'center' },
             { text: this.datosEnvio[0].cod_carpeta , style: 'subheader', alignment: 'center' },
         ],
       },
@@ -167,7 +167,7 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
               { rowSpan: 2, text: 'Nro', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'DESCRIPCIÓN', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'UNIDAD', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
-              { rowSpan: 2, text: 'Nro de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
+              { rowSpan: 2, text: 'Nro. de Veces', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { colSpan: 5, text: 'MEDIDAS', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' }, {}, {}, {}, {},
               { rowSpan: 2, text: 'PARCIAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },
               { rowSpan: 2, text: 'TOTAL', style: 'textTitulo', alignment: 'center', margin: [0, 9, 0, 0], fillColor: '#dddddd' },

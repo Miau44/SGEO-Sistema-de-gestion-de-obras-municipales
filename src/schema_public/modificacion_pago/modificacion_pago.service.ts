@@ -437,6 +437,34 @@ export class ModificacionPagoService {
     return res;
   }
 
+    async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+    let q = `SELECT ficha.correlativo_carpeta, 
+      id_modificacion,
+      ROUND(monto_total,2) AS monto_adjudicado,
+      porcentaje_total,
+      ROUND(monto_variacion, 2) AS  monto_variacion,
+      porcentaje_modificacion,
+      fecha_fiscal,
+      fecha_supervisor,
+      fecha_memo_minuta, 
+      dias_variacion as diasplazo_proceso,
+      mp.id_tipo_mod_pago as tipocontrato,
+      2 as tipoplazo,
+      numero_contrato_modificatorio
+      FROM modificacion
+      JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
+      JOIN obra on mp.id_obra = obra.id_obra
+      JOIN ficha on obra.id_ficha = ficha.id_ficha
+      where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+    if (id_carpeta > 0) {
+      q = q + ` AND ficha.correlativo_carpeta = $1`
+    }
+    console.log(q);
+    var res = await this.modificacionRepo.query(q, [id_carpeta]);
+    //console.log(res);
+    return res;
+  }
+
   async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
     try {
 

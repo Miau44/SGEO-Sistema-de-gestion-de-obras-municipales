@@ -9,6 +9,9 @@ import { PagoObraDto } from './dto/pago.obra.dto';
 import { PagoPlanillaDto } from './dto/pago_planilla.dto';
 import { CreateDescuentoDto } from './dto/dto-descuento/create-descuento.dto';
 import { Descuento } from './entities/descuento.entity';
+import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
+import { PagoPagoDto } from './dto/pago-pago.dto';
+import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 
 
 
@@ -37,8 +40,15 @@ export class PagoService {
     return `This action returns a #${id} pago`;
   }
 
-  update(id: number, updatePagoDto: UpdatePagoDto) {
-    return `This action updates a #${id} pago`;
+
+
+  async update(id_pago: number, updatePagoDto: UpdatePagoDto) {
+    try {
+      const resultado = await this.pagoRepositorio.update(id_pago, updatePagoDto)
+      return this.responseService.success(id_pago, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
   remove(id: number) {
@@ -78,11 +88,11 @@ export class PagoService {
   async listaPlanillaPago(data: PagoPlanillaDto) {
     try {
 
-      let query = ` 
-        SELECT * FROM  public.vista_planilla_pago_lista   
-      WHERE id_obra= $1  AND id_modificacion_pago = $2;`
+   
 
-      const params = [data.id_obra, data.id_modificacion_pago, ];
+      let query = ` 
+      SELECT * FROM  sp_certificado_planilla_pago($1, $2, $3);`  ;
+      const params = [data.id_obra, data.id_modificacion_pago, data.id_num_pago]; 
       const resultado = await this.pagoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -119,4 +129,63 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
 
 
 
+  async listaDescuentoPago(data: PagoDescuentoDto) {
+    try {
+
+      let query = ` 
+        SELECT * FROM  public.vista_pago_lista_descuento   
+      WHERE id_pago= $1;`
+
+      const params = [data.id_pago];
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+ 
+
+  
+  async listaResumenPago(data: PagoPlanillaDto) {
+    try {
+
+      let query = ` 
+        SELECT * FROM  public.vista_pago_resumen   
+      WHERE id_obra= $1  AND id_modificacion_pago = $2;`   
+
+      const params = [data.id_obra, data.id_modificacion_pago];
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
+
+
+  async actualizarPagoTotales(data: PagoPagoDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  sp_certificado_actualizar_pago($1);`  ;
+      const params = [data.id_pago];
+      const resultado = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async actualizarEstadoDescuento(data: ActualizarEstadoDescuentoDto) {
+    try {
+      let query =
+        ` UPDATE public.descuento 
+          SET id_estado =0 WHERE id_descuento = $1 AND id_estado = 1`;
+      const params: any[] = [data.id_descuento];
+      const resultado: any[] = await this.pagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 }

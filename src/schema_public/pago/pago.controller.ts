@@ -14,6 +14,9 @@ import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { Pago } from './entities/pago.entity';
 import { error } from 'console';
+import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
+import { PagoPagoDto } from './dto/pago-pago.dto';
+import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 
 
 
@@ -40,10 +43,12 @@ export class PagoController {
     return this.pagoService.findOne(+id);
   }
 
- /* @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePagoDto: UpdatePagoDto) {
-    return this.pagoService.update(+id, updatePagoDto);
-  }*/
+  @Patch(':id')
+  update(@Param('id') id_pago: string, @Body() updatePagoDto: UpdatePagoDto) {
+    try {
+    return this.pagoService.update(+id_pago, updatePagoDto);
+  }   catch (error) {
+  }}
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -88,6 +93,32 @@ export class PagoController {
   }catch {error}
   }  
 
+    @Public()
+    @Post('lista-descuento-pago')
+    listaDescuento(@Body() data: PagoDescuentoDto) {
+      try {  
+        return this.pagoService.listaDescuentoPago(data);
+      } catch (error) {
+      }
+    }  
  
  
+
+  @Public()
+  @Post('pago-resumen-lista')
+  listaResumen(@Body() data: PagoPlanillaDto) {
+    try {
+      return this.pagoService.listaResumenPago(data);
+    } catch (error) {
+    }
+  } 
+
+    @Public()
+  @Post('actualizar-descuento-estado')
+  listaActualizarPago(@Body() data: ActualizarEstadoDescuentoDto) {
+    try {
+      return this.pagoService.actualizarEstadoDescuento(data);
+    } catch (error) {
+    }
+  } 
 }

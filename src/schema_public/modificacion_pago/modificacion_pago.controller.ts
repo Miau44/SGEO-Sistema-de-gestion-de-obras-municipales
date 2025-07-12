@@ -130,7 +130,7 @@ export class ModificacionPagoController {
     }
   }
 
-  //Listado de modificaciones por carpeta, servicio de lectura DLC
+  //Listado de modificaciones por contrato, servicio de lectura DLC
   @Public()
   @Get('ModificacionesPorContrato/:id_contrato')
   @HttpCode(HttpStatus.OK)
@@ -139,6 +139,18 @@ export class ModificacionPagoController {
       return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato);
     } catch (error) {
 
+    }
+  }
+
+  //Listado de modificaciones por carpeta, servicio de lectura SIM
+  @Public()
+  @Get('ModificacionesPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async ModificacionesPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
+    } catch (error) {
+      
     }
   }
 

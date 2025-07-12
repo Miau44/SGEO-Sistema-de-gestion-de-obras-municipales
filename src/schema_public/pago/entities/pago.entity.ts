@@ -49,8 +49,6 @@ export class Pago {
     @Column({ type: 'date', nullable: true })
     fecha_fiscal: Date|null;
 
-    @Column({ type: 'date', nullable: true })
-    fecha_certificado: Date|null;
 
     @Column({ type: 'date', nullable: true })
     fecha_inicio_periodo: Date|null;

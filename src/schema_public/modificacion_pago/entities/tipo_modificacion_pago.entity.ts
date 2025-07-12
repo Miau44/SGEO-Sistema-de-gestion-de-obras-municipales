@@ -20,6 +20,9 @@ export class TipoModificacionPago {
 
     @Column()
     desc_subtipo: string;   
+
+    @Column({nullable:true  })
+    detalle: string;       
     
     @Column({nullable:true})
     id_correlativo_subtipo:number    
