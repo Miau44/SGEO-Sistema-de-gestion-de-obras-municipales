@@ -25,6 +25,8 @@ import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
 import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
 import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
+import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-definitiva.dto';
+import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-entrega-provisional-definitiva';
 
 
 
@@ -785,37 +787,65 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
 
 /*******************************************Acta Definitiva***********************************************************/
 
-async createActaEntregaDefinitiva(data: CreateActaEntregaProvicionalDto) {
+  async createActaEntregaProvicionalDefinitiva(data: CreateActaEntregaProvisionalDefinitivaDto) {
+
     try {
       const {
         id_obra,
+        hora_registro,
+        fecha_acta,
+        obs_general,
+        periodo_correccion,
         id_documento,
         usuario_registro,
+        tipo_acta,
       } = data;
+
+      // Configuración según tipo de acta
+      const configuracion = {
+        provisional: {
+          id_estado_general: 25,
+          id_tipo_informe: 342,
+          requiere_obs: true
+        },
+        definitiva: {
+          id_estado_general: 27,
+          id_tipo_informe: 343,
+          requiere_obs: false
+        }
+      }[tipo_acta];
+
+      if (!configuracion) {
+        throw new Error('Tipo de acta no válido. Debe ser "provisional" o "definitiva".');
+      }
 
       // 1. Crear solicitud
       const solicitudDto: CreateSolicitudDto = {
         id_tipo_solicitud: 1,
-        id_estado_solicitud: 2,
+        id_estado_solicitud: 2, // no aprobado aún
         id_obra,
-        id_estado_general: 25,
+        id_estado_general: configuracion.id_estado_general,
         id_usuario: usuario_registro,
         proveido: '',
-        usuario_registro: usuario_registro,
+        usuario_registro,
         id_estado_registro: 1,
       };
 
-      const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
-      const solicitud = respuestaSolicitud.data;
+      const solicitudResp = await this.solicitudService.create(solicitudDto);
+      const solicitud = solicitudResp.data;
 
-      if (!solicitud || !solicitud.id_solicitud) {
+      if (!solicitud?.id_solicitud) {
         throw new Error('No se pudo crear la solicitud');
       }
 
-      // 2. Crear informe sin correlativo
-      const nuevoInforme = this.informeRepositorio.create({
+      // 2. Crear el informe
+      const baseInforme: any = ({
         id_obra,
-        id_tipo_informe: 342,
+        id_tipo_informe: configuracion.id_tipo_informe,
+        hora_registro,
+        fecha_acta: fecha_acta ?? new Date(),
+        obs_general: configuracion.requiere_obs ? obs_general : '',
+        periodo_correccion: configuracion.requiere_obs ? periodo_correccion : null,
         id_documento,
         usuario_registro,
         id_solicitud: solicitud.id_solicitud,
@@ -826,14 +856,99 @@ async createActaEntregaDefinitiva(data: CreateActaEntregaProvicionalDto) {
         recomendacion: ''
       });
 
+      if (configuracion.requiere_obs) {
+        baseInforme.obs_general = obs_general ?? '';
+        baseInforme.periodo_correccion = periodo_correccion ?? 0;
+      }
+
+      const nuevoInforme = this.informeRepositorio.create(baseInforme);
       const resultado = await this.informeRepositorio.save(nuevoInforme);
-      return this.responseService.success(resultado, "Acta de entrega provisional registrada correctamente.");
+
+      return this.responseService.success(resultado, `Acta de entrega ${tipo_acta} registrada correctamente.`);
     } catch (error) {
-      console.error('Error en createActaEntregaProvicional:', error);
-      return this.responseService.error('No se pudo registrar el acta de entrega provisional.');
+      console.error('Error en createActaEntrega:', error);
+      return this.responseService.error('No se pudo registrar el acta de entrega.');
     }
   }
 
+  async updateActaEntregaDefinitiva(dto: UpdateActaEntregaDefinitivaDto) {
+    try {
+      const { id_informe, hora_registro, fecha_acta, id_documento } = dto;
+
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe, id_estado: 1 },
+      });
+
+      if (!informe) {
+        throw new Error('Acta definitiva no encontrada para actualizar');
+      }
+
+      if (hora_registro !== undefined) {
+        informe.hora_registro = hora_registro;
+      }
+
+      if (fecha_acta !== undefined) {
+        informe.fecha_acta = fecha_acta;
+      }
+
+      if (id_documento !== undefined) {
+        if (!Array.isArray(id_documento)) {
+          throw new Error('id_documento debe ser un arreglo de objetos');
+        }
+        informe.id_documento = id_documento;
+      }
+
+      const actualizado = await this.informeRepositorio.save(informe);
+      return this.responseService.success(actualizado, 'Acta definitiva actualizada correctamente.');
+    } catch (error) {
+      console.error('Error en updateActaEntregaDefinitiva:', error);
+      return this.responseService.error('No se pudo actualizar el acta definitiva.');
+    }
+  }
+
+  async getActaEntregaDefinitivaById(id_informe: number) {
+    try {
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe, id_estado: 1 },
+      });
+
+      if (!informe) {
+        return this.responseService.error('No se encontró el acta definitiva.');
+      }
+
+      const idDocumentos = (informe.id_documento || []).map(doc => doc.id_documento);
+      let documentos: Partial<Documento>[] = [];
+
+      if (idDocumentos.length > 0) {
+        documentos = await this.documentoRepositorio.find({
+          where: idDocumentos.map(id => ({ id_documento: id })),
+          select: ['id_documento', 'nombre_documento', 'id_tipo_documento', 'ruta_documento', 'fecha_registro'],
+        });
+      }
+
+      return this.responseService.success({
+        ...informe,
+        documentos,
+      }, "Acta definitiva cargada correctamente.");
+    } catch (error) {
+      console.error('Error al cargar acta definitiva:', error);
+      return this.responseService.error('No se pudo obtener el acta definitiva para edición.');
+    }
+  }
+
+   async listarActasEntregaDefinitiva(dto: ListaInformeObraDto) {
+  const { id_obra } = dto;
+  try {
+    const resultado = await this.informeRepositorio.query(
+      `SELECT * FROM sp_listar_acta_definitiva($1)`,
+      [id_obra]
+    );
+    return this.responseService.success(resultado, "Actas de entrega provisional listadas correctamente.");
+  } catch (error) {
+    console.error('Error al ejecutar sp_listar_acta_entrega_provisional:', error);
+    return this.responseService.error('No se pudo listar las actas de entrega provisional.');
+  }
+}
 
 
 }

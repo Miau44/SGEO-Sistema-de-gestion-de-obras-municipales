@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsInt, IsString, IsOptional, IsNotEmpty } from "class-validator";
 
-export class CreateActaEntregaDefinitivaDto {
+export class CreateActaEntregaProvisionalDefinitivaDto {
 
   @ApiProperty()
   id_obra: number;
@@ -9,12 +9,17 @@ export class CreateActaEntregaDefinitivaDto {
   @IsString()
   @ApiProperty({ example: '08:30:00' })
   hora_registro: string;
+  
+  @ApiProperty({required: false})
+  fecha_acta: Date;
+  
+  @ApiProperty({ required: false })
+  @IsOptional()
+  obs_general?: string;
 
-  @ApiProperty()
-  periodo_correccion: number;
-
-  @ApiProperty()
-  obs_general: string;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  periodo_correccion?: number;
 
   @ApiProperty({
     required: false,
@@ -26,4 +31,7 @@ export class CreateActaEntregaDefinitivaDto {
 
   @ApiProperty()
   usuario_registro: number;
+
+  @ApiProperty({ enum: ['provisional', 'definitiva'] })
+  tipo_acta: 'provisional' | 'definitiva';
 }
