@@ -41,8 +41,6 @@ export class CreatePagoDto {
     @ApiProperty()
     fecha_fiscalr: Date;   
     
-    @ApiProperty()
-    fecha_certificado: Date;   
 
     @ApiProperty()
     fecha_frp: Date;   
