@@ -3,7 +3,7 @@ import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Any, EntityManager, Not, Repository } from 'typeorm';
+import { And, Any, DataSource, EntityManager, Not, Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
@@ -29,6 +29,7 @@ export class DocumentoService {
     private configService: ConfigService,
     private entityManager: EntityManager,
     private logService: LogService,
+    private dataSource: DataSource
   ) {
     this.host = String(process.env.HOST_ADJUNTO);
     this.uploadUrl = String(process.env.URL_ADJUNTO);
@@ -320,9 +321,9 @@ export class DocumentoService {
       return result.filter((obra) =>
         Array.isArray(obra.tipos_documentos)
           ? obra.tipos_documentos.some(
-              (tipo: { documentos: any[] }) =>
-                Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
-            )
+            (tipo: { documentos: any[] }) =>
+              Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
+          )
           : false,
       );
     } catch (error) {
@@ -384,7 +385,7 @@ export class DocumentoService {
     try {
       let query = `SELECT * FROM public.documento as d
 INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
-WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
+WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1 AND td.id_estado = 1;`;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.documentoRepositorio.query(
@@ -416,12 +417,28 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   async updateRutaDoc(id: number, ruta_documento: string) {
     try {
       const params: any[] = [id, ruta_documento];
-      let query = `UPDATE documento set ruta_documento =$1  where id_documento = $2`;
-      const resultado: any[] = await this.documentoRepositorio.query(
-        query,
-        params,
+         const doc = await this.documentoRepositorio.findOne({
+      where: { id_documento: id },
+    });
+      if (!doc) {
+      return this.responseService.error(
+        null,
+        `No se encontró el documento con id ${id}`,
+        404
       );
-      return this.responseService.success(resultado, 'documento actualizado.');
+    }
+      console.log(doc);
+      if(doc!=null){
+        doc.ruta_documento=ruta_documento;
+      }
+      const  respuesta_doc =   await this.documentoRepositorio.save(doc);
+      // let query = `UPDATE documento set ruta_documento = $1  where id_documento = $2`;
+      // console.log(query);
+      // const resultado: any[] = await this.documentoRepositorio.query(
+      //   query,
+      //   params,
+      // );
+      return this.responseService.success(respuesta_doc, 'documento actualizado.');
     } catch (error) {
       return this.responseService.error(
         error,
@@ -537,8 +554,8 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   }
 
   async listarInformesPrevisionPagosSinDocumento(): Promise<any> {
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT 
         i.id_informe,
         i.id_obra,
@@ -552,23 +569,23 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
       ORDER BY i.id_informe DESC;
     `;
 
-    const resultado = await this.informeRepositorio.query(query);
+      const resultado = await this.informeRepositorio.query(query);
 
-    return this.responseService.success(
-      resultado.map((item: any) => ({
-        ...item,
-        servicioReporte: 'reportePrevisionPagos',
-        nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
-      })),
-      'Informes de previsión de pagos sin documento listados correctamente.',
-    );
-  } catch (error) {
-    return this.responseService.error(
-      error,
-      'Error al listar informes de previsión de pagos sin documento.',
-    );
+      return this.responseService.success(
+        resultado.map((item: any) => ({
+          ...item,
+          servicioReporte: 'reportePrevisionPagos',
+          nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
+        })),
+        'Informes de previsión de pagos sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes de previsión de pagos sin documento.',
+      );
+    }
   }
-}
 
   async actualizarSoloRutaDocumento(id_documento: number, ruta: string) {
     try {
@@ -588,16 +605,45 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   async listarInformesInicialesConDocumento(): Promise<any> {
     try {
       const query = `
-      select documento.id_obra,ruta_documento from documento
-      join informe on informe.id_obra = documento.id_obra and informe.id_tipo_informe = 235 and informe.fecha_aprobacion is not null
-      where id_tipo_documento = 235 and documento.id_estado = 1 order by documento.id_obra asc
-    `;
+     SELECT
+	documento.id_documento,
+  documento.id_obra,
+  informe.id_tipo_informe,
+  ruta_documento ,
+        informe.id_informe
+FROM 
+  documento
+JOIN 
+  informe ON informe.id_obra = documento.id_obra 
+          AND informe.id_tipo_informe = 235 
+          AND informe.fecha_aprobacion IS NOT NULL
+WHERE 
+  documento.id_tipo_documento = 235 
+  AND documento.id_estado = 1
+ORDER BY 
+  documento.id_obra ASC
+LIMIT 5`;
 
-    const resultado = await this.informeRepositorio.query(query);
+      const resultado = await this.informeRepositorio.query(query);
 
-    return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
+      return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    }
+  }
+
+
+    // Método para listar documentos por obra
+  async listarVistaDocumentosPorObra(id_obra: number): Promise<any> {
+  try {
+    const resultado = await this.dataSource.query(
+      `SELECT * FROM sp_listar_vista_documentos_por_obra($1)`,
+      [id_obra],
+    );
+    return this.responseService.success(resultado, 'Listado correctamente');
   } catch (error) {
-    return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    console.error('Error al listar documentos por obra:', error);
+    return this.responseService.error('No se pudo listar los documentos');
   }
 }
 

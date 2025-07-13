@@ -19,6 +19,7 @@ import { UpdateInformeObraDto } from './dto/update-informe-obra.dto';
 import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
 import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
+import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
 
 
 @ApiTags('informe')
@@ -116,6 +117,14 @@ export class InformeController {
   siExisteInforme(@Body() data: InformeObraDto) {
     try {
       return this.informeService.siExisteInforme(data);
+    } catch (error) { }
+  }
+
+    @Public()
+  @Post('si-existe-informe-solicitud')
+  siExisteInformeSolicitud(@Body() data: InformeObraSolicitudDto) {
+    try {
+      return this.informeService.siExisteInformeSolicitud(data);
     } catch (error) { }
   }
 
