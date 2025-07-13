@@ -35,6 +35,10 @@ export class ResumenCertificado {
     datosEnvio: any = [];
     datosSup: any = [];
     datosFis: any = [];
+    datosMV: any = [];
+    datosUM: any = [];
+    datosDes: any = [];
+    datosCA: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -50,31 +54,67 @@ export class ResumenCertificado {
   //CONSULTAS
 
     // Datos generales obra - contrato - pago
-  async datosGeneralesObraModif(id_modif_pago: number) {
-    const query = `
-        SELECT * 
-        FROM public."vista_reporte_pago_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
-    const resultado = await this.sequelize.query(query);
-    return resultado[0];
-  }
+    async datosGeneralesObraModif(id_modif_pago: number) {
+      const query = `
+          SELECT * 
+          FROM public."vista_reporte_pago_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
+      const resultado = await this.sequelize.query(query);
+      return resultado[0];
+   }
 
     
      // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado1 = await this.sequelize.query(query1);
-    return resultado1[0];
+    async supervisorDesignado(obra: number) {
+      const query1 = `
+          SELECT * 
+          FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
+      const resultado1 = await this.sequelize.query(query1);
+      return resultado1[0];
    }
 
       // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query2 = `
-        SELECT * 
-        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-    const resultado2 = await this.sequelize.query(query2);
-    return resultado2[0];
+    async fiscalDesignado(obra: number) {
+      const query2 = `
+          SELECT * 
+          FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
+      const resultado2 = await this.sequelize.query(query2);
+      return resultado2[0];
+   }
+
+      // Datos listado de modificaciones aprobadas
+    async datosModifVariacion(obra: number) {
+      const query3 = `
+          SELECT * 
+          FROM public."vista_reporte_resumen_modif" WHERE id_obra = ${obra}`;
+      const resultado3 = await this.sequelize.query(query3);
+      return resultado3[0];
+   }
+
+     // Datos ultima modificacion aprobada
+    async datosUltimaModif(obra: number) {
+      const query4 = `
+          SELECT * 
+          FROM public.f_reporte_ultima_modificacion(${obra})`;
+      const resultado4 = await this.sequelize.query(query4);
+      return resultado4[0];
+   }
+
+    // Datos Descuentos
+    async datosDescuentos(obra: number, id_modif_pago: number) {
+      const query5 = `
+          SELECT * 
+          FROM public.f_reporte_resumen_descuentos(${obra},${id_modif_pago})`;
+      const resultado5 = await this.sequelize.query(query5);
+      return resultado5[0];
+   }
+
+   // Datos Total Certificados Anteriores
+    async datosCertificadoAnt(obra: number, id_modif_pago: number) {
+      const query6 = `
+          SELECT * 
+          FROM public.f_reporte_resumen_total_certificado(${obra},${id_modif_pago})`;
+      const resultado6 = await this.sequelize.query(query6);
+      return resultado6[0];
    }
 
   // REPORTE - INFORME PAGO SUPERVISOR
@@ -99,8 +139,20 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     }
     this.datosFis = res2;
 
-    
+    const res3 = await this.datosModifVariacion(this.datosEnvio[0].id_obra);
+    this.datosMV = res3;
 
+    const res4 = await this.datosUltimaModif(this.datosEnvio[0].id_obra);
+    this.datosUM = res4;
+
+    const res5 = await this.datosDescuentos(this.datosEnvio[0].id_obra, id_modif_pago);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+        throw new Error('No se encontraron datos de los descuentos');
+    }
+    this.datosDes = res5;
+
+    const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
+    this.datosCA = res6;
     
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -127,8 +179,12 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosEnvio);
-   
+   console.log('DATOS MODIFICACION',this.datosMV);
+   //console.log('DATOS 2',this.datosDes[0].deduccion_total);
+
+    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
+    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+    //console.log('DATOS XX',this.datosCA);
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     // background: function(currentPage: any, pageSize: any) { 
@@ -153,50 +209,52 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
 
     content: [ 
       {
-        text: 'RESUMEN DEL CERTIFICADO DE PAGO',
+        text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n' + 'RESUMEN DEL CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago,
         style: 'subheader', alignment: 'center'
       } as any,
       {
         text: '\n',
       },
       {
+        //Tabla encabezado
         table: {
-          widths: ['15%', '35%', '25%', '25%'],
+          widths: ['12%', '38%', '20%', '30%'],
           body: [
             [
-              { text: [{ text: 'CONTRATISTA:', style: 'textTitulo', alignment: 'left' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato', bold:true }], fillColor: '#dddddd' },
-              { text: [{ text: 'CERTIFICADO Nro.:', style: 'textTitulo', alignment: 'left' }], fillColor: '#dddddd' },
-              { text: [{ text: '', style: 'textDato', bold:true }], fillColor: '#dddddd' }
+              { text: 'CONTRATISTA:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato', fillColor: '#dddddd' },
+              { text: 'CERTIFICADO Nro.:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].numero_pago, style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'REPRESENTANTE:', style: 'textTitulo', alignment: 'left' },] },
-              { text: [{ text: '', style: 'textDato' }] },
-              { text: [{ text: 'PARTIDA:', style: 'textTitulo', alignment: 'left' },] },
-              { text: [{ text: '', style: 'textDato' }] }
+              { text: 'REPRESENTANTE:', style: 'textTitulo', alignment: 'left'},
+              { text: this.datosEnvio[0].proponente_representante, style: 'textDato'},
+              { text: 'PARTIDA:', style: 'textTitulo', alignment: 'left'},
+              { text: '', style: 'textDato'}
             ],
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'left' }], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' },
-              { text: [{ text: 'Nro. CONTRATO:', style: 'textTitulo', alignment: 'left' },], fillColor: '#dddddd' },
-              { text: [{ text: '', style: 'textDato', fillColor: '#dddddd' }], fillColor: '#dddddd' }
+              { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd' },
+              { text: 'Nro. CONTRATO:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].numero_contrato, style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'left' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato' }] },
-              { text: [{ text: 'FECHA CONTRATO:', style: 'textTitulo', alignment: 'left' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
+              { text: 'OBRA:', style: 'textTitulo', alignment: 'left', margin:[0, 4, 0, 0] },
+              { text: this.datosEnvio[0].desc_carpeta, style: 'textDato' },
+              { text: 'FECHA CONTRATO:', style: 'textTitulo', alignment: 'left', margin:[0, 4, 0, 0] },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_numeracion), style: 'textDato', margin:[0, 4, 0, 0] }
             ],
             [
-              { text: [{ text: 'DISTRITO:', style: 'textTitulo', alignment: 'left' }], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' },
-              { text: [{ text: 'FECHA PRESENTACIÓN:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' }], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato', fillColor: '#dddddd' }], fillColor: '#dddddd' }
+              { text: 'DISTRITO:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_distrito_carpeta, style: 'textDato', fillColor: '#dddddd' },
+              { text: 'FECHA PRESENTACIÓN:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_aprobacion_pago), style: 'textDato', fillColor: '#dddddd' }
             ],           
           ]
         }, layout: 'noBorders'
       },
       {
+        //Tabla vacia - Espacio
         table: {
           widths: ['*'],
           body: [
@@ -205,11 +263,12 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
         }, layout: 'noBorders'
       },
       {
-        table: { // Tabla principal de 2 columnas
+        // Tabla de contenido central de 2 columnas
+        table: {
           widths: ['50%', '50%'],
           body: [
             [ 
-              [ //Columna izquierda 
+              [ //COLUMNA IZQUIERDA 
                 {
                   table: {
                     widths: ['*'],
@@ -226,19 +285,29 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                       }
                 },
                 { table: {
-                    withs: ['50%','50%'],
+                    widths: ['50%','50%'],
                     body: [
                             [{ text: 'Fecha orden de proceder:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato', alignment: 'left'}
                             ],
                             [{ text: 'Plazo contrato inicial:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato', alignment: 'left'}
                             ],
                             [{ text: 'Conclusión programada según contrato inicial:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato', alignment: 'left'}
                             ],
+                            ...this.buildModificacionesPlazo(this.datosMV),
+                            ...(this.datosUM.length > 0
+                                  ? [
+                                      [
+                                        { text: 'Conclusión programada:', style: 'textTitulo', alignment: 'left' },
+                                        { text: this.formatearFecha(this.datosUM[0].nueva_fecha_provisional), style: 'textDato', alignment: 'left' }
+                                      ]
+                                    ]
+                                  : []
+                                ),
                             [{ text: 'Periodo certificado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: 'Del ' + this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato', alignment: 'left'}
                             ]
                     ]
                   }, layout: 'noBorders' 
@@ -260,22 +329,24 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   table: {
-                    withs: ['50%','50%'],
+                    widths: ['50%','50%'],
                     body: [
                             [{ text: 'Anticipo:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosEnvio[0].monto_anticipo,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
                             [{ text: 'Deducción certificados anteriores:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
                             [{ text: 'Deducción presente certificado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
                             [{ text: 'Total amortizado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(totalamortizado,formatoNumerico2) + ' Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 10, 0]}
                             ]
+                            
                     ]
                   }, layout: 'noBorders' 
+                  
                 },
                 {
                   table: {
@@ -294,16 +365,16 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   table: {
-                    withs: ['50%','50%'],
+                    widths: ['50%','50%'],
                     body: [
                             [{ text: 'Retención certificados anteriores:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                            { text: this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
                             [{ text: 'Retención presente certificado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                            { text: this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
                             [{ text: 'Total retenciones:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                            { text: this.formatIfNumber(this.datosDes[0].retencion_total,formatoNumerico2) + ' Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 10, 0]}
                             ]
                     ]
                   }, layout: 'noBorders' 
@@ -324,13 +395,13 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                       }
                 }
               ],
-              [  //Columna derecha 
+              [  //COLUMNA DERECHA 
                 {
                   table: {
                     widths: ['*'],
                     body: [
                       [
-                        { text: ' ', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd'} 
+                        { text: 'DETALLE DE MONTOS ', style: 'textTitulo', alignment: 'center', fillColor: '#dddddd'} 
                       ]
                     ]
                   }, layout: {
@@ -342,34 +413,57 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                 },
                 { 
                   table: {
-                    withs: ['50%','50%'],
+                    widths: ['50%','50%'],
                     body: [
                             [{ text: 'Monto contrato inicial:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                            { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
-                            [{ text: 'Total autorizado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
-                            ],
+                            ...this.buildModificacionesVariacion(this.datosMV),
+                            ...(this.datosUM.length > 0
+                                  ? [
+                                      [
+                                        { text: 'Total autorizado:', style: 'textTitulo', alignment: 'left' },
+                                        { text: this.formatIfNumber(this.datosUM[0].monto_total,formatoNumerico2) + 'Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0] }
+                                      ]
+                                  ]
+                                  : [
+                                      [
+                                        { text: 'Total autorizado:', style: 'textTitulo', alignment: 'left'},
+                                        { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0]}
+                                      ]
+                                  ]
+                                ),
                             [{ text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) + ' Bs.', 
+                              style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Importe presente certificado:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Total certificados a la fecha:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(totalcertificado,formatoNumerico2) + ' Bs.', 
+                              style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                            ],
+                            [{ text: 'Importe presente certificado:', style: 'textTitulo', alignment: 'left'},
+                             { text: this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Deducciones:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: '(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2) + ' Bs.', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Retenciones:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: '(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2) + ' Bs.', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Multas:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: '(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2) + ' Bs.', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: 'Importe por pagar (Bs):', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + ' Bs.', 
+                                style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 5]}
                             ]
                     ]
                   }, layout: 'noBorders'
@@ -379,28 +473,30 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                     widths: ['*'],
                     body: [
                       [
-                        [{ text: 'LITERAL DEL IMPORTE POR PAGAR', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' }, {}],
+                        { text: this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.'), style: 'textTitulo', alignment: 'center', fillColor: '#dddddd' },
                       ],
                     ]
-                  }, layout: {
+                  }, layout: 'noBorders' //{
                       //hLineColor: () => '#121111', // color gris opaco para líneas horizontales
                       //vLineColor: () => '#121111', // color gris opaco para líneas verticales
-                      hLineWidth: () => 0.7,       // grosor más fino
-                      vLineWidth: () => 0
-                      }
+                      //hLineWidth: () => 0.7,       // grosor más fino
+                      //vLineWidth: () => 0
+                      //}
                 },
                 {
                   table: {
-                    withs: ['50%','50%'],
+                    widths: ['50%','50%'],
                     body: [
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: 'Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: '% A pagar**:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' %', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: '% Acumulado**:', style: 'textTitulo', alignment: 'left'},
-                            { text: '', style: 'textTitulo', alignment: 'left'}
+                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + ' %', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ]
                     ]
                   }, layout: 'noBorders' 
@@ -423,7 +519,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
             ],        
           ]
         }, layout: {
-            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 0.7 : 0), // Línea horizontal al final
             vLineWidth: () => 0, // Sin líneas verticales
             hLineColor: () => 'black', // Color de la línea horizontal
             paddingLeft: () => 5, // Espaciado interno izquierdo
@@ -441,9 +537,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [ { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
-                { text: 'EMPRESA CONTRATISTA', style: 'textDato', alignment: 'center'}
+                { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
               ],
-              { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textDato', alignment: 'center' }
+              { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center' }
             ]
           ]
         }, margin: [20,0,20,0], 
@@ -488,9 +584,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [ { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
-                { text: 'DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textDato', alignment: 'center'}
+                { text: 'DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo', alignment: 'center'}
               ],
-              { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textDato', alignment: 'center' }
+              { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center' }
             ]
           ]
         }, margin: [20,0,20,0], 
@@ -573,14 +669,31 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
 
 //-------------- FUNCIONES ------------------------------------
  //funcion para generar la fecha en formato dd/mm/aaa
-  formatearFecha(iso: string | null | undefined): string | undefined {
-  if (!iso) return undefined; // No hace nada si iso es null, undefined o ''
-  
+formatearFecha(iso: string | null | undefined): string | undefined {
+  if (!iso) return undefined;
+
+  if (typeof iso !== 'string') {
+    // Si no es string, lo convertimos a string (opcional) o devolvemos undefined
+    iso = String(iso);
+  }
+
+  // Intentamos detectar el formato YYYY-MM-DD
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, anio, mes, dia] = match;
+    return `${dia}/${mes}/${anio}`;
+  }
+
+  // Si no coincide, probamos con Date
   const fecha = new Date(iso);
+  if (isNaN(fecha.getTime())) {
+    return undefined;  // Fecha inválida
+  }
+
   const dia = String(fecha.getDate()).padStart(2, '0');
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Enero = 0
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
   const anio = fecha.getFullYear();
-  
+
   return `${dia}/${mes}/${anio}`;
 }
 
@@ -629,10 +742,10 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
         const rowData = [
           { text: [
                 { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
+                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textTitulo' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: 'FIRMA Y SELLO', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+          { text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
@@ -656,15 +769,56 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
         const rowData = [
           { text: [
                 { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
+                { text: 'FISCAL DE OBRA', bold: true, style: 'textTitulo' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: 'FIRMA Y SELLO', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+          { text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
       return arrayData;
     }
+
+    //RESUMEN datos monto variacion - modificaciones aprobadas
+  buildModificacionesVariacion(data: any[]) {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    let datosPl = data;
+    let arrayData = [];
+    
+    for (let i = 0; i < datosPl.length; i++) {
+      let rowData = [
+        { text: datosPl[i].texto_monto_variacion?? '', style: 'textDato', alignment: 'left', margin: [0, 0, 30, 0] },
+        { text: this.formatIfNumber(datosPl[i].monto_variacion, formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0] },
+      ];
+      arrayData.push(rowData);
+    }
+      return arrayData;
+  }
+
+      //RESUMEN datos plazo variacion - modificaciones aprobadas
+  buildModificacionesPlazo(data: any[]) {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    let datosPl = data;
+    let arrayData = [];
+    
+    for (let i = 0; i < datosPl.length; i++) {
+      let rowData = [
+        { text: datosPl[i].texto_dias_variacion?? '', style: 'textDato', alignment: 'left', margin: [0, 0, 30, 0] },
+        { text: datosPl[i].dias_variacion + ' d.c.', style: 'textDato', alignment: 'left', margin: [0, 0, 30, 0] },
+      ];
+      arrayData.push(rowData);
+    }
+      return arrayData;
+  }
+
 
   //Función para generar de manera escrita el monto del dinero
   private unidades = [

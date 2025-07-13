@@ -648,7 +648,7 @@ buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //TABLA PLANILLA CON ITEM NUEVOS - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+  //TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -701,7 +701,7 @@ buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-    //TABLA PLANILLA CON ITEM NUEVOS - EXISTE MODIFICACIONES Y ES PRIMER PAGO
+    //TABLA PLANILLA CON ITEM NUEVOS 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO
 buildContPlanillaAd2(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -752,7 +752,7 @@ buildContPlanillaAd2(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //TABLA PLANILLA CON ITEM NUEVOS - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 3 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContPlanillaAd3(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -803,7 +803,7 @@ buildContPlanillaAd3(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //TABLA PLANILLA CON ITEM NUEVOS - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+  //TABLA PLANILLA CON ITEM NUEVOS 4 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -812,28 +812,8 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   let datosPl = data;
   let arrayData = [];
-  let totalReordenSum= 0;
-  let totalContratoSum = 0;
-  let totalModifApSum = 0;
-  let totalIncrementoSum = 0;
-  let totalDecrementoSum = 0;
   
   for (let i = 0; i < datosPl.length; i++) {
-    const totalReorden = Number(datosPl[i].total_reordenamiento) || 0;
-    totalReordenSum += totalReorden;
-
-    const totalContrato = Number(datosPl[i].total_adjudicado) || 0;
-    totalContratoSum += totalContrato;
-
-    const totalModAp = Number(datosPl[i].total_autorizado) || 0;
-    totalModifApSum += totalModAp;
-
-    const totalIncremento = Number(datosPl[i].total_incremento) || 0;
-    totalIncrementoSum += totalIncremento;
-
-    const totalDecremento = Number(datosPl[i].total_decremento) || 0;
-    totalDecrementoSum += totalDecremento;
-
     let rowData = [
       { text: datosPl[i].orden_sim ?? '', style: 'textDato', alignment: 'center' },
       { text: datosPl[i].codigo_item ?? '', style: 'footerText' },
@@ -852,7 +832,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUME PLANILLA 1 - 15 columnas
+  //RESUMEN PLANILLA 1 - 15 columnas
   buildResumenPlanilla1(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -923,7 +903,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUME PLANILLA 2 - 13 columnas
+  //RESUMEN PLANILLA 2 - 13 columnas
   buildResumenPlanilla2(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -984,7 +964,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUME PLANILLA 3 - 13 columnas
+  //RESUMEN PLANILLA 3 - 13 columnas
   buildResumenPlanilla3(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -1045,7 +1025,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUME PLANILLA 4 - 11 columnas
+  //RESUMEN PLANILLA 4 - 11 columnas
   buildResumenPlanilla4(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
