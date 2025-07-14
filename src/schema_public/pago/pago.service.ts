@@ -58,7 +58,7 @@ export class PagoService {
   async listaTipoPago(data: PagoObraDto) {
     try {
       let query = `               
-        SELECT tmp.id_subtipo as tipo_pago, p.desc_subtipo, p.id_subtipo  FROM public.tipo_modificacion_pago AS tmp
+        SELECT tmp.id_subtipo as tipo_pago, tmp.desc_subtipo, p.id_subtipo  FROM public.tipo_modificacion_pago AS tmp
         INNER JOIN public.parametrica AS p ON tmp.id_correlativo_subtipo = p.id_subtipo
         INNER JOIN public.obra AS o  ON tmp.id_correlativo_subtipo = o.id_tipo_pago
         WHERE tmp.id_tipo = 2 AND p.id_estado =1 AND tmp.id_estado =1 AND o.id_obra = $1 `;

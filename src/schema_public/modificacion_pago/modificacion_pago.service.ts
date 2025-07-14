@@ -79,13 +79,17 @@ export class ModificacionPagoService {
     try {
       const { tipo, subtipo, id_obra, id_usuario } = dto;
       let entidadGuardada: Modificacion | Pago;
+      
+      const esMenorQueCuatro = tipo < 4;
+      const estadogeneral = esMenorQueCuatro ? 21 : 29; //modificación o pago
+      const numeracion = esMenorQueCuatro ? 1 : 2; //modificación o pago
 
       //crear Solicitud
       const data_solicitud = {
         id_tipo_solicitud: 0,
-        id_estado_solicitud: 2,
+        id_estado_solicitud: 1,
         id_obra: dto.id_obra,
-        id_estado_general: 21,
+        id_estado_general: estadogeneral,
         id_usuario: dto.id_usuario,
         proveido: "SOLICITUD GENERADA POR SISTEMA-MODIFICACION",
         usuario_registro: dto.id_usuario,
@@ -131,8 +135,8 @@ export class ModificacionPagoService {
 
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,
-//        "id_tipo_documento": dto.tipo,
-        "id_tipo_documento": 1,
+        //        "id_tipo_documento": dto.tipo,
+        "id_tipo_documento": numeracion,
         "correlativo": "",
         "usuario_registro": dto.id_usuario,
         "id_estado": 1
