@@ -247,7 +247,7 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
       FROM public.solicitud AS s
       INNER JOIN public.obra AS o ON s.id_obra = o.id_obra
       INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
-      WHERE f.gestion_carpeta = $1 AND id_usuario = $2
+      WHERE f.gestion_carpeta = $1 AND id_usuario = $2 AND s.id_estado_registro =1
       GROUP BY  gestion_carpeta;`;
 
 
@@ -295,7 +295,7 @@ async listaHistorialXObra(data: HistorialObraDto) {
         INNER JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo      
         WHERE 
         s.id_obra =$1 AND
-        p.id_estado IN (1,5);`;
+        p.id_estado IN (1,5) AND s.id_estado_registro =1;`;
     const params = [data.obra]        
     const resultado = await this.solicitudRepositorio.query(query, params);
     return this.responseService.success(resultado, "Listado Correctamente.")

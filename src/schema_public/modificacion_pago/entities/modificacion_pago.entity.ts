@@ -4,7 +4,7 @@ import { Computo } from 'src/schema_public/computo/entities/computo.entity';
 import { Planilla } from 'src/schema_public/planilla/entities/planilla.entity';
 import { Correlativo } from 'src/schema_public/correlativo/entities/correlativo.entity';
 import { Modificacion} from './modificacion.entity';
-import { Pago } from './pago.entity';
+import { Pago } from 'src/schema_public/pago/entities/pago.entity';
 @Entity()
 export class ModificacionPago {
 
@@ -38,6 +38,45 @@ export class ModificacionPago {
 
     @Column()
     id_estado: number;
+
+
+
+//----------->>>>>>>>>>>>>>>>>>>>>>>>CONSOLIDADOS<<<<<<<<<<<<<<<<<<<<---------------
+ 
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    porcentaje_reordenamiento: number;     
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    total_incremento: number;
+
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
+    porcentaje_incremento: number;    
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    total_decremento: number;    
+
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
+    porcentaje_decremento: number;    
+
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    total_item_nuevo: number;         
+    
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
+    pocentaje_item_nuevo: number;    
+
+    @Column({nullable: true})
+    total_dia_ampliado: number;
+
+    @Column({nullable:true})
+    total_plazo_autorizado: number;
+        
+    @Column({ type: 'timestamp without time zone', nullable: true })
+    nueva_fecha_provisional: Date|null;
+
+    @Column({ type: 'timestamp without time zone', nullable: true })
+    nueva_fecha_definitiva: Date|null;
+//----------->>>>>>>>>>>>>>>>>>>>>>>>CONSOLIDADOS<<<<<<<<<<<<<<<<<<<<---------------
+        
 
     //relacion uno a muchos con la entidad computo
     @OneToMany(() => Computo, (computomo) => computomo.modificacionpago, { cascade: true })

@@ -3,7 +3,7 @@ import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Any, EntityManager, Not, Repository } from 'typeorm';
+import { And, Any, DataSource, EntityManager, Not, Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
@@ -29,6 +29,7 @@ export class DocumentoService {
     private configService: ConfigService,
     private entityManager: EntityManager,
     private logService: LogService,
+    private dataSource: DataSource
   ) {
     this.host = String(process.env.HOST_ADJUNTO);
     this.uploadUrl = String(process.env.URL_ADJUNTO);
@@ -630,4 +631,22 @@ LIMIT 5`;
       return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
     }
   }
+
+
+    // Método para listar documentos por obra
+  async listarVistaDocumentosPorObra(id_obra: number): Promise<any> {
+  try {
+    const resultado = await this.dataSource.query(
+      `SELECT * FROM sp_listar_vista_documentos_por_obra($1)`,
+      [id_obra],
+    );
+    return this.responseService.success(resultado, 'Listado correctamente');
+  } catch (error) {
+    console.error('Error al listar documentos por obra:', error);
+    return this.responseService.error('No se pudo listar los documentos');
+  }
+}
+
+
+
 }

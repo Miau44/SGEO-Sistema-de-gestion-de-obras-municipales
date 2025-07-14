@@ -7,7 +7,7 @@ import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Modificacion } from './entities/modificacion.entity';
-import { Pago } from './entities/pago.entity';
+import { Pago } from '../pago/entities/pago.entity';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { ModificacionPago } from './entities/modificacion_pago.entity';
 import { CreateMaestroDto } from './dto/create-maestro.dto';
@@ -19,6 +19,7 @@ import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
 @Injectable()
 export class ModificacionPagoService {
@@ -181,17 +182,21 @@ export class ModificacionPagoService {
         const pago = {
           "id_modificacion_pago": Number(respuesta_modpago.data.id_modificacion_pago),
           "monto_presente": 0,
-          "deducciones": 0,
-          "retenciones": 0,
-          "multas": 0,
+          "deduccion": 0,
+          "retencion": 0,
+          "multa": 0,
           "importe_por_pagar": 0,
           "monto_acumulado": 0,
-          "porcentaje_ejecucion": 0,
+          "porcentaje_presente": 0,
+          "porcentaje_acumulado": 0,
           "fecha_aprobacion_pago": null,
           "fecha_aprobacion_contrato": null,
           "fecha_supervisor": null,
           "fecha_fiscal": null,
           "fecha_certificado": null,
+          "fecha_frp": null,
+          "fecha_inicio_periodo": null,
+          "fecha_fin_periodo": null,
           "id_usuario_registro": dto.id_usuario,
           "id_estado": 1
         }
@@ -433,6 +438,34 @@ export class ModificacionPagoService {
     return res;
   }
 
+    async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+    let q = `SELECT ficha.correlativo_carpeta, 
+      id_modificacion,
+      ROUND(monto_total,2) AS monto_adjudicado,
+      porcentaje_total,
+      ROUND(monto_variacion, 2) AS  monto_variacion,
+      porcentaje_modificacion,
+      fecha_fiscal,
+      fecha_supervisor,
+      fecha_memo_minuta, 
+      dias_variacion as diasplazo_proceso,
+      mp.id_tipo_mod_pago as tipocontrato,
+      2 as tipoplazo,
+      numero_contrato_modificatorio
+      FROM modificacion
+      JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
+      JOIN obra on mp.id_obra = obra.id_obra
+      JOIN ficha on obra.id_ficha = ficha.id_ficha
+      where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+    if (id_carpeta > 0) {
+      q = q + ` AND ficha.correlativo_carpeta = $1`
+    }
+    console.log(q);
+    var res = await this.modificacionRepo.query(q, [id_carpeta]);
+    //console.log(res);
+    return res;
+  }
+
   async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
     try {
 
@@ -468,4 +501,18 @@ export class ModificacionPagoService {
       return this.responseService.error(error);
     }
   }
+
+
+  async actualizarAutorizado(data: ActualizarModPagoDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  sp_modificacion_pago_autorizado($1);`  ;
+      const params = [data.id_modificacion_pago];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
 }
