@@ -19,6 +19,7 @@ import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
 @Injectable()
 export class ModificacionPagoService {
