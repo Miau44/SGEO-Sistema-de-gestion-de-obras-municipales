@@ -845,7 +845,8 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     maximumFractionDigits: 2
   });
 
-  let datosPl = data;
+  let porc_modif = 0;
+  let porc_anterior = 0;
   let arrayData = [];
   
   // Fila final con totales
@@ -876,23 +877,31 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
 //    ];
 
    // Fila final con porcentajes
+   const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+   const total_autorizado = Number(this.datosPlanillaR[0].total_modif);
+   const total_pagado = Number(this.datosPlanillaR[0].total_pagado);
+   console.log('PORCENTAJE', total_autorizado);
+    if (!isNaN(montoContrato) && montoContrato !== 0) {
+      porc_modif = (total_autorizado * 100) / montoContrato;
+      porc_anterior = (total_pagado * 100) / montoContrato;
+    }
     const porctotalRow = [
       {colSpan: 3, text: 'PORCENTAJE:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
       {}, {}, {}, 
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(100,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(porc_modif,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {
-        text: this.formatIfNumber(100,formatoNumerico2) + '%',
+        text: this.formatIfNumber(porc_anterior,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'},
       {},
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -915,7 +924,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     maximumFractionDigits: 2
   });
 
-  let datosPl = data;
+  let porc_modif = 0;
   let arrayData = [];
   
   // Fila final con totales
@@ -941,20 +950,27 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
 //      { colSpan: 13}
 //    ];
 
-  // Fila final con porcentajes
+  
+   // Fila final con porcentajes
+   const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+   const total_autorizado = Number(this.datosPlanillaR[0].total_modif);
+   console.log('PORCENTAJE', total_autorizado);
+    if (!isNaN(montoContrato) && montoContrato !== 0) {
+      porc_modif = (total_autorizado * 100) / montoContrato;
+    }
     const porctotalRow = [
       {colSpan: 3, text: 'PORCENTAJE:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
       {}, {}, {}, 
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(100,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(porc_modif,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -976,7 +992,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     maximumFractionDigits: 2
   });
 
-  let datosPl = data;
+  let porc_anterior = 0;
   let arrayData = [];
   
   // Fila final con totales
@@ -1003,19 +1019,26 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
 //    ];
 
   // Fila final con porcentajes
+    const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+    const total_pagado = Number(this.datosPlanillaR[0].total_pagado);
+    //console.log('PORCENTAJE', total_autorizado);
+      if (!isNaN(montoContrato) && montoContrato !== 0) {
+        porc_anterior = (total_pagado * 100) / montoContrato;
+        
+      }
     const porctotalRow = [
       {colSpan: 3, text: 'PORCENTAJE:', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
       {}, {}, {}, 
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(100,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(porc_anterior,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -1037,7 +1060,6 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     maximumFractionDigits: 2
   });
 
-  let datosPl = data;
   let arrayData = [];
   
   // Fila final con totales
@@ -1067,10 +1089,10 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   

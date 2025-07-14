@@ -39,6 +39,7 @@ export class ResumenCertificado {
     datosUM: any = [];
     datosDes: any = [];
     datosCA: any = [];
+    datosMultas: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -117,6 +118,15 @@ export class ResumenCertificado {
       return resultado6[0];
    }
 
+   // Datos Lista Multas
+    async datosListaMultas(obra: number) {
+      const query7 = `
+          SELECT * 
+          FROM public."vista_reporte_resumen_multas" WHERE id_obra = (${obra})`;
+      const resultado7 = await this.sequelize.query(query7);
+      return resultado7[0];
+   }
+
   // REPORTE - INFORME PAGO SUPERVISOR
 
 async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
@@ -154,6 +164,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosCA = res6;
     
+    const res7 = await this.datosListaMultas(this.datosEnvio[0].id_obra);
+    this.datosMultas = res7;
+
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
@@ -179,11 +192,12 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosMV);
+   console.log('DATOS MODIFICACION',this.datosMultas);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
     const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
     const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+    const saldo = Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0);
     //console.log('DATOS XX',this.datosCA);
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -230,7 +244,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
               { text: 'REPRESENTANTE:', style: 'textTitulo', alignment: 'left'},
               { text: this.datosEnvio[0].proponente_representante, style: 'textDato'},
               { text: 'PARTIDA:', style: 'textTitulo', alignment: 'left'},
-              { text: '', style: 'textDato'}
+              { text: this.datosEnvio[0].partidas_sim2, style: 'textDato'}
             ],
             [
               { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
@@ -393,7 +407,21 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                       hLineWidth: () => 0.7,       // grosor más fino
                       vLineWidth: () => 0
                       }
-                }
+                },
+                {
+                  table: {
+                    widths: ['15%','*','45%'],
+                    body: [
+                      [
+                        {text: 'Nº', style: 'textTitulo', alignment: 'left' },
+                        {text: 'DETALLE', style: 'textTitulo', alignment: 'left' },
+                        {text: 'MONTO', style: 'textTitulo', alignment: 'right', margin: [0, 0, 20, 0] },
+                      ],
+                      ...this.buildListaMultas(this.datosMultas)
+                    ]
+                  }, layout: 'noBorders'
+                  
+                } 
               ],
               [  //COLUMNA DERECHA 
                 {
@@ -488,14 +516,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                     widths: ['50%','50%'],
                     body: [
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
-                             { text: 'Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                             { text: this.formatIfNumber(saldo,formatoNumerico2) + ' Bs.', 
+                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: '% A pagar**:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' %', 
+                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' % ', 
                                 style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ],
                             [{ text: '% Acumulado**:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + ' %', 
+                             { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + ' % ', 
                                 style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                             ]
                     ]
@@ -799,7 +828,7 @@ formatearFecha(iso: string | null | undefined): string | undefined {
       return arrayData;
   }
 
-      //RESUMEN datos plazo variacion - modificaciones aprobadas
+    //RESUMEN datos plazo variacion - modificaciones aprobadas
   buildModificacionesPlazo(data: any[]) {
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
       minimumFractionDigits: 2,
@@ -819,6 +848,38 @@ formatearFecha(iso: string | null | undefined): string | undefined {
       return arrayData;
   }
 
+    //Lista multas por obra
+  buildListaMultas(data: any[]) {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    let datosPl = data;
+    let arrayData = [];
+    var c = 0;
+    for (let i = 0; i < datosPl.length; i++) {
+      c = c + 1;
+      let rowData = [
+        { text: c, style: 'textDato', alignment: 'left' },
+        { text: datosPl[i].detalle?? '', style: 'textDato', alignment: 'left' },
+        { text: '(-)' + this.formatIfNumber(datosPl[i].monto,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0] },
+      ];
+      arrayData.push(rowData);
+    }
+
+    // Fila final con total
+    const totalRow = [
+      { colSpan: 2,
+        text: 'Total multas:', style: 'textTitulo', alignment: 'left'}, {}, 
+      {
+        text: this.formatIfNumber(this.datosDes[0].multa_total,formatoNumerico2) + ' Bs.',
+        style: 'textTitulo', alignment: 'right', margin: [0, 0, 10, 0] },
+    ];
+
+      arrayData.push(totalRow);
+      return arrayData;
+  }
 
   //Función para generar de manera escrita el monto del dinero
   private unidades = [
