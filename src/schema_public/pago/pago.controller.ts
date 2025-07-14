@@ -121,4 +121,14 @@ export class PagoController {
     } catch (error) {
     }
   } 
+
+
+      @Public()
+  @Post('paga-actualizar-datos')
+  listaActualizarDatos(@Body() data: PagoPagoDto) {
+    try {
+      return this.pagoService.actualizarPagoTotales(data);
+    } catch (error) {
+    }
+  } 
 }
