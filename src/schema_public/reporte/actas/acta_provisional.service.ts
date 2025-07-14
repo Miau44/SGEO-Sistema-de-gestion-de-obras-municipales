@@ -330,7 +330,11 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
                             { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }
-                          ]
+                          ],
+                          [
+                            { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
+                          ],
                         ]
                       }, layout: 'noBorders'
                       // layout: {
