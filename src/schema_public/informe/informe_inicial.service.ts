@@ -24,6 +24,7 @@ import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
 import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
+import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
 
 
 
@@ -43,9 +44,42 @@ export class InformeService {
 
   ) { }
 
+   /* async create(createInformeDto: CreateInformeDto) {
+      try {
+        // Guardar directamente el array de objetos JSON en la base de datos
+        const resultado = await this.informeRepositorio.save({
+          ...createInformeDto,
+          id_documento: createInformeDto.id_documento, // No necesitas transformarlo
+        });
+  
+        return this.responseService.success(resultado, "Registrado Correctamente.");
+      } catch (error) {
+        return this.responseService.error(error);
+      }
+    }*/
+  
+
   async create(createInformeDto: CreateInformeDto) {
     try {
-      // Guardar directamente el array de objetos JSON en la base de datos
+      
+      const existe = await this.informeRepositorio.findOne({
+        where: {
+          id_obra: createInformeDto.id_obra,
+          id_tipo_informe: createInformeDto.id_tipo_informe,
+          id_solicitud: createInformeDto.id_solicitud,
+        }
+      });
+
+      if (existe) {
+        return this.responseService.success(null, "Ya existe un informe con id_subtipo 227 para este id_informe.");
+
+      }
+    /*  // Guardar si no existe duplicado
+      const resultado = await this.informeRepositorio.save({
+        ...createInformeDto,
+      });*/
+
+        // Guardar directamente el array de objetos JSON en la base de datos
       const resultado = await this.informeRepositorio.save({
         ...createInformeDto,
         id_documento: createInformeDto.id_documento, // No necesitas transformarlo
@@ -220,6 +254,20 @@ export class InformeService {
       LEFT OUTER JOIN obra AS  o  ON i.id_obra = o.id_obra
       WHERE  i.id_obra = $1 AND  id_tipo_informe=$2 AND i.id_estado =1;`;
       const params = [data.obra, data.tipo_informe];
+      const resultado = await this.informeRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+    async siExisteInformeSolicitud(data: InformeObraSolicitudDto) {
+    try {
+      const query = ` SELECT i.id_informe FROM public.informe AS i     
+      WHERE  i.id_obra = $1 AND  id_tipo_informe=$2  AND id_solicitud =$3 AND i.id_estado =1;`;
+      const params = [data.obra, data.tipo_informe, data.solicitud];
       const resultado = await this.informeRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
 

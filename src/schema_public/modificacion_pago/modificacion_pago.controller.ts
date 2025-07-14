@@ -8,6 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
 
 
@@ -130,7 +131,7 @@ export class ModificacionPagoController {
     }
   }
 
-  //Listado de modificaciones por carpeta, servicio de lectura DLC
+  //Listado de modificaciones por contrato, servicio de lectura DLC
   @Public()
   @Get('ModificacionesPorContrato/:id_contrato')
   @HttpCode(HttpStatus.OK)
@@ -139,6 +140,18 @@ export class ModificacionPagoController {
       return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato);
     } catch (error) {
 
+    }
+  }
+
+  //Listado de modificaciones por carpeta, servicio de lectura SIM
+  @Public()
+  @Get('ModificacionesPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async ModificacionesPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
+    } catch (error) {
+      
     }
   }
 
@@ -163,4 +176,14 @@ export class ModificacionPagoController {
       throw new HttpException('Error al guardar la numeración', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+    @Public()
+  @Post('actualizar-autorizado')
+  listaActualizarPago(@Body() data: ActualizarModPagoDto) {
+    try {
+      return this.modificacionPagoService.actualizarAutorizado(data);
+    } catch (error) {
+    }
+  } 
+
 }
