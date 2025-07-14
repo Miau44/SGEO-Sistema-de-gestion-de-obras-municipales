@@ -500,4 +500,18 @@ export class ModificacionPagoService {
       return this.responseService.error(error);
     }
   }
+
+
+  async actualizarAutorizado(data: ActualizarModPagoDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  sp_modificacion_pago_autorizado($1);`  ;
+      const params = [data.id_modificacion_pago];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
 }

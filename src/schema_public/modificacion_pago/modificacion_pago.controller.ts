@@ -8,6 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
 
 
@@ -175,4 +176,14 @@ export class ModificacionPagoController {
       throw new HttpException('Error al guardar la numeración', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+    @Public()
+  @Post('actualizar-autorizado')
+  listaActualizarPago(@Body() data: ActualizarModPagoDto) {
+    try {
+      return this.modificacionPagoService.actualizarAutorizado(data);
+    } catch (error) {
+    }
+  } 
+
 }
