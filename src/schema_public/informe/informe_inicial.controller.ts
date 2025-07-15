@@ -20,6 +20,8 @@ import { BuscarTipoInformeDto } from './dto/buscar-informe.dto';
 import { CreateActaEntregaProvicionalDto } from './dto/create-acta-entrega-provicional.dto';
 import { UpdateActaEntregaProvDto } from './dto/update-acta-entega-prov.dto';
 import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
+import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-entrega-provisional-definitiva';
+import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-definitiva.dto';
 
 
 @ApiTags('informe')
@@ -287,5 +289,34 @@ async updateActaEntregaProvisional(@Body() dto: UpdateActaEntregaProvDto) {
   return this.informeService.updateActaEntregaProvisional(dto);
 }
   
+   /************************************actas de entrega provisional y definitiva ************************************/
 
+  @Public()
+  @Post('crear-acta-entrega-provisional-definitiva')
+  @ApiOperation({ summary: 'Crear acta de entrega provisional o definitiva' })
+  @ApiBody({ type: CreateActaEntregaProvisionalDefinitivaDto })
+  async crearActaEntrega(@Body() dto: CreateActaEntregaProvisionalDefinitivaDto) {
+    return this.informeService.createActaEntregaProvicionalDefinitiva(dto);
+  }
+
+  @Public()
+  @Post('actualizar-acta-entrega-definitiva')
+  @ApiOperation({ summary: 'Actualizar acta de entrega definitiva' })
+  @ApiBody({ type: UpdateActaEntregaDefinitivaDto })
+  async updateActaEntregaDefinitiva(@Body() dto: UpdateActaEntregaDefinitivaDto) {
+    return this.informeService.updateActaEntregaDefinitiva(dto);
+  }
+
+  @Get('acta-entrega-definitiva/:id')
+  @ApiOperation({ summary: 'Obtener datos del acta de entrega definitiva para edición' })
+  async getActaEntregaDefinitiva(@Param('id') id: number) {
+    return this.informeService.getActaEntregaDefinitivaById(id);
+  }
+
+  @Post('listar-actas-entrega-definitiva')
+  @ApiBody({ type: ListaInformeObraDto })
+  @ApiOperation({ summary: 'Listar actas de entrega definitiva por obra' })
+  async listarActasEntregaDefinitiva(@Body() dto: ListaInformeObraDto) {
+    return this.informeService.listarActasEntregaDefinitiva(dto);
+  }
 }

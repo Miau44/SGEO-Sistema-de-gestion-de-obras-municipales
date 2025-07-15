@@ -74,8 +74,12 @@ export class Informe {
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()', nullable:true})
     fecha_modificacion: Date 
-    
-    
+
+
+    @Column({ type: 'timestamp without time zone', nullable: true })
+    fecha_acta: Date;
+
+
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
     correlativo: Correlativo;
