@@ -17,6 +17,7 @@ import { error } from 'console';
 import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
+import { ValidarPagoDto } from './dto/pago-validar.dto';
 
 
 
@@ -124,7 +125,7 @@ export class PagoController {
 
 
       @Public()
-  @Post('paga-actualizar-datos')
+  @Post('pago-actualizar-datos')
   listaActualizarDatos(@Body() data: PagoPagoDto) {
     try {
       return this.pagoService.actualizarPagoTotales(data);

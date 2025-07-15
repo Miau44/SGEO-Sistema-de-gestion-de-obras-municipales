@@ -12,7 +12,7 @@ import { Descuento } from './entities/descuento.entity';
 import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
-
+import { ValidarPagoDto } from './dto/pago-validar.dto';
 
 
 @Injectable()
@@ -188,4 +188,8 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
       return this.responseService.error(error);
     }
   }
+
+
+  
+  
 }

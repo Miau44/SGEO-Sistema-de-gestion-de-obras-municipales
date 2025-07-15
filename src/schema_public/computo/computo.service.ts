@@ -339,7 +339,7 @@ export class ComputoService {
     try {
       ;
       let query =
-        `SELECT  
+       /* `SELECT  
         p.id_modificacion_pago as modificacion,
       i.id_item, 
       i.orden_sim AS orden,    
@@ -357,7 +357,8 @@ export class ComputoService {
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
 LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_planilla           
-      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
+      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;*/
+`SELECT * FROM  sp_computo_modificacion_pago($1, $2);`;
 
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
