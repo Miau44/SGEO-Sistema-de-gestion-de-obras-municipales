@@ -19,6 +19,7 @@ import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
 @Injectable()
 export class ModificacionPagoService {
@@ -78,13 +79,17 @@ export class ModificacionPagoService {
     try {
       const { tipo, subtipo, id_obra, id_usuario } = dto;
       let entidadGuardada: Modificacion | Pago;
+      
+      const esMenorQueCuatro = tipo < 4;
+      const estadogeneral = esMenorQueCuatro ? 21 : 29; //modificación o pago
+      const numeracion = esMenorQueCuatro ? 1 : 2; //modificación o pago
 
       //crear Solicitud
       const data_solicitud = {
         id_tipo_solicitud: 0,
-        id_estado_solicitud: 2,
+        id_estado_solicitud: 1,
         id_obra: dto.id_obra,
-        id_estado_general: 21,
+        id_estado_general: estadogeneral,
         id_usuario: dto.id_usuario,
         proveido: "SOLICITUD GENERADA POR SISTEMA-MODIFICACION",
         usuario_registro: dto.id_usuario,
@@ -130,8 +135,8 @@ export class ModificacionPagoService {
 
       const data_correlativo_tipo = {
         "id_obra": dto.id_obra,
-//        "id_tipo_documento": dto.tipo,
-        "id_tipo_documento": 1,
+        //        "id_tipo_documento": dto.tipo,
+        "id_tipo_documento": numeracion,
         "correlativo": "",
         "usuario_registro": dto.id_usuario,
         "id_estado": 1
@@ -406,7 +411,11 @@ export class ModificacionPagoService {
   }
 
   async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
-    console.log(id_contrato);
+    
+    // Validar que el id_contrato sea un número positivo o cero y no nulo
+    if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
+      throw new BadRequestException('El id_contrato debe ser un número positivo.');
+    }
 
     let q = `SELECT ficha.correlativo_carpeta, 
         id_modificacion,
@@ -428,25 +437,37 @@ export class ModificacionPagoService {
         JOIN ficha on obra.id_ficha = ficha.id_ficha
 				JOIN contrato on contrato.id_obra = obra.id_obra
 				where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+    
+    var res: any;
     if (id_contrato > 0) {
       q = q + ` AND contrato.id_contrato_dlc = $1`
+      var res = await this.modificacionRepo.query(q, [id_contrato]);
     }
-    console.log(q);
-    var res = await this.modificacionRepo.query(q, [id_contrato]);
-    console.log(res);
+    else {
+      res = await this.modificacionRepo.query(q);
+    }
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
     return res;
   }
 
     async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+
+          // Validar que el id_contrato sea un número positivo o cero y no nulo
+    if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
+      throw new BadRequestException('El id_carpeta debe ser un número positivo.');
+    }
+
     let q = `SELECT ficha.correlativo_carpeta, 
       id_modificacion,
       ROUND(monto_total,2) AS monto_adjudicado,
       porcentaje_total,
       ROUND(monto_variacion, 2) AS  monto_variacion,
       porcentaje_modificacion,
-      fecha_fiscal,
-      fecha_supervisor,
-      fecha_memo_minuta, 
+      TO_CHAR(fecha_fiscal, 'DD/MM/YYYY') as fecha_fiscal,
+      TO_CHAR(fecha_supervisor, 'DD/MM/YYYY') as fecha_supervisor,
+      TO_CHAR(fecha_memo_minuta, 'DD/MM/YYYY') as fecha_memo_minuta,
       dias_variacion as diasplazo_proceso,
       mp.id_tipo_mod_pago as tipocontrato,
       2 as tipoplazo,
@@ -456,12 +477,69 @@ export class ModificacionPagoService {
       JOIN obra on mp.id_obra = obra.id_obra
       JOIN ficha on obra.id_ficha = ficha.id_ficha
       where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+      var res: any;
     if (id_carpeta > 0) {
-      q = q + ` AND ficha.correlativo_carpeta = $1`
+      q = q + ` AND ficha.correlativo_carpeta = $1`;
+      var res = await this.modificacionRepo.query(q, [id_carpeta]);
     }
-    console.log(q);
-    var res = await this.modificacionRepo.query(q, [id_carpeta]);
-    //console.log(res);
+    else{
+      res = await this.modificacionRepo.query(q);
+    }
+    
+    //mensaje en caso de no encontrar registros
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
+    return res;
+  }
+
+  async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
+
+    if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
+      throw new BadRequestException('El id_carpeta debe ser un número positivo.');
+    }
+
+    
+    let q = `SELECT 
+        ficha.correlativo_carpeta as id_carpeta,
+        pago.id_pago as id_pago,
+        monto_presente, 
+        importe_por_pagar, 
+        monto_acumulado, 
+        --fecha_aprobacion_pago, 
+        --fecha_supervisor, 
+        --fecha_fiscal, 
+        deduccion, 
+        retencion, 
+        multa, 
+        penalidad, 
+        porcentaje_presente, 
+        porcentaje_acumulado, 
+        fecha_frp, 
+        TO_CHAR(fecha_inicio_periodo, 'DD/MM/YYYY') as fecha_inicio_periodo,
+        TO_CHAR(fecha_fin_periodo, 'DD/MM/YYYY') as fecha_fin_periodo,
+        finalizado
+      FROM pago 
+      join modificacion_pago mp on pago.id_modificacion_pago = mp.id_modificacion_pago 
+      join obra on mp.id_obra = obra.id_obra
+      join ficha on obra.id_ficha = ficha.id_ficha where pago.id_estado = 1 `;
+      //modificar el query, ajuste de formato de fechas
+
+
+
+      var res: any;
+    if (id_carpeta > 0) {
+      q = q + ` AND ficha.correlativo_carpeta = $1`;
+      var res = await this.modificacionRepo.query(q, [id_carpeta]);
+    }
+    else{
+      res = await this.modificacionRepo.query(q);
+    }
+
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
+    
     return res;
   }
 
@@ -500,4 +578,18 @@ export class ModificacionPagoService {
       return this.responseService.error(error);
     }
   }
+
+
+  async actualizarAutorizado(data: ActualizarModPagoDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  sp_modificacion_pago_autorizado($1);`  ;
+      const params = [data.id_modificacion_pago];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
 }
