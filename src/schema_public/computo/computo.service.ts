@@ -338,7 +338,7 @@ export class ComputoService {
   async descargarComputosMetricos(data: ComputoObra) {
     try {
       ;
-      let query =
+
        /* `SELECT  
         p.id_modificacion_pago as modificacion,
       i.id_item, 
@@ -358,8 +358,24 @@ export class ComputoService {
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
 LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_planilla           
       WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;*/
-`SELECT * FROM  sp_computo_modificacion_pago($1, $2);`;
-
+      let queryinicio = ` 
+     SELECT id_tipo_mod_pago FROM public.modificacion_pago WHERE id_modificacion_pago = $1;`  ;
+      const paramsinicio = [data.id_modificacion_pago];
+      const tipo_modificacion = await this.computoRepositorio.query(queryinicio, paramsinicio);
+      console.log('tipo_modificacion', tipo_modificacion);
+      if (tipo_modificacion.length === 0) {
+        throw new NotFoundException(`Modificacion Pago with ID ${data.id_modificacion_pago} not found`);
+      }
+      let query = '';
+      const v_id_tipo_mod_pago = tipo_modificacion[0]?.id_tipo_mod_pago;
+      if (v_id_tipo_mod_pago < 4) {
+        query = `SELECT * FROM  sp_computo_modificacion_pago($1, $2);`;
+      } else {
+        query = `SELECT modificacion , id_item , orden , nombre ,
+              tramo , descripcion , 
+              unidad , numero numeric, largo , ancho ,
+              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2);`;
+      }
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")

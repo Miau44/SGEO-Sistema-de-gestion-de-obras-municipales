@@ -84,6 +84,11 @@ export class PagoController {
       }
     }
 
+    @Post('validar-pago')
+    async validarPago(@Body() data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
+    return this.pagoService.validarPago(data);
+    }
+
 //----------------------------->>>>>>>>>>>DESCUENTO<<<<<<<<<<<<--------------------------------
   @Public()
 
