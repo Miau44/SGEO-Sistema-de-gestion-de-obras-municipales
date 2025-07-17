@@ -187,4 +187,12 @@ export class SolicitudController {
     }
   }
 
+  @Post('actualizar-estado-general')
+  async actualizarHistorial(@Body() data: ActualizarSolicitudDto) {
+     try {
+    return await this.solicitudService.guardarHistorialGeneral(data);
+       } catch (error) {
+    }
+  }
+
 }
