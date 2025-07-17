@@ -221,7 +221,7 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
        WHERE id_obra = $1 AND id_tipo_informe IN( 356) AND id_solicitud = $2 AND id_estado = 1`, params3);
   
       if (Number(informeQuery[0].total) === 0) {
-        mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
+        mensaje += 'Debe completar el Informe antes de enviar al Fiscal.<br><br>';
       }
 
       // 3️⃣ Validar que todos los registros que el monto total de pago no sea mayor al monto autorizado`
@@ -230,8 +230,8 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
         ` SELECT COUNT(*) AS total,  SUM(CASE WHEN diferencia_pago = false THEN 1 ELSE 0 END) AS diferencia_pago  
          FROM public.sp_certificado_planilla_pago($1, $2, $3)  `, params4);
       if (Number(diferenciaQuery[0].total) === 0 || Number(diferenciaQuery[0].total) !== Number(diferenciaQuery[0].diferencia_pago)) {
-        mensaje += 'El Monto de Pago no debe sobrepasar el (Monto Autorizado). Verifique los ítems resaltados en rojo para corregirlos.<br><br>';
-      }      
+        mensaje += 'El Monto de Pago no debe sobrepasar el (Monto Autorizado). Verifique los ítems resaltados en rojo para corregirlos.';
+      }
 
       return {
         valido: mensaje === '',
