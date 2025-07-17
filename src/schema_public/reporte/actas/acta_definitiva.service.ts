@@ -247,7 +247,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                 ],
                 [
                   { text: 'Plazo:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: this.datosEnvio[0].plazo_contrato + 'd.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
                   { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -259,7 +259,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                 ],
                 [
                   { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: plazo_real, style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
                   { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
@@ -301,7 +301,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                           ],
                           [
                             { text: 'Plazo:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: this.datosEnvio[0].plazo_contrato + '(d.c.)', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -337,11 +337,11 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                           ],
                           [
                             { text: 'Modificación plazo:', style: 'textTituloT', alignment: 'right' },
-                            { text: this.datosVariacion[0].total_diasv + '(d.c.)', style: 'textDatoT' }
+                            { text: this.datosVariacion[0].dias_variacion + ' d.c.', style: 'textDatoT' }
                           ],
                           [
                             { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: '(d.c.)', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -378,7 +378,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                 body: [ 
                   [
                     { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                    { text: plazo_real, style: 'textDatoT', fillColor: '#dddddd' }
+                    { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                   ],
                   [
                     { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },

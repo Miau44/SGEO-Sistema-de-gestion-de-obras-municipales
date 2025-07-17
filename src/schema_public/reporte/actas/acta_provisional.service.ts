@@ -292,8 +292,8 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                   { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' } 
                 ],
                 [
-                  { text: 'Plazo (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: this.datosEnvio[0].plazo_contrato, style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: 'Plazo:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
                   { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -328,8 +328,8 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                             { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' } 
                           ],
                           [
-                            { text: 'Plazo (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: this.datosEnvio[0].plazo_contrato, style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: 'Plazo:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -364,12 +364,12 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                             { text: 'ÚLTIMA MODIFICACIÓN APROBADA ' + this.datosVariacion[0].tipo_modificacion_texto + this.datosVariacion[0].correlativo, style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
                           ],
                           [
-                            { text: 'Modificación plazo (d.c.):', style: 'textTituloT', alignment: 'right' },
-                            { text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }
+                            { text: 'Modificación plazo:', style: 'textTituloT', alignment: 'right' },
+                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT' }
                           ],
                           [
-                            { text: 'Plazo real de ejecución (d.c.):', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: plazo_real, style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
