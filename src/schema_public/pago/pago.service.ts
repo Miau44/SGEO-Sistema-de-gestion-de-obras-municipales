@@ -202,15 +202,15 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
       if (Number(itemQuery[0].total) === 0 || Number(itemQuery[0].total) !== Number(itemQuery[0].finalizados)) {
         mensaje += 'Todos los Ítems deben deben estar finalizados antes de enviar al Fiscal.<br><br>';
       }
-  
-      // 3️⃣ Validar que todos los registros en `planilla` sean `finalizado = true`
+
+   /*   // 3️⃣ Validar que todos los registros en `planilla` sean `finalizado = true`
       const params2 = [data.id_modificacion_pago]
       const planillaQuery = await this.pagoRepositorio.query(
         `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
          FROM public.planilla WHERE id_modificacion_pago = $1 AND id_estado = 1`, params2);
       if (Number(planillaQuery[0].total) === 0 || Number(planillaQuery[0].total) !== Number(planillaQuery[0].finalizados)) {
         mensaje += 'Debe Finalizar la Planilla de Compútos Métricos antes de enviar al Fiscal.<br><br>';
-      }
+      }*/
 
 
   
@@ -224,7 +224,7 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
         mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
       }
 
-      // 3️⃣ Validar que todos los registros en `planilla` sean `finalizado = true`
+      // 3️⃣ Validar que todos los registros que el monto total de pago no sea mayor al monto autorizado`
       const params4 = [data.id_obra, data.id_modificacion_pago, data.nro_pago]
       const diferenciaQuery = await this.pagoRepositorio.query(
         ` SELECT COUNT(*) AS total,  SUM(CASE WHEN diferencia_pago = false THEN 1 ELSE 0 END) AS diferencia_pago  
