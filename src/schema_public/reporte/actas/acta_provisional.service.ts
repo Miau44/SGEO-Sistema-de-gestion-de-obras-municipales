@@ -136,7 +136,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
-  const fechaFin = new Date(this.datosInf[0].fecha_registro);
+  const fechaFin = new Date(this.datosInf[0].fecha_registro); //fecha acta provisional
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
@@ -302,6 +302,10 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                 [
                   { text: 'Fecha real de conclusión:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
                   { text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT', fillColor: '#dddddd' }
+                ],
+                [
+                  { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
                 ]
               ]
             }, margin: [120, 0, 120, 7], layout: 'noBorders'
@@ -357,7 +361,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                         widths: ['50%', '50%'],
                         body: [
                           [
-                            { text: 'ULTIMA MODIFICACIÓN APROBADA ' + this.datosVariacion[0].tipo_modificacion_texto + this.datosVariacion[0].correlativo, style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
+                            { text: 'ÚLTIMA MODIFICACIÓN APROBADA ' + this.datosVariacion[0].tipo_modificacion_texto + this.datosVariacion[0].correlativo, style: 'textTituloT', alignment: 'center', fillColor: '#dddddd', colSpan: 2 }, {}
                           ],
                           [
                             { text: 'Modificación plazo (d.c.):', style: 'textTituloT', alignment: 'right' },
