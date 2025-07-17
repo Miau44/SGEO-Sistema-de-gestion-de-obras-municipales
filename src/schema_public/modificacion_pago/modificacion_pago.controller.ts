@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
@@ -9,6 +9,7 @@ import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 
 
@@ -144,15 +145,25 @@ export class ModificacionPagoController {
   }
 
   //Listado de modificaciones por carpeta, servicio de lectura SIM
+  @UseGuards(AuthGuard('jwt'))
   @Public()
   @Get('ModificacionesPorCarpeta/:id_carpeta')
   @HttpCode(HttpStatus.OK)
   async ModificacionesPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
     try {
       return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
-    } catch (error) {
-      
-    }
+    } catch (error) {}
+  }
+
+  //Listado de pagos por carpeta, Servicio de lectura SIM
+  @UseGuards(AuthGuard('jwt'))
+  @Public()
+  @Get('PagosPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async PagosPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoPagosxCarpeta(id_carpeta);
+    } catch (error) {}
   }
 
   //servicio en metodo post, guardado de numeración del contrato
