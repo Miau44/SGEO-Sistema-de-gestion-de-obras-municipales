@@ -250,6 +250,12 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
     }
        }
   
-    }
+
+
+
+
+
+
+
   
 }
