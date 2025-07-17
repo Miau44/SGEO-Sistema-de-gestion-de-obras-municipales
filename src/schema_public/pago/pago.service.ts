@@ -192,7 +192,7 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
 
     //  async validarPago(data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
     async validarPago(data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
-      // try {
+       try {
       const params1 = [data.id_obra]
       let mensaje: any = '';
       // 1️⃣ Validar que todos los registros en `item` sean `finalizado = true`
@@ -229,7 +229,7 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
       const diferenciaQuery = await this.pagoRepositorio.query(
         ` SELECT COUNT(*) AS total,  SUM(CASE WHEN diferencia_pago = false THEN 1 ELSE 0 END) AS diferencia_pago  
          FROM public.sp_certificado_planilla_pago($1, $2, $3)  `, params4);
-      if (Number(planillaQuery[0].total) === 0 || Number(planillaQuery[0].total) !== Number(planillaQuery[0].diferencia_pago)) {
+      if (Number(diferenciaQuery[0].total) === 0 || Number(diferenciaQuery[0].total) !== Number(diferenciaQuery[0].diferencia_pago)) {
         mensaje += 'El Monto de Pago no debe sobrepasar el (Monto Autorizado). Verifique los ítems resaltados en rojo para corregirlos.<br><br>';
       }      
 
@@ -239,13 +239,16 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
       };
   
   
-      } catch (error:any) {
-        console.error('Error al ejecutar validaciones:', error);
-        return {
-          valido: false,
-          mensaje: 'Ocurrió un error al ejecutar las validaciones. Contacte al administrador.',
-        };
-      
+   } catch (error: any) {
+  console.error('Error al ejecutar validaciones:', error);
+  return {
+    valido: false,
+    mensaje: 'Ocurrió un error al ejecutar las validaciones. Contacte al administrador.',
+  };
+// 
+  
+    }
+       }
   
     }
   
