@@ -17,6 +17,7 @@ import { error } from 'console';
 import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
+import { ValidarPagoDto } from './dto/pago-validar.dto';
 
 
 
@@ -83,6 +84,11 @@ export class PagoController {
       }
     }
 
+    @Post('validar-pago')
+    async validarPago(@Body() data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
+    return this.pagoService.validarPago(data);
+    }
+
 //----------------------------->>>>>>>>>>>DESCUENTO<<<<<<<<<<<<--------------------------------
   @Public()
 
@@ -118,6 +124,16 @@ export class PagoController {
   listaActualizarPago(@Body() data: ActualizarEstadoDescuentoDto) {
     try {
       return this.pagoService.actualizarEstadoDescuento(data);
+    } catch (error) {
+    }
+  } 
+
+
+      @Public()
+  @Post('pago-actualizar-datos')
+  listaActualizarDatos(@Body() data: PagoPagoDto) {
+    try {
+      return this.pagoService.actualizarPagoTotales(data);
     } catch (error) {
     }
   } 
