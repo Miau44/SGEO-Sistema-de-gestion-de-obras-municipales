@@ -147,7 +147,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosInf[0].fecha_aprobacion;
+  const marcaAgua = this.datosProv[0].monto_certificado;
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
@@ -155,13 +155,14 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
+  const plazo_autorizado = this.datosEnvio[0].plazo_contrato + this.datosVariacion[0].dias_variacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
 
-    // console.log('DATOS obra',this.datosEnvio);
+     console.log('DATOS obra',this.datosProv);
     // console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
@@ -174,10 +175,9 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         absolutePosition: {x: 0, y: 0}
             } },
 
-    ...(!marcaAgua && {
-        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
-      }
-      ),
+    ...(marcaAgua === '0' && {
+    watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true }
+    }),
    
     header: {
       columns: [{ 
@@ -341,7 +341,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                           ],
                           [
                             { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: plazo_autorizado + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
