@@ -9,13 +9,13 @@ export class ValidarPagoDto {
     @ApiProperty()
     id_modificacion_pago: number;
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     id_solicitud: number;  
     
     @ApiProperty()
     nro_pago: number;      
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     id_usuario: number;
     
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreatePagoDto } from './dto/create-pago.dto';
 import { UpdatePagoDto } from './dto/update-pago.dto';
 import { Pago } from './entities/pago.entity';
@@ -13,15 +13,17 @@ import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 import { ValidarPagoDto } from './dto/pago-validar.dto';
+import { CorrelativoService } from '../correlativo/correlativo.service';
 
 
 @Injectable()
 export class PagoService {
   constructor(
     @InjectRepository(Pago) private pagoRepositorio: Repository<Pago>,
-   private responseService: ResponseService,
-       @InjectRepository(Descuento) private descuentoRepocitorio: Repository<Descuento>,
-
+    private responseService: ResponseService,
+    private correlativoServive: CorrelativoService,
+    @InjectRepository(Descuento) private descuentoRepocitorio: Repository<Descuento>,
+    //@InjectRepository(Correlativo) private correlativoRepocitorio: Repository<Correlativo>,
 
     
     
@@ -36,8 +38,13 @@ export class PagoService {
     return `This action returns all pago`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pago`;
+ async findOne(id_pago: number) {
+     try {
+      const resultado = await this.pagoRepositorio.findOneBy({ id_pago });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
 
