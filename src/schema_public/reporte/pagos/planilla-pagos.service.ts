@@ -376,6 +376,15 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
         ]
       ),
       {
+        text: '\n'
+      },
+      ...(this.datosEnvio[0].numero_pago > 1
+        ?[
+            { text: '* El monto total es el resultado de la suma de los montos parciales', style: 'textDato' }
+        ]
+        :[]
+      ),
+      {
         text: '\n\n\n\n\n',
       },
       {
