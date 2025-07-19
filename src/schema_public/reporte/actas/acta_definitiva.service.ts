@@ -199,7 +199,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         text: '\n',
       },
       {
-        text: 'En la ciudad de La Paz a hrs. ' + this.datosInf[0].hora_registro.substring(0, 5) + ' del día ' + this.fechaString(this.datosInf[0].fecha_registro) + 
+        text: 'En la ciudad de La Paz a hrs. ' + this.datosInf[0].hora_registro.substring(0, 5) + ' del día ' + this.fechaString(this.datosInf[0].fecha_acta) + 
               ', en presencia de las autoridades de la Comisión de Recepción de Obras del Gobierno Autónomo Municipal de La Paz ' + 
               ' y la empresa contratista ' + this.datosEnvio[0].proponente_razon_social + ', se procedió a la recepción definitiva de la siguiente obra:',
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
