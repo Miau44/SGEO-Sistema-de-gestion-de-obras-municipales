@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ResponseService } from 'src/response.service';
 import { Sequelize } from 'sequelize-typescript';
-import { log, table } from 'console';
+import { Console, log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 import { text } from 'stream/consumers';
@@ -127,7 +127,7 @@ export class ResumenCertificado {
       return resultado7[0];
    }
 
-  // REPORTE - INFORME PAGO SUPERVISOR
+  // REPORTE - RESUMEN DE CERTIFICADO DE PAGO
 
 async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
 
@@ -192,22 +192,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosMultas);
+   //console.log('DATOS MODIFICACION',this.datosMV);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
     const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
     const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
     const saldo = Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0);
-    //console.log('DATOS XX',this.datosCA);
+    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
-    // background: function(currentPage: any, pageSize: any) { 
-    //   return {
-    //     image: imgPath, 
-    //     width: pageSize.width, 
-    //     height: pageSize.height,
-    //     absolutePosition: {x: 0, y: 0}
-    //         } },
     
     ...(!marcaAgua && {
         watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
@@ -320,6 +313,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                     ]
                                   : []
                                 ),
+                            [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
+                             { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
+                            ],
                             [{ text: 'Periodo certificado:', style: 'textTitulo', alignment: 'left'},
                              { text: 'Del ' + this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato', alignment: 'left'}
                             ]
