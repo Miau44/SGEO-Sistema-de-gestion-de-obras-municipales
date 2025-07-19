@@ -78,6 +78,59 @@ export class ModificacionPagoService {
   async crearModificacionPago(dto: CreateMaestroDto) {
     try {
       const { tipo, subtipo, id_obra, id_usuario } = dto;
+      console.log('tipo', tipo);
+      console.log('obra', id_obra);
+      if (tipo < 4) {
+        const queryModifiacion = `
+          SELECT id_tipo_mod_pago
+          FROM public.modificacion_pago AS mp
+          INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago      
+          WHERE id_obra = $1 AND id_tipo_mod_pago IN(1,2) AND (m.finalizado = true OR m.finalizado = NULL  ) AND mp.id_estado = 1`;
+        const params = [id_obra];
+        const [modificacionPendiente] = await this.modPagoRepositorio.query(queryModifiacion, params);
+        console.log("modificacionPendiente", modificacionPendiente);
+
+
+        if (modificacionPendiente) {
+          return this.responseService.error(null, "Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.");
+
+        }
+        else {
+          this.crearModificacion(dto)
+        }
+      }
+      else {
+
+        const queryObra1 = `
+          SELECT id_tipo_mod_pago
+          FROM public.modificacion_pago WHERE id_obra = $1 AND id_tipo_mod_pago IN(4,6,7)
+          AND id_tipo_mod_pago =$2
+          AND id_estado = 1;`;
+        const parametros = [id_obra, tipo];
+        const resultado = await this.modPagoRepositorio.query(queryObra1, parametros);
+        console.log('resultado', resultado.length);
+
+        if (resultado.length > 0) {
+          //return this.responseService.error("Ítem existente: El ítem que intenta guardar ya está registrado en la Obra. Por favor verifique.");
+          return this.responseService.error(null, 'Pago existente: El Pago que intenta guardar ya está registrado para la Obra. Por favor verifique.');
+        }
+        else {
+          this.crearModificacion(dto);
+        }
+
+      }
+
+    } catch (error: any) {
+      console.error('Error al verificar modificación en curso:', error);
+      const mensajeError = error?.message || error?.detail || 'Ocurrió un error desconocido.';
+      return this.responseService.error(error)
+    }
+  }
+
+
+  async crearModificacion(dto: CreateMaestroDto) {
+    try {
+      const { tipo, subtipo, id_obra, id_usuario } = dto;
       let entidadGuardada: Modificacion | Pago;
       
       const esMenorQueCuatro = tipo < 4;
@@ -215,16 +268,16 @@ export class ModificacionPagoService {
           id_modificacion_pago: Number(respuesta_modpago.data.id_modificacion_pago),
           id_usuario_registro: dto.id_usuario
         }
-
-
         const respuesta_planilla = await this.servicioPlanilla.copiarItem(dto_planilla)
-      }
-      // return { entidad1: respuesta_modpago, relacionado: entidadGuardada};      
 
-      return this.responseService.success({ entidad1: respuesta_modpago, relacionado: entidadGuardada }, "Solicitud generada correctamente.");
-    } catch (error) {
-      console.error("Error en aprobarDesignacion:", error);
-      return this.responseService.error(error);
+        // return { entidad1: respuesta_modpago, relacionado: entidadGuardada};      
+        return this.responseService.success({ entidad1: respuesta_modpago, relacionado: entidadGuardada }, "Solicitud generada correctamente.");
+      }
+
+    } catch (error: any) {
+      console.error('Error al verificar modificación en curso:', error);
+      const mensajeError = error?.message || error?.detail || 'Ocurrió un error desconocido.';
+      return this.responseService.error(error)
     }
   }
 
