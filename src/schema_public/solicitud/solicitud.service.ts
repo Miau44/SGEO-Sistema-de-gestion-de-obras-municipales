@@ -393,7 +393,34 @@ const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5) AS id
 }
 
 
+async guardarHistorialGeneral(data: ActualizarSolicitudDto) {
+  try {
 
+   
+
+const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6) AS id_historial`;    
+    const params = [
+      data.p_id_solicitud,
+      data.p_id_usuario,
+      data.p_usuario_registro,
+      data.p_id_estado_general,
+      data.p_proveido,
+      data.p_data_solicitud ? JSON.stringify(data.p_data_solicitud) : null, // Convertir a JSON si es necesario
+    ];
+
+    const resultado = await this.solicitudRepositorio.query(query, params);
+  
+
+    return this.responseService.success(resultado, "Ejecutado correctamente.");
+  } catch (error:any) {
+    console.error('❌ Error al ejecutar sp_modificacion_historial:', {
+      message: error.message,
+      detail: error.detail,
+      stack: error.stack,
+    });
+    return this.responseService.error(error);
+  }
+}
 
 
 }

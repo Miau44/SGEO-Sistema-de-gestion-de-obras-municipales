@@ -36,6 +36,9 @@ export class InformePagoSupervisor {
     datosFis: any = [];
     datosInfSup: any = [];
     datosModAp: any = [];
+    datosDes: any = [];
+    datosCA: any = [];
+    datosAdj: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -54,16 +57,16 @@ export class InformePagoSupervisor {
   async datosGeneralesObraModif(id_modif_pago: number) {
     const query = `
         SELECT * 
-        FROM public."vista_reporte_modificacion_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
+        FROM public."vista_reporte_pago_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
     const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
 
-    // Datos informe - modificación Supervisor
-  async datosInformeModifSupervisor(solicitud: number) {
+    // Datos informe - Pago Supervisor
+  async datosInformePagoSupervisor(solicitud: number) {
     const query = `
         SELECT * 
-        FROM public."vista_reporte_InfMod_Supervisor" WHERE id_solicitud = ${solicitud}`;
+        FROM public."vista_reporte_Informe_PagoSup" WHERE id_solicitud = ${solicitud}`;
     const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
@@ -86,13 +89,40 @@ export class InformePagoSupervisor {
     return resultado2[0];
    }
 
-       // Resumen de Modificaciones Aprobadas por obra 
+      // Resumen de Modificaciones Aprobadas por obra 
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE fecha_memo_minuta IS NOT NULL AND id_obra = ${obra}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
+   }
+
+    // Datos Descuentos
+    async datosDescuentos(obra: number, id_modif_pago: number) {
+      const query4 = `
+          SELECT * 
+          FROM public.f_reporte_resumen_descuentos(${obra},${id_modif_pago})`;
+      const resultado4 = await this.sequelize.query(query4);
+      return resultado4[0];
+   }
+
+   // Datos Total Certificados Anteriores
+    async datosCertificadoAnt(obra: number, id_modif_pago: number) {
+      const query5 = `
+          SELECT * 
+          FROM public.f_reporte_resumen_total_certificado(${obra},${id_modif_pago})`;
+      const resultado5 = await this.sequelize.query(query5);
+      return resultado5[0];
+   }
+
+   // Datos lista Adjuntos - Inf. Pago
+   async AdjuntosPago(obra: number) {
+    const query6 = `
+        SELECT * 
+        FROM public."vista_reporte_adjuntos_InfPago" WHERE id_obra = ${obra}`;
+    const resultado6 = await this.sequelize.query(query6);
+    return resultado6[0];
    }
 
   // REPORTE - INFORME PAGO SUPERVISOR
@@ -117,7 +147,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     }
     this.datosFis = res2;
 
-    const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
+    const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron datos del informe de Supervisor');
     }
@@ -126,6 +156,20 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
     this.datosModAp = res4;
 
+    const res5 = await this.datosDescuentos(this.datosEnvio[0].id_obra, id_modif_pago);
+    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
+        throw new Error('No se encontraron datos de los descuentos');
+    }
+    this.datosDes = res5;
+
+    const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
+    this.datosCA = res6;
+
+    const res7 = await this.AdjuntosPago(this.datosEnvio[0].id_obra);
+    if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
+        throw new Error('No se encontraron los datos de Adjuntos');
+    }
+    this.datosAdj = res7;
     
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -151,7 +195,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosInfSup);
+   console.log('DATOS MODIFICACION',this.datosDes);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -190,56 +234,56 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         widths: ['15%', '85%'],
         body: [
             [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                    text: [
-                        {
-                        text: (
-                            Array.isArray(this.datosFis)
-                            ? this.datosFis
-                                .filter(f => f && f.fiscal)
-                                .map(f => f.fiscal)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                        },
-                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
-                    ]
-                },
+              { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+              { 
+                  text: [
+                      {
+                      text: (
+                          Array.isArray(this.datosFis)
+                          ? this.datosFis
+                              .filter(f => f && f.fiscal)
+                              .map(f => f.fiscal)
+                              .join('\n')  // salto de linea 
+                          : ''
+                      ) + '\n',
+                      style: 'textDato', alignment: 'left'
+                      },
+                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
+                  ]
+              },
             ],
             [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { 
-                    text: [
-                        {
-                        text: (
-                            Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                        },
-                        {
-                        text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
-                        },
-                    ]
-                },       
+              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+              { 
+                  text: [
+                      {
+                      text: (
+                          Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join('\n')  // salto de linea 
+                          : ''
+                      ) + '\n',
+                      style: 'textDato', alignment: 'left'
+                      },
+                      {
+                      text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
+                      },
+                  ]
+              },       
             ],
             [
-                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
-                { text: this.datosInfSup[0].referencia, style: 'textDato' },
+              { text: 'REF.:', style: 'textTitulo', alignment:'right' },
+              { text: this.datosInfSup[0].referencia, style: 'textDato' }
             ],
             [
-                { text: 'PERIODO:', style: 'textTitulo', alignment:'right' },
-                { text: '', style: 'textDato' },
+              { text: 'PERIODO:', style: 'textTitulo', alignment:'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato' }
             ],
             [
-                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
+              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+              { text: this.fechaString(this.datosEnvio[0].fecha_aprobacion), style: 'textDato' }
             ],
         ],
         },
@@ -255,8 +299,8 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         margin: [20, 0, 20, 10], // Márgenes de la tabla
       },
       {
-        text: 'El presente informe corresponde al ' + 'CERTIFICADO DE PAGO Nro. XXX' + ' en favor de la Empresa Contratista ' +
-            'XXXXXXXXX' + ' por ítems ejecutados, medidos y aprobados.',
+        text: 'El presente informe corresponde al ' + 'CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + 
+        ' en favor de la Empresa Contratista ' + this.datosEnvio[0].proponente_razon_social + ' por ítems ejecutados, medidos y aprobados.',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
@@ -288,25 +332,21 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
               { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }
             ],
             [
-              { text: 'FECHA ORDEN DE PROCEDER:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
-              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato', fillColor: '#dddddd' }
-            ],
-            [
-              { text: 'PLAZO DE EJECUCIÓN VIGENTE:', style: 'textTitulo', alignment: 'right' },
-              { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }
-            ],
-            [
-              { text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },
-              { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }
-            ],
-            [
               { text: 'MONTO CONTRATO INICIAL (Bs):', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
               { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: 'MONTO CONTRATO VIGENTE (Bs):', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
-              { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' }
-            ],            
+              { text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato', margin: [0, 5, 0, 0] }
+            ],
+            [
+              { text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato', fillColor: '#dddddd' }
+            ],
+            [
+              { text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }
+            ],           
           ]
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
@@ -316,100 +356,302 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         style: 'textTitulo', margin: [10, 0, 0, 5]
       },
       {
-          table: {
-            widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'], 
-            body: [
+        table: {
+          widths: ['6%','32%','16%','16%','16%','16%','16%'], 
+          body: [
+            [
+              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+            ],
+            ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+          ]
+        }, margin: [10, 0, 0, 7]
+      },
+      ...( this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
+        ?[
+            {
+              text: '2.   ANTECEDENTES',
+              style: 'textTitulo', margin: [0, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'MONTO CERTIFICADOS ANTERIORES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ANTERIORES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    [
+                      { text: 'RETENCIONES ANTERIORES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    [
+                      { text: 'MULTAS ANTERIORES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior === 0
+                      ?[
+                        [
+                          { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                          { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'}
+                        ]
+                      ]
+                      :[]
+                    ),
+                  ]
+                }, margin: [60, 0, 60, 7] 
+            },
+            {
+              text: '3.   DESARROLLO\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'El presente CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ' correspondiente al periodo del ' + 
+                  this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +  
+                  ', de conformidad a los ítems ejecutados, a los precios unitarios establecidos y especificaciones técnicas, de acuerdo a la medición efectuada ' + 
+                  'en forma conjunta por el supervisor y el contratista, el mismo que se detalla a continuación:',
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'IMPORTE DEL PRESENTE CERTIFICADO ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'RETENCIONES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'MULTAS ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior > 0
+                      ?[
+                        [
+                            { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      :[]
+                    ),
+                    [
+                      { text: 'IMPORTE NETO A PAGAR ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + '\n(' +
+                      this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ')', style: 'textTituloT'},
+                    ]
+                  ]
+              }, margin: [60, 0, 60, 7]
+            },
+            {
+              text: '4.   CONCLUSIÓN',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              ul: 
               [
-                { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-                { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-                { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-                { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: [
+                      { text: 'Mediante el presente informe, ésta supervisión certifica que las cantidades que se reflejan en las planilla de cómputos y ' + 
+                          'la planilla de detalle de certificado fueron ejecutas y medidas en cumplimiento a las especificaciones técnicas de la obra, situación ' + 
+                          'que corresponde a los certificados de calidad y planos de detalle adjunto al presente.', style: 'textDato' },
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'Las cantidades de obra son aprobados mediante el presente informe, por lo que el CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + 
+                          ' Nro.' + this.datosEnvio[0].numero_pago + ' asciende a la suma total de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + 
+                          ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El importe neto a pagar es de: Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + ' (' +
+                          this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + 
+                        '% según monto del contrato inicial, por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: this.datosInfSup[0].conclusion }
+                      ]
+                }
               ],
-              ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
-            ]
-          }, margin: [10, 0, 0, 7], 
-      },
-      {
-        text: '2.   ANTECEDENTES',
-        style: 'textTitulo', margin: [0, 0, 0, 5] 
-      },
-      {
-        
-      },
-      {
-        text: '3.   DESARROLLO\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: 'El presente CERTIFICADO DE PAGO ' + 'XXXXXXX' + 'correspondiente al periodo del ' + ' xxxx al xxxxx' + 
-            ', de conformidad a los ítems ejecutados, a los precios unitarios establecidos y especificaciones técnicas, de acuerdo a la medición efectuada ' + 
-            'en forma conjunta por el supervisor y el contratista, el mismo que se detalla a continuación:',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
-      },
-      {
-        text: [
-            { text: '- Importe del presente certificado: ', style: 'textDato2' },
-            { text: '\n- Deducciones: ', style: 'textDato2'},
-            { text: '\n- Retenciones: ', style: 'textDato2'},
-            { text: '\n- Multas: ', style: 'textDato2'},
-            { text: '\n- Importe neto a pagar: ', style: 'textDato2'}
-        ],
-        margin: [30, 0, 0, 7] 
-      },
-      {
-        text: '4.   CONCLUSIÓN',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        ul: 
-        [
-          { text: [
-                { text: 'Mediante el presente informe, ésta supervisión certifica que las cantidades que se reflejan en las ' + 
-                    'planilla de cómputos y la planilla de certificado fueron medidad y ejecutadas en cumplimiento a las ' + 
-                    'especificaciones técnicaas de la obra, situación que corresponde a los certificados de calidad y planos de detalle adjunto al presente.', style: 'textDato' },
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'Las cantidades de obra son aprobados mediante el presente informe, por lo que el CERTIFICADO DE PAGO' + 
-                    'XXXXX' + ' asciende a la suma total de Bs' + 'XXXXXX'
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
+            },
+            {
+              text: '5.   RECOMENDACIONES',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'La supervisión de obra recomienda el pago del presente certificado de pago de acuerdo a lo expuesto.',
+              style: 'textDato', margin: [10, 0, 0, 5]
+            },
+            {
+              text: '6.   ANEXOS\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: [
+                {text: 'Resúmen del certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' }, 
+                {text: '\nDetalle del Certificado - Certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' },
+                {text: '\nPlanilla cómputo métrico certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' },
+              ], style: 'textDato', margin: [10, 0, 0, 5]
+            },
+            {
+              text: (
+                      Array.isArray(this.datosAdj)
+                      ? this.datosAdj
+                          .filter(a => a && a.desc_tipo_documento)
+                          .map(a => a.desc_tipo_documento)
+                          .join('\n')  // salto de linea 
+                      : ''
+                  ) + '\n',
+                  style: 'textDato', alignment: 'left', margin: [10, 0, 0, 5]   
+            },
+         ]
+        :[ //Si es Pago UNICO o es el PRIMERO
+            {
+              text: '2.   DESARROLLO\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'El presente CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ' correspondiente al periodo del ' + 
+                  this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +  
+                  ', de conformidad a los ítems ejecutados, a los precios unitarios establecidos y especificaciones técnicas, de acuerdo a la medición efectuada ' + 
+                  'en forma conjunta por el supervisor y el contratista, el mismo que se detalla a continuación:',
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'IMPORTE DEL PRESENTE CERTIFICADO ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'RETENCIONES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'MULTAS ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior > 0
+                      ?[
+                        [
+                            { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      :[]
+                    ),
+                    [
+                      { text: 'IMPORTE NETO A PAGAR ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + '\n(' +
+                      this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ')', style: 'textTituloT'},
+                    ]
+                  ]
+              }, margin: [60, 0, 60, 7]
+            },
+            {
+              text: '3.   CONCLUSIÓN',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              ul: 
+              [
+                { text: [
+                      { text: 'Mediante el presente informe, ésta supervisión certifica que las cantidades que se reflejan en las planilla de cómputos y ' + 
+                          'la planilla de detalle de certificado fueron ejecutas y medidas en cumplimiento a las especificaciones técnicas de la obra, situación ' + 
+                          'que corresponde a los certificados de calidad y planos de detalle adjunto al presente.', style: 'textDato' },
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'Las cantidades de obra son aprobados mediante el presente informe, por lo que el CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + 
+                          ' Nro.' + this.datosEnvio[0].numero_pago + ' asciende a la suma total de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + 
+                          ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El importe neto a pagar es de: Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + ' (' +
+                          this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + 
+                        '% según monto del contrato inicial, por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: this.datosInfSup[0].conclusion }
+                      ]
                 }
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'El importe neto a pagar es de: Bs' + 'XXXXXX'
-                }
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'El avance comprendido en el presente certificado alcanza al:' + 'XXXXXX' + '% según monto del contrato inicial, ' +
-                    'por lo que a la fecha el porcentaje acumulado es de:' + 'XXXXX %.'
-                }
-                 ]
-          }
-        ],
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
-      },
-      {
-        text: '5.   RECOMENDACIONES',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: 'La supervisión de obra recomienda el pago del presente certificado de pago de acuerdo a lo expuesto.',
-        style: 'textDato', margin: [10, 0, 0, 5]
-      },
-      {
-        text: '6.   ANEXOS\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: this.datosInfSup[0].anexos + '\n',
-        style: 'textDato', margin: [10, 0, 0, 5]
-      },
+              ],
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
+            },
+            {
+              text: '4.   RECOMENDACIONES',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'La supervisión de obra recomienda el pago del presente certificado de pago de acuerdo a lo expuesto.',
+              style: 'textDato', margin: [10, 0, 0, 5]
+            },
+            {
+              text: '5.   ANEXOS\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: [
+                {text: 'Resúmen del certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' }, 
+                {text: '\nDetalle del Certificado - Certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' },
+                {text: '\nPlanilla cómputo métrico certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' },
+              ], style: 'textDato', margin: [10, 0, 0, 5]
+            },
+            {
+              text: (
+                      Array.isArray(this.datosAdj)
+                      ? this.datosAdj
+                          .filter(a => a && a.desc_tipo_documento)
+                          .map(a => a.desc_tipo_documento)
+                          .join('\n')  // salto de linea 
+                      : ''
+                  ) + '\n',
+                  style: 'textDato', alignment: 'left', margin: [10, 0, 0, 5]   
+            },
+        ]
+      ),
       {
         text: ['\n'],
       }, 
@@ -479,6 +721,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       },
       textDato2: {
         fontSize: 9,
+        opacity: 0.8,
         bold: true,
       },
       textDatoT: {
@@ -567,7 +810,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                 { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
                   ],
                 alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+          { text: '(Firma y Sello)', style: 'textDato', bold: 'true', alignment: 'center', margin: [0, 45, 0, 0] }
         ];
         arrayData.push(rowData);
       }
@@ -609,7 +852,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       const totalRow = [
         {
           colSpan: 2,
-          text: 'TOTAL (Bs):',
+          text: 'TOTAL',
           style: 'textTituloT', alignment: 'center',
         },
         {}, 

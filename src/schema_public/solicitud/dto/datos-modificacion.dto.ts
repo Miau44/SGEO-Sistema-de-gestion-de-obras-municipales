@@ -17,12 +17,13 @@ export class ActualizarSolicitudDto {
   @ApiProperty()
   p_id_estado_general: number;
 
-  /*@ApiProperty({
-    example: [{ id_usuario: 188 }, { id_usuario: 189 }],
-    description: 'Arreglo de usuarios a notificar (JSON)',
+  @ApiProperty({
+    required: false,
     type: 'array',
-    items: { type: 'object', properties: { id_usuario: { type: 'number' } } },
-  })*/
+    description: 'Array de objetos con id_documento',
+    example: [{ id_usuario: 1 }, { id_usuario: 2 }],
+  })
+  p_data_solicitud?: { id_usuario: number }[];
 
   @ApiProperty()
   p_proveido: string;
