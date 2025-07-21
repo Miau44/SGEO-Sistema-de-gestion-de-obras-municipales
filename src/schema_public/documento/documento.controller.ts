@@ -221,4 +221,11 @@ export class DocumentoController {
   async listarVistaDocumentosPorObra(@Body() body: VistaListadoDocsObraDto) {
     return this.documentoService.listarVistaDocumentosPorObra(body.id_obra);
   }
+
+  @Public()
+  @Get('listadoDocumentospagos/:id_informe')
+  //@ApiOperation({ summary: ' id_designacion:1' })
+  listadoDocumentospagos( @Param('id_informe') id_informe: number) {
+    return this.documentoService.listadoDocumentospagos( id_informe);
+  }
 }
