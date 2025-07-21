@@ -228,4 +228,19 @@ export class DocumentoController {
   listadoDocumentospagos( @Param('id_informe') id_informe: number) {
     return this.documentoService.listadoDocumentospagos( id_informe);
   }
+
+  @Public()
+  @Post('eliminarDocumentosPagos')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_informe:   { type: 'number', example: 1131 },
+        id_documento: { type: 'number', example: 1245 },
+      },
+    },
+  })
+  eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number }) {
+    return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento);
+  }
 }
