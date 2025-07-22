@@ -262,7 +262,13 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
        }
   
 
-async preAprobarPago(AprobarDto: AprobarPagoDto) {
+
+  async date() {
+    return (await this.pagoRepositorio.query('select now()'))[0].now;
+  }
+
+
+  async preAprobarPago(AprobarDto: AprobarPagoDto) {
     try {
       // Validar los datos de entrada
       if (!AprobarDto.id_modificacion_pago) {
@@ -303,15 +309,37 @@ async preAprobarPago(AprobarDto: AprobarPagoDto) {
         const query4 = `
         UPDATE public.informe
         SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
-        WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
-        const params4 = [
-          AprobarDto.id_obra,tipoCorrelativo, AprobarDto.id_solicitud,idCorrelativoMemo,AprobarDto.id_usuario
-        ];
-        const resultadoinforme = await this.pagoRepositorio.query(query4, params4);
-        if (!resultadoinforme || resultadoinforme.rowCount === 0) {
-          throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
-        }
-      
+        WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1;`;
+      const params4 = [
+        AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario
+      ];
+      const resultadoinforme = await this.pagoRepositorio.query(query4, params4);
+      if (!resultadoinforme || resultadoinforme.rowCount === 0) {
+        throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
+      }
+
+      const query5 = `        
+		 SELECT id_pago  FROM public.pago	WHERE id_modificacion_pago = $1;`
+      const params5 = [AprobarDto.id_modificacion_pago]
+      const respuestaid_pago = await this.pagoRepositorio.query(query5, params5);
+      if (!respuestaid_pago || respuestaid_pago.length === 0) {
+        throw new NotFoundException('No se encontró el pago asociado a la modificación');
+      }
+      const id_pago = respuestaid_pago.data[0].id_pago;
+
+     
+      if (tipoCorrelativo === 356) {
+       const datapago = { fecha_supervisor: await this.date()}; 
+          await this.update(id_pago, datapago)               
+      }
+      else { 
+        const query2 = `
+        SELECT public.sp_certificado_aprobacion($1)	`;
+        const params2 = [AprobarDto.id_modificacion_pago];
+        const resultado = await this.pagoRepositorio.query(query2, params2);
+       }
+
+
       return this.responseService.success(resultadoinforme, "pre aprobada correctamente.");
     } catch (error) {
       console.error("Error en aprobarDesignacion:", error);
