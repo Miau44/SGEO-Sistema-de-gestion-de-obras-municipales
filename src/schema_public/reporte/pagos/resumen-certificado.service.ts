@@ -447,7 +447,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                   ? [
                                       [
                                         { text: 'Total autorizado:', style: 'textTitulo', alignment: 'left' },
-                                        { text: this.formatIfNumber(this.datosUM[0].monto_total,formatoNumerico2) + 'Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0] }
+                                        { text: this.formatIfNumber(this.datosUM[0].monto_total,formatoNumerico2) + ' Bs.', style: 'textTitulo', alignment: 'right', margin: [0, 0, 30, 0] }
                                       ]
                                   ]
                                   : [
