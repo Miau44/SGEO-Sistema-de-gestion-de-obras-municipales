@@ -457,10 +457,14 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                       ]
                                   ]
                                 ),
-                            [{ text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) + ' Bs.', 
-                              style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
-                            ],
+                            ...(this.datosEnvio[0].numero_pago > 1 //Si es el primer pago NO se muestra Importes anteriores
+                            ?[
+                                { text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
+                                { text: this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) + ' Bs.', 
+                                  style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                            ]
+                            :[]
+                            ),
                             [{ text: 'Importe presente certificado:', style: 'textTitulo', alignment: 'left'},
                              { text: this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
                                 style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
