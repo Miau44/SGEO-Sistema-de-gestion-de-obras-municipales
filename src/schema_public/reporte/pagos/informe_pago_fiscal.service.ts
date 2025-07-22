@@ -40,6 +40,7 @@ export class InformePagoFiscal {
     datosModAp: any = [];
     datosDes: any = [];
     datosCA: any = [];
+    datosAF: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -76,7 +77,7 @@ export class InformePagoFiscal {
   async datosInformePagoFiscal(solicitud: number) {
     const query2 = `
         SELECT * 
-        FROM public."vista_reporte_Informe_PagoSup" WHERE id_solicitud = ${solicitud}`;
+        FROM public."vista_reporte_Informe_PagoFis" WHERE id_solicitud = ${solicitud}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
@@ -126,6 +127,15 @@ export class InformePagoFiscal {
       return resultado7[0];
    }
 
+   //--Datos Aprobador Fiscal
+    async datosAprobadorFiscal(obra: number) {
+      const query8 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
+      const resultado8 = await this.sequelize.query(query8);
+      return resultado8[0];
+  }
+
   // REPORTE - INFORME PAGO SUPERVISOR
 
 async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -171,6 +181,12 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
 
     const res7 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosCA = res7;
+
+    const res8 = await this.datosAprobadorFiscal(this.datosEnvio[0].id_obra);
+    if (!res8 || (Array.isArray(res8) && res8.length === 0) || (typeof res8 === 'object' && Object.keys(res8).length === 0)) {
+      throw new Error('No se encontraron datos del Aprobador');
+    }
+    this.datosAF = res8;
     
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -236,22 +252,27 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
         body: [
             [
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                    // text: [
-                    //     {
-                    //     text: (
-                    //         Array.isArray(this.datosFis)
-                    //         ? this.datosFis
-                    //             .filter(f => f && f.fiscal)
-                    //             .map(f => f.fiscal)
-                    //             .join('\n')  // salto de linea 
-                    //         : ''
-                    //     ) + '\n',
-                    //     style: 'textDato', alignment: 'left'
-                    //     },
-                    //     { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
-                    // ]
-                },
+                { text:
+                  (() => {
+                    const da = this.datosAF[0].desc_cod_da;
+                    const nombreDA = this.datosAF[0].nombre_da;
+                    const aprobador = this.datosAF[0].aprobador;
+
+                    if (da >= 37 && da <= 45) {
+                      return [
+                          { text: aprobador + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                      ] 
+                    } else {
+                      console.log('DATOS MODIFICACION',this.datosAF);
+                      return [
+                           { text: aprobador + '\n', style: 'textDato' },
+                           { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS ', style: 'textTitulo' }
+                      ];
+                    }
+                  })(), 
+                  style: ''
+                }
             ],
             [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
@@ -274,15 +295,15 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
             ],
             [
                 { text: 'REF.:', style: 'textTitulo', alignment:'right' },
-                { text: [{ text: this.datosInfSup[0].referencia, style: 'textDato' }] },
+                { text: [{ text: this.datosInfFis[0].referencia, style: 'textDato' }] },
             ],
             [
                 { text: 'PERIODO:', style: 'textTitulo', alignment:'right' },
-                { text: [{ text: this.formatearFecha(this.datosInfSup[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosInfSup[0].fecha_fin_periodo), style: 'textDato' }] },
+                { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato' }] },
             ],
             [
                 { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
             ],
         ],
         },
@@ -359,7 +380,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
       },
       {
           table: {
-            widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'], 
+            widths: ['6%','32%','16%','16%','16%','16%','16%'], 
             body: [
               [
                 { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
@@ -373,102 +394,261 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
             ]
           }, margin: [10, 0, 0, 7], 
       },
-      {
-        text: '2.   ANTECEDENTES',
-        style: 'textTitulo', margin: [0, 0, 0, 5] 
-      },
-      {
-        text: [
-            { text: 'a) MONTO CERTIFICADOS ANTERIORES : Bs' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) , style: 'textDato2' },
-            { text: '\nb) DEDUCCIONES ANTERIORES : Bs' + this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2), style: 'textDato2'},
-            { text: '\nc) RETENCIONES ANTERIORES : Bs' + this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2), style: 'textDato2'},
-            { text: '\nd) MULTAS ANTERIORES : Bs' + this.formatIfNumber(this.datosDes[0].multa_anterior,formatoNumerico2), style: 'textDato2'},
-            { text: '\ne) OTRAS RETENCIONES ANTERIORES : Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textDato2'},
-        ],
-        margin: [30, 0, 0, 7] 
-      },
-      {
-        text: '3.   ANÁLISIS\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        text: 'El informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
-          ' de la supervisión de obra, ' + 
-          (Array.isArray(this.datosSup)
-                    ? this.datosSup
-                        .filter(s => s && s.supervisor)
-                        .map(s => s.supervisor)
-                        .join(' | ')
-                    : ''
-          ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
-            this.formatearFecha(this.datosInfSup[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosInfSup[0].fecha_fin_periodo) +
-            ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
-        style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
-      },
-      {
-        text: [
-            { text: '- Importe del presente certificado : ' + 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) , style: 'textDato2' },
-            { text: '\n- Deducciones : ' + 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textDato2'},
-            { text: '\n- Retenciones : ' + 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textDato2'},
-            { text: '\n- Multas : ' + 'Bs' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textDato2'},
-            { text: '\n- Importe neto a pagar : ' + 'Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + ' (' +
-                this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ')', style: 'textDato2'}
-        ],
-        margin: [30, 0, 0, 7] 
-      },
-      {
-        text: '4.   CONCLUSIÓN',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-      {
-        ul: 
-        [
-          { text: [
-                { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
-                    this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
-                    (Array.isArray(this.datosSup)
-                    ? this.datosSup
-                        .filter(s => s && s.supervisor)
-                        .map(s => s.supervisor)
-                        .join(' | ')
-                    : ''
-                    ) + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
-                    'ésta fiscalía APRUEBA el informe señalado y considera PROCEDENTE SU PAGO.' 
+      ...( this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
+        ?[
+            {
+              text: '2.   ANTECEDENTES',
+              style: 'textTitulo', margin: [0, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'MONTO CERTIFICADOS ANTERIORES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ANTERIORES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    [
+                      { text: 'RETENCIONES ANTERIORES ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    [
+                      { text: 'MULTAS ANTERIORES ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_anterior,formatoNumerico2), style: 'textTituloT'}
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior === 0
+                      ?[
+                        [
+                          { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                          { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'}
+                        ]
+                      ]
+                      :[]
+                    ),
+                  ]
+                }, margin: [60, 0, 60, 7] 
+            },
+            {
+              text: '3.   ANÁLISIS\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'El informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
+                ' de la supervisión de obra, ' + 
+                (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                  this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
+                  ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'IMPORTE DEL PRESENTE CERTIFICADO ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ', style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'RETENCIONES ', style: 'textTituloT' },
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'MULTAS ', style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior > 0
+                      ?[
+                        [
+                            { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      :[]
+                    ),
+                    [
+                      { text: 'IMPORTE NETO A PAGAR ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + '\n(' +
+                      this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ')', style: 'textTituloT'},
+                    ]
+                  ]
+              }, margin: [60, 0, 60, 7]
+            },
+            {
+              text: '4.   CONCLUSIÓN',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              ul: 
+              [
+                { text: [
+                      { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
+                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
+                          (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                          ) + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
+                          'ésta fiscalía APRUEBA el informe señalado y considera PROCEDENTE SU PAGO.' 
+                      },
+                      ], margin: [0, 0, 0, 5]
                 },
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'El importe del presente certificado asciende a la suma de Bs' + this.datosEnvio[0].monto_presente + '(' +
-                    this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), 'Bs.') + ').'
+                {
+                  text: [
+                      { text: 'El importe del presente certificado asciende a la suma de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + ' (' +
+                          this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' % según monto de contrato inicial, ' + 
+                          ' por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra y el Contratista en el presente Certificado ' + 
+                          'de PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ', por lo trabajos ejecutados en la obra de referencia.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: this.datosInfFis[0].conclusion }
+                      ]
                 }
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + '% según monto de contrato inicial, ' + 
-                    ' por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
+              ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
+            },
+            {
+              text: '5.   RECOMENDACIONES',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+         ]
+        :[ //Si es Pago UNICO o es el PRIMERO
+            {
+              text: '2.   ANÁLISIS\n',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              text: 'El informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
+                ' de la supervisión de obra, ' + 
+                (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                  this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
+                  ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
+              style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
+            },
+            {
+              table: {
+                  widths: ['40%','60%'], 
+                  body: [
+                    [ { text: 'IMPORTE DEL PRESENTE CERTIFICADO ', style: 'textTituloT' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), style: 'textTituloT' }
+                    ],
+                    [
+                      { text: 'DEDUCCIONES ', style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'RETENCIONES ', style: 'textTituloT' },
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    [
+                      { text: 'MULTAS ', style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                    ],
+                    ...(this.datosDes[0].penalidad_anterior > 0
+                      ?[
+                        [
+                            { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      :[]
+                    ),
+                    [
+                      { text: 'IMPORTE NETO A PAGAR ', style: 'textTituloT'},
+                      { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2) + '\n(' +
+                      this.convertToWords(this.formatIfNumber(this.datosEnvio[0].importe_por_pagar,formatoNumerico2), 'Bs.') + ')', style: 'textTituloT'},
+                    ]
+                  ]
+              }, margin: [60, 0, 60, 7]
+            },
+            {
+              text: '3.   CONCLUSIÓN',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+            {
+              ul: 
+              [
+                { text: [
+                      { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
+                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
+                          (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                          ) + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
+                          'ésta fiscalía APRUEBA el informe señalado y considera PROCEDENTE SU PAGO.' 
+                      },
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El importe del presente certificado asciende a la suma de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2) + ' (' +
+                          this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_presente,formatoNumerico2), 'Bs.') + ').'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + '% según monto de contrato inicial, ' + 
+                          ' por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: 'Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra y el Contratista en el presente Certificado ' + 
+                          'de PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ', por lo trabajos ejecutados en la obra de referencia.'
+                      }
+                      ], margin: [0, 0, 0, 5]
+                },
+                {
+                  text: [
+                      { text: this.datosInfFis[0].conclusion }
+                      ]
                 }
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: 'Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra y el Contratista en el presente Certificado ' + 
-                    'de PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ', por lo trabajos ejecutados en la obra de referencia.'
-                }
-                 ], margin: [0, 0, 0, 5]
-          },
-          {
-            text: [
-                { text: this.datosInfSup[0].conclusion }
-                 ]
-          }
-        ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
-      },
-      {
-        text: '5.   RECOMENDACIONES',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
+              ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
+            },
+            {
+              text: '4.   RECOMENDACIONES',
+              style: 'textTitulo', margin: [0, 0, 0, 5]
+            },
+        ]
+      ),
       {
         text: 'De acuerdo a lo expuesto, la fiscalización de obra recomienda la prosecución del presente certificado de pago.',
         style: 'textDato', margin: [10, 0, 0, 5]
@@ -496,7 +676,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
             hLineWidth: () => 0.7,       // grosor más fino
             vLineWidth: () => 0.7
             } 
-        },
+      },
       {
         text: ['\n\n\nCc.Arch.Supervisor' ],
         style: 'footerText'
@@ -673,7 +853,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
       const totalRow = [
         {
           colSpan: 2,
-          text: 'TOTAL (Bs):',
+          text: 'TOTAL',
           style: 'textTituloT', alignment: 'center',
         },
         {}, 
