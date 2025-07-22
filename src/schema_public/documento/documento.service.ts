@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { ResponseService } from 'src/response.service';
@@ -417,21 +417,21 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1 AND td.id_estado = 1;`;
   async updateRutaDoc(id: number, ruta_documento: string) {
     try {
       const params: any[] = [id, ruta_documento];
-         const doc = await this.documentoRepositorio.findOne({
-      where: { id_documento: id },
-    });
+      const doc = await this.documentoRepositorio.findOne({
+        where: { id_documento: id },
+      });
       if (!doc) {
-      return this.responseService.error(
-        null,
-        `No se encontró el documento con id ${id}`,
-        404
-      );
-    }
-      console.log(doc);
-      if(doc!=null){
-        doc.ruta_documento=ruta_documento;
+        return this.responseService.error(
+          null,
+          `No se encontró el documento con id ${id}`,
+          404
+        );
       }
-      const  respuesta_doc =   await this.documentoRepositorio.save(doc);
+      console.log(doc);
+      if (doc != null) {
+        doc.ruta_documento = ruta_documento;
+      }
+      const respuesta_doc = await this.documentoRepositorio.save(doc);
       // let query = `UPDATE documento set ruta_documento = $1  where id_documento = $2`;
       // console.log(query);
       // const resultado: any[] = await this.documentoRepositorio.query(
@@ -568,7 +568,6 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1 AND td.id_estado = 1;`;
         AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
       ORDER BY i.id_informe DESC;
     `;
-
       const resultado = await this.informeRepositorio.query(query);
 
       return this.responseService.success(
@@ -633,20 +632,111 @@ LIMIT 5`;
   }
 
 
-    // Método para listar documentos por obra
+  // Método para listar documentos por obra
   async listarVistaDocumentosPorObra(id_obra: number): Promise<any> {
-  try {
-    const resultado = await this.dataSource.query(
-      `SELECT * FROM sp_listar_vista_documentos_por_obra($1)`,
-      [id_obra],
-    );
-    return this.responseService.success(resultado, 'Listado correctamente');
-  } catch (error) {
-    console.error('Error al listar documentos por obra:', error);
-    return this.responseService.error('No se pudo listar los documentos');
+    try {
+      const resultado = await this.dataSource.query(
+        `SELECT * FROM sp_listar_vista_documentos_por_obra($1)`,
+        [id_obra],
+      );
+      return this.responseService.success(resultado, 'Listado correctamente');
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
   }
-}
 
 
 
+  async listadoDocumentospagos(id_informe: number): Promise<any> {
+    try {
+      //get lista de tipos documentos
+      const listaTiposDocumentos = await this.dataSource.query(`SELECT id_tipo_documento, desc_tipo_documento FROM tipo_documento WHERE id_subtipo_documento = 353 AND id_estado = 1`);
+
+      //select de la tabla informe
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe },
+        select: ['id_documento', 'id_obra'],
+      });
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento);
+
+      }
+
+      const listaDocumentos = await this.dataSource.query(
+        `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
+      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      //console.log("documentos", listaDocumentos);
+      listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
+        tipo.documentos = [];
+        listaDocumentos.forEach((doc: {
+          fecha_registro: any;
+          nombre_documento: any; id_tipo_documento: any; ruta_documento: any; id_documento: number
+        }) => {
+
+          if (tipo.id_tipo_documento === doc.id_tipo_documento) {
+            tipo.documentos.push({
+              id_documento: doc.id_documento,
+              ruta_documento: doc.ruta_documento,
+              nombre_documento: doc.nombre_documento,
+              fecha_registro: doc.fecha_registro
+            });
+          }
+        }
+        );
+      });
+
+      return listaTiposDocumentos;
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
+  }
+
+  async eliminarDocumentosPagos(id_informe: number, id_documento: number): Promise<any> {
+    try {
+      console.log('id_informe:', id_informe);
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe }
+      });
+      console.log(informe);
+      
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null && informe.id_documento.length > 0) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento);
+      }
+      else{
+        console.log('No hay documentos asociados al informe',informe);
+        return this.responseService.error("ERROR", 'No hay documentos asociados al informe');
+      }
+
+      //verificar que el documento a eliminar exista en informe.id_documento
+      if (!informe.id_documento || !informe.id_documento.some(doc => doc.id_documento === id_documento)) {
+        return this.responseService.error("ERROR", 'Documento no encontrado en el informe');
+      }
+
+      let documentosActualizados = informe.id_documento || [];
+      console.log("documentosActualizados antes de eliminar:", documentosActualizados);
+      
+      documentosActualizados = documentosActualizados.filter(
+        (doc) => doc.id_documento !== id_documento
+      );
+      console.log("documentosActualizados después de eliminar:", documentosActualizados);
+
+      informe.id_documento = documentosActualizados;
+
+      const resInforme =  await this.informeRepositorio.save(informe);
+      console.log('Informe actualizado:', resInforme);
+
+      // cambiar id_estado a 0 (eliminado) de la tabla documento
+      const resDoc = await this.documentoRepositorio.update(id_documento, { id_estado: 0 });
+      console.log('Documento eliminado:', resDoc);
+
+      return {res:"Documento eliminado correctamente"};
+    } catch (error) {
+      console.log('Error al listar documentos:',error);
+      return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    }
+  }
 }
