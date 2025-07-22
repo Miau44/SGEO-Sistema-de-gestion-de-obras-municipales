@@ -14,6 +14,10 @@ import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 import { ValidarPagoDto } from './dto/pago-validar.dto';
 import { CorrelativoService } from '../correlativo/correlativo.service';
+import { AprobarPagoDto } from './dto/pago-aprobar.dto';
+import { PagoModificacionPagoDto } from './dto/pago-mod-pago.dto';
+
+
 
 
 @Injectable()
@@ -258,11 +262,84 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
        }
   
 
+async preAprobarPago(AprobarDto: AprobarPagoDto) {
+    try {
+      // Validar los datos de entrada
+      if (!AprobarDto.id_modificacion_pago) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+      const tipoCorrelativo = AprobarDto.id_tipo; // Correlativo para Informe de Pago
 
+          const queryVerifica = `
+          SELECT id_informe, id_correlativo 
+          FROM public.informe
+          WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1
+          LIMIT 1`;
 
+        const paramsVerifica = [ AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud
+        ];
 
+        const [informeExistente] = await this.pagoRepositorio.query(queryVerifica, paramsVerifica);
+        console.log('informeExistente:', informeExistente);
+        if (!informeExistente) {
+          throw new NotFoundException('No se encontró el informe para actualizar');
+        }
 
-
-
+        if (informeExistente.id_correlativo) {
+          throw new BadRequestException('Este informe ya tiene un correlativo asignado');
+        }
+        // Generar el nuevo correlativo
+        const correlativoMemoRes = await this.correlativoServive.create({
+          id_obra: AprobarDto.id_obra,
+          id_tipo_documento: tipoCorrelativo,
+          correlativo: '',
+          usuario_registro: AprobarDto.id_usuario,
+          id_estado: 1
+        });
+        const idCorrelativoMemo = correlativoMemoRes?.data?.id_correlativo;
+        if (!idCorrelativoMemo) {
+          throw new InternalServerErrorException('No se pudo generar el correlativo');
+        }
+        const query4 = `
+        UPDATE public.informe
+        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
+        WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
+        const params4 = [
+          AprobarDto.id_obra,tipoCorrelativo, AprobarDto.id_solicitud,idCorrelativoMemo,AprobarDto.id_usuario
+        ];
+        const resultadoinforme = await this.pagoRepositorio.query(query4, params4);
+        if (!resultadoinforme || resultadoinforme.rowCount === 0) {
+          throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
+        }
+      
+      return this.responseService.success(resultadoinforme, "pre aprobada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
+  }    
+     
   
+
+
+  async AprobarPago(AprobarDto: PagoModificacionPagoDto) {
+    try {
+      // Validar los datos de entrada
+      if (!AprobarDto.id_modificacion_pago) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+
+      const query2 = `
+      SELECT public.sp_certificado_aprobacion($1)	`;
+      const params2 = [AprobarDto.id_modificacion_pago];
+       const resultado =    await this.pagoRepositorio.query(query2, params2);            
+      return this.responseService.success(resultado, "pre aprobada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
+  }   
+
+
+
 }

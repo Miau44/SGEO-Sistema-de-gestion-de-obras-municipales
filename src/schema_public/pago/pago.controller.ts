@@ -18,6 +18,8 @@ import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 import { ValidarPagoDto } from './dto/pago-validar.dto';
+import { AprobarPagoDto } from './dto/pago-aprobar.dto';
+import { PagoModificacionPagoDto } from './dto/pago-mod-pago.dto';
 
 
 
@@ -149,4 +151,27 @@ export class PagoController {
     } catch (error) {
     }
   } 
+
+
+    @Public()
+    @Post('pago-pre-aprobacion')
+    async preAprobacionPago(@Body() validar: AprobarPagoDto) {
+      try {
+        return this.pagoService.preAprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
+  
+    @Public()
+    @Post('pago-aprobacion')
+    async aprobacionPago(@Body() validar: PagoModificacionPagoDto) {
+      try {
+        return this.pagoService.AprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
+
+    
 }

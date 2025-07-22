@@ -92,11 +92,13 @@ export class ModificacionPagoService {
 
 
         if (modificacionPendiente) {
-          return this.responseService.error(null, "Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.");
+          return this.responseService.error(null, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
 
         }
         else {
           this.crearModificacion(dto)
+         return this.responseService.success( dto,"Solicitud generada correctamente.");
+
         }
       }
       else {
@@ -116,6 +118,7 @@ export class ModificacionPagoService {
         }
         else {
           this.crearModificacion(dto);
+       return this.responseService.success( dto,"Solicitud generada correctamente.");          
         }
 
       }
