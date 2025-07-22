@@ -491,7 +491,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
 
 }
 
- //Cargar tabla de PLANILLA - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //Cargar tabla de PLANILLA - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -576,7 +576,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContenidoPlanilla3(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -618,7 +618,7 @@ buildContenidoPlanilla3(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y ES PRIMER PAGO
+   //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y ES PRIMER PAGO
 buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -657,7 +657,7 @@ buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -710,7 +710,7 @@ buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-    //TABLA PLANILLA CON ITEM NUEVOS 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO
+   //TABLA PLANILLA CON ITEM NUEVOS 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO
 buildContPlanillaAd2(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -812,7 +812,7 @@ buildContPlanillaAd3(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //TABLA PLANILLA CON ITEM NUEVOS 4 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 4 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
 buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -841,7 +841,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUMEN PLANILLA 1 - 15 columnas
+   //RESUMEN PLANILLA 1 - 15 columnas
   buildResumenPlanilla1(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -900,17 +900,17 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_modif,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(porc_modif,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {
-        text: this.formatIfNumber(porc_anterior,formatoNumerico5) + '%',
+        text: this.formatIfNumber(porc_anterior,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'},
       {},
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -921,7 +921,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUMEN PLANILLA 2 - 13 columnas
+   //RESUMEN PLANILLA 2 - 13 columnas
   buildResumenPlanilla2(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -973,13 +973,13 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_modif,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(porc_modif,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -989,7 +989,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUMEN PLANILLA 3 - 13 columnas
+   //RESUMEN PLANILLA 3 - 13 columnas
   buildResumenPlanilla3(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -1041,13 +1041,13 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_anterior,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(porc_anterior,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -1057,7 +1057,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //RESUMEN PLANILLA 4 - 11 columnas
+   //RESUMEN PLANILLA 4 - 11 columnas
   buildResumenPlanilla4(data: any[]) {
 
    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -1098,10 +1098,10 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico5) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico5) + '%', 
+      { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_acumulado, formatoNumerico2) + '%', 
         style: 'textTitulo2', alignment: 'right'}
     ];
   
@@ -1111,7 +1111,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-  //Formatear Números
+   //Formatear Números
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
     if (value === null || value === undefined || value === '') return '';
     
