@@ -52,7 +52,7 @@ export class ItemService {
 
       const queryObra =
         `SELECT  COUNT(*) 
-         FROM item WHERE id_obra = $1 AND id_estado = 1`;
+         FROM item WHERE id_obra = $1 AND id_estado = 1;`;
       const values = [createItemDto.id_obra];
       const result = await this.itemRepository.query(queryObra, values);
       const nuevoOrden = parseInt(result[0].count, 10);
@@ -60,11 +60,11 @@ export class ItemService {
       let numero_correlativo = nuevoOrden + 1
       const queryObra1 = `
       SELECT codigo_item
-      FROM item WHERE id_obra = $1 AND codigo_item = $2 AND id_estado = 1`;
+      FROM item WHERE id_obra = $1 AND codigo_item = $2 AND id_estado = 1;`;
       const parametros = [createItemDto.id_obra, createItemDto.codigo_item];
       const existente = await this.itemRepository.query(queryObra1, parametros);
       if (existente.length > 0) {
-        return this.responseService.error("El ítem ya existe. No puede guardar.")
+        return this.responseService.error("Ítem existente: El ítem que intenta guardar ya está registrado en la Obra. Por favor verifique.");
       }
       else {
         createItemDto.orden_sim = numero_correlativo; // Asignar el nuevo orden
