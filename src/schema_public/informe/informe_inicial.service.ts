@@ -661,6 +661,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       const {
         id_obra,
         hora_registro,
+        fecha_acta,
         obs_general,
         id_documento,
         usuario_registro,
@@ -691,6 +692,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
         id_obra,
         id_tipo_informe: 342,
         hora_registro,
+        fecha_acta: fecha_acta ?? new Date(),
         obs_general,
         id_documento,
         usuario_registro,
@@ -756,7 +758,7 @@ async getActaEntregaProvisionalById(id_informe: number) {
 
 async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
   try {
-    const { id_informe, hora_registro, periodo_correccion, obs_general, id_documento } = dto;
+    const { id_informe, hora_registro, fecha_acta, periodo_correccion, obs_general, id_documento } = dto;
 
     const informe = await this.informeRepositorio.findOne({
       where: { id_informe, id_estado: 1 },
@@ -767,6 +769,7 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
     }
 
     if (hora_registro !== undefined) informe.hora_registro = hora_registro;
+    if (fecha_acta !== undefined) informe.fecha_acta = fecha_acta;
     if (periodo_correccion !== undefined) informe.periodo_correccion = periodo_correccion;
     if (obs_general !== undefined) informe.obs_general = obs_general;
 
@@ -781,7 +784,7 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
     return this.responseService.success(actualizado, 'Acta actualizada correctamente.');
   } catch (error) {
     console.error('Error en updateActaEntregaProvisional:', error);
-    return this.responseService.error('No se pudo actualizar el acta.');
+    return this.responseService.error('No se pudo actualizar el acta provisional.');
   }
 }
 
