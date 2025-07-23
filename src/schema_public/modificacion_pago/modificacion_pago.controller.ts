@@ -22,10 +22,12 @@ export class ModificacionPagoController {
   create(@Body() createModificacionPagoDto: CreateModificacionPagoDto) {
     return this.modificacionPagoService.create(createModificacionPagoDto);
   }
-
+  @Public()
   @Post('crear-modificacion-pago')
   createModificacionPago(@Body() createmaestro: CreateMaestroDto) {
+        try {
     return this.modificacionPagoService.crearModificacionPago(createmaestro);
+      } catch (error) { } 
   }
 
   @Get()

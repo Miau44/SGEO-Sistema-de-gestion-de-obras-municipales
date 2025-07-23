@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { PagoService } from './pago.service';
 import { CreatePagoDto } from './dto/create-pago.dto';
 import { UpdatePagoDto } from './dto/update-pago.dto';
@@ -18,6 +18,8 @@ import { PagoDescuentoDto } from './dto/dto-descuento/pago-descuento.dto';
 import { PagoPagoDto } from './dto/pago-pago.dto';
 import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-descuento.dto';
 import { ValidarPagoDto } from './dto/pago-validar.dto';
+import { AprobarPagoDto } from './dto/pago-aprobar.dto';
+import { PagoModificacionPagoDto } from './dto/pago-mod-pago.dto';
 
 
 
@@ -41,6 +43,11 @@ export class PagoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    try {
+      return this.pagoService.findOne(+id);
+    } catch (error) {
+      throw new HttpException('Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     return this.pagoService.findOne(+id);
   }
 
@@ -88,6 +95,13 @@ export class PagoController {
     async validarPago(@Body() data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
     return this.pagoService.validarPago(data);
     }
+
+  /*  @Post('validar-planilla-pago')
+    async validarPlanillaPago(@Body() data: ValidarPagoDto): Promise<{ valido: boolean; mensaje: string }> {
+    return this.pagoService.validarPlanillaPago(data);
+    }
+*/
+
 
 //----------------------------->>>>>>>>>>>DESCUENTO<<<<<<<<<<<<--------------------------------
   @Public()
@@ -137,4 +151,27 @@ export class PagoController {
     } catch (error) {
     }
   } 
+
+
+    @Public()
+    @Post('pago-pre-aprobacion')
+    async preAprobacionPago(@Body() validar: AprobarPagoDto) {
+      try {
+        return this.pagoService.preAprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
+  
+    @Public()
+    @Post('pago-aprobacion')
+    async aprobacionPago(@Body() validar: PagoModificacionPagoDto) {
+      try {
+        return this.pagoService.AprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
+
+    
 }

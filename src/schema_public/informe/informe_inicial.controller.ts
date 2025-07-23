@@ -23,6 +23,8 @@ import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
 import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-entrega-provisional-definitiva';
 import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-definitiva.dto';
 
+import { UpdateIdDocumentoPagoDto } from './dto/update-id-documento-pago.dto';
+
 
 @ApiTags('informe')
 @Controller('informe')
@@ -289,6 +291,18 @@ async updateActaEntregaProvisional(@Body() dto: UpdateActaEntregaProvDto) {
   return this.informeService.updateActaEntregaProvisional(dto);
 }
   
+  
+  
+@Post('update-documentos-pago')
+async actualizarDocumentos(
+  @Body() updateDto: UpdateIdDocumentoPagoDto,
+) {
+
+     try {
+  return this.informeService.actualizarSoloDocumentos( updateDto);
+      } catch (error) { }
+}
+  
    /************************************actas de entrega provisional y definitiva ************************************/
 
   @Public()
@@ -320,3 +334,21 @@ async updateActaEntregaProvisional(@Body() dto: UpdateActaEntregaProvDto) {
     return this.informeService.listarActasEntregaDefinitiva(dto);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

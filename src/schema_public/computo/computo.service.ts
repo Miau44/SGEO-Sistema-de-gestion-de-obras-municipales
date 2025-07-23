@@ -558,11 +558,14 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
   private async insertarJustificacion(datosExcel: any[], id_usuario:number, id_historial:number, id_modificacion:number): Promise<void> {
     try {
       const resumen = datosExcel.reduce((acc, item) => {
-        acc.set(item.id_item, {
-          id_item: item.id_item,
-          id_modificacion_pago: item.modificacion,
-          justificacion_supervisor: item.justificacion_supervisor
-        });
+
+        if (item.justificacion_supervisor && item.justificacion_supervisor.trim() !== '') {
+          acc.set(item.id_item, {
+            id_item: item.id_item,
+            id_modificacion_pago: item.modificacion,
+            justificacion_supervisor: item.justificacion_supervisor
+          });
+        }
         return acc;
       }, new Map<number, { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }>());
       const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
@@ -694,10 +697,19 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         id_modificacion_pago: dataadicional.id_modificacion,
         id_item: 0
       }
-      //actualizar toda la planilla 30052025 
-      await this.planillaService.actualizarPlanilla(datos);
-      await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
 
+      //para no insertar justificacion si es pago
+      const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
+      const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;
+      if (!tipo_modificacion || tipo_modificacion.data.length === 0) {
+        throw new NotFoundException(`Obra with ID ${dataadicional.id_modificacion} not found`);
+      }
+
+      if (v_id_tipo_mod_pago < 4) {
+        //actualizar toda la planilla 30052025 
+        await this.planillaService.actualizarPlanilla(datos);
+        await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
+      }
     } catch (error: any) {
       await this.logService.create({
       id_usuario: dataadicional?.id_usuario || 0,
