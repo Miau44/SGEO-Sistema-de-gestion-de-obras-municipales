@@ -428,21 +428,21 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                     ],
                     [
                       { text: 'DEDUCCIONES ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     [
                       { text: 'RETENCIONES ', style: 'textTituloT' },
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     [
                       { text: 'MULTAS ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     ...(this.datosDes[0].penalidad_anterior > 0
                       ?[
                         [
                             { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
-                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                            { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
                         ]
                       ]
                       :[]
@@ -550,21 +550,21 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                     ],
                     [
                       { text: 'DEDUCCIONES ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     [
                       { text: 'RETENCIONES ', style: 'textTituloT' },
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     [
                       { text: 'MULTAS ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
+                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
                     ...(this.datosDes[0].penalidad_anterior > 0
                       ?[
                         [
                             { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
-                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
+                            { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'},
                         ]
                       ]
                       :[]

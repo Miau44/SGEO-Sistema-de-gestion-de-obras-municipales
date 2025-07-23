@@ -85,13 +85,13 @@ export class ModificacionPagoService {
           SELECT id_tipo_mod_pago
           FROM public.modificacion_pago AS mp
           INNER JOIN public.modificacion AS m ON mp.id_modificacion_pago = m.id_modificacion_pago      
-          WHERE id_obra = $1 AND id_tipo_mod_pago IN(1,2) AND (m.finalizado = true OR m.finalizado = NULL  ) AND mp.id_estado = 1`;
+          WHERE id_obra = $1 AND id_tipo_mod_pago IN(1,2) AND (m.finalizado = false OR m.finalizado IS NULL  ) AND mp.id_estado = 1`;
         const params = [id_obra];
-        const [modificacionPendiente] = await this.modPagoRepositorio.query(queryModifiacion, params);
-        console.log("modificacionPendiente", modificacionPendiente);
+        const modificacionPendiente = await this.modPagoRepositorio.query(queryModifiacion, params);
+        
 
 
-        if (modificacionPendiente) {
+        if (modificacionPendiente.length > 0) {
           return this.responseService.error(null, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
 
         }
@@ -110,10 +110,8 @@ export class ModificacionPagoService {
           AND id_estado = 1;`;
         const parametros = [id_obra, tipo];
         const resultado = await this.modPagoRepositorio.query(queryObra1, parametros);
-        console.log('resultado', resultado.length);
 
         if (resultado.length > 0) {
-          //return this.responseService.error("Ítem existente: El ítem que intenta guardar ya está registrado en la Obra. Por favor verifique.");
           return this.responseService.error(null, 'Pago existente: El Pago que intenta guardar ya está registrado para la Obra. Por favor verifique.');
         }
         else {
