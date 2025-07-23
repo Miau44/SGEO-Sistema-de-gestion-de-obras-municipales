@@ -9,6 +9,9 @@ export class UpdateActaEntregaProvDto {
   hora_registro?: string;
 
   @IsOptional()
+  fecha_acta?: Date;
+
+  @IsOptional()
   @IsNumber()
   periodo_correccion: number;
 
