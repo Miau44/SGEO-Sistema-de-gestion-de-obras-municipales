@@ -10,6 +10,9 @@ export class CreateActaEntregaProvicionalDto {
   @ApiProperty({ example: '08:30:00' })
   hora_registro: string;
 
+  @ApiProperty({required: false})
+  fecha_acta: Date;
+
   @ApiProperty()
   periodo_correccion: number;
 
