@@ -221,4 +221,26 @@ export class DocumentoController {
   async listarVistaDocumentosPorObra(@Body() body: VistaListadoDocsObraDto) {
     return this.documentoService.listarVistaDocumentosPorObra(body.id_obra);
   }
+
+  @Public()
+  @Get('listadoDocumentospagos/:id_informe')
+  //@ApiOperation({ summary: ' id_designacion:1' })
+  listadoDocumentospagos( @Param('id_informe') id_informe: number) {
+    return this.documentoService.listadoDocumentospagos( id_informe);
+  }
+
+  @Public()
+  @Post('eliminarDocumentosPagos')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_informe:   { type: 'number', example: 1131 },
+        id_documento: { type: 'number', example: 1245 },
+      },
+    },
+  })
+  eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number }) {
+    return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento);
+  }
 }

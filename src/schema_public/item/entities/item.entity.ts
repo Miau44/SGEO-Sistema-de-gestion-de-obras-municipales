@@ -68,6 +68,10 @@ export class Item {
   @Column({ type: 'decimal', precision: 20, scale: 5, nullable: true })
   monto_pago_aprobado: number;
 
+  @Column({ nullable: true })
+  id_planilla_pago: number;
+
+
   @Column({ nullable:true })
   finalizado: boolean;
 

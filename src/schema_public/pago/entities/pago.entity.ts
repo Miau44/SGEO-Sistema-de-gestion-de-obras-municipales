@@ -10,50 +10,50 @@ export class Pago {
     @Column()
     id_modificacion_pago: number;
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     monto_presente: number;
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     deduccion: number;
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     retencion: number;    
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     multa: number;  
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     penalidad: number;      
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     importe_por_pagar: number;  
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     monto_acumulado: number;  
 
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     porcentaje_presente: number;    
     
-    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    @Column("decimal", { precision: 15, scale: 2, nullable: true })
     porcentaje_acumulado: number;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_aprobacion_pago: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_frp: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_supervisor: Date|null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_fiscal: Date|null;
 
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_inicio_periodo: Date|null;
     
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_fin_periodo: Date|null;
 
     @Column({ nullable:true })

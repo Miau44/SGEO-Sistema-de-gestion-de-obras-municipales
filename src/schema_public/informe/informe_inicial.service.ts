@@ -28,6 +28,8 @@ import { InformeObraSolicitudDto } from './dto/informe-obra-solicitud.dto';
 import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-definitiva.dto';
 import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-entrega-provisional-definitiva';
 
+import { UpdateIdDocumentoPagoDto } from './dto/update-id-documento-pago.dto';
+
 
 
 @Injectable()
@@ -952,6 +954,46 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
     return this.responseService.error('No se pudo listar las actas de entrega provisional.');
   }
 }
+
+
+
+
+
+
+
+async actualizarSoloDocumentos(data:UpdateIdDocumentoPagoDto) {
+  // Por seguridad, convierte si llega como string
+  if (typeof data.id_documento === 'string') {
+    try {
+      data.id_documento = JSON.parse(data.id_documento);
+    } catch {
+      throw new BadRequestException('Formato inválido para id_documento');
+    }
+  }
+  // Validación opcional: asegurarse que es un array de objetos
+  if (!Array.isArray(data.id_documento) || data.id_documento.some(d => !d.id_documento)) {
+    throw new BadRequestException('El formato de id_documento es incorrecto');
+  }
+// Convertir id_documento a number antes de guardar
+const documentosNormalizados = data.id_documento.map(d => ({
+  id_documento: Number(d.id_documento)
+}));
+
+
+const resultado = await this.informeRepositorio.update(data.id_informe, {
+  id_documento: documentosNormalizados
+});
+
+
+  
+  if (resultado.affected === 0) {
+    throw new NotFoundException('No se encontró el registro para actualizar');
+  }
+
+  return { message: 'Documentos actualizados correctamente' };
+}
+
+
 
 
 }

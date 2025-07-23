@@ -39,7 +39,7 @@ export class CreatePagoDto {
     fecha_supervisor: Date;      
 
     @ApiProperty()
-    fecha_fiscalr: Date;   
+    fecha_fiscal: Date;   
     
 
     @ApiProperty()
