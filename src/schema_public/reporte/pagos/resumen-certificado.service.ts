@@ -171,7 +171,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const imgLogo = 'assets/images/logoSGEO.png';
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
