@@ -283,7 +283,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
             ],
             [
               { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-              { text: this.fechaString(this.datosEnvio[0].fecha_aprobacion), style: 'textDato' }
+              { text: this.fechaString(this.datosInfSup[0].fecha_aprobacion), style: 'textDato' }
             ],
         ],
         },
