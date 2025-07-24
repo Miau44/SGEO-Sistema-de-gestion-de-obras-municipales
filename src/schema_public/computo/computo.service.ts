@@ -697,17 +697,18 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         id_modificacion_pago: dataadicional.id_modificacion,
         id_item: 0
       }
+        //actualizar toda la planilla 30052025 
+        await this.planillaService.actualizarPlanilla(datos);
 
       //para no insertar justificacion si es pago
       const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
       const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;
       if (!tipo_modificacion || tipo_modificacion.data.length === 0) {
-        throw new NotFoundException(`Obra with ID ${dataadicional.id_modificacion} not found`);
+        console.warn(`no existe tipo de modificacion pago para justificacion ${dataadicional.id_modificacion} not found`);
       }
 
       if (v_id_tipo_mod_pago < 4) {
-        //actualizar toda la planilla 30052025 
-        await this.planillaService.actualizarPlanilla(datos);
+
         await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
       }
     } catch (error: any) {
