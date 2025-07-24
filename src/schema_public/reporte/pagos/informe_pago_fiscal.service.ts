@@ -380,7 +380,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
       },
       {
           table: {
-            widths: ['6%','32%','16%','16%','16%','16%','16%'], 
+            widths: ['6%','31%','17%','16%','16%','16%','16%'], 
             body: [
               [
                 { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
@@ -393,6 +393,17 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
               ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
             ]
           }, margin: [10, 0, 0, 7], 
+      },
+      {
+        table: {
+          widths: ['*', 300],
+          body: [ 
+            [
+              { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+            ]
+          ]
+        }, margin: [10, 0, 0, 7]
       },
       ...( this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
         ?[
