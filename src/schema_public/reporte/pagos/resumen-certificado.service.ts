@@ -313,9 +313,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                     ]
                                   : []
                                 ),
-                            [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
-                            ],
+                            //Fecha de conclusion REAL solo si existe
+                            ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== ''
+                              ?[
+                                [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
+                                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
+                                ],
+                              ]
+                              :[]
+                            ),
                             [{ text: 'Periodo certificado:', style: 'textTitulo', alignment: 'left'},
                              { text: 'Del ' + this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato', alignment: 'left'}
                             ]
