@@ -473,13 +473,14 @@ export class ModificacionPagoService {
 
     let q = `SELECT ficha.correlativo_carpeta, 
         id_modificacion,
+        id_contrato_dlc,
         ROUND(monto_total,2) AS monto_adjudicado,
         porcentaje_total,
         ROUND(monto_variacion, 2) AS  monto_variacion,
         porcentaje_modificacion,
-        fecha_fiscal,
-        fecha_supervisor,
-        fecha_memo_minuta, 
+        TO_CHAR(fecha_fiscal, 'DD/MM/YYYY') as fecha_fiscal,
+        TO_CHAR(fecha_supervisor, 'DD/MM/YYYY') as fecha_supervisor,
+        TO_CHAR(fecha_memo_minuta, 'DD/MM/YYYY') as fecha_memo_minuta,
         dias_variacion as diasplazo_proceso, 
         mp.id_tipo_mod_pago as tipocontrato,
         2 as tipoplazo, --calendario a confirmar con jenny
@@ -491,7 +492,6 @@ export class ModificacionPagoService {
         JOIN ficha on obra.id_ficha = ficha.id_ficha
 				JOIN contrato on contrato.id_obra = obra.id_obra
 				where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
-    
     var res: any;
     if (id_contrato > 0) {
       q = q + ` AND contrato.id_contrato_dlc = $1`
