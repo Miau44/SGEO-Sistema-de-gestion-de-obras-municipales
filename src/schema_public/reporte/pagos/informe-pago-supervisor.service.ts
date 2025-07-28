@@ -377,17 +377,24 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
          ]
          :[]
       ),
-      {
-        table: {
-          widths: ['*', 300],
-          body: [ 
-            [
-              { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-              { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
-            ]
-          ]
-        }, margin: [10, 0, 0, 7]
-      },
+      //Fecha de conclusion REAL solo si existe
+      ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+        ?[
+          {
+            table: {
+              widths: ['*', 300],
+              body: [ 
+                [
+                  { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+                ]
+              ]
+            }, margin: [10, 0, 0, 7]
+          },
+        ]
+        :[]
+      ),
+      
       ...( this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
         ?[
             {
