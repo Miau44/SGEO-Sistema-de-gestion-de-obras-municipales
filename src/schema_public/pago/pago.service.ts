@@ -16,6 +16,7 @@ import { ValidarPagoDto } from './dto/pago-validar.dto';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { AprobarPagoDto } from './dto/pago-aprobar.dto';
 import { PagoModificacionPagoDto } from './dto/pago-mod-pago.dto';
+import { UsuarioPagoDto } from './dto/pago-usuario.dto';
 
 
 
@@ -370,6 +371,28 @@ const query = `SELECT public.sp_certificado_guardar_descuento($1, $2, $3, $4, $5
       return this.responseService.error(error);
     }
   }   
+
+
+  
+  async maePago(AprobarDto: UsuarioPagoDto) {
+    try {
+      // Validar los datos de entrada
+      if (!AprobarDto.id_usuario) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+
+      const query2 = `
+        SELECT  * FROM public.sp_certificado_mae($1);	`;
+
+      const params2 = [AprobarDto.id_usuario];
+      const resultado = await this.pagoRepositorio.query(query2, params2);
+      return this.responseService.success(resultado, "pre aprobada correctamente.");
+    } catch (error) {
+      console.error("Error en aprobarDesignacion:", error);
+      return this.responseService.error(error);
+    }
+  }
+
 
 
 
