@@ -174,7 +174,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
@@ -195,7 +195,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosDes);
+   console.log('DATOS MODIFICACION',this.datosModAp);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -283,7 +283,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
             ],
             [
               { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-              { text: this.fechaString(this.datosEnvio[0].fecha_aprobacion), style: 'textDato' }
+              { text: this.fechaString(this.datosInfSup[0].fecha_aprobacion), style: 'textDato' }
             ],
         ],
         },
@@ -351,23 +351,40 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
-      {
-        text: 'MODIFICACIONES',
-        style: 'textTitulo', margin: [10, 0, 0, 5]
-      },
+      ...(
+         this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+         ?[
+            {
+              text: 'MODIFICACIONES',
+              style: 'textTitulo', margin: [10, 0, 0, 5]
+            },
+            {
+              table: {
+                widths: ['6%','31%','17%','16%','16%','16%','16%'], 
+                body: [
+                  [
+                    { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                    { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                    { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  ],
+                  ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                ]
+              }, margin: [10, 0, 0, 7]
+            }
+         ]
+         :[]
+      ),
       {
         table: {
-          widths: ['6%','32%','16%','16%','16%','16%','16%'], 
-          body: [
+          widths: ['*', 300],
+          body: [ 
             [
-              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-            ],
-            ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+              { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+            ]
           ]
         }, margin: [10, 0, 0, 7]
       },
