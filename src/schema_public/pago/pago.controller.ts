@@ -20,6 +20,7 @@ import { ActualizarEstadoDescuentoDto } from './dto/dto-descuento/actualizar-des
 import { ValidarPagoDto } from './dto/pago-validar.dto';
 import { AprobarPagoDto } from './dto/pago-aprobar.dto';
 import { PagoModificacionPagoDto } from './dto/pago-mod-pago.dto';
+import { UsuarioPagoDto } from './dto/pago-usuario.dto';
 
 
 
@@ -168,6 +169,17 @@ export class PagoController {
     async aprobacionPago(@Body() validar: PagoModificacionPagoDto) {
       try {
         return this.pagoService.AprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
+
+
+    @Public()
+    @Post('pago-usuario-aprobacion')
+    async usuarioPago(@Body() validar: UsuarioPagoDto) {
+      try {
+        return this.pagoService.maePago(validar);
   
       } catch (error) {
       }
