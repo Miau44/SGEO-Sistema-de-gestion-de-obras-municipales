@@ -400,6 +400,23 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
          ]
          :[]
       ),
+      //Fecha de conclusion REAL solo si existe
+      ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+        ?[
+          {
+            table: {
+              widths: ['*', 300],
+              body: [ 
+                [
+                  { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+                ]
+              ]
+            }, margin: [10, 0, 0, 7]
+          },
+        ]
+        :[]
+      ),
       {
         table: {
           widths: ['*', 300],
