@@ -195,7 +195,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosDes);
+   console.log('DATOS MODIFICACION',this.datosModAp);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -351,26 +351,32 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
-      {
-        text: 'MODIFICACIONES',
-        style: 'textTitulo', margin: [10, 0, 0, 5]
-      },
-      {
-        table: {
-          widths: ['6%','31%','17%','16%','16%','16%','16%'], 
-          body: [
-            [
-              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-            ],
-            ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
-          ]
-        }, margin: [10, 0, 0, 7]
-      },
+      ...(
+         this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+         ?[
+            {
+              text: 'MODIFICACIONES',
+              style: 'textTitulo', margin: [10, 0, 0, 5]
+            },
+            {
+              table: {
+                widths: ['6%','31%','17%','16%','16%','16%','16%'], 
+                body: [
+                  [
+                    { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                    { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                    { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                    { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  ],
+                  ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                ]
+              }, margin: [10, 0, 0, 7]
+            }
+         ]
+         :[]
+      ),
       {
         table: {
           widths: ['*', 300],
