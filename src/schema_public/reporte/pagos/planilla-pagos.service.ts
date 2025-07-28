@@ -637,7 +637,7 @@ buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' }
@@ -831,7 +831,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       { text: this.formatIfNumber(datosPl[i].cantidad_sim, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: this.formatIfNumber(datosPl[i].cantidad_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' }
