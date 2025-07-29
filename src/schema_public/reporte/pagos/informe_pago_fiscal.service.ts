@@ -41,6 +41,7 @@ export class InformePagoFiscal {
     datosDes: any = [];
     datosCA: any = [];
     datosAF: any = [];
+    datosSD: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -136,6 +137,15 @@ export class InformePagoFiscal {
       return resultado8[0];
   }
 
+  //--Datos SUBALCALDE - DFO - ACTUAL
+    async datosSubDfo(da: number) {
+      const query9 = `
+          SELECT * 
+          FROM public."vista_reporte_mae_sub_dfo" WHERE desc_cod_da_comision = ${da}`;
+      const resultado9 = await this.sequelize.query(query9);
+      return resultado9[0];
+  }
+
   // REPORTE - INFORME PAGO SUPERVISOR
 
 async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -187,6 +197,9 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
       throw new Error('No se encontraron datos del Aprobador');
     }
     this.datosAF = res8;
+
+    const res9 = await this.datosSubDfo(this.datosAF[0].desc_cod_da);
+    this.datosSD = res9;
     
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -212,7 +225,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosSup);
+   console.log('DATOS MODIFICACION',this.datosSD);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -260,13 +273,13 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
 
                     if (da >= 37 && da <= 45) {
                       return [
-                          { text: aprobador + '\n', style: 'textDato' },
+                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
                           { text: nombreDA, style: 'textTitulo' }
                       ] 
                     } else {
                       console.log('DATOS MODIFICACION',this.datosAF);
                       return [
-                           { text: aprobador + '\n', style: 'textDato' },
+                           { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
                            { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS ', style: 'textTitulo' }
                       ];
                     }
