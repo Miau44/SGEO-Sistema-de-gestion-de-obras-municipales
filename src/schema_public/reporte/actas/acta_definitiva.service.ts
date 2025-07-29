@@ -147,7 +147,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
-  const marcaAgua = this.datosProv[0].monto_certificado;
+  const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
@@ -162,7 +162,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
     maximumFractionDigits: 2
     });
 
-     console.log('DATOS obra',this.datosProv);
+     console.log('DATOS obra',this.datosInf);
     // console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
@@ -175,7 +175,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         absolutePosition: {x: 0, y: 0}
             } },
 
-    ...(marcaAgua === '0' && {
+    ...(!marcaAgua && {
     watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true }
     }),
    

@@ -40,6 +40,7 @@ export class ResumenCertificado {
     datosDes: any = [];
     datosCA: any = [];
     datosMultas: any = [];
+    datosAF: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -127,6 +128,15 @@ export class ResumenCertificado {
       return resultado7[0];
    }
 
+    // Datos Aprobador Fiscal
+    async datosAprobadorFiscal(obra: number) {
+      const query8 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
+      const resultado8 = await this.sequelize.query(query8);
+      return resultado8[0];
+    }
+
   // REPORTE - RESUMEN DE CERTIFICADO DE PAGO
 
 async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
@@ -167,6 +177,12 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     const res7 = await this.datosListaMultas(this.datosEnvio[0].id_obra);
     this.datosMultas = res7;
 
+    const res8 = await this.datosAprobadorFiscal(this.datosEnvio[0].id_obra);
+    if (!res8 || (Array.isArray(res8) && res8.length === 0) || (typeof res8 === 'object' && Object.keys(res8).length === 0)) {
+      throw new Error('No se encontraron datos del Aprobador');
+    }
+    this.datosAF = res8;
+
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
@@ -192,7 +208,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   //console.log('DATOS MODIFICACION',this.datosMV);
+   console.log('DATOS MODIFICACION',this.datosAF);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
     const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
@@ -313,9 +329,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                     ]
                                   : []
                                 ),
-                            [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
-                            ],
+                            //Fecha de conclusion REAL solo si existe
+                            ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== ''
+                              ?[
+                                [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
+                                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
+                                ],
+                              ]
+                              :[]
+                            ),
                             [{ text: 'Periodo certificado:', style: 'textTitulo', alignment: 'left'},
                              { text: 'Del ' + this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato', alignment: 'left'}
                             ]
@@ -613,7 +635,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [ { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
-                { text: 'DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo', alignment: 'center'}
+                ...(this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                  ?[
+                    { text: this.datosAF[0].nombre_da, style: 'textTitulo', alignment: 'center'}
+                  ]
+                  :[
+                    { text: 'DIRECCIÓN DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo', alignment: 'center'}
+                  ]
+                )
+                
               ],
               { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center' }
             ]
