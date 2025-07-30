@@ -208,7 +208,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosAF);
+   console.log('DATOS MODIFICACION',this.datosCA);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
     const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
@@ -333,7 +333,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                             ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== ''
                               ?[
                                 [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
-                                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
+                                 { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
                                 ],
                               ]
                               :[]
@@ -481,9 +481,11 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                 ),
                             ...(this.datosEnvio[0].numero_pago > 1 //Si es el primer pago NO se muestra Importes anteriores
                             ?[
+                               [
                                 { text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
                                 { text: this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) + ' Bs.', 
                                   style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                               ]
                             ]
                             :[]
                             ),
