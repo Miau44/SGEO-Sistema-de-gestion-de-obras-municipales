@@ -208,14 +208,14 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosCA);
+   console.log('DATOS MODIFICACION',this.datosUM);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
-    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
-    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
-    const saldo = Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0);
-    
-    const documentDefinition = {
+   // CALCULOS COLUMNA DERECHA
+   const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
+   const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+           
+   const documentDefinition = {
     pageSize: 'LEGAL' as any,
     
     ...(!marcaAgua && {
@@ -540,8 +540,16 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                     widths: ['50%','50%'],
                     body: [
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatIfNumber(saldo,formatoNumerico2) + ' Bs.', 
-                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                              ...( this.datosEnvio[0].bandera_modif == 0
+                                ?[ 
+                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                    style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                                ]
+                                :[
+                                  { text: this.formatIfNumber(Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0),formatoNumerico2) + ' Bs.', 
+                                    style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                                ]
+                              )
                             ],
                             [{ text: '% A pagar**:', style: 'textTitulo', alignment: 'left'},
                              { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' % ', 
