@@ -208,14 +208,14 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosAF);
+   console.log('DATOS MODIFICACION',this.datosUM);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
-    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
-    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
-    const saldo = Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0);
-    
-    const documentDefinition = {
+   // CALCULOS COLUMNA DERECHA
+   const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
+   const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+           
+   const documentDefinition = {
     pageSize: 'LEGAL' as any,
     
     ...(!marcaAgua && {
@@ -333,7 +333,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                             ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== ''
                               ?[
                                 [{ text: 'Fecha conclusión real:', style: 'textTitulo', alignment: 'left'},
-                                  { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
+                                 { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDato', alignment: 'left'}
                                 ],
                               ]
                               :[]
@@ -481,9 +481,11 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                 ),
                             ...(this.datosEnvio[0].numero_pago > 1 //Si es el primer pago NO se muestra Importes anteriores
                             ?[
+                               [
                                 { text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
                                 { text: this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2) + ' Bs.', 
                                   style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                               ]
                             ]
                             :[]
                             ),
@@ -538,8 +540,16 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                     widths: ['50%','50%'],
                     body: [
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
-                             { text: this.formatIfNumber(saldo,formatoNumerico2) + ' Bs.', 
-                                style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                              ...( this.datosEnvio[0].bandera_modif == 0
+                                ?[ 
+                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                    style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                                ]
+                                :[
+                                  { text: this.formatIfNumber(Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0),formatoNumerico2) + ' Bs.', 
+                                    style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
+                                ]
+                              )
                             ],
                             [{ text: '% A pagar**:', style: 'textTitulo', alignment: 'left'},
                              { text: this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' % ', 
