@@ -39,6 +39,7 @@ export class InformeModificacionFiscal {
     datosAF: any = [];
     datosSaf: any = [];
     datosSec: any = [];
+    datosSD: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -125,6 +126,15 @@ export class InformeModificacionFiscal {
       return resultado5[0];
   }
 
+  //--Datos SUBALCALDE - DFO - ACTUAL
+    async datosSubDfo(da: number) {
+      const query6 = `
+          SELECT * 
+          FROM public."vista_reporte_mae_sub_dfo" WHERE desc_cod_da_comision = ${da}`;
+      const resultado6 = await this.sequelize.query(query6);
+      return resultado6[0];
+  }
+
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -176,6 +186,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       throw new Error('No se encontraron del Secretario de la SMIP');
     }
     this.datosSec = res7;
+
+  const res8 = await this.datosSubDfo(this.datosEnvio[0].desc_cod_da);
+  this.datosSD = res8;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -245,16 +258,16 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
                 {
                   text: (() => {
-                    const da = this.datosAF[0].desc_cod_da;
+                    const da = this.datosEnvio[0].desc_cod_da;
                     const monto = this.datosEnvio[0].monto_contrato;
-                    const nombreDA = this.datosSaf[0].nombre_da;
+                    const nombreDA = this.datosEnvio[0].nombre_da;
                     const nombreSAF = this.datosSaf[0].nombre_saf;
                     const aprobador = this.datosAF[0].aprobador;
-
+                    //console.log('VALIDACION1', da);
                     if (da >= 37 && da <= 45) {
-                      if (monto > 500000) {
+                      if (monto > 200000) {
                         return [
-                          { text: aprobador + '\n', style: 'textDato' },
+                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
                           { text: nombreDA, style: 'textTitulo' }
                         ];
                       } else {
