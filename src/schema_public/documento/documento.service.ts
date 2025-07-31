@@ -739,4 +739,52 @@ LIMIT 5`;
       return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
     }
   }
+
+  async listarDocumentosPorSubtipo(id_informe: number, id_subtipo_documento: number): Promise<any> {
+    try {
+      //get lista de tipos documentos
+      const listaTiposDocumentos = await this.dataSource.query(`SELECT id_tipo_documento, desc_tipo_documento FROM tipo_documento WHERE id_subtipo_documento = $1 AND id_estado = 1`,
+      [id_subtipo_documento]);
+
+      //select de la tabla informe
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe },
+        select: ['id_documento', 'id_obra'],
+      });
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento)
+      }
+
+      const listaDocumentos = await this.dataSource.query(
+        `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
+      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      //console.log("documentos", listaDocumentos);
+      listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
+        tipo.documentos = [];
+        listaDocumentos.forEach((doc: {
+          fecha_registro: any;
+          nombre_documento: any; id_tipo_documento: any; ruta_documento: any; id_documento: number
+        }) => {
+
+          if (tipo.id_tipo_documento === doc.id_tipo_documento) {
+            tipo.documentos.push({
+              id_documento: doc.id_documento,
+              ruta_documento: doc.ruta_documento,
+              nombre_documento: doc.nombre_documento,
+              fecha_registro: doc.fecha_registro
+            });
+          }
+        }
+        );
+      });
+
+      return listaTiposDocumentos;
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
+  }
+
+
 }
