@@ -243,4 +243,15 @@ export class DocumentoController {
   eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number }) {
     return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento);
   }
+  
+  @Public()
+  @Get('listar-documentos-por-subtipo')
+  async listarDocumentosPorSubtipo(
+    @Query('id_informe') id_informe: number,
+    @Query('id_subtipo_documento') id_subtipo_documento: number,
+  ) {
+    return this.documentoService.listarDocumentosPorSubtipo(id_informe, id_subtipo_documento);
+  }
+
+
 }
