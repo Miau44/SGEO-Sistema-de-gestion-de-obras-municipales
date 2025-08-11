@@ -155,7 +155,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
-  const plazo_autorizado = this.datosEnvio[0].plazo_contrato + this.datosVariacion[0].total_diasv;
+  const plazo_autorizado = Number(this.datosEnvio[0].plazo_contrato) + Number(this.datosVariacion[0].total_diasv);
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -163,7 +163,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
     });
 
      console.log('DATOS obra',this.datosInf);
-    // console.log('DATOS VARIACION',this.datosVariacion);
+     console.log('DATOS VARIACION',plazo_autorizado);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -569,7 +569,8 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
