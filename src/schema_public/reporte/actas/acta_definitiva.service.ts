@@ -155,7 +155,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
-  const plazo_autorizado = this.datosEnvio[0].plazo_contrato + this.datosVariacion[0].dias_variacion;
+  const plazo_autorizado = this.datosEnvio[0].plazo_contrato + this.datosVariacion[0].total_diasv;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -254,28 +254,28 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                   { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }
                 ],
                 [
-                  { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },
-                  { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }
+                  { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
-                  { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right' },
+                  { text: plazo_real + ' d.c.', style: 'textDatoT' }
                 ],
                 [
-                  { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
-                  { text: this.formatearFecha(this.datosProv[0].fecha_registro), style: 'textDatoT' }
+                  { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                  { text: this.formatearFecha(this.datosProv[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 ...(this.datosProv[0].monto_certificado === '0' 
                   ?[
                     [
-                      { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                      { text: 'PAGO PENDIENTE\n(Incumplimiento de plazos establecidos en la RE Nro.168/2017 inciso 4.13) ', style: 'textDatoT', color: '#FF0000', bold: 'true', fillColor: '#dddddd' }
+                      { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right' },
+                      { text: 'PAGO PENDIENTE\n(Incumplimiento de plazos establecidos en la RE Nro.168/2017 inciso 4.13) ', style: 'textDatoT', color: '#FF0000', bold: 'true' }
                     ]
                     ]
                   :[
                     [
-                      { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                      { text: 'Bs' + this.formatIfNumber(this.datosProv[0].monto_certificado, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
+                      { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right' },
+                      { text: 'Bs' + this.formatIfNumber(this.datosProv[0].monto_certificado, formatoNumerico2), style: 'textDatoT' }
                     ]
                     ]
                 ),
@@ -382,7 +382,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                   ],
                   [
                     { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
-                    { text: this.formatearFecha(this.datosProv[0].fecha_registro), style: 'textDatoT' }
+                    { text: this.formatearFecha(this.datosProv[0].fecha_acta), style: 'textDatoT' }
                   ],
                   ...(this.datosProv[0].monto_certificado === '0' 
                     ?[
