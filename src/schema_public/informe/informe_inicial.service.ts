@@ -743,11 +743,21 @@ async getActaEntregaProvisionalById(id_informe: number) {
     let documentos: Partial<Documento>[] = [];
 
     if (idDocumentos.length > 0) {
-      documentos = await this.documentoRepositorio.find({
-        where: idDocumentos.map(id => ({ id_documento: id })),
-        select: ['id_documento', 'nombre_documento', 'ruta_documento', 'fecha_registro'],
-      });
+      documentos = await this.documentoRepositorio
+        .createQueryBuilder('d')
+        .leftJoin('tipo_documento', 'td', 'td.id_tipo_documento = d.id_tipo_documento')
+        .where('d.id_documento IN (:...ids)', { ids: idDocumentos })
+        .select([
+          'd.id_documento AS id_documento',
+          'd.id_tipo_documento AS id_tipo_documento',
+          'td.desc_tipo_documento AS desc_tipo_documento',
+          'd.nombre_documento AS nombre_documento',
+          'd.ruta_documento AS ruta_documento',
+          'd.fecha_registro AS fecha_registro'
+        ])
+        .getRawMany();
     }
+
     return this.responseService.success({
       ...informe,
       documentos
