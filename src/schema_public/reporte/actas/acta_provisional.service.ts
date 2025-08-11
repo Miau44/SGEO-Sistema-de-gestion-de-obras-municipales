@@ -281,7 +281,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       // },
       //NUEVAMENTE TENGO QUE MODIFICAR :'( 
       ...( this.datosVariacion[0].conteo === '0'
-        ? [
+        ? [ //Sin modificaciones
           {
             table: {
               widths: ['50%', '50%'],
@@ -302,7 +302,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                 ],
                 [
                   { text: 'Fecha real de conclusión:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: this.formatearFecha(this.datosInf[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
                   { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
@@ -312,7 +312,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
             }, margin: [120, 0, 120, 7], layout: 'noBorders'
           }
         ]
-        : [
+        : [  //Con modificaciones
             {
               table: {
                 widths: ['50%', '50%'],
@@ -366,11 +366,11 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                           ],
                           [
                             { text: 'Modificación plazo:', style: 'textTituloT', alignment: 'right' },
-                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT' }
+                            { text: this.datosVariacion[0].dias_variacion + ' d.c.', style: 'textDatoT' }
                           ],
                           [
-                            { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: 'Plazo total modificación:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -401,13 +401,17 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                 ]
               }, margin: [10, 0, 10, 5], layout: 'noBorders'
             },
-            {
+            { //TABLA con datos REAL
               table: {
                 widths: ['50%', '50%'],
                 body: [ 
                   [
-                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                    { text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT', fillColor: '#dddddd' }
+                    { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                  ],
+                  [
+                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
+                    { text: this.formatearFecha(this.datosInf[0].fecha_acta), style: 'textDatoT' }
                   ]
                 ]
               }, layout: 'noBorders', margin: [10, 0, 10, 7]
