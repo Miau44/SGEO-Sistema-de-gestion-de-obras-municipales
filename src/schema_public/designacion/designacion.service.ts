@@ -272,7 +272,8 @@ export class DesignacionService {
     
             const datasolicitud = {
               id_estado_solicitud: 4,
-              id_estado_general: AprobarDto.id_estado_flujo
+              id_estado_general: AprobarDto.id_estado_flujo,
+              id_usuario : AprobarDto.id_usuario
             };
             await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };

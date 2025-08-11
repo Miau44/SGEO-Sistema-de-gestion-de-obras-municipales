@@ -125,7 +125,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
       eg.desc_modulo,   s.id_estado_solicitud,
       s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
-      s.proveido, s.fecha_envio, eg.tooltip
+      s.proveido, s.fecha_envio, eg.tooltip, es.desc_estado
       FROM obra AS o   
       INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
       INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion FROM public.estructura_organizacional
@@ -137,9 +137,9 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       ON  s.id_tipo_solicitud = ts.id_subtipo	 
       INNER JOIN  (SELECT id_usuario, id_estado
       FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
-      WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3
+      WHERE s.id_usuario =$2 AND s.id_estado_solicitud IN(${bandeja.estado})
 AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_registro DESC`;
-      const values = [bandeja.gestion, bandeja.usuario, bandeja.estado]
+      const values = [bandeja.gestion, bandeja.usuario]
       const resultado = await this.solicitudRepositorio.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
