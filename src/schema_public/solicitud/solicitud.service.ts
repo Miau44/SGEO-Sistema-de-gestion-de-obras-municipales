@@ -369,13 +369,14 @@ async guardarHistorialYActualizar(data: ActualizarSolicitudDto) {
    /* const query = `SELECT public.sp_modificacion_historial(${data.p_id_solicitud}, 
     ${data.p_id_usuario}, ${data.p_usuario_registro}, ${data.p_id_estado_general}, ${data.p_proveido}) AS id_historial`;*/
 
-const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5) AS id_historial`;    
+const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5, $6) AS id_historial`;    
     const params = [
       data.p_id_solicitud,
       data.p_id_usuario,
       data.p_usuario_registro,
       data.p_id_estado_general,
       data.p_proveido,
+      data.p_id_estado_solicitud
     ];
 
     const resultado = await this.solicitudRepositorio.query(query, params);
@@ -398,7 +399,8 @@ async guardarHistorialGeneral(data: ActualizarSolicitudDto) {
 
    
 
-const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6) AS id_historial`;    
+
+const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6, $7) AS id_historial`;    
     const params = [
       data.p_id_solicitud,
       data.p_id_usuario,
