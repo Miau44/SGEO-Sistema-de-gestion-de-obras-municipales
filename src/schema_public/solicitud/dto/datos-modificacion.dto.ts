@@ -28,4 +28,8 @@ export class ActualizarSolicitudDto {
   @ApiProperty()
   p_proveido: string;
 
+
+ @ApiProperty()
+  p_id_estado_solicitud: number;  
+
 }

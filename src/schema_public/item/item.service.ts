@@ -163,25 +163,8 @@ const resultado = await this.itemRepository.query(query);
   async listarItemsXObra(data: ItemObraDto) {
     try {
       const query = ` 
-
-      SELECT i.id_item, i.orden_sim,  i.codigo_item, i.unidad_medida_sim, i.desc_item, 
-     /* REPLACE(to_char(i.cantidad_sim,'999G999G999G999D99'), ' ', '') as cantidad_sim,	 
-      REPLACE(to_char(i.p_unitario_sim,'999G999G999G999D99'), ' ', '') as p_unitario_sim,	  
-      REPLACE(to_char(i.total_item_sim,'999G999G999G999D99'), ' ', '') as total_item_sim,	  
-      REPLACE(to_char(i.p_unitario_adjudicado,'999G999G999G999D99'), ' ', '') as p_unitario_adjudicado,	  
-      REPLACE(to_char(i.total_adjudicado,'999G999G999G999D99'), ' ', '') as total_adjudicado,*/
-
-      formato_numerico(i.cantidad_sim,2) as cantidad_sim,	 
-      formato_numerico(i.p_unitario_sim,2) as p_unitario_sim,	
-      formato_numerico(i.total_item_sim,2) as total_item_sim,	 
-      formato_numerico(i.p_unitario_adjudicado, 5) as p_unitario_adjudicado,	
-      formato_numerico(i.total_adjudicado, 5) as total_adjudicado,	 
-
-    i.finalizado	  
-      FROM public.obra AS o
-      INNER JOIN public.item  AS i ON o.id_obra = i.id_obra
-      INNER JOIN public.ficha AS f ON o.id_ficha = f.id_ficha
-      WHERE i.id_obra =$1 AND  i.id_estado =1  ORDER BY i.orden_sim ASC`;
+	      SELECT * FROM sp_items_x_obra($1);
+      `;
       const param = [data.id_obra]
       const resultado = await this.itemRepository.query(query, param);
       return this.responseService.success(resultado, "Listado Correctamente.")
