@@ -406,6 +406,7 @@ const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6) AS i
       data.p_id_estado_general,
       data.p_proveido,
       data.p_data_solicitud ? JSON.stringify(data.p_data_solicitud) : null, // Convertir a JSON si es necesario
+      data.p_id_estado_solicitud, // Agregar el nuevo parámetro
     ];
 
     const resultado = await this.solicitudRepositorio.query(query, params);
