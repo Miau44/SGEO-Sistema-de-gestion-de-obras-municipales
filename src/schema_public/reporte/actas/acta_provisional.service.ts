@@ -136,7 +136,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
-  const fechaFin = new Date(this.datosInf[0].fecha_registro); //fecha acta provisional
+  const fechaFin = new Date(this.datosInf[0].fecha_acta); //fecha acta provisional
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
@@ -597,7 +597,8 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
