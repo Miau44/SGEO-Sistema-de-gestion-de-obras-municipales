@@ -155,7 +155,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
-  //ME por cambio datos almacenados en modificacion const plazo_autorizado = Number(this.datosEnvio[0].plazo_contrato) + Number(this.datosVariacion[0].total_diasv);
+  const plazo_autorizado = Number(this.datosEnvio[0].plazo_contrato) + Number(this.datosVariacion[0].total_diasv);
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -163,7 +163,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
     });
 
      console.log('DATOS obra',this.datosInf);
-     //console.log('DATOS VARIACION',plazo_autorizado);
+     console.log('DATOS VARIACION',plazo_autorizado);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -341,7 +341,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                           ],
                           [
                             { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: plazo_autorizado + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
