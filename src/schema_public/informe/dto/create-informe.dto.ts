@@ -69,19 +69,19 @@ export class CreateInformeDto {
     @ApiProperty()
     a_nombre: string;
 
-    @ApiProperty()
-    a_cargo: string;
+    // @ApiProperty()
+    // a_cargo: string;
 
-    @ApiProperty()
-    via_nombre: string;
+    // @ApiProperty()
+    // via_nombre: string;
 
-    @ApiProperty()
-    via_cargo: string;
+    // @ApiProperty()
+    // via_cargo: string;
 
-    @ApiProperty()
-    de_nombre: string;
+    // @ApiProperty()
+    // de_nombre: string;
 
-    @ApiProperty()
-    de_cargo: string;
+    // @ApiProperty()
+    // de_cargo: string;
 
 }
