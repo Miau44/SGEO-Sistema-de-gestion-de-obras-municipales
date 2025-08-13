@@ -54,12 +54,12 @@ export class CreateDesignacionDto {
     @ApiProperty()
     id_estado: number
 
-    @ApiProperty()
-    a_nombre: string
+    // @ApiProperty()
+    // a_nombre: string
 
-    @ApiProperty()
-    nombre_aprobador: string
+    // @ApiProperty()
+    // nombre_aprobador: string
 
-    @ApiProperty()
-    cargo_aprobador: string
+    // @ApiProperty()
+    // cargo_aprobador: string
 }
