@@ -476,7 +476,8 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -973,7 +974,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_modif,formatoNumerico2) + '%',
+      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modif,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
