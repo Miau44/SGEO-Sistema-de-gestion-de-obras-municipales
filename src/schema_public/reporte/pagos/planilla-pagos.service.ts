@@ -964,7 +964,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
    // Fila final con porcentajes
    const montoContrato = Number(this.datosEnvio[0].monto_contrato);
    const total_autorizado = Number(this.datosPlanillaR[0].total_modif);
-   console.log('PORCENTAJE', total_autorizado);
+   console.log('PORCENTAJE', this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modif,formatoNumerico2));
     if (!isNaN(montoContrato) && montoContrato !== 0) {
       porc_modif = (total_autorizado * 100) / montoContrato;
     }
@@ -974,7 +974,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_modif,formatoNumerico2) + '%',
+      {text: this.datosPlanillaR[0].porcentaje_modif + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_presente,formatoNumerico2) + '%',
