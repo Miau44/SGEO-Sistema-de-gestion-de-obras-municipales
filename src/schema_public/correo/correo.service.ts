@@ -86,12 +86,14 @@ export class CorreoService {
         <li><strong>PROVEÍDO:</strong> ${proveido}</li>
       </ul>
       <br>
-      Si tiene alguna duda o requiere asistencia adicional, contáctese con el administrador del SGEO +, llamando al teléfono IP 1420.<br><br>
-      Atentamente,<br>
-      SISTEMA DE GESTIÓN DE EJECUCIÓN DE OBRAS - SGEO +<br>
-      DIRECCIÓN DE FISCALIZACIÓN DE OBRAS<br>
-      EDIFICIO TOBIA – 4to PISO
+   
     `.trim();
+
+      //  Si tiene alguna duda o requiere asistencia adicional, contáctese con el administrador del SGEO +, llamando al teléfono IP 1420.<br><br>
+      // Atentamente,<br>
+      // SISTEMA DE GESTIÓN DE EJECUCIÓN DE OBRAS - SGEO +<br>
+      // DIRECCIÓN DE FISCALIZACIÓN DE OBRAS<br>
+      // EDIFICIO TOBIA – 4to PISO
 
     // Enviar uno por uno
     const destinatarios = Array.isArray(para) ? para : [para];
