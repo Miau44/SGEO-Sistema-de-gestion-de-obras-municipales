@@ -51,20 +51,20 @@ export class Designacion {
     @Column({nullable:true})
     correlativo_solicitud: number;  
 
-    @Column({nullable:true})
-    a_nombre: string;
+    // @Column({nullable:true})
+    // a_nombre: string;
 
-    @Column({nullable:true})
-    nombre_aprobador: string;
+    // @Column({nullable:true})
+    // nombre_aprobador: string;
 
-    @Column({nullable:true})
-    cargo_aprobador: string;
+    // @Column({nullable:true})
+    // cargo_aprobador: string;
 
-    @Column({nullable:true})
-    nombre_solicitante: string;
+    // @Column({nullable:true})
+    // nombre_solicitante: string;
 
-    @Column({nullable:true})
-    cargo_solicitante: string;
+    // @Column({nullable:true})
+    // cargo_solicitante: string;
 
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_aprobacion: Date;         
