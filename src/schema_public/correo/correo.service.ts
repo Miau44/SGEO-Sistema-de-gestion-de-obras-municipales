@@ -181,10 +181,10 @@ export class CorreoService {
     // MOD PRUEBAS -> ignora lo que mande el frontend
     para = ['ibrahim.arunim'];
     autor = ['angel.laura','jorge.torrez'];
-    codigoObra = 'OBN-123-2025';
-    nombreObra = 'Construcción de puente vehicular en la Av. Mariscal';
-    actividad = 'Aprobación de solicitud de modificación';
-    proveido = 'Correo de pruebas --- Favor emitir informe técnico y legal.';
+    codigoObra = dto.codigoObra;
+    nombreObra = dto.nombreObra;
+    actividad = dto.actividad;
+    proveido = dto.proveido + ' Correo de pruebas ';
     console.log('⚠️ Enviando con datos HARDCODE (modo PRUEBAS)');
   } else {
     // MOD PRODUCCIÓN -> usa lo que llega en el DTO
