@@ -9,8 +9,8 @@ export class BandejaDto {
     @ApiProperty()
     usuario:number
 
-    @ApiProperty()
-    estado: number;
+    @ApiProperty({ type: [Number], description: 'Array de IDs' })
+    estado: number[];
 
 
 

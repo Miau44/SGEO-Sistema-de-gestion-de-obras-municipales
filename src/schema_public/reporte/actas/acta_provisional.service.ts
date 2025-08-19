@@ -279,6 +279,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       //   }, margin: [10, 0, 10, 7] 
       //   //layout: 'noBorders'
       // },
+      //NUEVAMENTE TENGO QUE MODIFICAR :'( 
       ...( this.datosVariacion[0].conteo === '0'
         ? [ //Sin modificaciones
           {

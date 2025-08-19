@@ -5,6 +5,7 @@ import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
 import { EstructuraOrganizacional } from './entities/estructura_organizacional.entity';
+import { EstructuraOrganizacionalNuevo } from './entities/estructura_organizacional_nuevo.entity';
 import { EstructuraDADto } from './dto/estructura-da.dto';
 
 
@@ -15,8 +16,8 @@ export class EstructuraOrganizacionalService {
     @InjectRepository(EstructuraOrganizacional) private tipoDocRepositorio: Repository<EstructuraOrganizacional>,
     private responseService: ResponseService,
 
-    @InjectRepository(EstructuraOrganizacional)
-    private EORepository: Repository<EstructuraOrganizacional>,
+    @InjectRepository(EstructuraOrganizacional) private EORepository: Repository<EstructuraOrganizacional>,
+    @InjectRepository(EstructuraOrganizacionalNuevo) private EORepositoryNuevo: Repository<EstructuraOrganizacionalNuevo>,
   ) { }    
   create(createEstructuraOrganizacionalDto: CreateEstructuraOrganizacionalDto) {
     return 'This action adds a new estructuraOrganizacional';
@@ -96,7 +97,7 @@ export class EstructuraOrganizacionalService {
 
         // Iterar sobre los datos y guardarlos en la base de datos
         for (const item of data.datos) {
-          const nuevaEstructura = this.EORepository.create({
+          const nuevaEstructura = this.EORepositoryNuevo.create({
             gestion: item.gestion,
             cod_da: item.cod_da,
             desc_cod_da: item.desc_cod_da,
@@ -110,7 +111,7 @@ export class EstructuraOrganizacionalService {
             usuario_registro: 0, // Valor por defecto
           });
 
-          await this.EORepository.save(nuevaEstructura);
+          await this.EORepositoryNuevo.save(nuevaEstructura);
         }
         console.log('Datos insertados correctamente');
       } catch (error) {
