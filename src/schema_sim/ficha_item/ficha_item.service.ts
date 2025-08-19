@@ -238,7 +238,6 @@ export class ficha_itemService {
     if (data.res == "OK") {
       var fichaJson = data.datos[0];
         if (!fichaJson.codigo_ficha.includes(st_gestion)) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion ${st_gestion}.`);
           return `Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion ${st_gestion}.`;
         }
 
@@ -248,7 +247,6 @@ export class ficha_itemService {
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
           if (fichaExistente==null) {
-            console.log(`Ficha inexistente`);
             return `Ficha inexistente`;
           }
           else {
@@ -258,7 +256,6 @@ export class ficha_itemService {
 
           //verificar que id_ficha no sea 0
           if (id_ficha == 0) {
-            console.error(`Error: id_ficha es 0, no se puede guardar la obra.`);
             throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
           }
 
@@ -280,7 +277,6 @@ export class ficha_itemService {
           fichaJson.d_item.forEach((itemJson: { partida: string; orden: any; codigo_item: any; }) => {
             // Validar si la partida está permitida
             if (!partidasPermitidas.includes(itemJson.partida)) {
-              console.log(`Item ignorado: Partida no permitida. Partida=${itemJson.partida}, Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
               return; //Saltar este item
             }
 
@@ -289,7 +285,6 @@ export class ficha_itemService {
 
             // Si ya existe un item con esta clave, se ignora el nuevo
             if (registrosUnicos.has(claveRegistro)) {
-              console.log(`Item ignorado: Par (Orden, Código_Item) duplicado en el JSON. Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
               return; // Ignorar duplicados posteriores
             }
 
@@ -302,16 +297,14 @@ export class ficha_itemService {
             //verificar monto total
             const montoTotalExterno = this.roundTo(fichaJson.monto_total,2);
             const montoTotalInterno = this.roundTo(objFicha.total_carpeta,2);
-            console.log(`Monto total: Externo=${montoTotalExterno}, Interno=${montoTotalInterno}`);
-
+            
             if (montoTotalExterno !== montoTotalInterno) {
               res += "Monto total no coincide: Externo=" + montoTotalExterno + ", Interno=" + montoTotalInterno + "\n";
               return this.responseService.error(null, 'Los items de la ficha no coinciden con los de la base de datos '+res, 500);
             }
 
             res += await this.comparacionItems(Array.from(registrosUnicos.values()), objObra);
-            console.log("res",res);
-
+            
             if(res != ""){
               return this.responseService.error(res, 'Los items de la ficha no coinciden con los de la base de datos '+res, 500);
             }
@@ -322,8 +315,7 @@ export class ficha_itemService {
           else{
             //actualizar monto_total
             objFicha.total_carpeta = fichaJson.monto_total;
-            var resActMonto=await this.fichaRepository.save(objFicha);
-            console.log("resmonto",resActMonto);
+            await this.fichaRepository.save(objFicha);
             
             return await this.actualizarItems(Array.from(registrosUnicos.values()), objObra);
             return res;
@@ -353,7 +345,7 @@ export class ficha_itemService {
 
     //comparar tamaño de los arrays en los items
     if (itemsExterno.length !== itemsInterno.length) {
-      console.log(`Los tamaños de los arrays no coinciden: Externo=${itemsExterno.length}, Interno=${itemsInterno.length}`);
+      //console.log(`Los tamaños de los arrays no coinciden: Externo=${itemsExterno.length}, Interno=${itemsInterno.length}`);
       texto += `Los tamaños de los arrays no coinciden: Externo=${itemsExterno.length}, Interno=${itemsInterno.length}\n`;
     }
     
@@ -462,7 +454,7 @@ export class ficha_itemService {
           itemExistente.orden_sim = itemExterno.orden;
           itemExistente.id_estado = 1;
           let actItem = await this.itemRepository.save(itemExistente);
-          console.log("Orden de Item actualizado ", actItem.codigo_item);
+          //console.log("Orden de Item actualizado ", actItem.codigo_item);
         }
         else{
           itemExistente.cantidad_sim = itemExterno.cantidad;
@@ -481,7 +473,7 @@ export class ficha_itemService {
       return this.responseService.error("Error", texto, 500);
     }
     else{
-      return this.responseService.success("OK", 'No se encontraron diferencias', 200);
+      return this.responseService.success("OK", 'Actualización realizada', 200);
     }
   }
   

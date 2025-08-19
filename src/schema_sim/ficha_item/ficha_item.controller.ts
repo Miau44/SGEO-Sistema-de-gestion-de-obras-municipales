@@ -186,19 +186,19 @@ export class FichaItemController {
 
     //validar que el id_usuario no sea nulo 
     if (body == null) {
-      console.error('Error: id_usuario es nulo');
+      //console.error('Error: id_usuario es nulo');
       return { message: 'error', error: 'id_usuario es nulo' };
     }
     const { correlativo_carpeta, id_usuario, gestion, actualizar } = body;
-    console.log(correlativo_carpeta, id_usuario);
+    //console.log(correlativo_carpeta, id_usuario);
     //validar que la gestion no sea nulo y mayor a 2020
     if (correlativo_carpeta == null) {
-      console.error('Error: correlativo_carpeta es nulo');
+      //console.error('Error: correlativo_carpeta es nulo');
       return { message: 'error', error: 'correlativo_carpeta es nulo' };
     }
     try {
       const token = await this.ficha_itemService.obtenerToken();
-      console.log(token);
+      //console.log(token);
 
       return await this.ficha_itemService.verificarFicha(correlativo_carpeta, id_usuario, gestion, actualizar);
 
@@ -207,7 +207,7 @@ export class FichaItemController {
 
       // return { message: 'Test successful', result };
     } catch (error) {
-      console.error('Error:', error);
+      //console.error('Error:', error);
       return { message: 'Test error', error: error || error };
     }
 

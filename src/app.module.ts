@@ -54,7 +54,7 @@ import { PagoModule } from './schema_public/pago/pago.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       autoLoadModels: true,
-      synchronize: true,
+      synchronize: false,
     }),
     ReporteModule,
 
@@ -69,7 +69,7 @@ import { PagoModule } from './schema_public/pago/pago.module';
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
+    synchronize: false,
   }),
 
  

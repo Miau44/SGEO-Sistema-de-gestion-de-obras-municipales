@@ -287,7 +287,7 @@ export class ContratoService {
           continue;
         }
 
-        contratoExistente.url = item.rlinkcontrat;
+        contratoExistente.rpcrpa = item.rpcrpa; // Actualizando rpcrpa en lugar de url
         await this.contratoRepository.save(contratoExistente);
         contratosActualizados++;
       }
