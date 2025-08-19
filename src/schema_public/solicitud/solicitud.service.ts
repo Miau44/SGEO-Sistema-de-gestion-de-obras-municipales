@@ -241,7 +241,9 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
           const query = `
       SELECT
       COUNT(*) AS total, f.gestion_carpeta,
-      COALESCE(SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END), 0) AS pendientes,
+      --COALESCE(SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END), 0) AS pendientes,
+
+      COALESCE(SUM(CASE WHEN id_estado_solicitud IN (2, 5) THEN 1 ELSE 0 END),0) AS pendientes,
       COALESCE(SUM(CASE WHEN id_estado_solicitud = 3 THEN 1 ELSE 0 END), 0) AS enprogreso,
       COALESCE(SUM(CASE WHEN id_estado_solicitud = 4 THEN 1 ELSE 0 END), 0) AS completadas
       FROM public.solicitud AS s
@@ -369,13 +371,14 @@ async guardarHistorialYActualizar(data: ActualizarSolicitudDto) {
    /* const query = `SELECT public.sp_modificacion_historial(${data.p_id_solicitud}, 
     ${data.p_id_usuario}, ${data.p_usuario_registro}, ${data.p_id_estado_general}, ${data.p_proveido}) AS id_historial`;*/
 
-const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5, $6) AS id_historial`;    
+const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5, $6, $7) AS id_historial`;    
     const params = [
       data.p_id_solicitud,
       data.p_id_usuario,
       data.p_usuario_registro,
       data.p_id_estado_general,
       data.p_proveido,
+      data.p_data_solicitud,
       data.p_id_estado_solicitud
     ];
 
