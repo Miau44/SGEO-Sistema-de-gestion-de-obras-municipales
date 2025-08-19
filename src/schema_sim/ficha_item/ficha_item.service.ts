@@ -316,7 +316,7 @@ export class ficha_itemService {
               return this.responseService.error(res, 'Los items de la ficha no coinciden con los de la base de datos '+res, 500);
             }
             else{
-              return this.responseService.success("OK", 'No se encontraron diferencias', 200);
+              return this.responseService.success("OK", 'No se encontraron diferencias ', 200);
             }
           }
           else{
@@ -345,8 +345,8 @@ export class ficha_itemService {
 
   async comparacionItems(itemsExterno: any[], obra:Obra){
     var texto = "";
-    //get array items base y obtener la cantidad de items 
-    var itemsInterno = await this.itemRepository.find({where: {id_obra: obra.id_obra}});
+    //get array items base y obtener la cantidad de items, id_estado = 1
+    var itemsInterno = await this.itemRepository.find({where: {id_obra: obra.id_obra, id_estado: 1,id_tipo_item:264}});
     if(itemsInterno === null){
       return `No se encontraron items para la obra`;
     }
@@ -427,8 +427,8 @@ export class ficha_itemService {
       return `No se encontraron items para la obra con id_obra: ${obra.id_obra}`;
     }
 
-    //dar de baja los items de una obra: update item set id_estado = 0 where id_obra = obra.id_obra
-    var resBaja = await this.itemRepository.update({id_obra: obra.id_obra}, {id_estado: 0});
+    //dar de baja los items de una obra: update item set id_estado = 0 where id_obra = obra.id_obra, id_tipo_item = id_tipo_item
+    var resBaja = await this.itemRepository.update({id_obra: obra.id_obra, id_tipo_item: 264}, {id_estado: 0});
     console.log("Items dados de baja", resBaja);
 
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM);
@@ -460,6 +460,7 @@ export class ficha_itemService {
           console.log(`Item con codigo_item ${itemExterno.codigo_item} ya está finalizado se actualiza el orden.`);
           //texto += `Item ${itemExterno.codigo_item}: ya está finalizado y no se puede actualizar.\n`;
           itemExistente.orden_sim = itemExterno.orden;
+          itemExistente.id_estado = 1;
           let actItem = await this.itemRepository.save(itemExistente);
           console.log("Orden de Item actualizado ", actItem.codigo_item);
         }
@@ -469,6 +470,7 @@ export class ficha_itemService {
           itemExistente.p_unitario_sim = itemExterno.real_unitario;
           itemExistente.total_item_sim = itemExterno.total;
           itemExistente.orden_sim = itemExterno.orden;
+          itemExistente.id_estado = 1;
           let actItem = await this.itemRepository.save(itemExistente);
           console.log("Item actualizado", actItem);
         }
