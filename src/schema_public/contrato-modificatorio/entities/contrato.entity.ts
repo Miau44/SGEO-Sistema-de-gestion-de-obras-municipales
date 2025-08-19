@@ -35,8 +35,8 @@ export class Contrato {
   // @Column({ type: 'varchar', length: 100, nullable: true })
   // pmc_cod_carp_sim: string;
 
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // rpa: string;
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  rpcrpa: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   numero_contrato: string;

@@ -97,7 +97,7 @@ export class ModificacionPagoService {
         }
         else {
           this.crearModificacion(dto)
-         return this.responseService.success( dto,"Solicitud generada correctamente.");
+          return this.responseService.success(dto, "Solicitud generada correctamente.");
 
         }
       }
@@ -116,7 +116,7 @@ export class ModificacionPagoService {
         }
         else {
           this.crearModificacion(dto);
-       return this.responseService.success( dto,"Solicitud generada correctamente.");          
+          return this.responseService.success(dto, "Solicitud generada correctamente.");
         }
 
       }
@@ -133,7 +133,7 @@ export class ModificacionPagoService {
     try {
       const { tipo, subtipo, id_obra, id_usuario } = dto;
       let entidadGuardada: Modificacion | Pago;
-      
+
       const esMenorQueCuatro = tipo < 4;
       const estadogeneral = esMenorQueCuatro ? 21 : 29; //modificación o pago
       const numeracion = esMenorQueCuatro ? 1 : 2; //modificación o pago
@@ -150,7 +150,7 @@ export class ModificacionPagoService {
         id_estado_registro: 1,
       };
       //const respuesta_solicitud = await this.solicitudService.create(data_solicitud);
-      const  respuesta_solicitud =   await this.solicitudRepocitorio.save(data_solicitud);
+      const respuesta_solicitud = await this.solicitudRepocitorio.save(data_solicitud);
 
       const datosHistorial = {
         id_solicitud: respuesta_solicitud.id_solicitud,
@@ -309,8 +309,6 @@ export class ModificacionPagoService {
         .where('id_modificacion = :id_modificacion', { id_modificacion })
         .execute();
 
-        console.log(resultado);
-        
       if (resultado.affected === 0) {
         return this.responseService.error(
           new Error(`Registro no encontrado, id: ${id_modificacion}`),
@@ -327,7 +325,7 @@ export class ModificacionPagoService {
     }
   }
 
-  
+
   async obtenerModificacion(id: number): Promise<Modificacion> {
     const modificacion = await this.modificacionRepo.findOne({ where: { id_modificacion: id } });
     if (!modificacion) {
@@ -345,7 +343,7 @@ export class ModificacionPagoService {
   async validarModificacion(data: ValidarModificacionDto) {
     // try {
     const params1 = [data.id_obra]
-    let mensaje :any  = '';
+    let mensaje: any = '';
     // 1️⃣ Validar que todos los registros en `item` sean `finalizado = true`
     const itemQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
@@ -407,14 +405,14 @@ export class ModificacionPagoService {
       };
       if (resultado) {
         const tipoCorrelativo = MAPEO_TIPO_CORRELATIVO[AprobarDto.id_tipo_modificacion];
-        if (!tipoCorrelativo) return; 
-          const queryVerifica = `
+        if (!tipoCorrelativo) return;
+        const queryVerifica = `
           SELECT id_informe, id_correlativo 
           FROM public.informe
           WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1
           LIMIT 1`;
 
-        const paramsVerifica = [ AprobarDto.id_obra,tipoCorrelativo,AprobarDto.id_solicitud
+        const paramsVerifica = [AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud
         ];
         const [informeExistente] = await this.modPagoRepositorio.query(queryVerifica, paramsVerifica);
         if (!informeExistente) {
@@ -441,7 +439,7 @@ export class ModificacionPagoService {
         SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
         WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
         const params4 = [
-          AprobarDto.id_obra,tipoCorrelativo, AprobarDto.id_solicitud,idCorrelativoMemo,AprobarDto.id_usuario
+          AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario
         ];
         const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
         if (!resultadoinforme || resultadoinforme.rowCount === 0) {
@@ -465,7 +463,7 @@ export class ModificacionPagoService {
   }
 
   async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
-    
+
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
       throw new BadRequestException('El id_contrato debe ser un número positivo.');
@@ -506,94 +504,27 @@ export class ModificacionPagoService {
     return res;
   }
 
-    async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
+  async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
 
-          // Validar que el id_contrato sea un número positivo o cero y no nulo
+    // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
-      throw new BadRequestException('El id_carpeta debe ser un número positivo.');
+      throw new BadRequestException('id_carpeta no encontrado.');
     }
 
-    let q = `SELECT ficha.correlativo_carpeta, 
-      id_modificacion,
-      ROUND(monto_total,2) AS monto_adjudicado,
-      porcentaje_total,
-      ROUND(monto_variacion, 2) AS  monto_variacion,
-      porcentaje_modificacion,
-      TO_CHAR(fecha_fiscal, 'DD/MM/YYYY') as fecha_fiscal,
-      TO_CHAR(fecha_supervisor, 'DD/MM/YYYY') as fecha_supervisor,
-      TO_CHAR(fecha_memo_minuta, 'DD/MM/YYYY') as fecha_memo_minuta,
-      dias_variacion as diasplazo_proceso,
-      mp.id_tipo_mod_pago as tipocontrato,
-      2 as tipoplazo,
-      numero_contrato_modificatorio
-      FROM modificacion
-      JOIN modificacion_pago mp on modificacion.id_modificacion_pago = mp.id_modificacion_pago
-      JOIN obra on mp.id_obra = obra.id_obra
-      JOIN ficha on obra.id_ficha = ficha.id_ficha
-      where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
-      var res: any;
+    let q = `SELECT * FROM vista_modificacion_pago`;
+    var res: any;
     if (id_carpeta > 0) {
       q = q + ` AND ficha.correlativo_carpeta = $1`;
       var res = await this.modificacionRepo.query(q, [id_carpeta]);
     }
-    else{
+    else {
       res = await this.modificacionRepo.query(q);
     }
-    
+
     //mensaje en caso de no encontrar registros
     if (!res || res.length === 0) {
       throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
     }
-    return res;
-  }
-
-  async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
-
-    if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
-      throw new BadRequestException('El id_carpeta debe ser un número positivo.');
-    }
-
-    
-    let q = `SELECT 
-        ficha.correlativo_carpeta as id_carpeta,
-        pago.id_pago as id_pago,
-        monto_presente, 
-        importe_por_pagar, 
-        monto_acumulado, 
-        --fecha_aprobacion_pago, 
-        --fecha_supervisor, 
-        --fecha_fiscal, 
-        deduccion, 
-        retencion, 
-        multa, 
-        penalidad, 
-        porcentaje_presente, 
-        porcentaje_acumulado, 
-        fecha_frp, 
-        TO_CHAR(fecha_inicio_periodo, 'DD/MM/YYYY') as fecha_inicio_periodo,
-        TO_CHAR(fecha_fin_periodo, 'DD/MM/YYYY') as fecha_fin_periodo,
-        finalizado
-      FROM pago 
-      join modificacion_pago mp on pago.id_modificacion_pago = mp.id_modificacion_pago 
-      join obra on mp.id_obra = obra.id_obra
-      join ficha on obra.id_ficha = ficha.id_ficha where pago.id_estado = 1 `;
-      //modificar el query, ajuste de formato de fechas
-
-
-
-      var res: any;
-    if (id_carpeta > 0) {
-      q = q + ` AND ficha.correlativo_carpeta = $1`;
-      var res = await this.modificacionRepo.query(q, [id_carpeta]);
-    }
-    else{
-      res = await this.modificacionRepo.query(q);
-    }
-
-    if (!res || res.length === 0) {
-      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
-    }
-    
     return res;
   }
 
@@ -602,12 +533,12 @@ export class ModificacionPagoService {
 
       // Validar que el id_modificacion sea un número positivo y no nulo
       if (!id_modificacion || id_modificacion <= 0) {
-        throw new BadRequestException('El id_modificacion debe ser un número positivo.'); 
+        throw new BadRequestException('El id_modificacion debe ser un número positivo.');
       }
       // Validar que el numero_contrato_modificatorio no esté vacío
       if (!numero_contrato_modificatorio || numero_contrato_modificatorio.trim() === '') {
         throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
-      } 
+      }
 
       const mod = await this.modificacionRepocitorio.findOne({
         where: { id_modificacion },
@@ -618,7 +549,7 @@ export class ModificacionPagoService {
         throw new NotFoundException('Modificación no encontrada');
       }
 
-      if(mod.modificacionpago.id_tipo_mod_pago == 1){
+      if (mod.modificacionpago.id_tipo_mod_pago == 1) {
         mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
       }
 
