@@ -135,6 +135,7 @@ export class ModificacionPagoController {
   }
 
   //Listado de modificaciones por contrato, servicio de lectura DLC
+  @UseGuards(AuthGuard('jwt'))
   @Public()
   @Get('ModificacionesPorContrato/:id_contrato')
   @HttpCode(HttpStatus.OK)
@@ -158,15 +159,15 @@ export class ModificacionPagoController {
   }
 
   //Listado de pagos por carpeta, Servicio de lectura SIM
-  @UseGuards(AuthGuard('jwt'))
-  @Public()
-  @Get('PagosPorCarpeta/:id_carpeta')
-  @HttpCode(HttpStatus.OK)
-  async PagosPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
-    try {
-      return this.modificacionPagoService.listadoPagosxCarpeta(id_carpeta);
-    } catch (error) {}
-  }
+  // @UseGuards(AuthGuard('jwt'))
+  // @Public()
+  // @Get('PagosPorCarpeta/:id_carpeta')
+  // @HttpCode(HttpStatus.OK)
+  // async PagosPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+  //   try {
+  //     return this.modificacionPagoService.listadoPagosxCarpeta(id_carpeta);
+  //   } catch (error) {}
+  // }
 
   //servicio en metodo post, guardado de numeración del contrato
   @Post('guardado-numeracion')

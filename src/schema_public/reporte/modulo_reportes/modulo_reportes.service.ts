@@ -43,7 +43,7 @@ private readonly DECIMAL_PLACES = 5;
     try {
     
       let queryinicio = ` 
-     SELECT * FROM  public.vista_reporte_general WHERE gestion_carpeta =2025;`  ;
+     SELECT * FROM  public.vista_reporte_general WHERE gestion_carpeta =$1;`  ;
       const paramsinicio = [data.gestion];
       const resultado = await this.reporteRepositorio.query(queryinicio, paramsinicio);
      
