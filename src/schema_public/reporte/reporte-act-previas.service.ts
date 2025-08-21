@@ -454,7 +454,8 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -543,7 +544,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
 
-    console.log('DATOS IAP',this.datosIAP);
+    console.log('DATOS IAP',this.datosEnvio);
     const bodyTabla = [];
 
     const documentDefinition = {
@@ -595,12 +596,21 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
                   ? [] // No incluir la fila
                   : [[
                       { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                      {
-                        text: [
-                          { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
-                          { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
-                        ],
-                        margin: [0, 5, 0, 5]
+                      { 
+                        ...(this.datosEnvio[0].total_carpeta > '500000'
+                          ?{
+                              text: [
+                                    { text: this.datosJUFOE[0].nombre_jefe + '\n', style: 'textDato' },
+                                    { text: this.datosJUFOE[0].cargo_jefe, style: 'textTitulo' }
+                                  ], margin: [0, 5, 0, 5]
+                          }
+                          :{
+                              text: [
+                                      { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
+                                      { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
+                                    ], margin: [0, 5, 0, 5]
+                          }
+                        ) 
                       }
                     ]]
               ),
@@ -951,7 +961,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
