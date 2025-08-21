@@ -462,11 +462,15 @@ export class ModificacionPagoService {
     return result[0].resultado;
   }
 
-  async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
+  async listadoModificacionesxContrato(id_contrato: number,id_tipo: number): Promise<boolean> {
 
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
       throw new BadRequestException('El id_contrato debe ser un número positivo.');
+    }
+    // Validar que el id_tipo sea un número positivo o cero y no nulo
+    if (id_tipo === null || id_tipo === undefined || id_tipo < 0) {
+      throw new BadRequestException('El id_tipo debe ser un número positivo.');
     }
 
     let q = `SELECT ficha.correlativo_carpeta, 
@@ -489,17 +493,23 @@ export class ModificacionPagoService {
         JOIN obra on mp.id_obra = obra.id_obra
         JOIN ficha on obra.id_ficha = ficha.id_ficha
 				JOIN contrato on contrato.id_obra = obra.id_obra
-				where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+				where modificacion.numero_contrato_modificatorio is null AND modificacion.finalizado = true AND mp.id_tipo_mod_pago = ${id_tipo}`;
     var res: any;
+    console.log(id_tipo,id_contrato);
+    
     if (id_contrato > 0) {
-      q = q + ` AND contrato.id_contrato_dlc = $1`
-      var res = await this.modificacionRepo.query(q, [id_contrato]);
+      q = q + ` AND contrato.id_contrato_dlc = ${id_contrato}`;
+      console.log(`q`, q);
+      
+      var res = await this.modificacionRepo.query(q, []);
     }
     else {
       res = await this.modificacionRepo.query(q);
     }
+    console.log(res);
+    
     if (!res || res.length === 0) {
-      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+      throw new NotFoundException('No se encontraron registros.');
     }
     return res;
   }
