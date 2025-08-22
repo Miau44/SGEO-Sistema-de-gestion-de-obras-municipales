@@ -532,6 +532,30 @@ export class ModificacionPagoService {
     return res;
   }
 
+    async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
+
+    // Validar que el id_contrato sea un número positivo o cero y no nulo
+    if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
+      throw new BadRequestException('id_carpeta no encontrado.');
+    }
+
+    let q = `SELECT * FROM vista_modificacion_pago `;
+    var res: any;
+    if (id_carpeta > 0) {
+      q = q + ` WHERE "idCarpeta" = $1`;
+      var res = await this.modificacionRepo.query(q, [id_carpeta]);
+    }
+    else {
+      res = await this.modificacionRepo.query(q);
+    }
+
+    //mensaje en caso de no encontrar registros
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
+    return res;
+  }
+
   async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
     try {
 
