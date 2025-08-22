@@ -495,19 +495,13 @@ export class ModificacionPagoService {
 				JOIN contrato on contrato.id_obra = obra.id_obra
 				where modificacion.numero_contrato_modificatorio is null AND modificacion.finalizado = true AND mp.id_tipo_mod_pago = ${id_tipo}`;
     var res: any;
-    console.log(id_tipo,id_contrato);
-    
     if (id_contrato > 0) {
-      q = q + ` AND contrato.id_contrato_dlc = ${id_contrato}`;
-      console.log(`q`, q);
-      
-      var res = await this.modificacionRepo.query(q, []);
+      q = q + ` AND contrato.id_contrato_dlc = $1`
+      var res = await this.modificacionRepo.query(q, [id_contrato]);
     }
     else {
       res = await this.modificacionRepo.query(q);
     }
-    console.log(res);
-    
     if (!res || res.length === 0) {
       throw new NotFoundException('No se encontraron registros.');
     }
