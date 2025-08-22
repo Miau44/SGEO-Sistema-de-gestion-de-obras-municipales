@@ -136,9 +136,11 @@ export class ficha_itemService {
       const nuevoArray = this.arrayUes ? this.arrayUes.map((item: { l_ue: any[] }) => item.l_ue).flat() : [];
       nuevoArray.sort((a: { codigo_ue: number }, b: { codigo_ue: number }) => a.codigo_ue - b.codigo_ue);
       //console.log(nuevoArray);
+      let msg = "";
       for (const valor of nuevoArray) {//saltar a un valor mayor a 100
-        await this.obtenerFichas(valor.codigo_ue, id_usuario);
+        msg += await this.obtenerFichas(valor.codigo_ue, id_usuario);
       }
+      return msg;
     } else {
       throw new Error(`164 Error en la llamada al servicio externo: ${response.statusText}`);
     }
@@ -155,10 +157,10 @@ export class ficha_itemService {
         where: { desc_cod_ue: desc_cod_ue_ }, // ← condición vacía explícita
       });
 
-      if (maxCorrelativo != null) {
-        corr_carpeta = maxCorrelativo?.correlativo_carpeta;
-        corr_carpeta++;
-      }
+      // if (maxCorrelativo != null) {
+      //   corr_carpeta = maxCorrelativo?.correlativo_carpeta;
+      //   corr_carpeta++;
+      // }
       // OBTENER PARAMETROS DE URL DESDE .env
       const url_sim = process.env.URL_SIM2;
       // realizar la llamada al servicio externo metodo POST
@@ -174,21 +176,22 @@ export class ficha_itemService {
         }),
       });
       const data = await response.json();
-      //console.log(data);
-
       if (data.res == "OK") {
+        let msg = "";
         for (const fichaJson of data.datos) {
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
           //console.log('fichaExistente',fichaExistente);
           if (fichaExistente) {
-            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            //console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
             continue; // Si ya existe, continuar con la siguiente ficha
           }
 
           //validar que codigo_ficha tenga el texto 2025
           if (!fichaJson.codigo_ficha.includes("2025")) {
-            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
+            //console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
+            msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion 2025.\n`;
             continue; // Si no contiene el texto, continuar con la siguiente ficha
           }
 
@@ -196,22 +199,23 @@ export class ficha_itemService {
           //console.log(nueva_ficha);
           try {
             const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
-            const nuevaObra = this.crearObraDesdeFicha(nuevaFicha, id_usuario);
+            const nuevaObra = await this.crearObraDesdeFicha(nuevaFicha, id_usuario);
             const obraGuardada = await this.obraRepository.save(nuevaObra);
             console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
-
-            await this.guardarItems(fichaJson.d_item, obraGuardada, id_usuario);
+            msg += `${fichaJson.cod_carpeta}: guardada en la base de datos.\n`;
+            msg += await this.guardarItems(fichaJson.d_item, obraGuardada, id_usuario);
           } catch (error) {
-            //lanzar error si no se puede guardar la ficha
-
-            //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
             //mandar  error si no se puede guardar la obra, trwow error
-            console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
-            throw new Error(`Error al guardar la obra: ${error}`);
+            //console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
+            msg += `${fichaJson.cod_carpeta}: Error al guardar la obra.\n`;
+            return this.responseService.error(error,msg+ `\n ${fichaJson.cod_carpeta}: Error al guardar la obra.\n`, 500);
           }
         }
+        return "ue: "+desc_cod_ue_+"\n"+msg;
       } else {
         console.log("error: sin datos de servicio", data.res);
+        return "ue: "+desc_cod_ue_+"\n"+"sin datos para la UE";
+        return this.responseService.error(data.res, 'sin datos de servicio', 500);
         //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
       }
     } catch (error) {
@@ -498,7 +502,7 @@ export class ficha_itemService {
       for (const fichaJson of data.datos) {
         //validar que codigo_ficha tenga el texto 2025
         if (!fichaJson.codigo_ficha.includes("2025")) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no contiene el corresponde a la gestion 2025.`);
+          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
           continue; // Si no contiene el texto, continuar con la siguiente ficha
         }
 
@@ -764,8 +768,8 @@ export class ficha_itemService {
   //   }
   // }
 
-  private async guardarItems(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
-    if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
+  private async guardarItems(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<string> {
+    if (!itemsJson || itemsJson.length === 0) return "No hay items que guardar";
 
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
 
@@ -818,8 +822,10 @@ export class ficha_itemService {
           )
         );
         console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
+        return "Se guardaron " + itemsFiltrados.length + " items en la base de datos.";
       } else {
         console.log(`No se guardaron nuevos items porque todos fueron ignorados.`);
+        return "No se guardaron nuevos items porque todos fueron ignorados.";
       }
     } catch (error) {
       console.error(`Error al guardar items: ${error}`);
