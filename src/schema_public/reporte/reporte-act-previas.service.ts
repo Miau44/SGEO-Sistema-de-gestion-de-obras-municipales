@@ -597,17 +597,17 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
                   : [[
                       { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                       { 
-                        ...(this.datosEnvio[0].total_carpeta > '500000'
+                        ...(this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45 
                           ?{
                               text: [
-                                    { text: this.datosJUFOE[0].nombre_jefe + '\n', style: 'textDato' },
-                                    { text: this.datosJUFOE[0].cargo_jefe, style: 'textTitulo' }
+                                    { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
+                                    { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
                                   ], margin: [0, 5, 0, 5]
                           }
                           :{
                               text: [
-                                      { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
-                                      { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
+                                      { text: this.datosJUFOE[0].nombre_jefe + '\n', style: 'textDato' },
+                                      { text: this.datosJUFOE[0].cargo_jefe, style: 'textTitulo' }
                                     ], margin: [0, 5, 0, 5]
                           }
                         ) 
