@@ -106,26 +106,8 @@ export class FichaItemController {
       console.error('Error: gestion es nulo');
       return { message: 'error', error: 'gestion es nulo' };
     }
-
-    const r = this.ficha_itemService.obtenerToken();
-    r.then((result) => {
-      //return { message: 'Test successful' };
-      console.log(gestion, id_usuario);
-
-      const s = this.ficha_itemService.obtenerUes(gestion, id_usuario);
-      s.then((result) => {
-        console.log({ res: "OK" });
-        //retornar un json con el resultado de la consulta
-        return { message: 'Test successful', result };
-      }).catch((error) => {
-        console.error('Error:', error);
-        return { message: 'Test error' };
-      });
-    }
-    ).catch((error) => {
-      console.error('Error:', error);
-      return { message: error };
-    });
+    const token = await this.ficha_itemService.obtenerToken();
+    return await this.ficha_itemService.obtenerUes(gestion, id_usuario);
   }
 
   @Post('cargadoFichaItemPorCorrelativo')
@@ -160,8 +142,7 @@ export class FichaItemController {
         console.error('Error:', error);
         return { message: 'Test error' };
       });
-    }
-    ).catch((error) => {
+    }).catch((error) => {
       console.error('Error:', error);
       return { message: 'Test error' };
     });

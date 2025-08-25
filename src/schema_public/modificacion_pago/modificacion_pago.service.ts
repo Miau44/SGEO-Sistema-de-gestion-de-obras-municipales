@@ -462,11 +462,15 @@ export class ModificacionPagoService {
     return result[0].resultado;
   }
 
-  async listadoModificacionesxContrato(id_contrato: number): Promise<boolean> {
+  async listadoModificacionesxContrato(id_contrato: number,id_tipo: number): Promise<boolean> {
 
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
       throw new BadRequestException('El id_contrato debe ser un número positivo.');
+    }
+    // Validar que el id_tipo sea un número positivo o cero y no nulo
+    if (id_tipo === null || id_tipo === undefined || id_tipo < 0) {
+      throw new BadRequestException('El id_tipo debe ser un número positivo.');
     }
 
     let q = `SELECT ficha.correlativo_carpeta, 
@@ -489,7 +493,7 @@ export class ModificacionPagoService {
         JOIN obra on mp.id_obra = obra.id_obra
         JOIN ficha on obra.id_ficha = ficha.id_ficha
 				JOIN contrato on contrato.id_obra = obra.id_obra
-				where modificacion.numero_contrato_modificatorio is null and modificacion.finalizado = true`;
+				where modificacion.numero_contrato_modificatorio is null AND modificacion.finalizado = true AND mp.id_tipo_mod_pago = ${id_tipo}`;
     var res: any;
     if (id_contrato > 0) {
       q = q + ` AND contrato.id_contrato_dlc = $1`
@@ -499,7 +503,7 @@ export class ModificacionPagoService {
       res = await this.modificacionRepo.query(q);
     }
     if (!res || res.length === 0) {
-      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+      throw new NotFoundException('No se encontraron registros.');
     }
     return res;
   }
@@ -515,6 +519,30 @@ export class ModificacionPagoService {
     var res: any;
     if (id_carpeta > 0) {
       q = q + ` AND ficha.correlativo_carpeta = $1`;
+      var res = await this.modificacionRepo.query(q, [id_carpeta]);
+    }
+    else {
+      res = await this.modificacionRepo.query(q);
+    }
+
+    //mensaje en caso de no encontrar registros
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
+    return res;
+  }
+
+    async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
+
+    // Validar que el id_contrato sea un número positivo o cero y no nulo
+    if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
+      throw new BadRequestException('id_carpeta no encontrado.');
+    }
+
+    let q = `SELECT * FROM vista_modificacion_pago `;
+    var res: any;
+    if (id_carpeta > 0) {
+      q = q + ` WHERE "idCarpeta" = $1`;
       var res = await this.modificacionRepo.query(q, [id_carpeta]);
     }
     else {

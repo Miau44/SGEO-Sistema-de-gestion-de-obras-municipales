@@ -206,6 +206,7 @@ export class ContratoService {
             id_obra: obra.id_obra,
             direccion: item.rdomicilio,
             telefono: item.rtelef,
+            rpcrpa:item.rpcrpa,
             url: item.rlinkcontrat,
           });
           console.log("creando  contrato, ficha " +item.ridcodcarpeta);
