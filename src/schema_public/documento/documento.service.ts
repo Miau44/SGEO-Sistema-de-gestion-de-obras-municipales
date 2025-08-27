@@ -666,7 +666,7 @@ LIMIT 5`;
 
       const listaDocumentos = await this.dataSource.query(
         `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
-      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
       //console.log("documentos", listaDocumentos);
       listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
         tipo.documentos = [];
@@ -761,7 +761,7 @@ LIMIT 5`;
 
       const listaDocumentos = await this.dataSource.query(
         `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
-      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
       //console.log("documentos", listaDocumentos);
       listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
         tipo.documentos = [];
@@ -781,13 +781,10 @@ LIMIT 5`;
         }
         );
       });
-
       return listaTiposDocumentos;
     } catch (error) {
       console.error('Error al listar documentos por obra:', error);
       return this.responseService.error('No se pudo listar los documentos');
     }
   }
-
-
 }
