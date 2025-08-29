@@ -375,7 +375,7 @@ export class ModificacionPagoService {
     
     // 1️⃣ Definir dinámicamente los tipos de documento
 const tiposDocumento =
-  data.id_tipo_modificacion === 256 ? [56, 59, 60, 62] : [47, 48, 51];
+  data.id_tipo_modificacion === 256 ? [56, 59, 60, 62] : [47, 48,49, 51];
 
 // 2️⃣ Parámetros de la query
 const params4 = [data.id_obra, data.id_solicitud, tiposDocumento];
@@ -395,6 +395,7 @@ const documentoQuery = await this.modPagoRepositorio.query(
         AND d.id_tipo_documento = ANY($3)
         AND d.id_estado = 1
       GROUP BY i.id_informe
+      HAVING COUNT(DISTINCT d.id_tipo_documento) = cardinality($3)
   ) sub
   `,
   params4,
@@ -402,7 +403,7 @@ const documentoQuery = await this.modPagoRepositorio.query(
 
 // 4️⃣ Validación
 if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
-  mensaje += 'Debe completar los documentos obligatorios antes de enviar al Fiscal.';
+  mensaje += 'Debe completar los documentos adjuntos obligatorios antes de enviar al Fiscal.';
 }
     return {
       valido: mensaje === '',
