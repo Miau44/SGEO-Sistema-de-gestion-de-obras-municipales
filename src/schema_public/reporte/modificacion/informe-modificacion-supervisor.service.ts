@@ -466,7 +466,9 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         
       },
       {
-        text: '\n'
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
       },
       {
         text: '4.1.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN INCREMENTO\n',
@@ -518,6 +520,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           ]
         }, margin: [10, 0, 0, 5] 
         
+      },
+      {
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
       },
       {
         text: '4.2.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN DECREMENTO\n',
@@ -974,7 +981,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
@@ -1049,7 +1056,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
