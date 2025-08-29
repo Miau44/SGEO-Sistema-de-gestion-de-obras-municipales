@@ -92,7 +92,7 @@ export class ModificacionPagoService {
 
 
         if (modificacionPendiente.length > 0) {
-          return this.responseService.error(null, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
+          return this.responseService.error(dto, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
 
         }
         else {
@@ -371,6 +371,40 @@ export class ModificacionPagoService {
     if (Number(informeQuery[0].total) === 0) {
       mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
     }
+
+    
+    // 1️⃣ Definir dinámicamente los tipos de documento
+const tiposDocumento =
+  data.id_tipo_modificacion === 256 ? [56, 59, 60, 62] : [47, 48,49, 51];
+
+// 2️⃣ Parámetros de la query
+const params4 = [data.id_obra, data.id_solicitud, tiposDocumento];
+
+// 3️⃣ Query
+const documentoQuery = await this.modPagoRepositorio.query(
+  `
+  SELECT COUNT(*) AS total
+  FROM (
+      SELECT i.id_informe
+      FROM public.informe i
+      JOIN LATERAL json_to_recordset(i.id_documento) AS j(id_documento INT) ON TRUE
+      JOIN public.documento d ON d.id_documento = j.id_documento
+      JOIN public.tipo_documento td ON td.id_tipo_documento = d.id_tipo_documento
+      WHERE i.id_obra = $1
+        AND i.id_solicitud = $2
+        AND d.id_tipo_documento = ANY($3)
+        AND d.id_estado = 1
+      GROUP BY i.id_informe
+      HAVING COUNT(DISTINCT d.id_tipo_documento) = cardinality($3)
+  ) sub
+  `,
+  params4,
+);
+
+// 4️⃣ Validación
+if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
+  mensaje += 'Debe completar los documentos adjuntos obligatorios antes de enviar al Fiscal.';
+}
     return {
       valido: mensaje === '',
       mensaje: mensaje || 'Validaciones correctas.',
