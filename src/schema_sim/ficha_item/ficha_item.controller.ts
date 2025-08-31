@@ -113,6 +113,16 @@ export class FichaItemController {
   @Post('cargadoFichaItemPorCorrelativo')
   @Public()
   @ApiOperation({ summary: 'cargado de fichas e items' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 337777 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+      required: ['gestion', 'id_usuario'],
+    },
+  })
   async cargadoFichaItemPorCorrelativo(@Body() body: { correlativo_carpeta: number, id_usuario: number }) { //añadir parametro de entrada a servicio test, gestion
     //validar que el id_usuario no sea nulo
 

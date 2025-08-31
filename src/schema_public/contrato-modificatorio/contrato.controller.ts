@@ -62,12 +62,18 @@ export class ContratoController {
 
   
   @Public()
-  @Post('cargarContratosDlc/:gestion')
+  @Post('cargarContratosDlc/:gestion/:id_usuario')
+  //@UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
-  async llenarContratos(@Param('gestion') gestion: number): Promise<any> {
+  @ApiParam({ name: 'id_usuario', description: 'ID del usuario que realiza la carga' })
+  async cargarContratosDlc(@Param('gestion') gestion: number,@Param('id_usuario') id_usuario: number): Promise<any> {
     try {
       const r = await this.contratoService.obtenerToken();
-      return await this.contratoService.llenarContratosDesdeServicio(gestion);
+      console.log("gestion y usuario",gestion,id_usuario);
+      if(id_usuario==undefined){
+        return 'Error: id_usuario es indefinido';
+      }
+      return await this.contratoService.llenarContratosDesdeServicio(gestion,id_usuario);
     } catch (error) {
       console.error('Error:', error);
       return 'Test error';
