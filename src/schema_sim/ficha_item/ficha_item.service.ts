@@ -509,19 +509,19 @@ export class ficha_itemService {
     const data = await response.json();
     if (data.res == "OK") {
       for (const fichaJson of data.datos) {
-        //validar que codigo_ficha tenga el texto 2025
-        if (!fichaJson.codigo_ficha.includes("2025")) {
-          console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
-          continue; // Si no contiene el texto, continuar con la siguiente ficha
-        }
+        try { 
+          //validar que codigo_ficha tenga el texto 2025
+          if (!fichaJson.codigo_ficha.includes("2025")) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
+            continue; // Si no contiene el texto, continuar con la siguiente ficha
+          }
 
-        if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
-          console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
-          //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
-          continue;
-        }
+          if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
+            console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+            //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
+            continue;
+          }
 
-        try {
           let id_ficha = 0; let objFicha = null; let objObra = null;
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });

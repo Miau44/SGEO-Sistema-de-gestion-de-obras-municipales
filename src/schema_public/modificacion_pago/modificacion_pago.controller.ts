@@ -177,13 +177,14 @@ export class ModificacionPagoController {
       properties: {
         id_modificacion: { type: 'number', example: 200 },
         numero_contrato_modificatorio: { type: 'string', example: 'CONTRATO-001' },
-        fecha_memo_minuta: { type: 'string', example: '2023-08-01' }
+        fecha_memo_minuta: { type: 'string', example: '2025-08-01' },
+        fecha_aprobacion_contrato: { type: 'string', example: '2025-08-02' } 
       }
     }
   })
-  async guardadoNumeracion(@Body() body: { id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string }) {
+  async guardadoNumeracion(@Body() body: { id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string, fecha_aprobacion_contrato: string }) {
     try {
-      return this.modificacionPagoService.guardadoNumeracion(body.id_modificacion, body.numero_contrato_modificatorio, body.fecha_memo_minuta);
+      return this.modificacionPagoService.guardadoNumeracion(body.id_modificacion, body.numero_contrato_modificatorio, body.fecha_memo_minuta, body.fecha_aprobacion_contrato);
     } catch (error) {
       throw new HttpException('Error al guardar la numeración', HttpStatus.INTERNAL_SERVER_ERROR);
     }
