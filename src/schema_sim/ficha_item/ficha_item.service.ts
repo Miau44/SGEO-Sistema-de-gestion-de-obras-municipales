@@ -179,21 +179,30 @@ export class ficha_itemService {
       if (data.res == "OK") {
         let msg = "";
         for (const fichaJson of data.datos) {
-          //verificar si existe la ficha en la base de datos, si existe no guardar
-          const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
-          //console.log('fichaExistente',fichaExistente);
-          if (fichaExistente) {
-            //console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
-            msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
-            continue; // Si ya existe, continuar con la siguiente ficha
+
+          //validar que fichaJson.desc_carpeta no contenga la palabra "SERVICIO" o "SERVICIOS" al inicio
+          if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
+            console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+            msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
+            continue; 
           }
 
           //validar que codigo_ficha tenga el texto 2025
           if (!fichaJson.codigo_ficha.includes("2025")) {
-            //console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
             msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion 2025.\n`;
-            continue; // Si no contiene el texto, continuar con la siguiente ficha
+            continue;
           }
+
+          //verificar si existe la ficha en la base de datos, si existe no guardar
+          const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
+          //console.log('fichaExistente',fichaExistente);
+          if (fichaExistente) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
+            continue; // Si ya existe, continuar con la siguiente ficha
+          }
+
+
 
           const nueva_ficha = this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
           //console.log(nueva_ficha);
@@ -504,6 +513,12 @@ export class ficha_itemService {
         if (!fichaJson.codigo_ficha.includes("2025")) {
           console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
           continue; // Si no contiene el texto, continuar con la siguiente ficha
+        }
+
+        if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
+          console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+          //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
+          continue;
         }
 
         try {
