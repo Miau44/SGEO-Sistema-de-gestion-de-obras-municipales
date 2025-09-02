@@ -152,41 +152,38 @@ export class ReporteOrdenProcederService {
           text: '\n\n\n\n\n\n\nFORMULARIO DE ENVÍO DE DOCUMENTACIÓN\n DEL CONTRATO\n\n',
           style: 'header', alignment: 'center'
         } as any,
-
         {
-          text: 'DATOS DEL PROYECTO \n',
+          text: 'DATOS DEL PROYECTO: \n',
           style: 'subheader',
         },
-
         {
           table: { 
             widths: ['*', 400],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo'},], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'CÓDIGO:', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo'},] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:\n', style: 'textTitulo' },
+                { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo'},], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo'},] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },
+                { text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo'},], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato', fillColor: '#dddddd' }
               ]
             ]
           },
           layout: 'noBorders'
         },
-
         {
           table: {
             widths: ['*', 330],
@@ -202,12 +199,10 @@ export class ReporteOrdenProcederService {
           },
           layout: 'lightHorizontalLines'
         },
-
         {
           text: '\nSupervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
           style: 'textDato', alignment: 'justify',
         },
-
         {
           table: {
             widths: [30, '*', 50, 100],
@@ -249,20 +244,18 @@ export class ReporteOrdenProcederService {
         },
         {
           style: 'textDato',
-          text: '\n Fecha de Envío: '+ this.fechaString(this.datosEnvio[0].fecha_envio) + '\n\n',
+          text: 'Fecha de Envío: '+ this.fechaString(this.datosEnvio[0].fecha_envio) + '\n\n',
         },
         {
           text: '\n\n\n'
         },
         {
-          text: this.datosEnvio[0].profesion + ' ' + this.datosEnvio[0].nombre_sol + ' ' + this.datosEnvio[0].paterno_sol + ' ' + this.datosEnvio[0].materno_sol,
-          style: 'textDato', alignment:'center'
+          text: [
+            { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato', alignment:'center'},
+            { text: this.datosEnvio[0].a_cargo, style: 'subheader', alignment: 'center', bold:true},
+            {}
+          ]
         },
-        {
-          text: 'JEFE DE UNIDAD\n' + this.datosEnvio[0].nombre_da, //+ this.datos[0].nombre_ue,
-          style: 'subheader', alignment: 'center', bold:true
-        },
-
         {
           text: [
             '\n\n\n\n\ncc:Arch:',
@@ -322,7 +315,8 @@ export class ReporteOrdenProcederService {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -387,24 +381,17 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         text: '\n\n\n',
       },
       {
-        table: {
-          widths: ['*'],
-          body: [
-            ...this.buildSupervisores(this.datosSup)
-          ]
-        },
-        layout: 'noBorders'
-      },
-      {
-        text: 'SUPERVISOR(ES) DE OBRA',
-        style: 'textDato', bold:true
+        text: [
+                { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato'},
+                { text: this.datosEnvio[0].de_cargo, style: 'textDato', bold: 'true'}
+              ] 
       },
       {
         text: 'Presente.-',
         style: 'textDato', decoration: 'underline'
       },
       {
-        text: '\nREF.:EMISION DE ORDEN DE PROCEDER', 
+        text: '\nREF.: EMISION DE ORDEN DE PROCEDER', 
         style: 'titulo', alignment: 'center', decoration: 'underline'
       },
       {
@@ -474,7 +461,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         ]
       },
       {
-        text: ['\n\n\n\n\n\n\n\n\ncc:Arch:' ],
+        text: ['\n\n\n\n\n\n\nCc. Arch.' ],
         style: 'footerText'
       },
       {
@@ -521,7 +508,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -843,7 +831,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -975,29 +964,28 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato', }], fillColor: '#dddddd' }
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
 
               [
-                { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }] }
+                { text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }
               ],
 
               [
-                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
+                { text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }
               ]
             ]
           },
           layout: 'noBorders'
         } as any,
-        // Cuerpo de la carta
         {
           text: '\n'
         },
@@ -1026,21 +1014,13 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
         //FIRMA
         {
-          text:
-          [
-            { text: 
-                  (Array.isArray(this.datosSup)
-                    ? this.datosSup
-                        .filter(f => f && f.supervisor)
-                        .map(f => f.supervisor)
-                        .join(' | ')
-                    : ''
-                  ) + '\n', style: 'textDato', alignment: 'center' },
-            { text: 'SUPERVISOR(ES) DE OBRA\n', style: 'textTitulo', alignment: 'center' }
+          text: [
+            { text: this.datosEnvio[0].de_nombre2 + '\n', style: 'textDato', alignment: 'center' },
+            { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'center' }
           ]
         },
         {
-          text: '\n\n'
+          text: '\n'
         },
         {
           text: 'NOTIFICACIÓN AL CONTRATISTA\n',
@@ -1076,7 +1056,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             defaultBorder: false,
           }
         } as any,
-        { text: '\nc.c. Arch.', style: 'footerText', alignment: 'left' },
+        { text: '\nCc. Arch.', style: 'footerText', alignment: 'left' },
       
       ],
 
@@ -1121,7 +1101,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -1140,10 +1121,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 // INFORME DE PREVISION DE PAGOS
   async generateInformePrevPagos(obra: number): Promise<Buffer> {
     try{
-      console.log("DATOS, ", obra);
-      
-
-
+      //console.log("DATOS, ", obra);
     const res = await this.datosGeneralesReporteOP(obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para el ID de obra proporcionado');
@@ -1202,14 +1180,17 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           style: 'subheader', alignment: 'center'
         },
         {
+          text: '\n'
+        },
+        {
           table: {
-            widths: ['15%', '85%'],
+            widths: ['20%', '80%'],
             body: [
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: this.datosJU[0].nom_jefe + '\n', style: 'textDato', alignment: 'left' },
-                  { text: 'JEFE DE UNIDAD', style: 'textTitulo' }
+                  { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
+                  { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }
                 ] 
               }
               ],
@@ -1217,20 +1198,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { 
                   text: [
-                      {
-                        text: (
-                          Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                      },
-                      {
-                        text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
-                      },
+                      { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+                      { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
                     ]
                 },
               ],
@@ -1252,10 +1221,11 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             paddingRight: () => 5, // Espaciado interno derecho
             paddingTop: () => 2, // Espaciado interno superior
             paddingBottom: () => 2, // Espaciado interno inferior
-          },
-          margin: [20, 10, 20, 10], // Márgenes de la tabla
+          }
         },
-        
+        {
+          text: '\n'
+        },
         {
           text: 'Habiendo sido designado como Supervisor de la obra ' + this.datosEnvio[0].cod_carpeta + ' y habiendo emitido el memorándum de Orden de Proceder, se informa lo siguiente:',
           style: 'textDato', alignment: 'justify', margin: [0, 0, 0, 5]
@@ -1269,38 +1239,32 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', fillColor: '#f0f0f0' }
               ],
-
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
               ],
-
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },], },
-                { text: [{ text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }], }
+                { text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }
               ],
-
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: 'Bs' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: 'Bs' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'MONTO DE CONTRATO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs' + this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }] }
+                { text: 'MONTO DE CONTRATO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: 'Bs' + this.datosEnvio[0].monto_contrato + '\n', style: 'textDato' }
               ],
-
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd'  },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta)  + '\n\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd'  },
+                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta)  + '\n\n', style: 'textDato', fillColor: '#dddddd' }
               ]
             ]
           }, margin: [0, 0, 0, 7]
@@ -1353,15 +1317,32 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
         {
           table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildSupervisores2(this.datosSup)
-              ]
+            widths: ['50%', '50%'],
+            body: (this.datosEnvio[0].de_nombre ? this.datosEnvio[0].de_nombre.split('\n') : []).map((nombre: string) => [
+              { 
+                text: [
+                  { text: nombre, style: 'textDato' },
+                  { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
+                ], 
+                margin: [0, 35, 0, 0], 
+                alignment: 'center'
+              },
+              { text: '(Firma y Sello)', 
+                style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+              }
+            ])
           },
+          margin: [20, 0, 20, 0],
+          layout: {
+            hLineColor: () => '#444444',
+            vLineColor: () => '#444444',
+            hLineWidth: () => 0.7,
+            vLineWidth: () => 0.7
+          }
         },
         {
           text: [
-            '\n\n\nCc. Arch.',
+            '\n\nCc. Arch.',
           ],
           style: 'footerText'
         } as any,
@@ -1415,12 +1396,13 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [70, 170, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     }
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -1562,43 +1544,5 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     return arrayData;
   }
 
-  buildSupervisores(data: any) {
-    let datosResp1 = data;
-    let arrayData = [];
 
-    for (let i = 0; i < datosResp1.length; i++) {
-      let rowData = [
-        { text: [{ text: datosResp1[i].profesion + ' ' +datosResp1[i].nombre + ' ' + datosResp1[i].primer_apellido + ' ' + datosResp1[i].segundo_apellido, style: 'textDato' }] },
-      ];
-      arrayData.push(rowData);
-    }
-    return arrayData;
-  }
-
-  // Tabla de SUPERVISORES con recuadro
-  buildSupervisores2(data: any[]) {
-    const arrayData = [];
-
-    for (const persona of data) {
-      const nombreCompleto = [
-        persona.profesion,
-        persona.nombre,
-        persona.primer_apellido,
-        persona.segundo_apellido
-      ]
-      .filter(Boolean) // elimina null, undefined, o strings vacíos
-      .join(' ');
-
-      const rowData = [
-        { text: [
-              { text: nombreCompleto + '\n', style: 'textDato' },
-              { text: 'SUPERVISOR', bold: true, style: 'textDato' }
-                ],
-              alignment: 'center', margin: [0, 30, 0, 0]},
-        { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
-      ];
-      arrayData.push(rowData);
-    }
-    return arrayData;
-  }
 }
