@@ -591,7 +591,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   }
   //servicio para guardar datos de numeracion, ABL 18/08/2024
   //ajuste de campos, adicion de fecha aprobada contrato, ABL 01/09/2024
-  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string,fecha_aprobacion_contrato:string): Promise<any> {
+  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string,fecha_registro_contrato:string): Promise<any> {
     try {
       // Validar que el id_modificacion sea un número positivo y no nulo
       if (!id_modificacion || id_modificacion <= 0) {
@@ -602,30 +602,33 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
       }
 
-      if(!fecha_aprobacion_contrato || numero_contrato_modificatorio.trim() === ''){
-        throw new BadRequestException('fecha_aprobacion_contrato  no puede estar vacío.');
+      if(!fecha_registro_contrato || numero_contrato_modificatorio.trim() === ''){
+        throw new BadRequestException('fecha_registro_contrato  no puede estar vacío.');
       }
     
       const mod = await this.modificacionRepocitorio.findOne({
         //mostrar solo los campos necesarios
-        select: { id_modificacion: true, numero_contrato_modificatorio: true, fecha_memo_minuta: true, fecha_aprobacion_contrato:true, modificacionpago: { id_tipo_mod_pago: true } },
+        select: { id_modificacion: true, numero_contrato_modificatorio: true, fecha_memo_minuta: true, fecha_registro_contrato:true, modificacionpago: { id_tipo_mod_pago: true } },
         where: { id_modificacion },
         relations: ['modificacionpago'],
       });
       if (!mod) {
         throw new NotFoundException('Modificación no encontrada');
       }
+
       //validar que si id_tipo_mod_pago es 1 o 3 la fecha_memo_minuta no este vacia
       if((mod.modificacionpago.id_tipo_mod_pago == 1 || mod.modificacionpago.id_tipo_mod_pago == 3) && (!fecha_memo_minuta || fecha_memo_minuta.trim() === '')){
         throw new BadRequestException('La fecha de memo minuta no puede estar vacía para contratos modificatorios, o administrativos.');
       }
       
       if (mod.modificacionpago.id_tipo_mod_pago == 1 || mod.modificacionpago.id_tipo_mod_pago == 3) {
-        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
+        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);    
+        mod.fecha_memo_minuta.setHours(mod.fecha_memo_minuta.getHours() + 4);
       }
 
       mod.numero_contrato_modificatorio = numero_contrato_modificatorio;
-      mod.fecha_aprobacion_contrato = new Date(fecha_aprobacion_contrato);
+      mod.fecha_registro_contrato = new Date(fecha_registro_contrato);
+      mod.fecha_registro_contrato.setHours(mod.fecha_registro_contrato.getHours() + 4);
       const modificacionActualizada = await this.modificacionRepocitorio.save(mod);
       return modificacionActualizada;
     }
