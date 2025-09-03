@@ -271,6 +271,9 @@ export class PagoService {
 
   async preAprobarPago(AprobarDto: AprobarPagoDto) {
     try {
+
+      console.log('AprobarDto',AprobarDto);
+      
       // Validar los datos de entrada
       if (!AprobarDto.id_modificacion_pago) {
         throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');

@@ -29,6 +29,7 @@ import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-defin
 import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-entrega-provisional-definitiva';
 
 import { UpdateIdDocumentoPagoDto } from './dto/update-id-documento-pago.dto';
+import { EncabezadoDocumentoDto } from './dto/encabezado-documento.dto';
 
 
 
@@ -88,12 +89,70 @@ export class InformeService {
         ...createInformeDto,
         id_documento: createInformeDto.id_documento, // No necesitas transformarlo
       });
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+      //para actualizar encabezado de documentos 02092025
+      const datos = {
+        id_tipo_documento: createInformeDto.id_tipo_informe,
+        id_obra: createInformeDto.id_obra
+      }
+      //inicial, actividades, prevision de pagos, inf. sup., inf.fis
+      const tiposValidos = [235, 236, 237, 295,296];
+      if (tiposValidos.includes(resultado.id_tipo_informe)) {
+        // 👉 Aquí realizas la acción
+        const encabezado = await this.encabezadoDocumentos(datos);
+       
+     // const encabezado =  await this.encabezadoDocumentos(datos);
+      if (resultado.id_informe) {
+        const datosencabezado = {
+          a_nombre: encabezado.data[0].a_nombre || '',
+          a_cargo: encabezado.data[0].a_cargo || '',
+          via_nombre: encabezado.data[0].via_nombre || '',
+          via_cargo: encabezado.data[0].via_cargo || '',
+          de_nombre: encabezado.data[0].de_nombre || '',
+          de_cargo: encabezado.data[0].de_cargo || '',
+        }
+        this.informeRepositorio.update(resultado.id_informe, datosencabezado)
+     }
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+      //para actualizar encabezado de documentos 02092025
+      } else {
+        console.log('No aplica la acción');
+      }
 
       return this.responseService.success(resultado, "Registrado Correctamente.");
     } catch (error) {
       return this.responseService.error(error);
     }
   }
+
+
+  async encabezadoDocumentos(data: EncabezadoDocumentoDto) {
+    try {
+      const query = ` SELECT * FROM public.sp_encabezado_documentos($1, $2);`;
+      const params = [data.id_tipo_documento, data.id_obra];
+      const resultado = await this.informeRepositorio.query(query, params);
+        return this.responseService.success(resultado, "Listado Correctamente.")   
+     /* // const encabezado =  await this.encabezadoDocumentos(datos);
+      if (resultado.id_informe) {
+        const datosencabezado = {
+          a_nombre: resultado[0].a_nombre || '',
+          a_cargo: resultado[0].a_cargo || '',
+          via_nombre: resultado[0].via_nombre || '',
+          via_cargo: resultado[0].via_cargo || '',
+          de_nombre: resultado[0].de_nombre || '',
+          de_cargo: resultado[0].de_cargo || '',
+        }
+        this.informeRepositorio.update(3, datosencabezado)
+     }
+*/
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+
+
 
   async findAll() {
     try {
@@ -422,20 +481,20 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
   }
 
   // Guardar informe de obra con correlativo y solicitud
-  async guardarInformeObra(data: any) {
+  async guardarInformeObra(createInforme: CreateInformeDto) {
     try {
-      const {
+    /*  const {
         id_obra, usuario_registro, id_tipo_informe, antecedentes,
-        analisis, obs_general, conclusion, recomendacion, 
+        analisis, obs_general, conclusion, recomendacion,
         referencia, informe_modificacion, anexos, id_documento
-      } = data;
+      } = data;*/
 
       // 1. Crear correlativo
       const correlativoResp = await this.correlativoService.create({
-        id_obra,
-        id_tipo_documento: id_tipo_informe,
+        id_obra:createInforme.id_obra,
+        id_tipo_documento: createInforme.id_tipo_informe,
         correlativo: '',
-        usuario_registro: usuario_registro,
+        usuario_registro: createInforme.usuario_registro,
         id_estado: 1,
       });
       const correlativo = correlativoResp.data;
@@ -446,11 +505,11 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       const solicitudDto: CreateSolicitudDto = {
         id_tipo_solicitud: 0,
         id_estado_solicitud: 2,
-        id_obra,
+        id_obra :createInforme.id_obra,
         id_estado_general: 23,
-        id_usuario: usuario_registro,
+        id_usuario: createInforme.usuario_registro,
         proveido: '',
-        usuario_registro: usuario_registro,
+        usuario_registro: createInforme.usuario_registro,
         id_estado_registro: 1,
       };
       const respuestaSolicitud = await this.solicitudService.create(solicitudDto);
@@ -458,26 +517,36 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       if (!solicitud || !solicitud.id_solicitud) {
         throw new Error('No se pudo crear la solicitud');
       }
-      // 3. Crear informe
-      const informeData = {
+      createInforme.id_solicitud = solicitud.id_solicitud;
+      createInforme.id_correlativo = correlativo.id_correlativo;
+      createInforme.id_estado = 1;
+      
+
+    /*  // 3. Crear informe      
+      const  informeData = {
         id_obra,
-        usuario_registro,
         id_tipo_informe,
+        id_correlativo: correlativo.id_correlativo,     
         antecedentes,
+        id_documento,        
         analisis,
         obs_general,
         conclusion,
         recomendacion,
+        anexos,        
+        id_solicitud: solicitud.id_solicitud,           
         referencia,
         informe_modificacion,
-        anexos,
-        id_documento, 
-        id_correlativo: correlativo.id_correlativo,
-        id_solicitud: solicitud.id_solicitud,
+        usuario_registro,        
         id_estado: 1
-      };
-      const nuevoInforme = await this.informeRepositorio.save(informeData);
-      return this.responseService.success(nuevoInforme, 'Informe, correlativo y solicitud creados correctamente');
+      };*/
+
+
+      //paola
+     // const nuevoInforme = await this.informeRepositorio.save(informeData);
+      const nuevoInforme = await this.create(createInforme);   
+
+      return this.responseService.success(nuevoInforme.data, 'Informe, correlativo y solicitud creados correctamente');
     } catch (error) {
       console.error('Error en guardarInformeConSolicitud:', error);
       return this.responseService.error('Ocurrió un error al guardar el informe con su solicitud.');
