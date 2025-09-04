@@ -164,6 +164,9 @@ export class PagoController {
       }
     }
   
+   
+  
+
     @Public()
     @Post('pago-aprobacion')
     async aprobacionPago(@Body() validar: PagoModificacionPagoDto) {
@@ -185,5 +188,14 @@ export class PagoController {
       }
     }
 
+ @Public()
+    @Post('pago-des-aprobacion')
+    async desAprobacionPago(@Body() validar: AprobarPagoDto) {
+      try {
+        return this.pagoService.desAprobarPago(validar);
+  
+      } catch (error) {
+      }
+    }
     
 }

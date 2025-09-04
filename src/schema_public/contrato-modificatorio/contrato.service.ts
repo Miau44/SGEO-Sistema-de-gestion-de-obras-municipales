@@ -142,20 +142,17 @@ export class ContratoService {
       }),
     });
     const data = await response.json();
-    console.log(data);
     this.token = data.access_token;
   }
 
-  async llenarContratosDesdeServicio(gestion: number): Promise<void> {
+  async llenarContratosDesdeServicio(gestion: number,id_usuario:number): Promise<void> {
+    console.log("gestion y usuario",gestion,id_usuario);
     try {
-      console.log('Iniciando el proceso de llenado de la base de datos...');
-      console.log(process.env.URL_DLC + 'consumer/reporteunodfo/' + gestion);
-
       const response = await fetch(process.env.URL_DLC + `consumer/reporteunodfo/${gestion}/0`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
       });
-      console.log(response.body);
+      console.log("id_usuario",id_usuario);
 
       const data = await response.json();
 
@@ -208,6 +205,9 @@ export class ContratoService {
             telefono: item.rtelef,
             rpcrpa:item.rpcrpa,
             url: item.rlinkcontrat,
+            id_estado: 1, // Activo
+            fecha_registro: new Date(),
+            id_usuario:id_usuario
           });
           console.log("creando  contrato, ficha " +item.ridcodcarpeta);
           await this.contratoRepository.save(nuevoContrato);

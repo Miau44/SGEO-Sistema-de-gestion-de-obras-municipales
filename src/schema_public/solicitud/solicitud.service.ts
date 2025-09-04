@@ -338,7 +338,8 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
 async usuarioSolicitudXObra(data: UsuarioSolicitudXObraDto) {
   try {
     const query = `
-      SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
+      SELECT  DISTINCT  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre,
+      p.usuario
         FROM solicitud_historial sh
         INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 

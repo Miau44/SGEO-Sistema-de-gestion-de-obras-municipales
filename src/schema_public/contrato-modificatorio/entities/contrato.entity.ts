@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn,CreateDateColumn,UpdateDateColumn, Column } from 'typeorm';
 
 @Entity('contrato')
 export class Contrato {
@@ -67,5 +67,17 @@ export class Contrato {
 
   @Column({ type: 'int' })
   id_contrato_dlc: number;
+
+  @Column()
+  id_usuario: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  fecha_registro: Date;
+
+  @UpdateDateColumn({ type: 'timestamp',nullable:true })
+  fecha_modificacion: Date;
+
+  @Column()
+  id_estado: number;
 }
   

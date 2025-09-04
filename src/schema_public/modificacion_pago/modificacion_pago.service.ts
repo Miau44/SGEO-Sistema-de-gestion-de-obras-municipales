@@ -92,7 +92,7 @@ export class ModificacionPagoService {
 
 
         if (modificacionPendiente.length > 0) {
-          return this.responseService.error(null, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
+          return this.responseService.error(dto, 'Ya existe una modificación en curso que debe ser aprobada antes de registrar una nueva. Por favor, verifique.');
 
         }
         else {
@@ -371,6 +371,40 @@ export class ModificacionPagoService {
     if (Number(informeQuery[0].total) === 0) {
       mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
     }
+
+    
+    // 1️⃣ Definir dinámicamente los tipos de documento
+const tiposDocumento =
+  data.id_tipo_modificacion === 256 ? [56, 59, 60, 62] : [47, 48,49, 51];
+
+// 2️⃣ Parámetros de la query
+const params4 = [data.id_obra, data.id_solicitud, tiposDocumento];
+
+// 3️⃣ Query
+const documentoQuery = await this.modPagoRepositorio.query(
+  `
+  SELECT COUNT(*) AS total
+  FROM (
+      SELECT i.id_informe
+      FROM public.informe i
+      JOIN LATERAL json_to_recordset(i.id_documento) AS j(id_documento INT) ON TRUE
+      JOIN public.documento d ON d.id_documento = j.id_documento
+      JOIN public.tipo_documento td ON td.id_tipo_documento = d.id_tipo_documento
+      WHERE i.id_obra = $1
+        AND i.id_solicitud = $2
+        AND d.id_tipo_documento = ANY($3)
+        AND d.id_estado = 1
+      GROUP BY i.id_informe
+      HAVING COUNT(DISTINCT d.id_tipo_documento) = cardinality($3)
+  ) sub
+  `,
+  params4,
+);
+
+// 4️⃣ Validación
+if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
+  mensaje += 'Debe completar los documentos adjuntos obligatorios antes de enviar al Fiscal.';
+}
     return {
       valido: mensaje === '',
       mensaje: mensaje || 'Validaciones correctas.',
@@ -462,8 +496,8 @@ export class ModificacionPagoService {
     return result[0].resultado;
   }
 
+  //servicio para listar modificaciones por tipo contrato y tipo de moficacion, ABL 18/08/2024
   async listadoModificacionesxContrato(id_contrato: number,id_tipo: number): Promise<boolean> {
-
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
       throw new BadRequestException('El id_contrato debe ser un número positivo.');
@@ -508,8 +542,8 @@ export class ModificacionPagoService {
     return res;
   }
 
+  //servicio para listar modificaciones por carpeta, ABL 22/08/2024
   async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
-
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
       throw new BadRequestException('id_carpeta no encontrado.');
@@ -531,8 +565,8 @@ export class ModificacionPagoService {
     }
     return res;
   }
-
-    async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
+  //servicio para listar pagos por carpeta, ABL 22/08/2024
+  async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
 
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
@@ -555,10 +589,10 @@ export class ModificacionPagoService {
     }
     return res;
   }
-
-  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string): Promise<any> {
+  //servicio para guardar datos de numeracion, ABL 18/08/2024
+  //ajuste de campos, adicion de fecha aprobada contrato, ABL 01/09/2024
+  async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string,fecha_registro_contrato:string): Promise<any> {
     try {
-
       // Validar que el id_modificacion sea un número positivo y no nulo
       if (!id_modificacion || id_modificacion <= 0) {
         throw new BadRequestException('El id_modificacion debe ser un número positivo.');
@@ -568,21 +602,33 @@ export class ModificacionPagoService {
         throw new BadRequestException('El numero_contrato_modificatorio no puede estar vacío.');
       }
 
+      if(!fecha_registro_contrato || numero_contrato_modificatorio.trim() === ''){
+        throw new BadRequestException('fecha_registro_contrato  no puede estar vacío.');
+      }
+    
       const mod = await this.modificacionRepocitorio.findOne({
+        //mostrar solo los campos necesarios
+        select: { id_modificacion: true, numero_contrato_modificatorio: true, fecha_memo_minuta: true, fecha_registro_contrato:true, modificacionpago: { id_tipo_mod_pago: true } },
         where: { id_modificacion },
         relations: ['modificacionpago'],
       });
-
       if (!mod) {
         throw new NotFoundException('Modificación no encontrada');
       }
 
-      if (mod.modificacionpago.id_tipo_mod_pago == 1) {
-        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);
+      //validar que si id_tipo_mod_pago es 1 o 3 la fecha_memo_minuta no este vacia
+      if((mod.modificacionpago.id_tipo_mod_pago == 1 || mod.modificacionpago.id_tipo_mod_pago == 3) && (!fecha_memo_minuta || fecha_memo_minuta.trim() === '')){
+        throw new BadRequestException('La fecha de memo minuta no puede estar vacía para contratos modificatorios, o administrativos.');
+      }
+      
+      if (mod.modificacionpago.id_tipo_mod_pago == 1 || mod.modificacionpago.id_tipo_mod_pago == 3) {
+        mod.fecha_memo_minuta = new Date(fecha_memo_minuta);    
+        mod.fecha_memo_minuta.setHours(mod.fecha_memo_minuta.getHours() + 4);
       }
 
       mod.numero_contrato_modificatorio = numero_contrato_modificatorio;
-
+      mod.fecha_registro_contrato = new Date(fecha_registro_contrato);
+      mod.fecha_registro_contrato.setHours(mod.fecha_registro_contrato.getHours() + 4);
       const modificacionActualizada = await this.modificacionRepocitorio.save(mod);
       return modificacionActualizada;
     }
