@@ -81,6 +81,9 @@ export class Designacion {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date    
 
+    @Column({nullable:true})
+    responsable_baja: number;
+
     @ManyToOne(() => Persona, (persona) => persona.items)
     @JoinColumn({ name: 'id_persona' })
     persona:Persona;
