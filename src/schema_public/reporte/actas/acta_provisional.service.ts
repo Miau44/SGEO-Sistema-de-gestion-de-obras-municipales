@@ -140,6 +140,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;
+  const plazo_autorizado = Number(this.datosEnvio[0].plazo_contrato) + Number(this.datosVariacion[0].total_diasv);
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -198,16 +199,16 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
           widths: ['20%', '80%'],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDatoT', bold:true }], fillColor: '#dddddd' }
+              { text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDatoT', bold:true, fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTituloT', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDatoT' }] }
+              { text: 'OBRA:\n', style: 'textTituloT', alignment: 'right' },
+              { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDatoT' }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
+              { text: 'ZONA:\n', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT', fillColor: '#dddddd' }
             ],
           ]
         }, margin: [10, 0, 10, 7], 
@@ -279,9 +280,10 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
       //   }, margin: [10, 0, 10, 7] 
       //   //layout: 'noBorders'
       // },
+
       //NUEVAMENTE TENGO QUE MODIFICAR :'( 
       ...( this.datosVariacion[0].conteo === '0'
-        ? [ //Sin modificaciones
+        ? [   //-------SIN MODIFICACIONES
           {
             table: {
               widths: ['50%', '50%'],
@@ -305,20 +307,20 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                   { text: this.formatearFecha(this.datosInf[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                 ],
                 [
-                  { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                  { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
+                  { text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },
+                  { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }
                 ]
               ]
             }, margin: [120, 0, 120, 7], layout: 'noBorders'
           }
         ]
-        : [  //Con modificaciones
+        : [  //----------- CON MODIFICACIONES
             {
               table: {
                 widths: ['50%', '50%'],
                 body: [ 
                   [
-                    { // TABLA IZQUIERDA
+                    { // *** TABLA IZQUIERDA
                       table: {
                         widths: ['50%', '50%'],
                         body: [
@@ -357,7 +359,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                       //               }
                       //             }
                     },
-                    {  //TABLA DERECHA
+                    {  //*** TABLA DERECHA
                       table: {
                         widths: ['50%', '50%'],
                         body: [
@@ -401,17 +403,21 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
                 ]
               }, margin: [10, 0, 10, 5], layout: 'noBorders'
             },
-            { //TABLA con datos REAL
+            { // *** TABLA con datos REAL
               table: {
                 widths: ['50%', '50%'],
                 body: [ 
                   [
-                    { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                    { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                    { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: plazo_autorizado + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                   ],
                   [
-                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
-                    { text: this.formatearFecha(this.datosInf[0].fecha_acta), style: 'textDatoT' }
+                    { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right' },
+                    { text: plazo_real + ' d.c.', style: 'textDatoT' }
+                  ],
+                  [
+                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: this.formatearFecha(this.datosInf[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                   ]
                 ]
               }, layout: 'noBorders', margin: [10, 0, 10, 7]

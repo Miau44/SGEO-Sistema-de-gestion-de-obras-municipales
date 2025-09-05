@@ -32,8 +32,6 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class InformeModificacionSupervisor {
   datosEnvio: any = [];
-    datosSup: any = [];
-    datosFis: any = [];
     datosInfSup: any = [];
     datosModAp: any = [];
     datosMod: any = [];
@@ -77,25 +75,7 @@ export class InformeModificacionSupervisor {
     return resultado[0];
   }
 
-     // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado1 = await this.sequelize.query(query1);
-    return resultado1[0];
-   }
-
-        // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query2 = `
-        SELECT * 
-        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-    const resultado2 = await this.sequelize.query(query2);
-    return resultado2[0];
-   }
-
-        // Resumen de Modificaciones Aprobadas por obra 
+    // Resumen de Modificaciones Aprobadas por obra 
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
@@ -159,18 +139,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       throw new Error('No se encontraron datos para el ID de la obra proporcionada');
     }
     this.datosEnvio = datosGenerales;
-
-    const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-        throw new Error('No se encontraron datos del supervisor designado');
-    }
-    this.datosSup = res1;
-
-    const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-        throw new Error('No se encontraron datos del fiscal designado');
-    }
-    this.datosFis = res2;
 
     const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
@@ -269,74 +237,51 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n',
       },
       {
-          table: {
-            widths: ['15%', '85%'],
-            body: [
-              [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text: [
-                      {
-                        text: (
-                          Array.isArray(this.datosFis)
-                            ? this.datosFis
-                                .filter(f => f && f.fiscal)
-                                .map(f => f.fiscal)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                      },
-                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
-                    ]
-                },
-              ],
-              [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { 
-                  text: [
-                      {
-                        text: (
-                          Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                      },
-                      {
-                        text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
-                      },
-                    ]
-                },       
-              ],
-              [
-                { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: [
-                    { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
-                    { text: this.datosInfSup[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
-                        ]
-                },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
-              ],
+        table: {
+          widths: ['20%', '80%'],
+          body: [
+            [
+              { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+              { 
+                text: [
+                    { text: this.datosInfSup[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInfSup[0].a_cargo, style: 'textTitulo', alignment: 'left'}
+                  ]
+              },
             ],
-          },
-          layout: {
-            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
-            vLineWidth: () => 0, // Sin líneas verticales
-            hLineColor: () => 'black', // Color de la línea horizontal
-            paddingLeft: () => 5, // Espaciado interno izquierdo
-            paddingRight: () => 5, // Espaciado interno derecho
-            paddingTop: () => 2, // Espaciado interno superior
-            paddingBottom: () => 2, // Espaciado interno inferior
-          },
-          margin: [20, 0, 20, 10], // Márgenes de la tabla
+            [
+              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+              { text: [
+                    { text: this.datosInfSup[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInfSup[0].de_cargo, style: 'textTitulo', alignment: 'left' },
+                  ]
+              },       
+            ],
+            [
+              { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+              { text: [
+                  { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                  { text: this.datosInfSup[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
+                      ]
+              },
+            ],
+            [
+              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+              { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
+            ],
+          ],
         },
+        layout: {
+          hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+          vLineWidth: () => 0, // Sin líneas verticales
+          hLineColor: () => 'black', // Color de la línea horizontal
+          paddingLeft: () => 5, // Espaciado interno izquierdo
+          paddingRight: () => 5, // Espaciado interno derecho
+          paddingTop: () => 2, // Espaciado interno superior
+          paddingBottom: () => 2, // Espaciado interno inferior
+        },
+        margin: [0, 0, 0, 10], // Márgenes de la tabla
+      },
       {
         text: '1.   DATOS DE LA OBRA',
         style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -466,7 +411,9 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         
       },
       {
-        text: '\n'
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
       },
       {
         text: '4.1.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN INCREMENTO\n',
@@ -518,6 +465,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           ]
         }, margin: [10, 0, 0, 5] 
         
+      },
+      {
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
       },
       {
         text: '4.2.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN DECREMENTO\n',
@@ -706,19 +658,29 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: ['\n'],
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildSupervisores(this.datosSup)
-              ]
-          }, margin: [20,0,20,0],
-            layout: {
-            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-            vLineColor: () => '#444444', // color gris opaco para líneas verticales
-            hLineWidth: () => 0.7,       // grosor más fino
-            vLineWidth: () => 0.7
-            } 
+        table: {
+          widths: ['50%', '50%'],
+          body: (this.datosInfSup[0].de_nombre ? this.datosInfSup[0].de_nombre.split('\n') : []).map((nombre: string) => [
+            { text: [
+                { text: nombre, style: 'textDato' },
+                { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
+              ], 
+              margin: [0, 35, 0, 0], 
+              alignment: 'center'
+            },
+            { text: '(Firma y Sello)', 
+              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+            }
+          ])
         },
+        margin: [20, 0, 20, 0],
+        layout: {
+          hLineColor: () => '#444444',
+          vLineColor: () => '#444444',
+          hLineWidth: () => 0.7,
+          vLineWidth: () => 0.7
+        }
+      },
       {
         text: ['\n\n\nCc.Arch.Supervisor' ],
         style: 'footerText'
@@ -836,34 +798,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     return formattedDate;
   }
 
-  //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-  // Función para poblar la tabla de MODIFICACIONES APROBADAS
+ // Función para poblar la tabla de MODIFICACIONES APROBADAS
     buildModAprobadas(data: any,formatoNumerico: Intl.NumberFormat) {
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -974,7 +909,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
@@ -1049,7 +984,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
