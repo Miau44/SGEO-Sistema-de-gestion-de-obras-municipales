@@ -42,7 +42,7 @@ export class InformeModificacionSupervisor {
     datosAdicion: any = [];
     datosINuevos: any = [];
     datosMA: any = [];
-
+    datosAdj: any = [];
     //let solicitud: Number;
 
     constructor(
@@ -140,6 +140,14 @@ export class InformeModificacionSupervisor {
       return resultado6[0];
    }
 
+      // Datos lista Adjuntos - Inf. Modificacion
+    async AdjuntosModificacion(obra: number) {
+      const query7 = `
+          SELECT * 
+          FROM public."vista_reporte_adjuntos_InfModificacion" WHERE id_obra = ${obra}`;
+      const resultado7 = await this.sequelize.query(query7);
+      return resultado7[0];
+    }
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
 async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
@@ -194,6 +202,9 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     const res10 = await this.datosUltimaMod(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosMA = res10;
+
+    const res11 = await this.AdjuntosModificacion(this.datosEnvio[0].id_obra);
+    this.datosAdj = res11;
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -675,10 +686,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
-      {
-        text: this.datosInfSup[0].anexos + '\n',
-        style: 'textDato', margin: [10, 0, 0, 5]
-      },
+      ...(Array.isArray(this.datosAdj) && this.datosAdj.length > 0
+      ? [
+          {
+            text: this.datosAdj
+              .filter(a => a && a.desc_tipo_documento)
+              .map(a => '- ' + a.desc_tipo_documento)
+              .join('\n') + '\n',
+            style: 'textDato', alignment: 'left', margin: [10, 0, 0, 5]
+          }
+        ]
+      : [
+          { 
+            text: this.datosInfSup[0].anexos + '\n',
+            style: 'textDato', margin: [10, 0, 0, 5]
+          }
+        ]
+      ),
       {
         text: ['\n'],
       }, 
