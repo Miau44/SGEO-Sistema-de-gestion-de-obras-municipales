@@ -162,8 +162,8 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
     maximumFractionDigits: 2
     });
 
-     console.log('DATOS obra',this.datosInf);
-     console.log('DATOS VARIACION',plazo_autorizado);
+    //  console.log('DATOS obra',this.datosInf);
+    //  console.log('DATOS VARIACION',plazo_autorizado);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -174,10 +174,18 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         height: pageSize.height,
         absolutePosition: {x: 0, y: 0}
             } },
-
-    ...(!marcaAgua && {
-    watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true }
-    }),
+    
+    ...(this.datosInf[0].fecha_aprobacion !== null
+    ? (
+        this.datosProv[0].monto_certificado === '0'
+          ? { watermark: { text: 'PAGO PENDIENTE', color: 'red', opacity: 0.2, bold: true } }
+          : {}
+      )
+    : { watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true } }
+    ),
+    // ...(!marcaAgua && {
+    // watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true }
+    // }),
    
     header: {
       columns: [{ 
@@ -213,16 +221,16 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
           widths: ['20%', '80%'],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDatoT', bold:true }], fillColor: '#dddddd' }
+              { text: 'CÓDIGO:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDatoT', bold:true, fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTituloT', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDatoT' }] }
+              { text: 'OBRA:\n', style: 'textTituloT', alignment: 'right' },
+              { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDatoT' }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT' }], fillColor: '#dddddd' }
+              { text: 'ZONA:\n', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDatoT', fillColor: '#dddddd' }
             ],
           ]
         }, margin: [10, 0, 10, 7], 
@@ -234,7 +242,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
       ...( this.datosVariacion[0].conteo === '0'
-        ? [ //Tabla sin Modificaciones
+        ? [ //---------------- Tabla SIN Modificaciones
           {
             table: {
               widths: ['50%', '50%'],
@@ -283,13 +291,13 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
             }, margin: [120, 0, 120, 7], layout: 'noBorders'
           }
         ]
-        : [  // Tabla con Modificaciones
+        : [  // --------------- Tabla CON Modificaciones
             {
               table: {
                 widths: ['50%', '50%'],
                 body: [ 
                   [
-                    { // TABLA IZQUIERDA
+                    { //************* TABLA IZQUIERDA
                       table: {
                         widths: ['50%', '50%'],
                         body: [
@@ -328,7 +336,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                       //               }
                       //             }
                     },
-                    {  //TABLA DERECHA
+                    {  //************ TABLA DERECHA
                       table: {
                         widths: ['50%', '50%'],
                         body: [
@@ -340,8 +348,8 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                             { text: this.datosVariacion[0].dias_variacion + ' d.c.', style: 'textDatoT' }
                           ],
                           [
-                            { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                            { text: plazo_autorizado + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                            { text: 'Plazo total modificación:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: this.datosVariacion[0].total_diasv + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                           ],
                           [
                             { text: 'Fecha conclusión programada:', style: 'textTituloT', alignment: 'right' },
@@ -372,29 +380,33 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
                 ]
               }, margin: [10, 0, 10, 5], layout: 'noBorders'
             },
-            {
+            { // *** TABLA con datos REAL
               table: {
                 widths: ['50%', '50%'],
                 body: [ 
                   [
-                    { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                    { text: plazo_real + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
+                    { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: plazo_autorizado + ' d.c.', style: 'textDatoT', fillColor: '#dddddd' }
                   ],
                   [
-                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right' },
-                    { text: this.formatearFecha(this.datosProv[0].fecha_acta), style: 'textDatoT' }
+                    { text: 'Plazo real de ejecución:', style: 'textTituloT', alignment: 'right' },
+                    { text: plazo_real + ' d.c.', style: 'textDatoT' }
+                  ],
+                  [
+                    { text: 'Fecha de conclusión real:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: this.formatearFecha(this.datosProv[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                   ],
                   ...(this.datosProv[0].monto_certificado === '0' 
                     ?[
                       [
-                        { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                        { text: 'PAGO PENDIENTE\n(Incumplimiento de plazos establecidos en la RE Nro.168/2017 inciso 4.13) ', style: 'textDatoT', color: '#FF0000', bold: 'true', fillColor: '#dddddd' }
+                        { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right' },
+                        { text: 'PAGO PENDIENTE\n(Incumplimiento de plazos establecidos en la RE Nro.168/2017 inciso 4.13) ', style: 'textDatoT', color: '#FF0000', bold: 'true' }
                       ]
                      ]
                     :[
                       [
-                        { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
-                        { text: 'Bs' + this.formatIfNumber(this.datosProv[0].monto_certificado, formatoNumerico2), style: 'textDatoT', fillColor: '#dddddd' }
+                        { text: 'Monto ejecutado:', style: 'textTituloT', alignment: 'right' },
+                        { text: 'Bs' + this.formatIfNumber(this.datosProv[0].monto_certificado, formatoNumerico2), style: 'textDatoT' }
                       ]
                      ]
                   ),
