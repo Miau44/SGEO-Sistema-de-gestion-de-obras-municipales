@@ -1316,10 +1316,7 @@ export class ReportService {
                   //   }
                   // ]
                 }
-              
-
               ],
-
               [
                 { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
                 { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
@@ -1329,7 +1326,6 @@ export class ReportService {
                  { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
                ],*/
-              
         
                [
                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
@@ -1450,7 +1446,6 @@ export class ReportService {
           ],
           style: 'textDato', alignment: 'justify'
         },
-
         {
           text: '\n5. RECOMENDACIONES \n\n',
           style: 'subheader',
