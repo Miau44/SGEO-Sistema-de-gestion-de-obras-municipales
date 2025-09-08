@@ -161,59 +161,88 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
         text: '\n',
       },
       {
-          table: {
-            widths: ['15%', '85%'],
-            body: [
-              [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { 
-                  text: [
-                      { text: this.datosJU[0].nom_jefe + '\n', style: 'textDato', alignment: 'left' },
-                      { text: 'JEFE DE UNIDAD', style: 'textTitulo', alignment: 'left' }
-                    ]
-                },
-              ],
-              [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { 
-                  text: [
-                      {
-                        text: (
-                          Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                      },
-                      {
-                        text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
-                      },
-                    ]
-                },       
-              ],
-              [
-                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
-                { text: this.datosInf[0].referencia, style: 'textDato' },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato' },
-              ],
+        table: {
+          widths: ['15%', '85%'],
+          body: [
+            ...(this.datosEnvio[0].total_carpeta > 500000
+              ?[
+                [
+                  { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                  { 
+                    text: [
+                        { text: 'ING. JULIO MAURICIO HUMBERTO SAGARNAGA OBLEAS' + '\n', style: 'textDato', alignment: 'left' },
+                        { text: 'DIRECTOR DE EJECUCIÓN Y SUPERVISIÓN DE INFRAESTRUCTURAS ESPECIALES', style: 'textTitulo', alignment: 'left' }
+                      ]
+                  },
+                ],
+              ]
+              :[
+                [
+                  { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                  { 
+                    text: [
+                        { text: this.datosJU[0].nom_jefe + '\n', style: 'textDato', alignment: 'left' },
+                        { text: 'JEFE DE UNIDAD', style: 'textTitulo', alignment: 'left' }
+                      ]
+                  },
+                ],
+              ]
+            ),
+            ...(this.datosEnvio[0].total_carpeta > 500000
+              ?[
+                [
+              { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+              { 
+                text: [
+                    { text: 'ING. ERIN JULIETT OJALVO YUCRA' + '\n', style: 'textDato', alignment: 'left' },
+                    { text: 'JEFE DE UNIDAD DE SUPERVISIÓN DE OBRAS ESPECIALES', style: 'textTitulo', alignment: 'left' }
+                  ]
+              },
             ],
-          },
-          layout: {
-            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
-            vLineWidth: () => 0, // Sin líneas verticales
-            hLineColor: () => 'black', // Color de la línea horizontal
-            paddingLeft: () => 5, // Espaciado interno izquierdo
-            paddingRight: () => 5, // Espaciado interno derecho
-            paddingTop: () => 2, // Espaciado interno superior
-            paddingBottom: () => 2, // Espaciado interno inferior
-          },
-          margin: [10, 0, 10, 10], // Márgenes de la tabla
+              ]
+              :[]
+            ),
+            [
+              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+              { 
+                text: [
+                    {
+                      text: (
+                        Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join('\n')  // salto de linea 
+                          : ''
+                      ) + '\n',
+                      style: 'textDato', alignment: 'left'
+                    },
+                    {
+                      text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
+                    },
+                  ]
+              },       
+            ],
+            [
+              { text: 'REF.:', style: 'textTitulo', alignment:'right' },
+              { text: this.datosInf[0].referencia, style: 'textDato' },
+            ],
+            [
+              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+              { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato' },
+            ],
+          ],
+        },
+        layout: {
+          hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+          vLineWidth: () => 0, // Sin líneas verticales
+          hLineColor: () => 'black', // Color de la línea horizontal
+          paddingLeft: () => 5, // Espaciado interno izquierdo
+          paddingRight: () => 5, // Espaciado interno derecho
+          paddingTop: () => 2, // Espaciado interno superior
+          paddingBottom: () => 2, // Espaciado interno inferior
+        },
+        margin: [10, 0, 10, 10], // Márgenes de la tabla
       },
       {
         text: 'Respecto al estado de la obra ' + this.datosEnvio[0].desc_carpeta + ' con código ' + this.datosEnvio[0].cod_carpeta + ' se informa lo siguiente:',
@@ -416,7 +445,8 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
