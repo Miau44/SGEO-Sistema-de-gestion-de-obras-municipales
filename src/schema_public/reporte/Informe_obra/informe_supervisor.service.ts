@@ -32,6 +32,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class InformeObraSupervisor {
 datosEnvio: any = [];
+datosSup: any = [];
 datosInf: any = [];
 datosJU: any = [];
    
@@ -66,14 +67,14 @@ datosJU: any = [];
     return resultado2[0];
   }
 
-  //   SUPERVISORES designados por obra 
-  //  async supervisorDesignado(obra: number) {
-  //   const query3 = `
-  //       SELECT * 
-  //       FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-  //   const resultado3 = await this.sequelize.query(query3);
-  //   return resultado3[0];
-  //  }
+    // SUPERVISORES designados por obra 
+   async supervisorDesignado(obra: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+   }
 
      // JEFE UNIDAD por obra 
    async jefeUnidad(obra: number) {
@@ -100,6 +101,12 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
     throw new Error('No se encontraron datos para del informe de obra');
   }
   this.datosInf = datosInforme;
+
+  const res1 = await this.supervisorDesignado(id_obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del supervisor designado');
+  }
+  this.datosSup = res1;
 
   const res2 = await this.jefeUnidad(id_obra);
   if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
@@ -154,45 +161,88 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
         text: '\n',
       },
       {
-          table: {
-            widths: ['20%', '80%'],
-            body: [
-              [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: [
-                      { text: this.datosInf[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosInf[0].a_cargo
-                        , style: 'textTitulo', alignment: 'left' }
+        table: {
+          widths: ['15%', '85%'],
+          body: [
+            ...(this.datosEnvio[0].total_carpeta > 500000
+              ?[
+                [
+                  { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                  { 
+                    text: [
+                        { text: 'ING. JULIO MAURICIO HUMBERTO SAGARNAGA OBLEAS' + '\n', style: 'textDato', alignment: 'left' },
+                        { text: 'DIRECTOR DE EJECUCIÓN Y SUPERVISIÓN DE INFRAESTRUCTURAS ESPECIALES', style: 'textTitulo', alignment: 'left' }
+                      ]
+                  },
+                ],
+              ]
+              :[
+                [
+                  { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                  { 
+                    text: [
+                        { text: this.datosJU[0].nom_jefe + '\n', style: 'textDato', alignment: 'left' },
+                        { text: 'JEFE DE UNIDAD', style: 'textTitulo', alignment: 'left' }
+                      ]
+                  },
+                ],
+              ]
+            ),
+            ...(this.datosEnvio[0].total_carpeta > 500000
+              ?[
+                [
+              { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+              { 
+                text: [
+                    { text: 'ING. ERIN JULIETT OJALVO YUCRA' + '\n', style: 'textDato', alignment: 'left' },
+                    { text: 'JEFE DE UNIDAD DE SUPERVISIÓN DE OBRAS ESPECIALES', style: 'textTitulo', alignment: 'left' }
                   ]
-                },
-              ],
-              [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { text: [
-                      { text: this.datosInf[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosInf[0].de_cargo, style: 'textTitulo', alignment: 'left' },
-                  ]
-                },       
-              ],
-              [
-                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
-                { text: this.datosInf[0].referencia, style: 'textDato' },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato' },
-              ],
+              },
             ],
-          },
-          layout: {
-            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
-            vLineWidth: () => 0, // Sin líneas verticales
-            hLineColor: () => 'black', // Color de la línea horizontal
-            paddingLeft: () => 5, // Espaciado interno izquierdo
-            paddingRight: () => 5, // Espaciado interno derecho
-            paddingTop: () => 2, // Espaciado interno superior
-            paddingBottom: () => 2, // Espaciado interno inferior
-          }, margin: [0, 0, 0, 10], // Márgenes de la tabla
+              ]
+              :[]
+            ),
+            [
+              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+              { 
+                text: [
+                    {
+                      text: (
+                        Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join('\n')  // salto de linea 
+                          : ''
+                      ) + '\n',
+                      style: 'textDato', alignment: 'left'
+                    },
+                    {
+                      text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
+                    },
+                  ]
+              },       
+            ],
+            [
+              { text: 'REF.:', style: 'textTitulo', alignment:'right' },
+              { text: this.datosInf[0].referencia, style: 'textDato' },
+            ],
+            [
+              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+              { text: this.fechaString(this.datosInf[0].fecha_aprobacion), style: 'textDato' },
+            ],
+          ],
+        },
+        layout: {
+          hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+          vLineWidth: () => 0, // Sin líneas verticales
+          hLineColor: () => 'black', // Color de la línea horizontal
+          paddingLeft: () => 5, // Espaciado interno izquierdo
+          paddingRight: () => 5, // Espaciado interno derecho
+          paddingTop: () => 2, // Espaciado interno superior
+          paddingBottom: () => 2, // Espaciado interno inferior
+        },
+        margin: [10, 0, 10, 10], // Márgenes de la tabla
       },
       {
         text: 'Respecto al estado de la obra ' + this.datosEnvio[0].desc_carpeta + ' con código ' + this.datosEnvio[0].cod_carpeta + ' se informa lo siguiente:',
@@ -210,55 +260,55 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
           widths: ['*', 300],
           body: [
             [
-              { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
-              { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true, fillColor: '#dddddd' }
+              { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true }], fillColor: '#dddddd' }
             ],
             [
-              { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },
-              { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
+              { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
+              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
             ],
             [
-              { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
-              { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
+              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
+              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: 'NÚMERO DE CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },
+              { text: [{ text: 'NÚMERO DE CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },] },
               ...(
                 this.datosEnvio[0].numero_contrato 
-                ? [ { text: this.datosEnvio[0].numero_contrato, style: 'textDato' } ]
-                : [ { text: 'Sin contrato', style: 'textTitulo' } ]
+                ? [ { text: [ { text: this.datosEnvio[0].numero_contrato, style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ] } ]
               )
             ],
             [
-              { text: 'FECHA CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: [{ text: 'FECHA CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
               ...(
                 this.datosEnvio[0].fecha_numeracion 
-                ? [ { text: this.formatearFecha(this.datosEnvio[0].fecha_numeracion), style: 'textDato', fillColor: '#dddddd' } ]
-                : [ { text: 'Sin contrato', style: 'textTitulo', fillColor: '#dddddd' } ]
+                ? [ { text: [ { text: this.formatearFecha(this.datosEnvio[0].fecha_numeracion), style: 'textDato' } ], fillColor: '#dddddd' } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ], fillColor: '#dddddd' } ]
               )
             ],
             [
-              { text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },
+              { text: [{ text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },] },
               ...(
                 this.datosEnvio[0].proponente_razon_social 
-                ? [ { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' } ]
-                : [ { text: 'Sin contrato', style: 'textTitulo' } ]
+                ? [ { text: [ { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ] } ]
               )
             ],
             [
-              { text: 'MONTO CONTRATO INICIAL (Bs):\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: [{ text: 'MONTO CONTRATO INICIAL (Bs):\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
               ...(
                 this.datosEnvio[0].monto_contrato 
-                ? [ { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' } ]
-                : [ { text: 'Sin contrato', style: 'textTitulo', fillColor: '#dddddd' } ]
+                ? [ { text: [ { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' } ], fillColor: '#dddddd' } ]
+                : [ { text: [ { text: 'Sin contrato', style: 'textTitulo' } ], fillColor: '#dddddd' } ]
               )
             ],
             [
-              { text: 'FECHA ORDEN DE PROCEDER:', style: 'textTitulo', alignment: 'right' },
+              { text: [{ text: 'FECHA ORDEN DE PROCEDER:', style: 'textTitulo', alignment: 'right' },] },
               ...(
                 this.datosEnvio[0].fecha_inicio_ejecucion 
-                ? [ { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' } ]
-                : [ { text: 'Sin emisión de Orden de Proceder', style: 'textTitulo' } ]
+                ? [ { text: [ { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' } ] } ]
+                : [ { text: [ { text: 'Sin emisión de Orden de Proceder', style: 'textTitulo' } ] } ]
               )
             ],
             // [
@@ -318,29 +368,19 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
         text: ['\n'],
       },
       {
-        table: {
-          widths: ['50%', '50%'],
-          body: (this.datosInf[0].de_nombre ? this.datosInf[0].de_nombre.split('\n') : []).map((nombre: string) => [
-            { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
-              ], 
-              margin: [0, 35, 0, 0], 
-              alignment: 'center'
-            },
-            { text: '(Firma y Sello)', 
-              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
-            }
-          ])
-        },
-        margin: [20, 0, 20, 0],
-        layout: {
-          hLineColor: () => '#444444',
-          vLineColor: () => '#444444',
-          hLineWidth: () => 0.7,
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildSupervisores(this.datosSup)
+              ]
+          }, margin: [20,0,20,0],
+          layout: {
+          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+          vLineColor: () => '#444444', // color gris opaco para líneas verticales
+          hLineWidth: () => 0.7,       // grosor más fino
           vLineWidth: () => 0.7
-        }
-      },
+          }
+        },
       {
         text: [
         { text: '\n\n\nCc.Arch.'},
@@ -479,6 +519,48 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
     return formattedDate;
   }
 
+    //Cargar tabla de Supervisores
+    buildFiscales2(data: any) {
+      let datosFiscal = data;
+      let arrayData = [];
+  
+      for (let i = 0; i < datosFiscal.length; i++) {
+        let rowData = [
+          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+   //Cargar tabla de SUPERVISORES - CON RECUADRO
+    buildSupervisores(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
+                  ],
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+   
   // FORMATO DE NUMEROS
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
     if (value === null || value === undefined || value === '') return '';
