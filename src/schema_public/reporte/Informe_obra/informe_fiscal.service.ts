@@ -249,10 +249,10 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
               )
             ],
             [
-              { text: 'MONTO CONTRATO INICIAL (Bs):\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
               ...(
                 this.datosEnvio[0].monto_contrato 
-                ? [ { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' } ]
+                ? [ { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' } ]
                 : [ { text: 'Sin contrato', style: 'textTitulo', fillColor: '#dddddd' } ]
               )
             ],
