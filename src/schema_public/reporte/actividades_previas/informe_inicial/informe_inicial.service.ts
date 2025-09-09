@@ -234,64 +234,50 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             widths: [100, '*'],
             body: [
               [
-                { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].a, style: 'textDato' }, { text: '\nJEFE UNIDAD EJECUTORA\n\n', style: 'textTitulo' }] }
+                { text: 'A:', style: 'textTitulo', alignment: 'left' },
+                { text: [
+                  { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato' }, 
+                         { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
+                }
               ],
 
               [
-                { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-               // { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n\n', style: 'textTitulo' },] }
-
-             
-            /* {
-                table: {
-                  widths: ['*'],
-                  body: [
-                   
-                    ...this.datosListaSupervisores.map((item: any) => [
-                      {
-                        text: [{ text: item.nombre, style: 'textDato' }],
-                        alignment: 'left'
-                      }
-                    ]),
-                  ]
-                },
-                layout: 'noBorders',
-                alignment: 'center'
-              }, */
-
-              {
-                stack: [
-                  {
-                    table: {
-                      widths: ['*'],
-                      body: [
-                        ...this.datosListaSupervisores.map((item: any) => [
-                          {
-                            text: item.nombre,
-                            style: 'textDato',
-                            alignment: 'left'
-                          }
-                        ])
-                      ]
-                    },
-                    layout: 'noBorders',
-                    alignment: 'center'
-                  },
-                  {
-                    text: 'SUPERVISOR DE OBRAS\n\n',
-                    style: 'textTitulo',
-                    alignment: 'left'
-                  }
-                ]
-              }
-              
-
+                { text: 'DE:\n', style: 'textTitulo', alignment: 'left' },
+                { text: [
+                      { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+                      { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
+                    ]
+                }
+              // {
+              //   stack: [
+              //     {
+              //       table: {
+              //         widths: ['*'],
+              //         body: [
+              //           ...this.datosListaSupervisores.map((item: any) => [
+              //             {
+              //               text: item.nombre,
+              //               style: 'textDato',
+              //               alignment: 'left'
+              //             }
+              //           ])
+              //         ]
+              //       },
+              //       layout: 'noBorders',
+              //       alignment: 'center'
+              //     },
+              //     {
+              //       text: 'SUPERVISOR DE OBRAS\n\n',
+              //       style: 'textTitulo',
+              //       alignment: 'left'
+              //     }
+              //   ]
+              // }
               ],
 
               [
                 { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n\n', style: 'textTitulo' }] }
+                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
               ],
 
               /* [
@@ -303,8 +289,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                [
                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
                 ...(this.datosEnvio[0].informe_aprobado  ? [    
-                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
-                ]:[ { text: [{ text: '', style: 'textTitulo', alignment: 'left' },] }] ),
+                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n\n', style: 'textDato' }] }
+                ]:[ { text: [{ text: '\n\n', style: 'textTitulo', alignment: 'left' },] }] ),
             
               ]
            /*   ...(this.datosEnvio[0].informe_aprobado
@@ -316,18 +302,25 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
             ]
           },
-          layout: 'noBorders',
+          layout: {
+            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+            vLineWidth: () => 0, // Sin líneas verticales
+            hLineColor: () => 'black', // Color de la línea horizontal
+            paddingLeft: () => 5, // Espaciado interno izquierdo
+            paddingRight: () => 5, // Espaciado interno derecho
+            paddingTop: () => 2, // Espaciado interno superior
+            paddingBottom: () => 2, // Espaciado interno inferior
+          },
         },
         {
           text: [
-            '\n\n\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
-           +' mediante Memorándum(s) '+ this.datosEnvio[0].cite_designacion  +', de fecha '+  this.datosEnvio[0].fecha_aprobacion  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
-          ],
-       
-          style: 'textDato', alignment: 'justify'           
+            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
+           +' mediante Memorándum(s) '+ this.datosEnvio[0].cites_de  +', de fecha '+  this.datosEnvio[0].fechas_cites_de 
+           +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+          ], style: 'textDato', alignment: 'justify'           
         },
         {
-          text: '\n\n1.  DATOS DE PROYECTO. \n\n',
+          text: '\n1.  DATOS DE PROYECTO \n\n',
           style: 'subheader',
         },
         {
@@ -335,28 +328,28 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             widths: [100, '*'],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#f0f0f0' },
+                { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', fillColor: '#f0f0f0' }
               ],
 
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
               ],
 
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#f0f0f0' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#f0f0f0' }
               ],
 
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }
               ],
 
               [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+                { text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right', fillColor: '#f0f0f0' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato', fillColor: '#f0f0f0' }
               ]
             ]
           },
@@ -364,7 +357,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
         },
 
         {
-          text: '\n\n2.  ANÁLISIS. \n ',
+          text: '\n2.  ANÁLISIS \n ',
           style: 'subheader',
         },
         {
@@ -377,7 +370,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           layout: 'noBorders'
         },
         {
-          text: '\n3. OBSERVACIONES GENERALES. \n\n',
+          text: '\n3. OBSERVACIONES GENERALES \n\n',
           style: 'subheader',
         },
         {
@@ -459,50 +452,19 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
           },
         ],
-
-
         {
-          table: {
-            widths: ['*'],
-            body: [
-              [
-                {
-                  //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
-                  text: '\n\n\n\n\n\n\n\n\n',
-                  style: 'subheader',
-                  alignment: 'center'
-                }
-              ],
-              ...this.datosListaSupervisores.map((item: any) => [
-                {
-                  text: [{ text: item.nombre, style: 'textDato' }],
-                  alignment: 'center'
-                }
-              ]),
-
-              [
-                {
-                  text: 'SUPERVISOR DE OBRAS.',
-
-                  style: 'subheader',
-                  alignment: 'center'
-                }
-              ],
-            ]
-          },
-          layout: 'noBorders',
-          alignment: 'center'
+          text: '\n\n\n\n\n\n\n\n',
         },
-        
-      
-
-
-
         {
           text: [
-            '\n\n\n\n\n\n\ncc:Arch:',
-          ],
-          style: 'footerText'
+              { text: this.datosEnvio[0].de_nombre2 + '\n', style: 'textDato', alignment: 'center' },
+              { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'center' },
+                ]
+        },
+        {
+          text: [
+            '\n\n\n\n\n\n\nCc.Arch.Supervisor',
+          ], style: 'footerText'
         },
 
       ],
@@ -561,7 +523,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
