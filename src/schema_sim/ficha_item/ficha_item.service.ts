@@ -426,8 +426,8 @@ export class ficha_itemService {
     //get array items base y obtener la cantidad de items 
     var itemsInterno = await this.itemRepository.find({where: {id_obra: obra.id_obra}});
 
-    //validar que existan items select * from obra where id_obra = obra.id_obra
-    if (itemsInterno == null || itemsInterno.length == 0) {
+    //validar que existan items externos
+    if (itemsExterno == null || itemsExterno.length == 0) {
       console.log(`No se encontraron items para la obra con id_obra: ${obra.id_obra}`);
       return `No se encontraron items para la obra con id_obra: ${obra.id_obra}`;
     }
@@ -462,7 +462,7 @@ export class ficha_itemService {
       }
       else{
         if (itemExistente.finalizado) {
-          console.log(`Item con codigo_item ${itemExterno.codigo_item} ya está finalizado se actualiza el orden.`);
+          //console.log(`Item con codigo_item ${itemExterno.codigo_item} ya está finalizado se actualiza el orden.`);
           //texto += `Item ${itemExterno.codigo_item}: ya está finalizado y no se puede actualizar.\n`;
           itemExistente.orden_sim = itemExterno.orden;
           itemExistente.id_estado = 1;
