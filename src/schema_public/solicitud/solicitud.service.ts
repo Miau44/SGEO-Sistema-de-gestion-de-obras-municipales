@@ -125,7 +125,7 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
       eg.desc_modulo,   s.id_estado_solicitud,
       s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
-      s.proveido, s.fecha_envio, eg.tooltip
+      s.proveido, s.fecha_envio, eg.tooltip, es.desc_estado
       FROM obra AS o   
       INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
       INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion FROM public.estructura_organizacional
@@ -137,9 +137,9 @@ WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;
       ON  s.id_tipo_solicitud = ts.id_subtipo	 
       INNER JOIN  (SELECT id_usuario, id_estado
       FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
-      WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3
+      WHERE s.id_usuario =$2 AND s.id_estado_solicitud IN(${bandeja.estado})
 AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_registro DESC`;
-      const values = [bandeja.gestion, bandeja.usuario, bandeja.estado]
+      const values = [bandeja.gestion, bandeja.usuario]
       const resultado = await this.solicitudRepositorio.query(query, values);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
@@ -241,7 +241,9 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
           const query = `
       SELECT
       COUNT(*) AS total, f.gestion_carpeta,
-      COALESCE(SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END), 0) AS pendientes,
+      --COALESCE(SUM(CASE WHEN id_estado_solicitud = 2 THEN 1 ELSE 0 END), 0) AS pendientes,
+
+      COALESCE(SUM(CASE WHEN id_estado_solicitud IN (2, 5) THEN 1 ELSE 0 END),0) AS pendientes,
       COALESCE(SUM(CASE WHEN id_estado_solicitud = 3 THEN 1 ELSE 0 END), 0) AS enprogreso,
       COALESCE(SUM(CASE WHEN id_estado_solicitud = 4 THEN 1 ELSE 0 END), 0) AS completadas
       FROM public.solicitud AS s
@@ -336,7 +338,8 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
 async usuarioSolicitudXObra(data: UsuarioSolicitudXObraDto) {
   try {
     const query = `
-      SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
+      SELECT  DISTINCT  p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre,
+      p.usuario
         FROM solicitud_historial sh
         INNER JOIN public.persona AS p ON sh.id_usuario = p.id_usuario 
         INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
@@ -369,13 +372,15 @@ async guardarHistorialYActualizar(data: ActualizarSolicitudDto) {
    /* const query = `SELECT public.sp_modificacion_historial(${data.p_id_solicitud}, 
     ${data.p_id_usuario}, ${data.p_usuario_registro}, ${data.p_id_estado_general}, ${data.p_proveido}) AS id_historial`;*/
 
-const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5) AS id_historial`;    
+const query = `SELECT public.sp_modificacion_historial($1, $2, $3, $4, $5, $6, $7) AS id_historial`;    
     const params = [
       data.p_id_solicitud,
       data.p_id_usuario,
       data.p_usuario_registro,
       data.p_id_estado_general,
       data.p_proveido,
+      data.p_data_solicitud ? JSON.stringify(data.p_data_solicitud) : null, // Convertir a JSON si es necesario
+      data.p_id_estado_solicitud
     ];
 
     const resultado = await this.solicitudRepositorio.query(query, params);
@@ -398,7 +403,8 @@ async guardarHistorialGeneral(data: ActualizarSolicitudDto) {
 
    
 
-const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6) AS id_historial`;    
+
+const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6, $7) AS id_historial`;    
     const params = [
       data.p_id_solicitud,
       data.p_id_usuario,
@@ -406,6 +412,7 @@ const query = `SELECT public.sp_solicitud_historial($1, $2, $3, $4, $5, $6) AS i
       data.p_id_estado_general,
       data.p_proveido,
       data.p_data_solicitud ? JSON.stringify(data.p_data_solicitud) : null, // Convertir a JSON si es necesario
+      data.p_id_estado_solicitud, // Agregar el nuevo parámetro
     ];
 
     const resultado = await this.solicitudRepositorio.query(query, params);

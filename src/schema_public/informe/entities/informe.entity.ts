@@ -76,9 +76,28 @@ export class Informe {
     fecha_modificacion: Date 
 
 
-    @Column({ type: 'timestamp without time zone', nullable: true })
+    @Column({ type: 'date', nullable: true })
     fecha_acta: Date;
 
+  //------------>>>>>>>>>>>>>>>>>>campos de cargos y nombres<<<<<<<<<<------------
+    @Column({ type: 'json', nullable: true })
+    a_nombre: string; 
+
+    @Column({nullable:true})
+    a_cargo: string;
+
+    @Column({type: 'json',nullable:true})
+    via_nombre: string;
+
+    @Column({nullable:true})
+    via_cargo: string;
+
+     @Column({ type: 'json', nullable: true })
+    de_nombre: string;
+
+    @Column({nullable:true})
+    de_cargo: string;
+  //------------>>>>>>>>>>>>>>>>>>campos de cargos y nombres<<<<<<<<<<------------   
 
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
@@ -88,4 +107,6 @@ export class Informe {
     @ManyToOne(() => Solicitud, (inform) => inform.informe)
     @JoinColumn({ name: 'id_solicitud' })
     informe: Solicitud;
+
+
 }

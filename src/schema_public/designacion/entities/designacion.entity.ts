@@ -51,6 +51,20 @@ export class Designacion {
     @Column({nullable:true})
     correlativo_solicitud: number;  
 
+    // @Column({nullable:true})
+    // a_nombre: string;
+
+    // @Column({nullable:true})
+    // nombre_aprobador: string;
+
+    // @Column({nullable:true})
+    // cargo_aprobador: string;
+
+    // @Column({nullable:true})
+    // nombre_solicitante: string;
+
+    // @Column({nullable:true})
+    // cargo_solicitante: string;
 
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_aprobacion: Date;         
@@ -60,12 +74,15 @@ export class Designacion {
 
     @Column({ default: 1 })
     id_estado: number;
-  
+
     @CreateDateColumn({ type: 'timestamp without time zone', nullable: true  })
     fecha_registro: Date
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date    
+
+    @Column({nullable:true})
+    responsable_baja: number;
 
     @ManyToOne(() => Persona, (persona) => persona.items)
     @JoinColumn({ name: 'id_persona' })

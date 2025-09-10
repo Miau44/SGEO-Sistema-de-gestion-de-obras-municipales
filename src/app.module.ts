@@ -40,6 +40,7 @@ import { LogModule } from './schema_public/log/log.module';
 import { CorreoModule } from './schema_public/correo/correo.module';
 import { DocumentoSistemaModule } from './schema_public/documento_sistema/documento_sistema.module';
 import { PagoModule } from './schema_public/pago/pago.module';
+import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/modulo_reportes.module';
 
 
 
@@ -54,7 +55,7 @@ import { PagoModule } from './schema_public/pago/pago.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       autoLoadModels: true,
-      synchronize: true,
+      synchronize: false,
     }),
     ReporteModule,
 
@@ -69,7 +70,7 @@ import { PagoModule } from './schema_public/pago/pago.module';
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
+    synchronize: false,
   }),
 
  
@@ -111,7 +112,8 @@ import { PagoModule } from './schema_public/pago/pago.module';
   LogModule,
   CorreoModule,
   DocumentoSistemaModule,
-  PagoModule
+  PagoModule,
+  ModuloReportesModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

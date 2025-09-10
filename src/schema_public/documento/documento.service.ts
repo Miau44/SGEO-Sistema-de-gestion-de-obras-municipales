@@ -666,7 +666,7 @@ LIMIT 5`;
 
       const listaDocumentos = await this.dataSource.query(
         `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
-      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
       //console.log("documentos", listaDocumentos);
       listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
         tipo.documentos = [];
@@ -696,11 +696,12 @@ LIMIT 5`;
 
   async eliminarDocumentosPagos(id_informe: number, id_documento: number): Promise<any> {
     try {
-      console.log('id_informe:', id_informe);
+      
       const informe = await this.informeRepositorio.findOne({
         where: { id_informe: id_informe }
       });
-      console.log(informe);
+      console.log('id_informe:', id_informe,informe?.id_documento);
+      //console.log(informe);
       
       var array_documentos: number[] = [];
       if (informe != null && informe.id_documento != null && informe.id_documento.length > 0) {
@@ -710,24 +711,26 @@ LIMIT 5`;
         console.log('No hay documentos asociados al informe',informe);
         return this.responseService.error("ERROR", 'No hay documentos asociados al informe');
       }
-
+      console.log("array_documentos:", array_documentos);
+      let b1 = informe.id_documento.some(doc => doc.id_documento === id_documento);
+      let b2 = informe.id_documento.some(doc => doc.id_documento == id_documento);
+      console.log(b1, b2);
+      
       //verificar que el documento a eliminar exista en informe.id_documento
-      if (!informe.id_documento || !informe.id_documento.some(doc => doc.id_documento === id_documento)) {
+      if (!informe.id_documento || !informe.id_documento.some(doc => doc.id_documento == id_documento)) {
         return this.responseService.error("ERROR", 'Documento no encontrado en el informe');
       }
 
       let documentosActualizados = informe.id_documento || [];
       console.log("documentosActualizados antes de eliminar:", documentosActualizados);
       
-      documentosActualizados = documentosActualizados.filter(
-        (doc) => doc.id_documento !== id_documento
-      );
+      documentosActualizados = documentosActualizados.filter((doc) => doc.id_documento !== id_documento);
       console.log("documentosActualizados después de eliminar:", documentosActualizados);
 
       informe.id_documento = documentosActualizados;
 
       const resInforme =  await this.informeRepositorio.save(informe);
-      console.log('Informe actualizado:', resInforme);
+      //console.log('Informe actualizado:', resInforme);
 
       // cambiar id_estado a 0 (eliminado) de la tabla documento
       const resDoc = await this.documentoRepositorio.update(id_documento, { id_estado: 0 });
@@ -758,7 +761,7 @@ LIMIT 5`;
 
       const listaDocumentos = await this.dataSource.query(
         `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
-      FROM documento d WHERE d.id_documento = ANY($1)`, [array_documentos]);
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
       //console.log("documentos", listaDocumentos);
       listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
         tipo.documentos = [];
@@ -778,13 +781,10 @@ LIMIT 5`;
         }
         );
       });
-
       return listaTiposDocumentos;
     } catch (error) {
       console.error('Error al listar documentos por obra:', error);
       return this.responseService.error('No se pudo listar los documentos');
     }
   }
-
-
 }

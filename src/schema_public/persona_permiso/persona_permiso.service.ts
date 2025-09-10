@@ -9,6 +9,7 @@ import { PersonaPermiso } from './entities/persona_permiso.entity';
 import { UsuarioDto } from './dto/usuario.dto';
 import { PermisoIdDto } from './dto/persmiso.dto';
 import { PersonapermisoUe } from '../personapermiso_ue/entities/personapermiso_ue.entity';
+import { CreatePersonaPermiso2Dto } from './dto/create-persona_permiso_2.dto';
 
 
 
@@ -25,6 +26,15 @@ export class PersonaPermisoService {
   async create(createPersonaPermisoDto: CreatePersonaPermisoDto) {
     try {
       const resultado = await this.pperRepositorio.save(createPersonaPermisoDto);
+      return this.responseService.success(resultado, "GUardado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  async createPersona_p(createPersonaPermiso2Dto: CreatePersonaPermiso2Dto) {
+    try {
+      const resultado = await this.pperRepositorio.save(createPersonaPermiso2Dto);
       return this.responseService.success(resultado, "GUardado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -59,7 +69,7 @@ export class PersonaPermisoService {
 
   async listarUsuarioPermiso(datosDto: UsuarioDto) {
     try {
-      const query = `SELECT pp.id_persona_permiso,  per.id_permiso, per.desc_subtipo  FROM public.persona AS p
+      const query = `SELECT pp.id_persona_permiso,  per.id_permiso, per.desc_subtipo, p.puesto FROM public.persona AS p
     INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
     INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
     WHERE p.usuario = $1 AND pp.id_estado=1 `;
