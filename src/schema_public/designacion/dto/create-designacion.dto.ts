@@ -52,5 +52,17 @@ export class CreateDesignacionDto {
     usuario_registro: number;
 
     @ApiProperty()
+    responsable_baja: number;
+
+    @ApiProperty()
     id_estado: number
+
+    // @ApiProperty()
+    // a_nombre: string
+
+    // @ApiProperty()
+    // nombre_aprobador: string
+
+    // @ApiProperty()
+    // cargo_aprobador: string
 }

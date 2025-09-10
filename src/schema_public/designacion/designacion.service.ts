@@ -272,7 +272,8 @@ export class DesignacionService {
     
             const datasolicitud = {
               id_estado_solicitud: 4,
-              id_estado_general: AprobarDto.id_estado_flujo
+              id_estado_general: AprobarDto.id_estado_flujo,
+              id_usuario : AprobarDto.id_usuario
             };
             await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };
@@ -623,7 +624,7 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   
       // 2. Actualizar estado_designacion y fecha_reemplazo
       await queryRunner.manager.update(Designacion, designacionOriginal.id_designacion, {
-        estado_designacion: 105,
+        estado_designacion: 275,
         fecha_reemplazo: new Date(),
       });
   

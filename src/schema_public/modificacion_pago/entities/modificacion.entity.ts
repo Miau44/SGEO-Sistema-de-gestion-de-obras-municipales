@@ -32,7 +32,7 @@ export class Modificacion {
     numero_contrato_modificatorio: string;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
-    fecha_aprobacion_contrato: Date|null;
+    fecha_registro_contrato: Date|null;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_supervisor: Date|null;

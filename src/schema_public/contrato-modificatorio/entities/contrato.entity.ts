@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn,CreateDateColumn,UpdateDateColumn, Column } from 'typeorm';
 
 @Entity('contrato')
 export class Contrato {
@@ -35,8 +35,8 @@ export class Contrato {
   // @Column({ type: 'varchar', length: 100, nullable: true })
   // pmc_cod_carp_sim: string;
 
-  // @Column({ type: 'varchar', length: 100, nullable: true })
-  // rpa: string;
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  rpcrpa: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   numero_contrato: string;
@@ -67,5 +67,17 @@ export class Contrato {
 
   @Column({ type: 'int' })
   id_contrato_dlc: number;
+
+  @Column()
+  id_usuario: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  fecha_registro: Date;
+
+  @UpdateDateColumn({ type: 'timestamp',nullable:true })
+  fecha_modificacion: Date;
+
+  @Column()
+  id_estado: number;
 }
   
