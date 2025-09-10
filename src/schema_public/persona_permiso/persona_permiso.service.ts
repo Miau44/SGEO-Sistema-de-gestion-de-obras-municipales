@@ -69,7 +69,7 @@ export class PersonaPermisoService {
 
   async listarUsuarioPermiso(datosDto: UsuarioDto) {
     try {
-      const query = `SELECT pp.id_persona_permiso,  per.id_permiso, per.desc_subtipo, p.puesto FROM public.persona AS p
+      const query = `SELECT pp.id_persona_permiso,  per.id_permiso, per.desc_subtipo, pp.puesto FROM public.persona AS p
     INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
     INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
     WHERE p.usuario = $1 AND pp.id_estado=1 `;
