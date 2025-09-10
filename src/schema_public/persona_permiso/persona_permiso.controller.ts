@@ -8,6 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { ResponseService } from 'src/response.service';
 import { UsuarioDto } from './dto/usuario.dto'
 import { PermisoIdDto } from './dto/persmiso.dto';
+import { CreatePersonaPermiso2Dto } from './dto/create-persona_permiso_2.dto';
 
 
 @ApiTags('persona-permiso')
@@ -25,6 +26,15 @@ export class PersonaPermisoController {
   }
 
   @Public()
+  @Post('persona_p')
+  createPersona_p(@Body() createPersonaPermisoDto2: CreatePersonaPermiso2Dto) {
+    try {    
+    return this.personaPermisoService.create(createPersonaPermisoDto2);
+  } catch (error) {
+  }    
+  }
+
+  @Public()
   @Get()
   findAll() {
     return this.personaPermisoService.findAll();
@@ -35,11 +45,20 @@ export class PersonaPermisoController {
     return this.personaPermisoService.findOne(+id);
   }
 
-  @Public()
+  // @Public()
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updatePersonaPermisoDto: UpdatePersonaPermisoDto) {
+  //   try {      
+  //   return this.personaPermisoService.update(+id, updatePersonaPermisoDto);
+  // } catch (error) {
+  // }     
+  // }
+
+    @Public()
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePersonaPermisoDto: UpdatePersonaPermisoDto) {
+  update(@Param('id') id: string, @Body() createPersonaPermisoDto2: CreatePersonaPermiso2Dto) {
     try {      
-    return this.personaPermisoService.update(+id, updatePersonaPermisoDto);
+    return this.personaPermisoService.update(+id, createPersonaPermisoDto2);
   } catch (error) {
   }     
   }
