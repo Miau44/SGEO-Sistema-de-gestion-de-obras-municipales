@@ -457,8 +457,9 @@ export class ficha_itemService {
               id_tipo_item: id_tipo_item, // ajustar para el servicio
               id_usuario_registro: obra.usuario_registro,
               id_estado: 1,
-            })
-            console.log("Item creado", itemCreado);
+            });
+            var itemCreadores = await this.itemRepository.save(itemCreado);
+            //console.log("Item creado", itemCreado,itemCreadores);
       }
       else{
         if (itemExistente.finalizado) {
