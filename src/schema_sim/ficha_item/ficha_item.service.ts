@@ -529,7 +529,6 @@ export class ficha_itemService {
           continue;
         }
 
-        try {
           let id_ficha = 0; let objFicha = null; let objObra = null;
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
