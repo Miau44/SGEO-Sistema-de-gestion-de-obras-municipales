@@ -104,11 +104,11 @@ export class InformeService {
      // const encabezado =  await this.encabezadoDocumentos(datos);
       if (resultado.id_informe) {
         const datosencabezado = {
-          a_nombre: encabezado.data[0].a_nombre || '',
+          a_nombre: encabezado.data[0].a_nombre || '[]',
           a_cargo: encabezado.data[0].a_cargo || '',
-          via_nombre: encabezado.data[0].via_nombre || '',
+          via_nombre: encabezado.data[0].via_nombre || '[]',
           via_cargo: encabezado.data[0].via_cargo || '',
-          de_nombre: encabezado.data[0].de_nombre || '',
+          de_nombre: encabezado.data[0].de_nombre || '[]',
           de_cargo: encabezado.data[0].de_cargo || '',
         }
         this.informeRepositorio.update(resultado.id_informe, datosencabezado)
