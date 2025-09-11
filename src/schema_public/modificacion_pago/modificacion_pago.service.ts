@@ -496,8 +496,8 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     return result[0].resultado;
   }
 
+  //servicio para listar modificaciones por tipo contrato y tipo de moficacion, ABL 18/08/2024
   async listadoModificacionesxContrato(id_contrato: number,id_tipo: number): Promise<boolean> {
-
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_contrato === null || id_contrato === undefined || id_contrato < 0) {
       throw new BadRequestException('El id_contrato debe ser un número positivo.');
@@ -542,8 +542,8 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     return res;
   }
 
+  //servicio para listar modificaciones por carpeta, ABL 22/08/2024
   async listadoModificacionesxCarpeta(id_carpeta: number): Promise<boolean> {
-
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
       throw new BadRequestException('id_carpeta no encontrado.');
@@ -565,8 +565,8 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
     return res;
   }
-
-    async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
+  //servicio para listar pagos por carpeta, ABL 22/08/2024
+  async listadoPagosxCarpeta(id_carpeta: number): Promise<boolean> {
 
     // Validar que el id_contrato sea un número positivo o cero y no nulo
     if (id_carpeta === null || id_carpeta === undefined || id_carpeta < 0) {
@@ -593,7 +593,6 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   //ajuste de campos, adicion de fecha aprobada contrato, ABL 01/09/2024
   async guardadoNumeracion(id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string,fecha_registro_contrato:string): Promise<any> {
     try {
-
       // Validar que el id_modificacion sea un número positivo y no nulo
       if (!id_modificacion || id_modificacion <= 0) {
         throw new BadRequestException('El id_modificacion debe ser un número positivo.');
@@ -613,7 +612,6 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         where: { id_modificacion },
         relations: ['modificacionpago'],
       });
-
       if (!mod) {
         throw new NotFoundException('Modificación no encontrada');
       }

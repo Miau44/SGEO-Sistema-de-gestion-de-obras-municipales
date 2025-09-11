@@ -624,7 +624,7 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   
       // 2. Actualizar estado_designacion y fecha_reemplazo
       await queryRunner.manager.update(Designacion, designacionOriginal.id_designacion, {
-        estado_designacion: 105,
+        estado_designacion: 275,
         fecha_reemplazo: new Date(),
       });
   

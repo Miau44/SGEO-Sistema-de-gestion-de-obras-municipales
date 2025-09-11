@@ -11,8 +11,6 @@ import { join } from 'path';
 import { text } from 'stream/consumers';
 import { Any } from 'typeorm';
 
-
-
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
 
@@ -45,7 +43,7 @@ export class ReportService {
   datosPreguntaInforme: any = [];
   datosPreguntaInformeRestante: any = [];
   datosPreguntaInformeConclusion: any = [];
-  datosListaSupervisores: any = [];
+
   constructor(
     private readonly responseService: ResponseService,
     @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -67,7 +65,7 @@ export class ReportService {
     return resultado[0];
   }
 
-//SOLICITUD DE DESIGNACION 
+  //SOLICITUD DE DESIGNACION 
   async generatePdf(id: number): Promise<Buffer> {
     const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -95,8 +93,7 @@ export class ReportService {
             absolutePosition: { x: 0, y: 0 }
           }
         },
-        //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
+        
         header: {
           columns: [
             //{ image: imgPath, width: 180 },  // Uso de la ruta de imagen directamente          
@@ -104,13 +101,10 @@ export class ReportService {
             //{ text: 'Título en Rojo', style: 'coloredText', alignment: 'left' }
             //ME { text: 'Secretaría Municipal de Infraestructura Pública', style: 'coloredText', alignment: 'left' },
             // { text: '\nInfraestructura Pública', style: 'coloredTextgray', alignment: 'left' }
-
           ],
-          //ME margin: [40, 10, 20, 10] // [left, top, right, bottom]
         } as any,
                
       content: [
-
         {
           text: '\n\n\n\n\n\nFORMULARIO SOLICITUD DE ' + this.datos[0].permisos + '\n',
           style: 'header', alignment: 'center'
@@ -128,25 +122,25 @@ export class ReportService {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
+                { text: 'CÓDIGO:', style: 'textTitulo', fillColor: '#dddddd', border: [false, true, false, false] },
+                { text: this.datos[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd', border: [false, true, false, false] }
               ],
 
               [
-                { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato' }] }
+                { text: 'OBRA:', style: 'textTitulo' },
+                { text: this.datos[0].desc_carpeta, style: 'textDato' }
               ],
               [
-                { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'ZONA:', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_zona_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },
+                { text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
+                { text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle', fillColor: '#dddddd' }
               ],
             ]
           },
@@ -157,11 +151,11 @@ export class ReportService {
             widths: ['*', 330],
             body: [
               [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ],
             ]
           },
@@ -173,23 +167,21 @@ export class ReportService {
             widths: ['*', 400],
             body: [
               [
-                { text: [{ text: 'Personal propuesto:', style: 'textDato' },] },
-                { text: [{ text: '\n\n', style: 'textDato' }], }
+                { text: 'Personal propuesto:', style: 'textDato' },
+                { text: '\n\n', style: 'textDato' }
               ], 
               [
-                { text: [{ text: '\n\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' +this.datos[0].primer_apellido + ' '+ this.datos[0].segundo_apellido, style: 'textDato' }] },
+                { text: '\n\n', style: 'textTitulo' },
+                { text: this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' +this.datos[0].primer_apellido + ' '+ this.datos[0].segundo_apellido, style: 'textDato' },
               ],
             ]
           },
           layout: 'noBorders'
-
         },
         {
           text: [
             '\n\n\n\n\n\n\n\n\n\n\n' ],
         },
-
         {
           text: '\n',
           style: 'textDato', alignment: 'center'
@@ -253,7 +245,8 @@ export class ReportService {
 
       // Generar el PDF en memoria
       const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-      let chunks: Buffer[] = [];
+      //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+      const chunks: Uint8Array[] = [];
 
       return new Promise<Buffer>((resolve, reject) => {
         pdfDoc.on('data', (chunk) => {
@@ -311,7 +304,6 @@ export class ReportService {
 
       } as any,
       content: [
-
         {
           text: '\n\n\n\nM E M O R Á N D U M',
           style: 'header', alignment: 'center'
@@ -345,51 +337,47 @@ export class ReportService {
           text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].permisos + ' DE OBRA \n\n',
           style: 'textTitulo', alignment: 'center'
         },
-
         //TEXTO
-
         {
           table: {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
-              ],
-
-              [
-                { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_zona_carpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }] }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_zona_carpeta + '', style: 'textDato', fillColor: '#dddddd' }
+              ],
+              [
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }
               ]
             ]
           },
           layout: 'noBorders'
         },
-
         {
           table: {
             widths: ['*', 330],
             body: [
               [
-                { text: [{ text: '', style: 'textTitulo' },] },
-                { text: [{ text: '', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '', style: 'textTitulo' },
+                { text: '', style: 'textDato', }
+              ], 
+              [
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ],
             ]
           },
           layout: 'lightHorizontalLines'
         },
-
         {
           text: 'Señor(a):\n\nEn atención a la solicitud de la Unidad Ejecutora, se comunica a usted que la ' + 
           (
@@ -467,7 +455,8 @@ export class ReportService {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    // let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -485,6 +474,7 @@ export class ReportService {
 
   //SOLICITUD DE REEMPLAZO
   async generateSolReemplazo(id: number): Promise<Buffer> {
+    
     const res = await this.datosGeneralesReporte(id);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
       throw new Error('No se encontraron datos para la gestión y el ID proporcionados.');
@@ -536,25 +526,24 @@ export class ReportService {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
-              ],
-
-              [
-                { text: [{ text: 'OBRA:', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato' }] }
+                { text: 'CÓDIGO:', style: 'textTitulo', fillColor: '#dddddd', border: [false, true, false, false] },
+                { text: this.datos[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd', border: [false, true, false, false] }
               ],
               [
-                { text: [{ text: 'ZONA:', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'OBRA:', style: 'textTitulo' },
+                { text: this.datos[0].desc_carpeta, style: 'textDato' }
               ],
               [
-                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: 'ZONA:', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_zona_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },
+                { text: 'Bs.' + this.datos[0].total_carpeta, style: 'textDato' }
+              ],
+              [
+                { text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.fechaString(this.datos[0].fecha_validacion_carpeta), style: 'textDato', fillColor: '#dddddd' }
               ],
             ]
           },
@@ -565,26 +554,26 @@ export class ReportService {
             widths: ['*', 330],
             body: [
               [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
+              ], 
+              [
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ],
             ]
           },
           layout: 'lightHorizontalLines'
         },
-
         {
-          text: 'Solicito la designación del (la) ' + this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' +this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido +' como ' + this.datos[0].permisos + ', en reemplazo del (la) ' + this.datos[0].persona_a_reemplazar + '.',
+          text: 'Solicito la designación del (la) ' + this.datos[0].profesion_detalle + this.datos[0].nombre + ' ' + this.datos[0].primer_apellido + 
+          ' ' + this.datos[0].segundo_apellido +' como ' + this.datos[0].permisos + ', en reemplazo del (la) ' + this.datos[0].persona_a_reemplazar + '.',
           style: 'textDato', alignment: 'justify'
         },
         {
           text: [
             '\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
         },
-
         {
           text: '\n',
           style: 'textDato', alignment: 'center'
@@ -594,7 +583,7 @@ export class ReportService {
           style: 'textDato', alignment: 'center', bold: true
         },
         {
-          text: '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch:',
+          text: '\n\n\n\n\n\n\n\n\n\n\n\n\ncc:Arch.',
           style: 'footerText'
         },
 
@@ -647,7 +636,8 @@ export class ReportService {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -660,7 +650,6 @@ export class ReportService {
       pdfDoc.end();
     });
   }
-
 
 
 
@@ -687,8 +676,7 @@ export class ReportService {
           absolutePosition: { x: 0, y: 0 }
         }
       },
-      //ME watermark: { text: 'SGEO', color: 'blue', opacity: 0.1, bold: true, italics: false },
-
+      
       header: {
         columns: [
           //ME{ image: `data:image/png;base64,${this.getImageBase64(headerImage)}`, width: 100 },
@@ -700,7 +688,6 @@ export class ReportService {
 
       } as any,
       content: [
-
         {
           text: '\n\n\n\nM E M O R Á N D U M',
           style: 'header', alignment: 'center'
@@ -722,7 +709,8 @@ export class ReportService {
                 },
                 {
                   border: [true, false, false, true],
-                  text: 'Señor(a):\n' + this.datos[0].profesion_detalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido + '\nPresente.- ',
+                  text: 'Señor(a):\n' + this.datos[0].profesion_detalle + ' ' + this.datos[0].nombre + ' ' + this.datos[0].primer_apellido + ' ' + this.datos[0].segundo_apellido + 
+                  '\nPresente.- ',
                   style: 'textTitulo', alignment: 'left'
                 },
               ],
@@ -734,51 +722,47 @@ export class ReportService {
           text: '\nREF.: DESIGNACIÓN DE ' + this.datos[0].permisos + ' DE OBRA \n\n',
           style: 'textTitulo', alignment: 'center'
         },
-
         //TEXTO
-
         {
           table: {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left' }], fillColor: '#dddddd' }
-              ],
-
-              [
-                { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_carpeta, style: 'textDato', alignment: 'left', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_zona_carpeta + '', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datos[0].cod_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }] }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_zona_carpeta + '', style: 'textDato', fillColor: '#dddddd' }
+              ],
+              [
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }
               ]
             ]
           },
           layout: 'noBorders'
         },
-
         {
           table: {
             widths: ['*', 330],
             body: [
               [
-                { text: [{ text: '', style: 'textTitulo' },] },
-                { text: [{ text: '', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '', style: 'textTitulo' },
+                { text: '', style: 'textDato' }
+              ], 
+              [
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ],
             ]
           },
           layout: 'lightHorizontalLines'
         },
-
         {
           text: 'Señor(a):\n\nMediante la presente se comunica a usted que la ' + 
           (
@@ -786,10 +770,12 @@ export class ReportService {
               ? this.datos[0].nombre_da_ap
               : this.datos[0].nombre_ue_ap
           ) + 
-          ' ha dispuesto designarle a partir de la fecha ' + this.datos[0].permisos + ' de la obra ' + this.datos[0].desc_carpeta + ', en reemplazo de (él/la) profesional ' + this.datos[0].persona_a_reemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
+          ' ha dispuesto designarle a partir de la fecha ' + this.datos[0].permisos + ' de la obra ' + this.datos[0].desc_carpeta + ', en reemplazo de (él/la) profesional ' + 
+          this.datos[0].persona_a_reemplazar + ', medida asumida con el fin de dar continuidad a los trabajos de la obra.\n\nPara el efecto, a partir de la fecha deberá ' + 
+          'cumplir con las funciones y responsabilidades definidas en el Reglamento de Supervisión y Fiscalización de Obras del GAMLP, Código de Ética y Reglamento Interno ' + 
+          'de Personal del GAMLP.\n\n Seguro de que su capacidad y alto espíritu de trabajo sean puestos a favor de nuestro Municipio, aprovecho la oportunidad para desearle éxitos en el desempeño de sus funciones.',
           style: 'textDato', alignment: 'justify'
         },
-
         {
           text: '\n\n\n\n\n\n\n\n' + this.datos[0].aprobador,
           style: 'textDato', alignment: 'center'
@@ -800,9 +786,8 @@ export class ReportService {
           : this.datos[0].nombre_ue_ap,
           style: 'textTitulo', alignment: 'center'
         },
-
         {
-          text: '\n\n\n\n\n\ncc:Arch:',
+          text: '\n\n\n\n\n\ncc:Arch.',
           style: 'footerText'
         },
 
@@ -855,7 +840,8 @@ export class ReportService {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -928,26 +914,24 @@ export class ReportService {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd', border: [false, true, false, false] },
-                { text: [{ text: this.datos[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd', border: [false, true, false, false] }
-              ],
-
-              [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-                { text: [{ text: this.datos[0].desc_carpeta + '\n', style: 'textDato' }] }
-              ],
-
-              [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datos[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'CÓDIGO:', style: 'textTitulo', fillColor: '#dddddd', border: [false, true, false, false] },
+                { text: this.datos[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd', border: [false, true, false, false] }
               ],
               [
-                { text: [{ text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },] },
-                { text: [{ text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:\n', style: 'textTitulo' },
+                { text: this.datos[0].desc_carpeta + '\n', style: 'textDato' }
               ],
               [
-                { text: [{ text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-                { text: [{ text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.datos[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
+              ],
+              [
+                { text: 'MONTO DEL PROYECTO:\n', style: 'textTitulo' },
+                { text: 'Bs.' + this.datos[0].total_carpeta + '\n', style: 'textDato' }
+              ],
+              [
+                { text: 'FECHA VALIDACIÓN PROYECTO:\n', style: 'textTitulo', fillColor: '#dddddd' },
+                { text: this.fechaString(this.datos[0].fecha_validacion_carpeta) + '\n', style: 'textDato', alignment: 'middle', fillColor: '#dddddd' }
               ],
             ]
           },
@@ -958,11 +942,12 @@ export class ReportService {
             widths: ['*', 330],
             body: [
               [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
-              ], [
-                { text: [{ text: '\n', style: 'textTitulo' },] },
-                { text: [{ text: '\n', style: 'textDato' }], }
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
+              ], 
+              [
+                { text: '\n', style: 'textTitulo' },
+                { text: '\n', style: 'textDato' }
               ],
             ]
           },
@@ -980,7 +965,6 @@ export class ReportService {
           text: 'Mediante la presente se solicita el baja en la obra señalada del siguiente profesional:\n\n',
           style: 'textDato',
         },
-
         {
           table: {
             widths: ['*', '*', '*'], // Distribuir columnas uniformemente
@@ -1037,7 +1021,6 @@ export class ReportService {
           text: [
             '\n\n\n\n\n\n'],
         },
-
         {
           text: '\n',
           style: 'textDato', alignment: 'center'
@@ -1046,8 +1029,6 @@ export class ReportService {
           text: 'JEFE DE UNIDAD\n' + this.datos[0].nombre_da,
           style: 'textDato', alignment: 'center', bold:true
         },
-
-
         {
           text: [
             '\n\n\n\n\n\n\n\ncc:Arch:',
@@ -1104,7 +1085,8 @@ export class ReportService {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
@@ -1125,12 +1107,12 @@ export class ReportService {
 
   async datosReporteEnvio(obra: number) {
     const query1 = `SELECT distinct *, td.id_tipo_documento  
-  FROM  tipo_documento as td
-  INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+      FROM  tipo_documento as td
+      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+      LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+      INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+      INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+      WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
@@ -1138,7 +1120,7 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
 
 
   async datosReporteInformeInicial(usuario:number, obra: number) {
-    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial  WHERE idusuario = ${usuario}  AND id_obra = ${obra};	`;
+    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial WHERE usuario_registro = ${usuario} AND id_obra = ${obra};	`;
     const values = [usuario, obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
@@ -1152,19 +1134,15 @@ WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =1
   }
 
 
-
-
-
   //CONSULTASSS
   async datosAdjuntoSim(obra: number) {
     const query1 = `SELECT *  
-  FROM  tipo_documento as td
-WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
+      FROM  tipo_documento as td
+      WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
-
 
   async preguntasInforme(obra: number, tipo_informe: number) {
     const query1 = `
@@ -1175,6 +1153,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     return resultado[0];
     console.log('preguntasInforme', resultado[0]);
   }
+
   async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
     const query1 = `
     SELECT * FROM public."vista_informe_inicial_restante"  
@@ -1210,31 +1189,25 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     const res2 = await this.preguntasInforme(obra, 235);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos del informe inicial');
     }
     
     const res3 = await this.preguntasInformeRestante(obra, 235, 174);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos del informe inicial.');
     }
 
     const res4 = await this.preguntasInformeConclusion(obra, 235, 174);
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+      throw new Error('No se encontraron datos del informe inic.');
     }   
     
-    const res5 = await this.datosReporteInformeInicialSupervisores(obra, 84);
-    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-    }
-  
     this.datosPreguntaInforme = res2;    
     this.datosPreguntaInformeRestante = res3;
     this.datosPreguntaInformeConclusion = res4;    
     this.datosEnvio = res;
-    this.datosListaSupervisores = res5;   
-    console.log("datosListaSupervisores", this.datosListaSupervisores);
-
+     
+    //console.log("DATOS", this.datosEnvio);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -1306,76 +1279,59 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
             body: [
               [
                 { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: this.datosEnvio[0].a, style: 'textDato' }, { text: '\nJEFE UNIDAD EJECUTORA\n\n', style: 'textTitulo' }] }
+                { text: [
+                         { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato' }, 
+                         { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
+                }
               ],
 
               [
                 { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-               // { text: [{ text: this.datosEnvio[0].de + '\n', style: 'textDato' }, { text: 'SUPERVISOR DE OBRA\n\n', style: 'textTitulo' },] }
+                { text: [
+                      { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+                      { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
+                    ]
 
-             
-            /* {
-                table: {
-                  widths: ['*'],
-                  body: [
-                   
-                    ...this.datosListaSupervisores.map((item: any) => [
-                      {
-                        text: [{ text: item.nombre, style: 'textDato' }],
-                        alignment: 'left'
-                      }
-                    ]),
-                  ]
-                },
-                layout: 'noBorders',
-                alignment: 'center'
-              }, */
-
-              {
-                stack: [
-                  {
-                    table: {
-                      widths: ['*'],
-                      body: [
-                        ...this.datosListaSupervisores.map((item: any) => [
-                          {
-                            text: item.nombre,
-                            style: 'textDato',
-                            alignment: 'left'
-                          }
-                        ])
-                      ]
-                    },
-                    layout: 'noBorders',
-                    alignment: 'center'
-                  },
-                  {
-                    text: 'SUPERVISOR DE OBRAS\n\n',
-                    style: 'textTitulo',
-                    alignment: 'left'
-                  }
-                ]
-              }
-              
-
+                  // ME stack: [
+                  //   {
+                  //     table: {
+                  //       widths: ['*'],
+                  //       body: [
+                  //         ...this.datosListaSupervisores.map((item: any) => [
+                  //           {
+                  //             text: item.nombre,
+                  //             style: 'textDato',
+                  //             alignment: 'left'
+                  //           }
+                  //         ])
+                  //       ]
+                  //     },
+                  //     layout: 'noBorders',
+                  //     alignment: 'center'
+                  //   },
+                  //   {
+                  //     text: 'SUPERVISOR DE OBRAS\n\n',
+                  //     style: 'textTitulo',
+                  //     alignment: 'left'
+                  //   }
+                  // ]
+                }
               ],
-
               [
                 { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n\n', style: 'textTitulo' }] }
+                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
               ],
 
               /* [
                  { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
                ],*/
-              
         
                [
                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
                 ...(this.datosEnvio[0].informe_aprobado  ? [    
-                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
-                ]:[ { text: [{ text: '', style: 'textTitulo', alignment: 'left' },] }] ),
+                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n\n', style: 'textDato' }] }
+                ]:[ { text: [{ text: '\n\n', style: 'textTitulo', alignment: 'left' },] }] ),
             
               ]
            /*   ...(this.datosEnvio[0].informe_aprobado
@@ -1386,19 +1342,27 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                 : []),*/
 
             ]
+          }, 
+          layout: {
+            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+            vLineWidth: () => 0, // Sin líneas verticales
+            hLineColor: () => 'black', // Color de la línea horizontal
+            paddingLeft: () => 5, // Espaciado interno izquierdo
+            paddingRight: () => 5, // Espaciado interno derecho
+            paddingTop: () => 2, // Espaciado interno superior
+            paddingBottom: () => 2, // Espaciado interno inferior
           },
-          layout: 'noBorders',
         },
         {
           text: [
-            '\n\n\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
-           +' mediante Memorándum(s) '+ this.datosEnvio[0].cite_designacion  +', de fecha '+  this.datosEnvio[0].fecha_aprobacion  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
+           +' mediante Memorándum(s) '+ this.datosEnvio[0].cites_de  +', de fecha '+  this.datosEnvio[0].fechas_cites_de  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
           ],
        
           style: 'textDato', alignment: 'justify'           
         },
         {
-          text: '\n\n1.  DATOS DE PROYECTO. \n\n',
+          text: '\n1.  DATOS DE PROYECTO \n\n',
           style: 'subheader',
         },
         {
@@ -1433,9 +1397,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           },
           //layout: 'noBorders'
         },
-
         {
-          text: '\n\n2.  ANÁLISIS. \n ',
+          text: '\n2.  ANÁLISIS \n ',
           style: 'subheader',
         },
         {
@@ -1448,7 +1411,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           layout: 'noBorders'
         },
         {
-          text: '\n3. OBSERVACIONES GENERALES. \n\n',
+          text: '\n3. OBSERVACIONES GENERALES \n\n',
           style: 'subheader',
         },
         {
@@ -1457,19 +1420,15 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           ],
           style: 'textDato', alignment: 'justify'
         },
-
-
         {
           text: [this.datosEnvio[0].obs_general
           ],
           style: 'textDato', alignment: 'justify'
         },
-
         {
           text: '\n4. CONCLUSIONES \n\n',
           style: 'subheader',
         },
-
         {
           table: {
             widths: [460],
@@ -1487,7 +1446,6 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
           ],
           style: 'textDato', alignment: 'justify'
         },
-
         {
           text: '\n5. RECOMENDACIONES \n\n',
           style: 'subheader',
@@ -1530,48 +1488,49 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
           },
         ],
-
-
         {
-          table: {
-            widths: ['*'],
-            body: [
-              [
-                {
-                  //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
-                  text: '\n\n\n\n\n\n\n\n\n',
-                  style: 'subheader',
-                  alignment: 'center'
-                }
-              ],
-              ...this.datosListaSupervisores.map((item: any) => [
-                {
-                  text: [{ text: item.nombre, style: 'textDato' }],
-                  alignment: 'center'
-                }
-              ]),
-
-              [
-                {
-                  text: 'SUPERVISOR DE OBRAS.',
-
-                  style: 'subheader',
-                  alignment: 'center'
-                }
-              ],
-            ]
-          },
-          layout: 'noBorders',
-          alignment: 'center'
+          text: '\n\n\n\n\n\n\n\n',
         },
-        
-      
-
-
-
         {
           text: [
-            '\n\n\n\n\n\n\ncc:Arch:',
+                  { text: this.datosEnvio[0].de_nombre2 + '\n', style: 'textDato', alignment: 'center' },
+                  { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'center' },
+                ]
+        },
+
+        // ME {
+        //   table: {
+        //     widths: ['*'],
+        //     body: [
+        //       [
+        //         {
+        //           //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
+        //           text: '\n\n\n\n\n\n\n\n\n',
+        //           style: 'subheader',
+        //           alignment: 'center'
+        //         }
+        //       ],
+        //       ...this.datosListaSupervisores.map((item: any) => [
+        //         {
+        //           text: [{ text: item.nombre, style: 'textDato' }],
+        //           alignment: 'center'
+        //         }
+        //       ]),
+
+        //       [
+        //         {
+        //           text: 'SUPERVISOR DE OBRAS', 
+        //           style: 'subheader', alignment: 'center'
+        //         }
+        //       ],
+        //     ]
+        //   },
+        //   layout: 'noBorders',
+        //   alignment: 'center'
+        // },
+        {
+          text: [
+            '\n\n\n\n\n\n\nCc.Arch.Supervisor',
           ],
           style: 'footerText'
         },
@@ -1632,7 +1591,8 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {
