@@ -24,6 +24,7 @@ import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-ent
 import { UpdateActaEntregaDefinitivaDto } from './dto/update- acta-entrega-definitiva.dto';
 
 import { UpdateIdDocumentoPagoDto } from './dto/update-id-documento-pago.dto';
+import { EncabezadoDocumentoDto } from './dto/encabezado-documento.dto';
 
 
 @ApiTags('informe')
@@ -38,6 +39,16 @@ export class InformeController {
   async create(@Body() createInformeDto: CreateInformeDto) {
       return this.informeService.create(createInformeDto);
   }
+
+  @Public()
+    @Post('encabezado-documento')
+    encabezado(@Body() informeDto: EncabezadoDocumentoDto) {
+      try {  
+        return this.informeService.encabezadoDocumentos(informeDto);
+      } catch (error) {
+      }
+    } 
+
 
   @Public()
   @Get()
@@ -228,7 +239,9 @@ export class InformeController {
   @Post('informe-obra-save')
   @ApiResponse({ status: 201, description: 'Informe creado exitosamente' })
   @ApiResponse({ status: 400, description: 'Datos inv�lidos' })
-  async guardarInformeObra(@Body() data: CreateInformeObraDto) {
+  //async guardarInformeObra(@Body() data: CreateInformeObraDto) {
+ async guardarInformeObra(@Body() data: CreateInformeDto) {
+      
     return this.informeService.guardarInformeObra(data);
   }
 

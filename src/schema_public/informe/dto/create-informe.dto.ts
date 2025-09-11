@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsObject, IsOptional } from "class-validator";
 
 export class CreateInformeDto {
 
@@ -66,22 +67,26 @@ export class CreateInformeDto {
     @ApiProperty()
     id_estado: number;
 
-    @ApiProperty()
-    a_nombre: string;
+     @ApiProperty({ type: Object})
+     @IsOptional()
+     @IsObject()
+     a_nombre?: string;
 
-    // @ApiProperty()
-    // a_cargo: string;
+     @ApiProperty()
+     a_cargo: string;
 
-    // @ApiProperty()
-    // via_nombre: string;
+     @ApiProperty()
+     via_nombre: string;
 
-    // @ApiProperty()
-    // via_cargo: string;
+     @ApiProperty()
+     via_cargo: string;
 
-    // @ApiProperty()
-    // de_nombre: string;
+     @ApiProperty({ type: Object, required: false, description: 'JSON con datos de de_nombre' })
+     @IsOptional()
+     @IsObject()
+     de_nombre?: string;
 
-    // @ApiProperty()
-    // de_cargo: string;
+     @ApiProperty()
+     de_cargo: string;
 
 }

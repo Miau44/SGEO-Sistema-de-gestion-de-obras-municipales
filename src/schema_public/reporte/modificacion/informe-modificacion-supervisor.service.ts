@@ -982,7 +982,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
@@ -1057,7 +1057,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan

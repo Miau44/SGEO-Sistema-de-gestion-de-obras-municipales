@@ -79,23 +79,25 @@ export class Informe {
     @Column({ type: 'date', nullable: true })
     fecha_acta: Date;
 
-    // @Column({nullable:true})
-    // a_nombre: string;
+  //------------>>>>>>>>>>>>>>>>>>campos de cargos y nombres<<<<<<<<<<------------
+    @Column({ type: 'json', nullable: true })
+    a_nombre: string; 
 
-    // @Column({nullable:true})
-    // a_cargo: string;
+    @Column({nullable:true})
+    a_cargo: string;
 
-    // @Column({nullable:true})
-    // via_nombre: string;
+    @Column({type: 'json',nullable:true})
+    via_nombre: string;
 
-    // @Column({nullable:true})
-    // via_cargo: string;
+    @Column({nullable:true})
+    via_cargo: string;
 
-    // @Column({nullable:true})
-    // de_nombre: string;
+     @Column({ type: 'json', nullable: true })
+    de_nombre: string;
 
-    // @Column({nullable:true})
-    // de_cargo: string;
+    @Column({nullable:true})
+    de_cargo: string;
+  //------------>>>>>>>>>>>>>>>>>>campos de cargos y nombres<<<<<<<<<<------------   
 
     @OneToOne(() => Correlativo, (correlativo) => correlativo.informe)
     @JoinColumn({ name: 'id_correlativo' }) 
