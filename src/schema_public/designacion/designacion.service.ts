@@ -615,7 +615,7 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     try {
       // 1. Buscar el id_designacion original
       const designacionOriginal = await queryRunner.manager.findOne(Designacion, {
-        where: { id_reemplazo: idDesignacionNueva }
+        where: { id_designacion: idDesignacionNueva }
       });
   
       if (!designacionOriginal) {
@@ -625,7 +625,7 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
       // 2. Actualizar estado_designacion y fecha_reemplazo
       await queryRunner.manager.update(Designacion, designacionOriginal.id_designacion, {
         estado_designacion: 275,
-        fecha_reemplazo: new Date(),
+        //fecha_reemplazo: new Date(),
       });
   
       // 3. Obtener datos de la persona relacionada
