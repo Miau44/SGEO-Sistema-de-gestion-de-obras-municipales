@@ -523,6 +523,12 @@ export class ficha_itemService {
             continue;
           }
 
+        if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
+          console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+          //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
+          continue;
+        }
+
           let id_ficha = 0; let objFicha = null; let objObra = null;
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });

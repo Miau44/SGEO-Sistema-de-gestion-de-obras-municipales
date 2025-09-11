@@ -34,6 +34,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class InformePagoFiscal {
     datosEnvio: any = [];
     datosSup: any = [];
+    datosFis: any = [];
     datosInfSup: any = [];
     datosInfFis: any = [];
     datosModAp: any = [];
@@ -161,7 +162,13 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
     }
     this.datosSup = res1;
 
-    const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
+    const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+        throw new Error('No se encontraron datos del fiscal designado');
+    }
+    this.datosFis = res2;
+
+     const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron datos del informe de Supervisor');
     }
@@ -254,23 +261,50 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
       },
       {
         table: {
-        widths: ['20%', '80%'],
+        widths: ['15%', '85%'],
         body: [
             [
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text:[
-                      { text: this.datosInfFis[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosInfFis[0].a_cargo, style: 'textTitulo', alignment: 'left' }
-                  ]
+                { text:
+                  (() => {
+                    const da = this.datosAF[0].desc_cod_da;
+                    const nombreDA = this.datosAF[0].nombre_da;
+                    const aprobador = this.datosAF[0].aprobador;
+
+                    if (da >= 37 && da <= 45) {
+                      return [
+                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                      ] 
+                    } else {
+                      console.log('DATOS MODIFICACION',this.datosAF);
+                      return [
+                           { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
+                           { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS ', style: 'textTitulo' }
+                      ];
+                    }
+                  })(), 
+                  style: ''
                 }
             ],
             [
-              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-              { text: [
-                      { text: this.datosInfFis[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosInfFis[0].de_cargo, style: 'textTitulo', alignment: 'left' }
-                  ]
-              },       
+                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { 
+                    text: [
+                        {
+                        text: (
+                            Array.isArray(this.datosFis)
+                            ? this.datosFis
+                                .filter(f => f && f.fiscal)
+                                .map(f => f.fiscal)
+                                .join('\n')  // salto de linea 
+                            : ''
+                        ) + '\n',
+                        style: 'textDato', alignment: 'left'
+                        },
+                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
+                    ]
+                },       
             ],
             [
                 { text: 'REF.:', style: 'textTitulo', alignment:'right' },
@@ -295,12 +329,18 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
         paddingTop: () => 2, // Espaciado interno superior
         paddingBottom: () => 2, // Espaciado interno inferior
         },
-        margin: [0, 0, 0, 10], // Márgenes de la tabla
+        margin: [20, 0, 20, 10], // Márgenes de la tabla
       },
       {
         text: 'En atención al informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
-          ' de la supervisión de obra, ' + this.datosInfSup[0].de_nombre2 
-           + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', se emite el presente informe.',
+          ' de la supervisión de obra, ' + 
+          (Array.isArray(this.datosSup)
+                    ? this.datosSup
+                        .filter(s => s && s.supervisor)
+                        .map(s => s.supervisor)
+                        .join(' | ')
+                    : ''
+          ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', se emite el presente informe.',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
@@ -444,8 +484,14 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
             },
             {
               text: 'El informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
-                ' de la supervisión de obra, ' + this.datosInfSup[0].de_nombre2
-                 + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                ' de la supervisión de obra, ' + 
+                (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
                   this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
                   ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
@@ -496,7 +542,13 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                 { text: [
                       { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
                           this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
-                          this.datosInfSup[0].de_nombre2 + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
+                          (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                          ) + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
                           'ésta fiscalía APRUEBA el informe señalado y considera PROCEDENTE SU PAGO.' 
                       },
                       ], margin: [0, 0, 0, 5]
@@ -541,8 +593,14 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
             },
             {
               text: 'El informe de pago ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + this.datosInfSup[0].correlativo + 
-                ' de la supervisión de obra, ' + this.datosInfSup[0].de_nombre2
-                 + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                ' de la supervisión de obra, ' + 
+                (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
                   this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
                   ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
@@ -593,7 +651,13 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                 { text: [
                       { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
                           this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
-                          this.datosInfSup[0].de_nombre2 + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
+                          (Array.isArray(this.datosSup)
+                          ? this.datosSup
+                              .filter(s => s && s.supervisor)
+                              .map(s => s.supervisor)
+                              .join(' | ')
+                          : ''
+                          ) + ' que certifica haber verificado las cantidades y los cómputos métricos de la obra, fueron ejecutados de acuerdo a las especificaciones técnicas del GAMLP, ' + 
                           'ésta fiscalía APRUEBA el informe señalado y considera PROCEDENTE SU PAGO.' 
                       },
                       ], margin: [0, 0, 0, 5]
@@ -647,28 +711,18 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
         text: ['\n'],
       },
       {
-        table: {
-          widths: ['50%', '50%'],
-          body: (this.datosInfFis[0].de_nombre ? this.datosInfFis[0].de_nombre.split('\n') : []).map((nombre: string) => [
-            { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nFISCAL DE OBRA', style: 'textDato', bold: true }
-              ], 
-              margin: [0, 35, 0, 0], 
-              alignment: 'center'
-            },
-            { text: '(Firma y Sello)', 
-              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
-            }
-          ])
-        },
-        margin: [20, 0, 20, 0],
-        layout: {
-          hLineColor: () => '#444444',
-          vLineColor: () => '#444444',
-          hLineWidth: () => 0.7,
-          vLineWidth: () => 0.7
-        }
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildFiscales(this.datosFis)
+              ]
+          }, margin: [20,0,20,0], 
+            layout: {
+            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+            vLineColor: () => '#444444', // color gris opaco para líneas verticales
+            hLineWidth: () => 0.7,       // grosor más fino
+            vLineWidth: () => 0.7
+            } 
       },
       {
         text: ['\n\n\nCc.Arch.Supervisor' ],
@@ -785,7 +839,34 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
     return formattedDate;
   }
 
-  // Función para poblar la tabla de MODIFICACIONES APROBADAS
+  //Cargar tabla de FISCALES - CON RECUADRO
+    buildFiscales(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
+                  ],
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+    // Función para poblar la tabla de MODIFICACIONES APROBADAS
     buildModAprobadas(data: any,formatoNumerico: Intl.NumberFormat) {
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
