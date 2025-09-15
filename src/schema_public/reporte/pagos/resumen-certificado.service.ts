@@ -546,7 +546,8 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                     style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                                 ]
                                 :[
-                                  { text: this.formatIfNumber(Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0),formatoNumerico2) + ' Bs.', 
+                                  //{ text: this.formatIfNumber(Number(this.datosUM[0].monto_total || 0) - Number(this.datosEnvio[0].importe_por_pagar || 0),formatoNumerico2) + ' Bs.', 
+                                  { text: this.formatIfNumber(Number(this.datosUM[0].monto_total || 0) - Number(totalcertificado || 0),formatoNumerico2) + ' Bs.', 
                                     style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                                 ]
                               )
@@ -722,7 +723,8 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
