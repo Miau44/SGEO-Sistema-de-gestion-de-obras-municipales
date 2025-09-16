@@ -151,7 +151,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago ,id_modificacion_pago);
   this.datosNuevos = res5;
 
-  console.log('DATOS PAGO', this.datosEnvio);
+  //console.log('DATOS PAGO', this.datosEnvio);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -901,7 +901,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_modif,formatoNumerico2) + '%',
+      {text: this.datosPlanillaR[0].porcentaje_modif + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {
