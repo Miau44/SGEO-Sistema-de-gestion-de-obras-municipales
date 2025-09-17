@@ -41,6 +41,7 @@ export class ReporteOrdenProcederService {
     datosPreguntaInformeRestante: any = [];
     datosSup: any = [];
     datosJU: any = [];
+    datosInfIni: any = [];
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
@@ -80,6 +81,14 @@ export class ReporteOrdenProcederService {
     return resultado4[0];
    }
 
+   // Datos Informe Inicial
+  async datosInformeInicial(obra: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_reporte_informe_inicial" WHERE id_obra = ${obra}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+  }
   // //Datos tabla documentos SGEO
   // async datosReporteEnvio(obra: number) {
   //   const query1 = `SELECT distinct *, td.id_tipo_documento  
@@ -347,6 +356,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
   }
   this.datosSup = res1;
 
+  const res3 = await this.datosInformeInicial(obra);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos del Informe Inicial');
+  }
+  this.datosInfIni = res3;
+
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
    const imgPath = 'assets/images/membretado_carta.png';
@@ -382,8 +397,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       },
       {
         text: [
-                { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato'},
-                { text: this.datosEnvio[0].de_cargo, style: 'textDato', bold: 'true'}
+                { text: this.datosInfIni[0].de_nombre + '\n', style: 'textDato'},
+                { text: this.datosInfIni[0].de_cargo, style: 'textDato', bold: 'true'}
               ] 
       },
       {
@@ -420,8 +435,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         text: [
           { text: 'De mi consideración:\n\n', style: 'textDato' },
           {
-            text: 'En atención al informe de Supervisión ' + this.datosEnvio[0].cod_carpeta + ' con referencia "INFORME INICIAL DE REVISIÓN DEL PROYECTO" ' + 
-            'y el informe de Fiscalización ' + this.datosEnvio[0].cod_carpeta  + ' con referencia "INFORME DE ACTIVIDADES PREVIAS" correspondiente a la obra ' 
+            text: 'En atención al informe de Supervisión ' + this.datosInfIni[0].cite + ' con referencia "INFORME INICIAL DE REVISIÓN DEL PROYECTO" ' + 
+            'y el informe de Fiscalización ' + this.datosEnvio[0].cod_carpeta  + '-IFIS-1 con referencia "INFORME DE FISCALIZACIÓN PREVIO AL INICIO DE OBRA" correspondiente a la obra ' 
             + this.datosEnvio[0].cod_carpeta + ' ' + this.datosEnvio[0].desc_carpeta + ', en los que se establece que la obra cuenta con la documentación necesaria y no se requieren actividades previas al inicio de la obra.\n\n' ,
             style: 'textDato', alignment: 'justify', lineHeight: 1,
           },
