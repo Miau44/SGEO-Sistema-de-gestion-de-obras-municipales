@@ -694,51 +694,48 @@ LIMIT 5`;
     }
   }
 
-  async eliminarDocumentosPagos(id_informe: number, id_documento: number): Promise<any> {
+  async eliminarDocumentosPagos(id_informe: number, id_documento: number,id_usuario:number): Promise<any> {
     try {
-      
+      //cambiar id_estado a 0 (eliminado) de la tabla documento
+      const resDoc = await this.documentoRepositorio.update(id_documento, { id_estado: 0 });
+
       const informe = await this.informeRepositorio.findOne({
         where: { id_informe: id_informe }
       });
-      console.log('id_informe:', id_informe,informe?.id_documento);
-      //console.log(informe);
       
       var array_documentos: number[] = [];
       if (informe != null && informe.id_documento != null && informe.id_documento.length > 0) {
         array_documentos = informe.id_documento.map((doc) => doc.id_documento);
       }
       else{
-        console.log('No hay documentos asociados al informe',informe);
+        this.log(id_usuario,id_informe,id_documento,'ERROR:No hay documentos asociados al informe',informe?.id_documento);
         return this.responseService.error("ERROR", 'No hay documentos asociados al informe');
       }
-      console.log("array_documentos:", array_documentos);
-      let b1 = informe.id_documento.some(doc => doc.id_documento === id_documento);
-      let b2 = informe.id_documento.some(doc => doc.id_documento == id_documento);
-      console.log(b1, b2);
       
       //verificar que el documento a eliminar exista en informe.id_documento
       if (!informe.id_documento || !informe.id_documento.some(doc => doc.id_documento == id_documento)) {
-        return this.responseService.error("ERROR", 'Documento no encontrado en el informe');
+        this.log(id_usuario,id_informe,id_documento,`ERROR:Documento no encontrado en la tabla informe, id_documento: ${id_documento}`,informe.id_documento);
+        return this.responseService.error("ERROR", 'Documento no encontrado en la tabla informe informe');
       }
 
-      let documentosActualizados = informe.id_documento || [];
-      console.log("documentosActualizados antes de eliminar:", documentosActualizados);
+      let docsInicio = informe.id_documento || [];
+      const documentosValidos = await this.documentoRepositorio.find({where: {id_documento: Any(docsInicio.map(doc => doc.id_documento)),id_estado: 1}});
+      const documentosValidosIds = documentosValidos.map(doc => doc.id_documento);
+      console.log("documentosValidosIds:", documentosValidosIds);
+      var docsFinal:any = [];
+      documentosValidosIds.forEach(id => {
+        docsFinal.push({id_documento: id});
+      });
       
-      documentosActualizados = documentosActualizados.filter((doc) => doc.id_documento !== id_documento);
-      console.log("documentosActualizados después de eliminar:", documentosActualizados);
-
-      informe.id_documento = documentosActualizados;
-
+      informe.id_documento = docsFinal;
+      console.log("docs",docsInicio,docsFinal);
       const resInforme =  await this.informeRepositorio.save(informe);
-      //console.log('Informe actualizado:', resInforme);
-
-      // cambiar id_estado a 0 (eliminado) de la tabla documento
-      const resDoc = await this.documentoRepositorio.update(id_documento, { id_estado: 0 });
-      console.log('Documento eliminado:', resDoc);
-
-      return {res:"Documento eliminado correctamente"};
+      if(resInforme){ this.log(id_usuario,id_informe,id_documento,`Documento eliminado correctamente, id_documento: ${id_documento}`,resInforme.id_documento)}
+      else{ this.log(id_usuario,id_informe,id_documento,`ERROR:Error al eliminar adjunto, id_documento: ${id_documento}`,resInforme); 
+      return this.responseService.error("ERROR", 'Error al eliminar adjunto');
+    }
     } catch (error) {
-      console.log('Error al listar documentos:',error);
+      this.log(id_usuario,id_informe,id_documento,`ERROR:Error al eliminar adjunto, id_documento: ${id_documento}`,error);
       return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
     }
   }
@@ -769,7 +766,6 @@ LIMIT 5`;
           fecha_registro: any;
           nombre_documento: any; id_tipo_documento: any; ruta_documento: any; id_documento: number
         }) => {
-
           if (tipo.id_tipo_documento === doc.id_tipo_documento) {
             tipo.documentos.push({
               id_documento: doc.id_documento,
@@ -786,5 +782,15 @@ LIMIT 5`;
       console.error('Error al listar documentos por obra:', error);
       return this.responseService.error('No se pudo listar los documentos');
     }
+  }
+
+  log(id_usuario:number,id_informe:number,id_documento:number,mensaje:any,respuesta:any){
+    this.logService.create({
+        id_usuario: id_usuario,
+        parametro: JSON.stringify({id_informe, id_documento}),
+        mensaje: mensaje,
+        funcionalidad: 'Eliminar adjunto',
+        respuesta: JSON.stringify({respuesta})
+      });
   }
 }

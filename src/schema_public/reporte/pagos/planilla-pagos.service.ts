@@ -55,13 +55,13 @@ export class PlanillaPago {
   //CONSULTAS
 
   // Datos generales obra - contrato - pago
-  async datosGeneralesObraModif(id_modif_pago: number) {
+   async datosGeneralesObraModif(id_modif_pago: number) {
     const query = `
         SELECT * 
         FROM public."vista_reporte_pago_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
     const resultado = await this.sequelize.query(query);
     return resultado[0];
-  }
+   }
 
    // SUPERVISORES designados por obra 
    async supervisorDesignado(obra: number) {
@@ -151,7 +151,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago ,id_modificacion_pago);
   this.datosNuevos = res5;
 
-  console.log('DATOS PAGO', this.datosEnvio);
+  //console.log('DATOS PAGO', this.datosEnvio);
   
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -492,7 +492,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
 
 }
 
-   //Cargar tabla de PLANILLA - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //Cargar tabla de PLANILLA 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR (15)
 buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -513,11 +513,11 @@ buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_modif, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_modif, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cantidad_anterior, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_anterior, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cantidad_actual, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_actual, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_modif, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' }
     ];
@@ -536,7 +536,7 @@ buildContenidoPlanilla1(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //Cargar tabla de PLANILLA - EXISTE MODIFICACIONES Y ES PRIMER PAGO
+   //Cargar tabla de PLANILLA 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO (13)
 buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -577,7 +577,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //Cargar tabla de PLANILLA 3 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR (13)
 buildContenidoPlanilla3(data: any[], formatoNumerico: Intl.NumberFormat) {
 
    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -619,7 +619,7 @@ buildContenidoPlanilla3(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //Cargar tabla de PLANILLA - NO EXISTE MODIFICACIONES Y ES PRIMER PAGO
+   //Cargar tabla de PLANILLA 4 - NO EXISTE MODIFICACIONES Y ES PRIMER PAGO (11)
 buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -658,7 +658,7 @@ buildContenidoPlanilla4(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 1 - EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR (15)
 buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -698,11 +698,11 @@ buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
       { text: this.formatIfNumber(datosPl[i].p_unitario_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_adjudicado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_modif, formatoNumerico), style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_modif, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cantidad_anterior, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_anterior, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].cantidad_actual, style: 'textDato', alignment: 'right' },
-      { text: datosPl[i].total_actual, style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_modif, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_anterior, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].cantidad_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
+      { text: this.formatIfNumber(datosPl[i].total_actual, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].cantidad_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' },
       { text: this.formatIfNumber(datosPl[i].total_acumulado, formatoNumerico), style: 'textDato', alignment: 'right' }
     ];
@@ -711,7 +711,7 @@ buildContPlanillaAd1(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //TABLA PLANILLA CON ITEM NUEVOS 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO
+   //TABLA PLANILLA CON ITEM NUEVOS 2 - EXISTE MODIFICACIONES Y ES PRIMER PAGO (13)
 buildContPlanillaAd2(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -762,7 +762,7 @@ buildContPlanillaAd2(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //TABLA PLANILLA CON ITEM NUEVOS 3 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 3 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR (13)
 buildContPlanillaAd3(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -813,7 +813,7 @@ buildContPlanillaAd3(data: any[], formatoNumerico: Intl.NumberFormat) {
     return arrayData;
   }
 
-   //TABLA PLANILLA CON ITEM NUEVOS 4 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR
+   //TABLA PLANILLA CON ITEM NUEVOS 4 - NO EXISTE MODIFICACIONES Y EXISTE PAGO ANTERIOR (11)
 buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -901,7 +901,7 @@ buildContPlanillaAd4(data: any[], formatoNumerico: Intl.NumberFormat) {
       {text: this.formatIfNumber(100,formatoNumerico2) + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
-      {text: this.formatIfNumber(porc_modif,formatoNumerico2) + '%',
+      {text: this.datosPlanillaR[0].porcentaje_modif + '%',
         style: 'textTitulo2', alignment: 'right'}, 
       {}, 
       {

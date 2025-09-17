@@ -273,7 +273,7 @@ export class DesignacionService {
             const datasolicitud = {
               id_estado_solicitud: 4,
               id_estado_general: AprobarDto.id_estado_flujo,
-              id_usuario : AprobarDto.id_usuario
+              usuario_registro : AprobarDto.id_usuario
             };
             await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };
@@ -355,8 +355,8 @@ export class DesignacionService {
           proveido: 'APROBACIÓN DE DESIGNACIÓN',
           data_solicitud: respuesta_solicitud.data.data_solicitud,
           fecha_envio: respuesta_solicitud.data.fecha_envio,
-          id_usuario_previo: 0,
-          usuario_registro: 0,
+          id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+          usuario_registro: respuesta_solicitud.data.usuario_registro,
           id_estado_registro: respuesta_solicitud.data.id_estado_registro,
         };    
         await this.serviceSolicitud.createHistorial(datosHistorial);
