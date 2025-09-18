@@ -197,5 +197,16 @@ export class PagoController {
       } catch (error) {
       }
     }
+      
+     @Public()
+    @Post('pago-postfechado')
+    async postfechadoPago(@Body() validar: PagoObraDto) {
+      try {
+        return this.pagoService.postfechadoPago(validar);
+  
+      } catch (error) {
+      }
+    }
+      
     
 }
