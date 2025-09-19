@@ -121,7 +121,7 @@ export class ficha_itemService {
     const url_sim = process.env.URL_SIM2;
     const url = `${url_sim}sgeo/wsDataUnidadEjecutora`;
 
-    const body = gestion_; 
+    const body = gestion_;
     // Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
@@ -142,7 +142,7 @@ export class ficha_itemService {
       }
       return msg;
     } else {
-      throw new Error(`164 Error en la llamada al servicio externo: ${response.statusText}`);
+      throw new Error(`Error en la llamada al servicio externo: ${response.statusText}`);
     }
   }
 
@@ -182,7 +182,7 @@ export class ficha_itemService {
 
           //validar que fichaJson.desc_carpeta no contenga la palabra "SERVICIO" o "SERVICIOS" al inicio
           if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
-            console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+            //console.log(`Ficha ${fichaJson.cod_carpeta}: es un servicio, no se guarda.`);
             msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
             continue; 
           }
@@ -195,22 +195,27 @@ export class ficha_itemService {
 
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
-          //console.log('fichaExistente',fichaExistente);
+          //console.log("ficha existente", fichaExistente);
           if (fichaExistente) {
-            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ya existe en la base de datos.`);
+            console.log(`Ficha  ${fichaJson.cod_carpeta}: ya existe en la base de datos.`);
             msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
+            // //revisar y actualizar si el campo "estado" es igual a "ANULADA"
+            if(fichaJson.estado === "ANULADA" && fichaExistente.estado_carpeta !== "ANULADA"){
+              fichaExistente.estado_carpeta = fichaJson.estado;
+              await this.fichaRepository.save(fichaExistente);
+              console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} se actualiza a estado ANULADA.`);
+              msg += `${fichaJson.cod_carpeta}: se actualiza a estado ANULADA.********************\n`;
+            }
             continue; // Si ya existe, continuar con la siguiente ficha
           }
-
-
-
-          const nueva_ficha = this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
-          //console.log(nueva_ficha);
+          
+          
           try {
-            const nuevaFicha = await this.fichaRepository.save(nueva_ficha);
-            const nuevaObra = await this.crearObraDesdeFicha(nuevaFicha, id_usuario);
-            const obraGuardada = await this.obraRepository.save(nuevaObra);
-            console.log(`ficha guardada, cod_carpeta: ` + fichaJson.cod_carpeta);
+            let nueva_ficha = await this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
+            let nuevaFicha = await this.fichaRepository.save(nueva_ficha);
+            let nuevaObra = await this.crearObraDesdeFicha(nuevaFicha, id_usuario);
+            let obraGuardada = await this.obraRepository.save(nuevaObra);
+            //console.log(`ficha: ` + fichaJson.cod_carpeta+' guardada );
             msg += `${fichaJson.cod_carpeta}: guardada en la base de datos.\n`;
             msg += await this.guardarItems(fichaJson.d_item, obraGuardada, id_usuario);
           } catch (error) {
@@ -223,7 +228,7 @@ export class ficha_itemService {
         return "ue: "+desc_cod_ue_+"\n"+msg;
       } else {
         console.log("error: sin datos de servicio", data.res);
-        return "ue: "+desc_cod_ue_+"\n"+"sin datos para la UE";
+        return "ue: " + desc_cod_ue_ + "\n" + "sin datos para la UE";
         return this.responseService.error(data.res, 'sin datos de servicio', 500);
         //throw new Error(` 199 Error en la llamada al servicio externo: ${response.statusText}`);
       }
@@ -232,7 +237,7 @@ export class ficha_itemService {
     }
   }
 
-  async verificarFicha(id_correlativo: number, id_usuario: number,gestion:number,actualizar?: boolean): Promise<any> {
+  async verificarFicha(id_correlativo: number, id_usuario: number, gestion: number, actualizar?: boolean): Promise<any> {
     //OBTENER PARAMETROS DE URL DESDE .env
     const url_sim = process.env.URL_SIM2;
     //Realizar la llamada al servicio externo metodo POST
@@ -250,97 +255,97 @@ export class ficha_itemService {
     var st_gestion: string = gestion.toString();
     if (data.res == "OK") {
       var fichaJson = data.datos[0];
-        if (!fichaJson.codigo_ficha.includes(st_gestion)) {
-          return `Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion ${st_gestion}.`;
+      if (!fichaJson.codigo_ficha.includes(st_gestion)) {
+        return `Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion ${st_gestion}.`;
+      }
+
+      //for (const fichaJson of data.datos) {
+      try {
+        let id_ficha = 0; let objFicha = null; let objObra = null;
+        //verificar si existe la ficha en la base de datos, si existe no guardar
+        const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
+        if (fichaExistente == null) {
+          return `Ficha inexistente`;
+        }
+        else {
+          id_ficha = fichaExistente.id_ficha;
+          objFicha = fichaExistente;
         }
 
-        //for (const fichaJson of data.datos) {
-        try {
-          let id_ficha = 0; let objFicha = null; let objObra = null;
-          //verificar si existe la ficha en la base de datos, si existe no guardar
-          const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
-          if (fichaExistente==null) {
-            return `Ficha inexistente`;
-          }
-          else {
-            id_ficha = fichaExistente.id_ficha;
-            objFicha = fichaExistente;
-          }
-
-          //verificar que id_ficha no sea 0
-          if (id_ficha == 0) {
-            throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
-          }
-
-          //validar si existe la obra en la base de datos, si existe no guardar
-          let id_obra = 0;
-          const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: id_ficha } });
-          if (obraExistente) {
-            id_obra = obraExistente.id_obra;
-            objObra = obraExistente;
-          }
-          else {
-            return "Error, registro no encontrado";
-          }
-
-          var res = "";
-
-          const partidasPermitidas = ["42310", "42230"];
-          const registrosUnicos = new Map<string, any>();
-          fichaJson.d_item.forEach((itemJson: { partida: string; orden: any; codigo_item: any; }) => {
-            // Validar si la partida está permitida
-            if (!partidasPermitidas.includes(itemJson.partida)) {
-              return; //Saltar este item
-            }
-
-            // Crear una clave única basada en orden y codigo_item
-            const claveRegistro = `${itemJson.orden}-${itemJson.codigo_item}`;
-
-            // Si ya existe un item con esta clave, se ignora el nuevo
-            if (registrosUnicos.has(claveRegistro)) {
-              return; // Ignorar duplicados posteriores
-            }
-
-            // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
-            registrosUnicos.set(claveRegistro, itemJson);
-            //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
-          });
-
-          if(actualizar == false){
-            //verificar monto total
-            const montoTotalExterno = this.roundTo(fichaJson.monto_total,2);
-            const montoTotalInterno = this.roundTo(objFicha.total_carpeta,2);
-            
-            if (montoTotalExterno !== montoTotalInterno) {
-              res += "Monto total no coincide: Externo=" + montoTotalExterno + ", Interno=" + montoTotalInterno + "\n";
-              return this.responseService.error(null, 'Los items de la ficha no coinciden con los de la base de datos '+res, 500);
-            }
-
-            res += await this.comparacionItems(Array.from(registrosUnicos.values()), objObra);
-            
-            if(res != ""){
-              return this.responseService.error(res, 'Los items de la ficha no coinciden con los de la base de datos '+res, 500);
-            }
-            else{
-              return this.responseService.success("OK", 'No se encontraron diferencias ', 200);
-            }
-          }
-          else{
-            //actualizar monto_total
-            objFicha.total_carpeta = fichaJson.monto_total;
-            await this.fichaRepository.save(objFicha);
-            
-            return await this.actualizarItems(Array.from(registrosUnicos.values()), objObra);
-            return res;
-          }
-        } catch (error) {
-          //lanzar error si no se puede guardar la ficha
-
-          //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
-          //mandar  error si no se puede guardar la obra, trwow error
-          console.error(`❌ Error al procesar la ficha: correlativo:  ${id_correlativo}:`, (error as any).message);
-          throw new Error(`Error al procesar la ficha: ${error}`);
+        //verificar que id_ficha no sea 0
+        if (id_ficha == 0) {
+          throw new Error(`Error: id_ficha es 0, no se puede guardar la obra.`);
         }
+
+        //validar si existe la obra en la base de datos, si existe no guardar
+        let id_obra = 0;
+        const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: id_ficha } });
+        if (obraExistente) {
+          id_obra = obraExistente.id_obra;
+          objObra = obraExistente;
+        }
+        else {
+          return "Error, registro no encontrado";
+        }
+
+        var res = "";
+
+        const partidasPermitidas = ["42310", "42230"];
+        const registrosUnicos = new Map<string, any>();
+        fichaJson.d_item.forEach((itemJson: { partida: string; orden: any; codigo_item: any; }) => {
+          // Validar si la partida está permitida
+          if (!partidasPermitidas.includes(itemJson.partida)) {
+            return; //Saltar este item
+          }
+
+          // Crear una clave única basada en orden y codigo_item
+          const claveRegistro = `${itemJson.orden}-${itemJson.codigo_item}`;
+
+          // Si ya existe un item con esta clave, se ignora el nuevo
+          if (registrosUnicos.has(claveRegistro)) {
+            return; // Ignorar duplicados posteriores
+          }
+
+          // Agregar el item al Map como único (SOLO SE MANTIENE EL PRIMER ITEM ENCONTRADO)
+          registrosUnicos.set(claveRegistro, itemJson);
+          //console.log(`Item agregado al conjunto único: Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
+        });
+
+        if (actualizar == false) {
+          //verificar monto total
+          const montoTotalExterno = this.roundTo(fichaJson.monto_total, 2);
+          const montoTotalInterno = this.roundTo(objFicha.total_carpeta, 2);
+
+          if (montoTotalExterno !== montoTotalInterno) {
+            res += "Monto total no coincide: Externo=" + montoTotalExterno + ", Interno=" + montoTotalInterno + "\n";
+            return this.responseService.error(null, 'Los items de la ficha no coinciden con los de la base de datos ' + res, 500);
+          }
+
+          res += await this.comparacionItems(Array.from(registrosUnicos.values()), objObra);
+
+          if (res != "") {
+            return this.responseService.error(res, 'Los items de la ficha no coinciden con los de la base de datos ' + res, 500);
+          }
+          else {
+            return this.responseService.success("OK", 'No se encontraron diferencias ', 200);
+          }
+        }
+        else {
+          //actualizar monto_total
+          objFicha.total_carpeta = fichaJson.monto_total;
+          await this.fichaRepository.save(objFicha);
+
+          return await this.actualizarItems(Array.from(registrosUnicos.values()), objObra);
+          return res;
+        }
+      } catch (error) {
+        //lanzar error si no se puede guardar la ficha
+
+        //  console.error(`❌ Error al procesar la ficha ${ficha.cod_carpeta}:`, (error as any).message);
+        //mandar  error si no se puede guardar la obra, trwow error
+        console.error(`❌ Error al procesar la ficha: correlativo:  ${id_correlativo}:`, (error as any).message);
+        throw new Error(`Error al procesar la ficha: ${error}`);
+      }
     } else {
       console.log("error: sin datos de servicio, revise si existe la ficha introducida", data.res);
       return this.responseService.error(null, 'no existe datos de servicio');
@@ -348,11 +353,11 @@ export class ficha_itemService {
     }
   }
 
-  async comparacionItems(itemsExterno: any[], obra:Obra){
+  async comparacionItems(itemsExterno: any[], obra: Obra) {
     var texto = "";
     //get array items base y obtener la cantidad de items, id_estado = 1
-    var itemsInterno = await this.itemRepository.find({where: {id_obra: obra.id_obra, id_estado: 1,id_tipo_item:264}});
-    if(itemsInterno === null){
+    var itemsInterno = await this.itemRepository.find({ where: { id_obra: obra.id_obra, id_estado: 1, id_tipo_item: 264 } });
+    if (itemsInterno === null) {
       return `No se encontraron items para la obra`;
     }
 
@@ -361,7 +366,7 @@ export class ficha_itemService {
       //console.log(`Los tamaños de los arrays no coinciden: Externo=${itemsExterno.length}, Interno=${itemsInterno.length}`);
       texto += `Los tamaños de los arrays no coinciden: Externo=${itemsExterno.length}, Interno=${itemsInterno.length}\n`;
     }
-    
+
     //comparar los items de ambos arrays
     for (const itemExterno of itemsExterno) {
       let error = '';
@@ -371,7 +376,7 @@ export class ficha_itemService {
         continue;
       }
       //texto += `Item: ${itemExterno.codigo_item}\n`;
-      
+
       // Comparar propiedades del item: orden_sim,desc_item,unidad_medida_sim,cantidad_sim,p_unitario_sim,total_item_sim
       if (itemExistente.orden_sim !== itemExterno.orden) {
         error += `Orden no coincide, `;
@@ -398,9 +403,9 @@ export class ficha_itemService {
       if (total !== totalExterno) {
         error += `Total no coincide, `;
       }
-      if(error!=''){
+      if (error != '') {
         texto += `Item ${itemExterno.codigo_item}: `;
-        texto += error+'\n';
+        texto += error + '\n';
       }
     }
     return texto;
@@ -414,8 +419,8 @@ export class ficha_itemService {
     return Math.round(num * factor) / factor;
   }
 
-  
-  async actualizarItems(itemsExterno: any[], obra:Obra){
+
+  async actualizarItems(itemsExterno: any[], obra: Obra) {
     var texto = "";
 
     //validar que obra.id_obra no sea nulo ni 0
@@ -424,7 +429,7 @@ export class ficha_itemService {
       throw new Error(`Error: id_obra es nulo o 0, no se puede actualizar los items.`);
     }
     //get array items base y obtener la cantidad de items 
-    var itemsInterno = await this.itemRepository.find({where: {id_obra: obra.id_obra}});
+    var itemsInterno = await this.itemRepository.find({ where: { id_obra: obra.id_obra } });
 
     //validar que existan items externos
     if (itemsExterno == null || itemsExterno.length == 0) {
@@ -433,7 +438,7 @@ export class ficha_itemService {
     }
 
     //dar de baja los items de una obra: update item set id_estado = 0 where id_obra = obra.id_obra, id_tipo_item = id_tipo_item
-    var resBaja = await this.itemRepository.update({id_obra: obra.id_obra, id_tipo_item: 264}, {id_estado: 0});
+    var resBaja = await this.itemRepository.update({ id_obra: obra.id_obra, id_tipo_item: 264 }, { id_estado: 0 });
     console.log("Items dados de baja", resBaja);
 
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM);
@@ -441,27 +446,27 @@ export class ficha_itemService {
     for (const itemExterno of itemsExterno) {
       const itemExistente = itemsInterno.find(item => item.codigo_item === itemExterno.codigo_item);
       //console.log("item Existente",itemExistente);
-      
-      if (!itemExistente) {      
-            var itemCreado=this.itemRepository.create({
-              desc_item: itemExterno.item,
-              cantidad_sim: itemExterno.cantidad,
-              cantidad_autorizada: itemExterno.cantidad,
-              unidad_medida_sim: itemExterno.unidad,
-              p_unitario_sim: itemExterno.real_unitario,
-              total_item_sim: itemExterno.total,
-              obra: obra, // Relación con la obra
-              codigo_item: itemExterno.codigo_item || '',
-              partida_sim: itemExterno.partida || 0, // ajustar para el servicio
-              orden_sim: itemExterno.orden, // ajustar para el servicio
-              id_tipo_item: id_tipo_item, // ajustar para el servicio
-              id_usuario_registro: obra.usuario_registro,
-              id_estado: 1,
-            });
-            var itemCreadores = await this.itemRepository.save(itemCreado);
-            //console.log("Item creado", itemCreado,itemCreadores);
+
+      if (!itemExistente) {
+        var itemCreado = this.itemRepository.create({
+          desc_item: itemExterno.item,
+          cantidad_sim: itemExterno.cantidad,
+          cantidad_autorizada: itemExterno.cantidad,
+          unidad_medida_sim: itemExterno.unidad,
+          p_unitario_sim: itemExterno.real_unitario,
+          total_item_sim: itemExterno.total,
+          obra: obra, // Relación con la obra
+          codigo_item: itemExterno.codigo_item || '',
+          partida_sim: itemExterno.partida || 0, // ajustar para el servicio
+          orden_sim: itemExterno.orden, // ajustar para el servicio
+          id_tipo_item: id_tipo_item, // ajustar para el servicio
+          id_usuario_registro: obra.usuario_registro,
+          id_estado: 1,
+        });
+        var itemCreadores = await this.itemRepository.save(itemCreado);
+        //console.log("Item creado", itemCreado,itemCreadores);
       }
-      else{
+      else {
         if (itemExistente.finalizado) {
           //console.log(`Item con codigo_item ${itemExterno.codigo_item} ya está finalizado se actualiza el orden.`);
           //texto += `Item ${itemExterno.codigo_item}: ya está finalizado y no se puede actualizar.\n`;
@@ -470,7 +475,7 @@ export class ficha_itemService {
           let actItem = await this.itemRepository.save(itemExistente);
           //console.log("Orden de Item actualizado ", actItem.codigo_item);
         }
-        else{
+        else {
           itemExistente.cantidad_sim = itemExterno.cantidad;
           itemExistente.cantidad_autorizada = itemExterno.cantidad;
           itemExistente.p_unitario_sim = itemExterno.real_unitario;
@@ -483,21 +488,21 @@ export class ficha_itemService {
       }
       //texto += `.\n`;
     }
-    if(texto != ""){
+    if (texto != "") {
       return this.responseService.error("Error", texto, 500);
     }
-    else{
+    else {
       return this.responseService.success("OK", 'Actualización realizada', 200);
     }
   }
-  
+
   async obtenerFichaporCorrelativo(id_correlativo: number, id_usuario: number): Promise<any> {
     //OBTENER PARAMETROS DE URL DESDE .env
     const url_sim = process.env.URL_SIM2;
-    
+
     //Realizar la llamada al servicio externo metodo POST
     const url = `${url_sim}sgeo/wsDataFichaObra`;
-    
+
     //Realizar la llamada al servicio externo
     var response = await fetch(url, {
       method: 'POST',
@@ -510,7 +515,7 @@ export class ficha_itemService {
     const data = await response.json();
     if (data.res == "OK") {
       for (const fichaJson of data.datos) {
-        try { 
+        try {
           //validar que codigo_ficha tenga el texto 2025
           if (!fichaJson.codigo_ficha.includes("2025")) {
             console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} ${fichaJson.codigo_ficha} no corresponde a la gestion 2025.`);
@@ -518,16 +523,16 @@ export class ficha_itemService {
           }
 
           if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
-            console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.`);
             //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
             continue;
           }
 
-        if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
-          console.log( `Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.` );
-          //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
-          continue;
-        }
+          if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
+            console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} es un servicio, no se guarda.`);
+            //msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
+            continue;
+          }
 
           let id_ficha = 0; let objFicha = null; let objObra = null;
           //verificar si existe la ficha en la base de datos, si existe no guardar
@@ -652,7 +657,7 @@ export class ficha_itemService {
 
             items_actualizados += `${itemExistente.id_item}-${item.codigo_item},`;
             console.log(`${itemExistente.orden_sim} actualizado`);
-            
+
           } else {
             console.log(`Item con codigo_item ${item.codigo_item} no existe en la base de datos, se omitirá.`);
             return; // Si no existe, se omite
@@ -661,8 +666,8 @@ export class ficha_itemService {
         //añadir un timeout para console.log("items actualizados: ",items_actualizados);
         await new Promise(resolve => setTimeout(resolve, 2000)); // Espera de 1 segundo
 
-        
-        console.log("items actualizados: ",items_actualizados);
+
+        console.log("items actualizados: ", items_actualizados);
         return items_actualizados; // Retornar los items actualizados
       } catch (error) {
         //lanzar error si no se puede guardar la ficha
@@ -691,7 +696,7 @@ export class ficha_itemService {
       desc_zona_carpeta: fichaJson.localizacion || '',
       id_estado: 1, //Asignar estado inicial
       estado_carpeta: fichaJson.estado,
-      total_carpeta: fichaJson.monto_total,
+      total_carpeta: fichaJson.monto_total||0,
       gestion_carpeta: gestion,
       cod_estado_carpeta: 1, //validado
       cod_prioridad_carpeta: 0,
