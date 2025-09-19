@@ -237,11 +237,12 @@ export class DocumentoController {
       properties: {
         id_informe:   { type: 'number', example: 1131 },
         id_documento: { type: 'number', example: 1245 },
+        id_usuario: { type: 'number', example: 3984 },
       },
     },
   })
-  eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number }) {
-    return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento);
+  eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number,id_usuario: number}) {
+    return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento,data.id_usuario);
   }
   
   @Public()

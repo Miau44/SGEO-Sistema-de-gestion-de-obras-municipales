@@ -389,4 +389,14 @@ WHERE sol.idusuario= ${data.usuario} ` ;
     }
   }
 
+    async getReporteResumenObra(id_obra: number) {
+    try {
+      const query = `SELECT * FROM public.f_reporte_resumen_obra($1);`;
+      const resultado = await this.obraRepositorio.query(query, [id_obra]);
+      return this.responseService.success(resultado, 'Reporte generado correctamente.');
+      } catch (error) {
+       return this.responseService.error(error);
+      }
+    }
+
 }
