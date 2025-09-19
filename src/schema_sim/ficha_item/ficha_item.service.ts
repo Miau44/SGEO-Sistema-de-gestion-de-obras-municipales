@@ -411,15 +411,6 @@ export class ficha_itemService {
     return texto;
   }
 
-  roundTo(num: number, decimales: number): number {
-    if (isNaN(num)) {
-      return NaN;
-    }
-    const factor = Math.pow(10, decimales);
-    return Math.round(num * factor) / factor;
-  }
-
-
   async actualizarItems(itemsExterno: any[], obra: Obra) {
     var texto = "";
 
@@ -759,42 +750,6 @@ export class ficha_itemService {
     return obra;
   }
 
-  // private async guardarItems(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<void> {
-  //   if (!itemsJson || itemsJson.length === 0) return; // No hay items que guardar
-
-  //   const items = itemsJson
-  //   .filter(itemJson => 
-  //     itemJson.codigo_item != "GM" && ["42310", "42230"].includes(itemJson.partida)
-  //   ).map(itemJson => {
-  //     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); //Ajustar para el servicio
-
-  //     return this.itemRepository.create({
-  //       desc_item: itemJson.item,
-  //       cantidad_sim: itemJson.cantidad,
-  //       cantidad_autorizada: itemJson.cantidad,
-  //       unidad_medida_sim: itemJson.unidad,
-  //       p_unitario_sim: itemJson.real_unitario,
-  //       total_item_sim: itemJson.total,
-  //       obra: obra, //Relación con la obra
-  //       codigo_item: itemJson.codigo_item || '',
-  //       partida_sim: itemJson.partida || 0, //ajustar para el servicio
-  //       orden_sim: itemJson.orden, //ajustar para el servicio
-  //       id_tipo_item: id_tipo_item, //ajustar para el servicio
-  //       id_usuario_registro: id_usuario_,
-  //       id_estado: 1,
-  //       finalizado: false,
-  //     });
-  //   });
-
-  //   try {
-  //     await this.itemRepository.save(items);
-  //     console.log(`✅ ${items.length} items guardados para la obra con ID: ${obra.id_obra}`);
-  //   } catch (error) {
-  //     console.error(`❌ Error al guardar items de la obra ${obra.id_obra}:`, (error as any).message);
-  //     throw new Error(`Error al guardar item: ${error}`);
-  //   }
-  // }
-
   private async guardarItems(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<string> {
     if (!itemsJson || itemsJson.length === 0) return "No hay items que guardar";
 
@@ -923,6 +878,37 @@ export class ficha_itemService {
       console.error(`Error al guardar items: ${error}`);
       throw new Error(`Error al guardar items: ${error}`);
     }
+  }
+
+  public async consultarFicha(correlativo_carpeta: number): Promise<any> {
+    //OBTENER PARAMETROS DE URL DESDE .env
+    const url_sim = process.env.URL_SIM2;
+    const url = `${url_sim}sgeo/wsDataFichaObra`; //Realizar la llamada al servicio externo metodo POST
+    //Realizar la llamada al servicio externo
+    var response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+      body: JSON.stringify({
+        "cod_carpeta": correlativo_carpeta
+      })
+    });
+
+    const data = await response.json();
+    if(data.res=="OK"){
+      data.statusCode = 200;
+      return data;
+    }
+    else{
+      return this.responseService.error('ERROR','No se encontraron datos.',500);
+    }
+  };
+
+  roundTo(num: number, decimales: number): number {
+    if (isNaN(num)) {
+      return NaN;
+    }
+    const factor = Math.pow(10, decimales);
+    return Math.round(num * factor) / factor;
   }
 
   formatDate(inputDate: string): Date {

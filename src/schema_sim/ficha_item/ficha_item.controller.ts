@@ -255,4 +255,39 @@ export class FichaItemController {
       return { message: 'Test error', error: error || error };
     }
   }
+
+  @Post('consultarFicha')
+  @Public()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 363321 },
+      },
+      required: ['correlativo_carpeta'],
+    },
+  })
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  async consultarFicha(@Body() body: { correlativo_carpeta: number }) { //añadir parametro de entrada a servicio test, gestion
+    //validar que el id_usuario no sea nulo
+    if (body == null) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
+    }
+    const { correlativo_carpeta } = body;
+    //validar que la gestion no sea nulo y mayor a 2020
+    if (correlativo_carpeta == null) {
+      console.error('Error: gestion es nulo');
+      return { message: 'error', error: 'gestion es nulo' };
+    }
+
+    try {
+      const token = await this.ficha_itemService.obtenerToken();
+      const result = await this.ficha_itemService.consultarFicha(correlativo_carpeta);
+      return {result};
+    } catch (error) {
+      console.error('Error:', error);
+      return { message: 'Test error', error: error || error };
+    }
+  }
 }
