@@ -206,6 +206,11 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
     const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
 
+    let porc_presente = 0;
+    const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+    const total_autorizado = Number(this.datosEnvio[0].monto_presente);
+    porc_presente = Number(total_autorizado / montoContrato) * 100;
+
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
@@ -307,16 +312,16 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                 },       
             ],
             [
-                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
-                { text: [{ text: this.datosInfFis[0].referencia, style: 'textDato' }] },
+              { text: 'REF.:', style: 'textTitulo', alignment:'right' },
+              { text: this.datosInfFis[0].referencia, style: 'textDato' },
             ],
             [
-                { text: 'PERIODO:', style: 'textTitulo', alignment:'right' },
-                { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato' }] },
+              { text: 'PERIODO:', style: 'textTitulo', alignment:'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo), style: 'textDato' },
             ],
             [
-                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosInfFis[0].fecha_aprobacion), style: 'textDato' },
+              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+              { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
             ],
         ],
         },
@@ -562,7 +567,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   text: [
-                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + ' % según monto de contrato inicial, ' + 
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(porc_presente,formatoNumerico2) + ' % según monto de contrato inicial, ' + 
                           ' por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
                       }
                       ], margin: [0, 0, 0, 5]
@@ -671,7 +676,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   text: [
-                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + '% según monto de contrato inicial, ' + 
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(porc_presente,formatoNumerico2) + '% según monto de contrato inicial, ' + 
                           ' por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
                       }
                       ], margin: [0, 0, 0, 5]
