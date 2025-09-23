@@ -176,6 +176,12 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
 
+    
+    let porc_presente = 0;
+    const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+    const total_autorizado = Number(this.datosEnvio[0].monto_presente);
+    porc_presente = Number(total_autorizado / montoContrato) * 100;
+
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
@@ -283,7 +289,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
             ],
             [
               { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-              { text: this.fechaString(this.datosInfSup[0].fecha_aprobacion), style: 'textDato' }
+              { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' }
             ],
         ],
         },
@@ -509,7 +515,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   text: [
-                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + 
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(porc_presente,formatoNumerico2) + 
                         '% según monto del contrato inicial, por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
                       }
                       ], margin: [0, 0, 0, 5]
@@ -631,7 +637,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                 },
                 {
                   text: [
-                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_presente,formatoNumerico2) + 
+                      { text: 'El avance comprendido en el presente certificado alcanza al: ' + this.formatIfNumber(porc_presente,formatoNumerico2) + 
                         '% según monto del contrato inicial, por lo que a la fecha el porcentaje acumulado es de: ' + this.formatIfNumber(this.datosEnvio[0].porcentaje_acumulado,formatoNumerico2) + '%.'
                       }
                       ], margin: [0, 0, 0, 5]
