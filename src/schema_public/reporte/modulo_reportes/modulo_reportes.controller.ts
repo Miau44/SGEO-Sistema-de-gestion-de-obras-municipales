@@ -3,6 +3,7 @@ import { ModuloReportesService } from './modulo_reportes.service';
 import { CreateModuloReporteDto } from './dto/create-modulo_reporte.dto';
 import { UpdateModuloReporteDto } from './dto/update-modulo_reporte.dto';
 import { ReporteGestionDto } from './dto/reporte-gestion.dto';
+import { ReporteActaDto } from './dto/reporte-acta.dto';
 
 @Controller('modulo-reportes')
 export class ModuloReportesController {
@@ -42,4 +43,12 @@ export class ModuloReportesController {
     } catch (error) {
     }
   }   
+
+  @Post('reporte-general-acta')
+  exportarGeneralActa(@Body() reporteObra: ReporteActaDto) {
+    try {  
+      return this.moduloReportesService.descargarReporteActa(reporteObra);
+    } catch (error) {
+    }
+  }     
 }

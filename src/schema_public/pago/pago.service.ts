@@ -401,6 +401,23 @@ export class PagoService {
     }
   }
 
+    
+  async postfechadoPago(AprobarDto: PagoObraDto) {
+    try {
+      // Validar los datos de entrada
+      if (!AprobarDto.id_obra) {
+        throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+      }
+      const query2 = `
+        SELECT public.sp_certificado_fecha($1);	`;
+      const params2 = [AprobarDto.id_obra];
+      const resultado = await this.pagoRepositorio.query(query2, params2);
+      return this.responseService.success(resultado, "post fechado correctamente.");
+    } catch (error) {
+      console.error("Error Postfechado:", error);
+      return this.responseService.error(error);
+    }
+  }
 
 
   async desAprobarPago(AprobarDto: AprobarPagoDto) {
