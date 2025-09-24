@@ -374,7 +374,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         query = `SELECT modificacion , id_item , orden , nombre ,
               tramo , descripcion , 
               unidad , numero numeric, largo , ancho ,
-              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 ;`;
+              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 OR total_autorizado IS NULL;`;
       }
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
