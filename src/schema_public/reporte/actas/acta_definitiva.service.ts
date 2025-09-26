@@ -151,7 +151,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
-  const fechaFin = new Date(this.datosProv[0].fecha_registro); //Fecha Acta Provisional
+  const fechaFin = new Date(this.datosProv[0].fecha_acta); //Fecha Acta Provisional
   const diffMs = fechaFin.getTime() - fechaInicio.getTime();
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // suma 1 si el plazo incluye el primer día
   const plazo_real = diffDias;

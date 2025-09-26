@@ -345,7 +345,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                         .map(s => s.supervisor)
                         .join(' | ')
                     : ''
-          ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', se emite el presente informe.',
+          ) + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ', se emite el presente informe.',
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
@@ -496,7 +496,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                               .map(s => s.supervisor)
                               .join(' | ')
                           : ''
-                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                ) + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ', correspondiente al periodo del ' + 
                   this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
                   ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
@@ -546,7 +546,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
               [
                 { text: [
                       { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
-                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
+                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) +  ' emitido por la supervisión de obra, ' + 
                           (Array.isArray(this.datosSup)
                           ? this.datosSup
                               .filter(s => s && s.supervisor)
@@ -605,7 +605,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
                               .map(s => s.supervisor)
                               .join(' | ')
                           : ''
-                ) + ' de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) + ', correspondiente al periodo del ' + 
+                ) + ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ', correspondiente al periodo del ' + 
                   this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +
                   ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
@@ -655,7 +655,7 @@ async generateInformePagoFiscal(id_modif_pago: number): Promise<Buffer> {
               [
                 { text: [
                       { text: 'De acuerdo al informe de aprobación Nro. ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInfSup[0].cite_informe + '-' + 
-                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosInfSup[0].fecha_aprobacion) +  ' emitido por la supervisión de obra, ' + 
+                          this.datosInfSup[0].correlativo + ', de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) +  ' emitido por la supervisión de obra, ' + 
                           (Array.isArray(this.datosSup)
                           ? this.datosSup
                               .filter(s => s && s.supervisor)
