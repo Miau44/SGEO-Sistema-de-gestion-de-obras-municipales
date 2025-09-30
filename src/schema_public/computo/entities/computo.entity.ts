@@ -66,7 +66,7 @@ export class Computo {
     @UpdateDateColumn({ type: 'timestamp' })
     fecha_modificacion: Date;
 
-    @Column()
+    @Column({default: 1})
     id_estado: number;
 
 

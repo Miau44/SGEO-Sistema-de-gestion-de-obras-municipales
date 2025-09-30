@@ -4,7 +4,7 @@ import { UpdateComputoDto } from './dto/update-computo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Computo } from './entities/computo.entity';
 import { ResponseService } from 'src/response.service';
-import { Any, Repository } from 'typeorm';
+import { Any, DeepPartial, Repository } from 'typeorm';
 import { ComputoObra } from './dto/computo-obra.dto';
 
 
@@ -51,7 +51,7 @@ export class ComputoService {
     private modificacionService: ModificacionPagoService,
     private itemService: ItemService,
     private externoService: ExternoService,
-      private logService: LogService,
+    private logService: LogService,
 
   ) { }
 
@@ -59,14 +59,14 @@ export class ComputoService {
   async create(createComputoDto: CreateComputoDto) {
     try {
       const info_obra = await this.modificacionService.findOne(createComputoDto.id_modificacion_pago);
-      const id_obra =  info_obra.data.id_obra;
+      const id_obra = info_obra.data.id_obra;
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${createComputoDto.id_modificacion_pago} not found`);
       }
       const obra = await this.obraservice.findOne(id_obra);
       const modalidad = obra.data[0].modalidad;
       this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
-      
+
       createComputoDto.alto = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.alto), this.var_decimal);
       createComputoDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.largo), this.var_decimal);
       createComputoDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.ancho), this.var_decimal);
@@ -78,37 +78,37 @@ export class ComputoService {
       const resultado = await this.computoRepositorio.save(createComputoDto);
 
       // LOG DE ÉXITO
-    await this.logService.create({
-      id_usuario: createComputoDto.id_usuario_registro,
-      mensaje: 'Cómputo registrado correctamente',
-      parametro: `id_modificacion_pago: ${createComputoDto.id_modificacion_pago}`,
-      funcionalidad: 'creacion-computo',
-      respuesta: JSON.stringify(resultado),
-    });
+      await this.logService.create({
+        id_usuario: createComputoDto.id_usuario_registro,
+        mensaje: 'Cómputo registrado correctamente',
+        parametro: `id_modificacion_pago: ${createComputoDto.id_modificacion_pago}`,
+        funcionalidad: 'creacion-computo',
+        respuesta: JSON.stringify(resultado),
+      });
 
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
 
       let mensajeError = '';
-    let stackError = null;
+      let stackError = null;
 
-    if (error instanceof Error) {
-      mensajeError = error.message;
-      stackError = error.stack;
-    } else {
-      mensajeError = String(error);
-    }
-    // LOG DE ERROR
-    await this.logService.create({
-      id_usuario: createComputoDto?.id_usuario_registro || 0,
-      mensaje: 'Error al registrar cómputo',
-      parametro: `id_modificacion_pago: ${createComputoDto?.id_modificacion_pago || 'no definido'}`,
-      funcionalidad: 'create-computo',
-      respuesta: JSON.stringify({
-        error: mensajeError,
-        stack: stackError,
-      }),
-    });
+      if (error instanceof Error) {
+        mensajeError = error.message;
+        stackError = error.stack;
+      } else {
+        mensajeError = String(error);
+      }
+      // LOG DE ERROR
+      await this.logService.create({
+        id_usuario: createComputoDto?.id_usuario_registro || 0,
+        mensaje: 'Error al registrar cómputo',
+        parametro: `id_modificacion_pago: ${createComputoDto?.id_modificacion_pago || 'no definido'}`,
+        funcionalidad: 'create-computo',
+        respuesta: JSON.stringify({
+          error: mensajeError,
+          stack: stackError,
+        }),
+      });
       return this.responseService.error(error);
     }
   }
@@ -123,8 +123,8 @@ export class ComputoService {
 
   async update(id: number, updateComputoPlanillaDto: UpdateComputoDto) {
     try {
-      const info_obra = await this.modificacionService.findOne(updateComputoPlanillaDto.id_modificacion_pago??0);
-      const id_obra =  info_obra.data.id_obra;
+      const info_obra = await this.modificacionService.findOne(updateComputoPlanillaDto.id_modificacion_pago ?? 0);
+      const id_obra = info_obra.data.id_obra;
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${updateComputoPlanillaDto.id_modificacion_pago} not found`);
       }
@@ -158,20 +158,20 @@ export class ComputoService {
       const unidad = (items.unidad_medida_sim || '').toLowerCase();
 
 
-        if (unidad === 'm2') {
-    
-          v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aalto * aancho * aalto * aarea), this.var_decimal
-          );
+      if (unidad === 'm2') {
 
-        } else if (unidad === 'm3') {
-        
-          v_volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(alargo * aancho * aalto * avolumen),this.var_decimal);
+        v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aalto * aancho * aalto * aarea), this.var_decimal
+        );
 
-          
-          if (aarea > 0 ) {
-            v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aarea), this.var_decimal );
-          }
+      } else if (unidad === 'm3') {
+
+        v_volumen_total = DecimalUtil.roundToDecimals(this.ensureNumber(alargo * aancho * aalto * avolumen), this.var_decimal);
+
+
+        if (aarea > 0) {
+          v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(aarea), this.var_decimal);
         }
+      }
 
 
 
@@ -182,7 +182,7 @@ export class ComputoService {
       updateComputoPlanillaDto.area_total = v_area_total;
       updateComputoPlanillaDto.volumen_total = v_volumen_total;
       //***************************Calcular area_total o volumen_total según la unidad****************************/
-      
+
       const resultado = await this.computoRepositorio.update(id, updateComputoPlanillaDto);
       return this.responseService.success(resultado, "Actualizado Correctamente.")
     } catch (error) {
@@ -277,25 +277,25 @@ export class ComputoService {
   async listaComputoXItem(data: ComputoItemDto) {
     try {
       ;
-   /*   let query =
-        `  SELECT  
-      m.id_modificacion,
-      i.id_item, i.orden_sim, c.id_computo, 
-      codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
-      total_adjudicado,  numero_veces,  tramo, descripcion, 
-      CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
-      CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
-      CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
-      CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
-      CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
-	    parcial, i.id_obra
-      FROM public.item AS i
-      INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
-	  INNER JOIN public.modificacion AS m ON c.id_modificacion  = m.id_modificacion 
-	  WHERE i.id_item =$1
-       AND m.id_modificacion = $2
-	  AND i.id_estado=1`;*/
-  let query =` SELECT   c.id_computo,
+      /*   let query =
+           `  SELECT  
+         m.id_modificacion,
+         i.id_item, i.orden_sim, c.id_computo, 
+         codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
+         total_adjudicado,  numero_veces,  tramo, descripcion, 
+         CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,	      
+         CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,	      
+         CASE WHEN alto = 0 THEN '' ELSE alto::TEXT END AS alto,	      
+         CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,	      
+         CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,	      
+         parcial, i.id_obra
+         FROM public.item AS i
+         INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
+       INNER JOIN public.modificacion AS m ON c.id_modificacion  = m.id_modificacion 
+       WHERE i.id_item =$1
+          AND m.id_modificacion = $2
+       AND i.id_estado=1`;*/
+      let query = ` SELECT   c.id_computo,
     c.id_modificacion_pago,
     i.id_item, i.orden_sim, c.id_computo, 
     codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
@@ -339,25 +339,25 @@ export class ComputoService {
     try {
       ;
 
-       /* `SELECT  
-        p.id_modificacion_pago as modificacion,
-      i.id_item, 
-      i.orden_sim AS orden,    
-      i.desc_item  AS nombre,  
-      tramo, descripcion, unidad_medida_sim as unidad,
-      numero_veces as numero, 
-   	  CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,
-	  CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,
-      CASE WHEN alto = 0 THEN ''  ELSE alto::TEXT END AS  alto ,
-	  CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
-	  CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
-        CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
-        po.justificacion_supervisor	
-      FROM public.item AS i
-      LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
-     INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
+      /* `SELECT  
+       p.id_modificacion_pago as modificacion,
+     i.id_item, 
+     i.orden_sim AS orden,    
+     i.desc_item  AS nombre,  
+     tramo, descripcion, unidad_medida_sim as unidad,
+     numero_veces as numero, 
+       CASE WHEN largo = 0 THEN '' ELSE largo::TEXT END AS largo,
+   CASE WHEN ancho = 0 THEN '' ELSE ancho::TEXT END AS ancho,
+     CASE WHEN alto = 0 THEN ''  ELSE alto::TEXT END AS  alto ,
+   CASE WHEN area = 0 THEN '' ELSE area::TEXT END AS area,
+   CASE WHEN volumen = 0 THEN '' ELSE volumen::TEXT END AS volumen,            
+       CASE WHEN parcial = 0 THEN '' ELSE parcial::TEXT END AS parcial,
+       po.justificacion_supervisor	
+     FROM public.item AS i
+     LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
+    INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
 LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_planilla           
-      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;*/
+     WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;*/
       let queryinicio = ` 
      SELECT id_tipo_mod_pago FROM public.modificacion_pago WHERE id_modificacion_pago = $1;`  ;
       const paramsinicio = [data.id_modificacion_pago];
@@ -374,7 +374,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         query = `SELECT modificacion , id_item , orden , nombre ,
               tramo , descripcion , 
               unidad , numero numeric, largo , ancho ,
-              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 ;`;
+              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 OR total_autorizado IS NULL;`;
       }
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
@@ -555,7 +555,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
   }
 
 
-  private async insertarJustificacion(datosExcel: any[], id_usuario:number, id_historial:number, id_modificacion:number): Promise<void> {
+  private async insertarJustificacion(datosExcel: any[], id_usuario: number, id_historial: number, id_modificacion: number): Promise<void> {
     try {
       const resumen = datosExcel.reduce((acc, item) => {
 
@@ -570,11 +570,11 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       }, new Map<number, { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }>());
       const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
       //console.log('resultado-resumen', resultado);
-      for (const itemres of resultado) {        
+      for (const itemres of resultado) {
         await this.planillaService.actualizarJustificacionXItem({
           id_modificacion_pago: id_modificacion,
           id_item: itemres.id_item,
-          id_solicitud_historial: id_historial,          
+          id_solicitud_historial: id_historial,
           justificacion_supervisor: itemres.justificacion_supervisor,
           id_usuario_registro: id_usuario
         });
@@ -588,51 +588,57 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
   private async insertarDatosLotes(datosExcel: any[], dataadicional: any, batchSize: number): Promise<void> {
     try {
 
-   
       const info_obra = await this.modificacionService.findOne(dataadicional.id_modificacion);
-    const id_obra =  info_obra.data.id_obra
+      const id_obra = info_obra.data.id_obra
 
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${dataadicional.id_modificacion} not found`);
       }
-        const obra = await this.obraservice.findOne(id_obra);
-        const modalidad = obra.data[0].modalidad;
+      const obra = await this.obraservice.findOne(id_obra);
+      const modalidad = obra.data[0].modalidad;
 
 
-        console.log('modalidad', modalidad);                    
-        if (modalidad === 'CONTRATACION DIRECTA') {
-          this.var_decimal = 2;
-        } else {
-          this.var_decimal = 5;
-        }
-        if (!obra) {
-          throw new NotFoundException(`Obra with ID ${id_obra} not found`);
-          return
-        }
-      
+      console.log('modalidad', modalidad);
+      if (modalidad === 'CONTRATACION DIRECTA') {
+        this.var_decimal = 2;
+      } else {
+        this.var_decimal = 5;
+      }
+      if (!obra) {
+        throw new NotFoundException(`Obra with ID ${id_obra} not found`);
+        return
+      }
+
       //calcular version
       const max_version = await this.getMaxVersion(dataadicional.id_modificacion);
       //copiar datos actuales a computo historico      
-      await this.copiarComputoaHistorico(dataadicional)    
-      
+      await this.copiarComputoaHistorico(dataadicional)
+
       // nueva version = version +1
       const nueva_version = max_version + 1;
       //borrar computos por id_modificacion y tipo de computo
       await this.deleteXModificacion(dataadicional.id_modificacion)
-      
+
       await this.logService.create({
-      id_usuario: dataadicional.id_usuario,
-      mensaje: `Insertando cómputos métricos con versión ${nueva_version}`,
-      funcionalidad: 'insertarDatosLotes',
-      parametro: `Total registros en Excel: ${datosExcel.length}`,
-      respuesta: `Nueva versión: ${nueva_version}`
-    });
+        id_usuario: dataadicional.id_usuario,
+        mensaje: `Insertando cómputos métricos con versión ${nueva_version}`,
+        funcionalidad: 'insertarDatosLotes',
+        parametro: `Total registros en Excel: ${datosExcel.length}`,
+        respuesta: `Nueva versión: ${nueva_version}`
+      });
 
       //await this.planillaService.deletePlanillaObservacionExcel(dataadicional.id_modificacion);
+      const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
+      const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////          
 
       for (let i = 0; i < datosExcel.length; i += batchSize) {
-        const batch = datosExcel.slice(i, i + batchSize).map(row => {
-  
+        const batch = datosExcel.slice(i, i + batchSize).map(async row => {
+          /*-----------------------------cantidad_autorizada--------------------------*/
+          const respuesta_item = await this.itemService.findItem(row.id_item ?? 0);
+          const v_cantidad_autorizada = Number(respuesta_item.data?.cantidad_autorizada ?? 0);
+          /*-----------------------------cantidad_autorizada--------------------------*/
 
           const noVeces = DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal) || 1;
           const aLargo = DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal) || 1;
@@ -641,9 +647,9 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
           const dArea = DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal) || 1;
           const eVolumen = DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal) || 1;
 
-          
+
           const calculo_parcial = noVeces * aLargo * bAncho * cAlto * dArea * eVolumen;
-          const calculoparcial =DecimalUtil.roundToDecimals(this.ensureNumber(calculo_parcial), this.var_decimal);
+          const calculoparcial = DecimalUtil.roundToDecimals(this.ensureNumber(calculo_parcial), this.var_decimal);
 
           //***************************Calcular area_total o volumen_total según la unidad*****************************
           let v_area_total = 0;
@@ -661,48 +667,87 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
               this.var_decimal
             );
 
-      // solo se calcula área si se proporciona un valor válido en aarea
-                if (dArea > 0 ) {
-                  v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(dArea), this.var_decimal );
-                }
+            // solo se calcula área si se proporciona un valor válido en aarea
+            if (dArea > 0) {
+              v_area_total = DecimalUtil.roundToDecimals(this.ensureNumber(dArea), this.var_decimal);
+            }
 
           }
           //***************************Calcular area_total o volumen_total según la unidad****************************/
-          return {
-            id_item: row.id_item || '',
-            id_modificacion_pago: dataadicional.id_modificacion,
-            tramo: row.tramo || '',
-            descripcion: row.descripcion || '',
+          
+          if (v_id_tipo_mod_pago < 4) {
+            return {
+              id_item: row.id_item || '',
+              id_modificacion_pago: dataadicional.id_modificacion,
+              tramo: row.tramo || '',
+              descripcion: row.descripcion || '',
+              numero_veces: DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal),
+              alto: DecimalUtil.roundToDecimals(this.ensureNumber(row.alto), this.var_decimal),
+              largo: DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal),
+              ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),
+              area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),
+              area_total: v_area_total,
+              volumen_total: v_volumen_total,
+              volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),
+              parcial: calculoparcial,
+              // id_tipo_computo: dataadicional.id_tipo_computo,
+              version: nueva_version,
+              // observacion_fiscal: '',
+              id_usuario_registro: dataadicional.id_usuario,
+              id_estado: 1,
+            } as DeepPartial<Computo>;
 
-            numero_veces: DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal),
-            alto: DecimalUtil.roundToDecimals(this.ensureNumber(row.alto), this.var_decimal),
-            largo: DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal),
-            ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),
-            area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),
-            area_total: v_area_total,
-            volumen_total: v_volumen_total,
-            volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),
-            parcial: calculoparcial,
-            // id_tipo_computo: dataadicional.id_tipo_computo,
-            version: nueva_version,
-            observacion_fiscal: '',
-            id_usuario_registro: dataadicional.id_usuario,
-            id_estado: 1,
-          };
+          } else {
+
+          if ( v_cantidad_autorizada > 0) {
+            return {
+              id_item: row.id_item || '',
+              id_modificacion_pago: dataadicional.id_modificacion,
+              tramo: row.tramo || '',
+              descripcion: row.descripcion || '',
+              numero_veces: DecimalUtil.roundToDecimals(this.ensureNumber(row.numero), this.var_decimal),
+              alto: DecimalUtil.roundToDecimals(this.ensureNumber(row.alto), this.var_decimal),
+              largo: DecimalUtil.roundToDecimals(this.ensureNumber(row.largo), this.var_decimal),
+              ancho: DecimalUtil.roundToDecimals(this.ensureNumber(row.ancho), this.var_decimal),
+              area: DecimalUtil.roundToDecimals(this.ensureNumber(row.area), this.var_decimal),
+              area_total: v_area_total,
+              volumen_total: v_volumen_total,
+              volumen: DecimalUtil.roundToDecimals(this.ensureNumber(row.volumen), this.var_decimal),
+              parcial: calculoparcial,
+              // id_tipo_computo: dataadicional.id_tipo_computo,
+              version: nueva_version,
+              // observacion_fiscal: '',
+              id_usuario_registro: dataadicional.id_usuario,
+              id_estado: 1,
+            } as DeepPartial<Computo>;
+
+          }
+          return null; // Si no cumple, no se guarda     
+        }     
         });
+        // await this.computoRepositorio.save(batch);
 
-        await this.computoRepositorio.save(batch);
+        // Resolvemos las promesas
+        const batchResolved = (await Promise.all(batch))
+          .filter((item): item is DeepPartial<Computo> => item !== null);
+
+        // Guardamos solo si hay registros
+        if (batchResolved.length > 0) {
+          await this.computoRepositorio.save(batchResolved);
+        }
       }
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////      
       const datos = {
         id_modificacion_pago: dataadicional.id_modificacion,
         id_item: 0
       }
-        //actualizar toda la planilla 30052025 
-        await this.planillaService.actualizarPlanilla(datos);
+      //actualizar toda la planilla 30052025 
+      await this.planillaService.actualizarPlanilla(datos);
 
       //para no insertar justificacion si es pago
-      const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
-      const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;
+      /*  const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
+        const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;*/
       if (!tipo_modificacion || tipo_modificacion.data.length === 0) {
         console.warn(`no existe tipo de modificacion pago para justificacion ${dataadicional.id_modificacion} not found`);
       }
@@ -713,12 +758,12 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       }
     } catch (error: any) {
       await this.logService.create({
-      id_usuario: dataadicional?.id_usuario || 0,
-      mensaje: 'Error al insertar datos de cómputos métricos',
-      funcionalidad: 'insertar-DatosLotesExcel',
-      parametro: JSON.stringify(dataadicional),
-      respuesta: error.message
-    });
+        id_usuario: dataadicional?.id_usuario || 0,
+        mensaje: 'Error al insertar datos de cómputos métricos',
+        funcionalidad: 'insertar-DatosLotesExcel',
+        parametro: JSON.stringify(dataadicional),
+        respuesta: error.message
+      });
       throw new Error(`Error al insertar datos en la base de datos: ${error.message}`);
     }
   }
@@ -737,7 +782,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
     return !isNaN(parsedValue) && value !== null && value !== '' ? parsedValue : 0;
   }
 
-  async copiarComputoaHistorico(data:any) {
+  async copiarComputoaHistorico(data: any) {
     try {
       let query =
         `           
@@ -752,7 +797,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
             'id_estado', id_estado)) as data_json,
             version , $2, 1
             FROM public.computo WHERE id_modificacion_pago= $1
-            GROUP BY id_modificacion_pago, version          
+            GROUP BY id_modificacion_pago, version;          
           `;
       const params: any[] = [data.id_modificacion, data.id_usuario,];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
@@ -783,7 +828,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
 
 
 
-  async listaResumenXModifiacion(data:ComputoResumenDto) {
+  async listaResumenXModifiacion(data: ComputoResumenDto) {
     try {
       let query = `           
              SELECT * FROM public.sp_modificacion_x_resumen() WHERE id_modificacion_pago =$1      
@@ -813,7 +858,7 @@ INNER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo
       typeof row.observacion_fiscal === 'string' && row.observacion_fiscal.trim() !== ''
     )
     return { tieneObservacion, registros: rows };
-    
+
   } catch(error: any) {
     console.error('Error en la consulta:', error);
     return { tieneObservacion: false, registros: [] }; // ✅ Manejar errores correctamente
@@ -821,12 +866,12 @@ INNER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo
 
 
 
-////////////////////////////COMPUTO OBSERVACION//////////////////////////////////
+  ////////////////////////////COMPUTO OBSERVACION//////////////////////////////////
 
   // async createComputoObservacion(createComputoDto: CreateComputoObservacionDto) {
   //   try {
   //     console.log('createComputoDto', createComputoDto);
-      
+
   //     const resultado = await this.computoObsRepositorio.save(createComputoDto);
   //     console.log('resultado', resultado );
   //     return this.responseService.success(resultado, "Registrado Correctamente.")

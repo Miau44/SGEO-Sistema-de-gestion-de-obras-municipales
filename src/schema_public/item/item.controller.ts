@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
@@ -59,6 +59,17 @@ export class ItemController {
     return await this.itemService.findOne(+id);
   }
 
+
+
+  @Get(':id')
+  findOneItem(@Param('id') id: string) {
+    try {
+      return this.itemService.findItem(+id);
+    } catch (error) {
+      throw new HttpException('Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return this.itemService.findOne(+id);
+  }  
   // Ruta para actualizar un item por id
 
   @Public()
