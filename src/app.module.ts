@@ -41,6 +41,8 @@ import { CorreoModule } from './schema_public/correo/correo.module';
 import { DocumentoSistemaModule } from './schema_public/documento_sistema/documento_sistema.module';
 import { PagoModule } from './schema_public/pago/pago.module';
 import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/modulo_reportes.module';
+import { AvanceFisicoModule } from './schema_public/avance_fisico/avance_fisico.module';
+import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_documento/avance_fisico_documento.module';
 
 
 
@@ -55,7 +57,7 @@ import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/mo
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       autoLoadModels: true,
-      synchronize: false,
+      synchronize: false
     }),
     ReporteModule,
 
@@ -113,7 +115,9 @@ import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/mo
   CorreoModule,
   DocumentoSistemaModule,
   PagoModule,
-  ModuloReportesModule
+  ModuloReportesModule,
+  AvanceFisicoModule,
+  AvanceFisicoDocumentoModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
