@@ -208,7 +208,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosUM);
+   //console.log('DATOS MODIFICACION',this.datosUM);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
    // CALCULOS COLUMNA DERECHA
@@ -271,7 +271,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
               { text: 'DISTRITO:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
               { text: this.datosEnvio[0].desc_distrito_carpeta, style: 'textDato', fillColor: '#dddddd' },
               { text: 'FECHA PRESENTACIÓN:', style: 'textTitulo', alignment: 'left', fillColor: '#dddddd' },
-              { text: this.formatearFecha(this.datosEnvio[0].fecha_aprobacion_pago), style: 'textDato', fillColor: '#dddddd' }
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_certificado), style: 'textDato', fillColor: '#dddddd' }
             ],           
           ]
         }, layout: 'noBorders'
