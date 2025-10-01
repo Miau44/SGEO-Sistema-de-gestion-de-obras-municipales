@@ -488,12 +488,16 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   }
 
 
-  async tieneIncremento(idModificacionPago: number): Promise<boolean> {
+  async tieneIncremento(data: ActualizarModPagoDto): Promise<any> {
     const result = await this.modificacionRepo.query(
       `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
-      [idModificacionPago],
+      [data.id_modificacion_pago],
     );
-    return result[0].resultado;
+    result[0].resultado;
+    return this.responseService.success(result[0].resultado, "Correctamente.");
+  } catch(error: any) {
+    console.error("Error al generar datos de:", error);
+    return this.responseService.error(error);
   }
 
   //servicio para listar modificaciones por tipo contrato y tipo de moficacion, ABL 18/08/2024

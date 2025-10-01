@@ -109,6 +109,17 @@ export class ItemService {
     return item;
   }
 
+ async findItem(id_item: number) {
+
+    try {
+      const resultado = await this.itemRepository.findOneBy({ id_item: id_item });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
   // Actualizar un item por id
   async update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
 

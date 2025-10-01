@@ -1,3 +1,4 @@
+import { AvanceFisicoDocumento } from 'src/schema_public/avance_fisico_documento/entities/avance_fisico_documento.entity';
 import { GarantiaSeguro } from 'src/schema_public/garantia_seguro/entities/garantia_seguro.entity';
 import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 @Entity()
@@ -36,6 +37,9 @@ export class Documento {
     fecha_modificacion: Date    
     
     @OneToOne(type => GarantiaSeguro, ganrantiaSeg => ganrantiaSeg.documento)
-    garantiaSeguro: GarantiaSeguro[];   
+    garantiaSeguro: GarantiaSeguro[]; 
+    
+    @OneToMany(() => AvanceFisicoDocumento, (rel) => rel.documento)
+    avances: AvanceFisicoDocumento[];
 
 }

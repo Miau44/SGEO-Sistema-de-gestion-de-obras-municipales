@@ -58,6 +58,9 @@ export class Pago {
 
     @Column({ nullable:true })
     finalizado: boolean;
+
+    @Column({ type: 'timestamp without time zone', nullable: true })
+    fecha_certificado: Date|null;       
   
     ///campos de tabla generales
     @Column()

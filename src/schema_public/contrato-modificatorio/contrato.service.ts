@@ -10,11 +10,13 @@ import { ResponseDto } from '../parametrica/dto/response.dto';
 import { ContratoDlcDto } from './dto/contrato-dlc.dto';
 import { LogService } from '../log/log.service';
 import { Json } from 'sequelize/types/utils';
+import { ResponseService } from 'src/response.service';
 
 @Injectable()
 export class ContratoService {
 
   constructor(
+    private responseService: ResponseService,
     @InjectRepository(Contrato)
     private contratoRepo: Repository<Contrato>,
     @InjectRepository(Ficha)
@@ -300,6 +302,30 @@ export class ContratoService {
     }
   }
 
+    public async consultarContrato(correlativo_carpeta: number,gestion:number): Promise<any> {
+    //OBTENER PARAMETROS DE URL DESDE .env
+    const url_sim = process.env.URL_SIM2;
+    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/${correlativo_carpeta}`;
+    console.log('Consultando servicio externo:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.token}`,
+      },
+    });
+
+    const data = await response.json();
+    console.log(data);
+    
+    if(data.statusCode==200){
+      return data;
+    }
+    else{
+      return this.responseService.error('ERROR','No se encontraron datos.',500);
+    }
+  };
   /**
  * Limpia el monto del JSON para convertirlo en un valor numérico.
  * @param monto - Monto en formato "          10.600,00".

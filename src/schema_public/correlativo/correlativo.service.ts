@@ -17,7 +17,8 @@ async create(createCorrelativoDto: CreateCorrelativoDto) {
     try {
       const gruposEspeciales = [
         [235,295,237,238], 
-        [236,296],     
+        [236,296],  
+        [224,225] 
       ];
   
       let count = 0;

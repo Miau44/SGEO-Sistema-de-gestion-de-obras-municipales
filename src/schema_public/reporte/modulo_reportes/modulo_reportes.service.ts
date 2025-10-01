@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { Computo } from 'src/schema_public/computo/entities/computo.entity';
-
+import { ReporteActaDto } from './dto/reporte-acta.dto';
 
 @Injectable()
 export class ModuloReportesService {
@@ -52,5 +52,20 @@ private readonly DECIMAL_PLACES = 5;
       return this.responseService.error(error);
     }
   }
+
+  async descargarReporteActa(data: ReporteActaDto) {
+    try {
+    
+      let queryinicio = ` 
+     SELECT * FROM public.fn_reporte_general_actas($1, $2, $3);`  ;
+//SELECT * FROM public.fn_reporte_general_actas('01-08-2025', '30-08-2025', 'APROBADO')     
+      const paramsinicio = [data.fecha_inicio, data.fecha_fin, data.estado];
+      const resultado = await this.reporteRepositorio.query(queryinicio, paramsinicio);
+     
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }  
 
 }

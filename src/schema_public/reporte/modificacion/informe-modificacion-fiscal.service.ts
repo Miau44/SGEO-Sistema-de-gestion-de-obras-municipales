@@ -31,7 +31,8 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 
 @Injectable()
 export class InformeModificacionFiscal {
-    datosEnvio: any = [];
+  datosEnvio: any = [];
+    datosFis: any = [];
     datosModAp: any = [];
     datosMod: any = [];
     datosInf: any = [];
@@ -144,7 +145,13 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   }
   this.datosEnvio = datosGenerales;
 
-  const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+  const res1 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
+  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos del fiscal designado');
+  }
+  this.datosFis = res1;
+
+    const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
   // if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
   //     throw new Error('No se encontraron datos de las modificaciones de la obra');
   // }
@@ -244,67 +251,110 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         text: '\n',
       },
       {
-        table: {
-          widths: ['20%', '80%'],
-          body: [
-            [
-              { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
-              { text:  [
-                { text: this.datosInf[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
-                { text: this.datosInf[0].a_cargo, style: 'textTitulo', alignment: 'left'}
-                ]
-              }   
-            ],
-            //Fila VIA: solo si la condición NO se cumple
-            ...(
-              this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
-                  // No incluir la fila
-                ? []
-                : [[
-                    { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                    {
-                      text: [
-                        { text: this.datosInf[0].via_nombre + '\n', style: 'textDato' },
-                        { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
-                      ],
-                      margin: [0, 5, 0, 5]
+          table: {
+            widths: ['15%', '85%'],
+            body: [
+              [
+                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
+                {
+                  text: (() => {
+                    const da = this.datosEnvio[0].desc_cod_da;
+                    const monto = this.datosEnvio[0].monto_contrato;
+                    const nombreDA = this.datosEnvio[0].nombre_da;
+                    const nombreSAF = this.datosSaf[0].nombre_saf;
+                    const aprobador = this.datosAF[0].aprobador;
+                    //console.log('VALIDACION1', da);
+                    if (da >= 37 && da <= 45) {
+                      if (monto > 200000) {
+                        return [
+                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      } else {
+                        return [
+                          { text: nombreSAF + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      }
+                    } else {
+                      console.log('DATOS MODIFICACION',this.datosAF);
+                      if (monto > 500000) {
+                        return [
+                          { text: this.datosSec[0].nombre_sec + '\n', style: 'textDato' },
+                          { text: this.datosSec[0].nombre_da, style: 'textTitulo' }
+                        ];
+                      } else {
+                        return [
+                          { text: nombreSAF + '\n', style: 'textDato' },
+                          { text: nombreDA, style: 'textTitulo' }
+                        ];
+                      }
                     }
-                  ]]
-            ),
-            [
-              { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-              { 
-                text: [
-                    { text: this.datosInf[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
-                    { text: this.datosInf[0].de_cargo, style: 'textTitulo', alignment: 'left'}
-                  ]
-              },            
+                  })(),
+                  style: ''
+                }   
+                  
+              ],
+              //Fila VIA: solo si la condición NO se cumple
+              ...(
+                this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                   // No incluir la fila
+                  ? []
+                  : [[
+                      { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                      {
+                        text: [
+                          { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
+                          { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
+                        ],
+                        margin: [0, 5, 0, 5]
+                      }
+                    ]]
+              ),
+              [
+                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
+                { 
+                  text: [
+                      {
+                        text: (
+                          Array.isArray(this.datosFis)
+                            ? this.datosFis
+                                .filter(f => f && f.fiscal)
+                                .map(f => f.fiscal)
+                                .join('\n')  // salto de linea 
+                            : ''
+                        ) + '\n',
+                        style: 'textDato', alignment: 'left'
+                      },
+                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
+                    ]
+                },            
+              ],
+              [
+                { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                { text: [
+                    { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
+                    { text: this.datosInf[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
+                        ]
+                }
+              ],
+              [
+                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
+              ],
             ],
-            [
-              { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-              { text: [
-                  { text: this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + '\n', style: 'textTitulo', margin: [0, 5, 0, 5] },
-                  { text: this.datosInf[0].referencia, style: 'textDato', margin: [0, 5, 0, 5] }
-                      ]
-              }
-            ],
-            [
-              { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-              { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
-            ],
-          ],
+          },
+          layout: {
+            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+            vLineWidth: () => 0, // Sin líneas verticales
+            hLineColor: () => 'black', // Color de la línea horizontal
+            paddingLeft: () => 5, // Espaciado interno izquierdo
+            paddingRight: () => 5, // Espaciado interno derecho
+            paddingTop: () => 2, // Espaciado interno superior
+            paddingBottom: () => 2, // Espaciado interno inferior
+          },
+          margin: [20, 0, 20, 10], // Márgenes de la tabla
         },
-        layout: {
-          hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
-          vLineWidth: () => 0, // Sin líneas verticales
-          hLineColor: () => 'black', // Color de la línea horizontal
-          paddingLeft: () => 5, // Espaciado interno izquierdo
-          paddingRight: () => 5, // Espaciado interno derecho
-          paddingTop: () => 2, // Espaciado interno superior
-          paddingBottom: () => 2, // Espaciado interno inferior
-        },
-        margin: [0, 0, 0, 10], // Márgenes de la tabla
-      },
       {
         text: '1.   DATOS DE LA OBRA',
         style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -428,29 +478,19 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         text: ['\n'],
       },
       {
-        table: {
-          widths: ['50%', '50%'],
-          body: (this.datosInf[0].de_nombre ? this.datosInf[0].de_nombre.split('\n') : []).map((nombre: string) => [
-            { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nFISCAL DE OBRA', style: 'textDato', bold: true }
-              ], 
-              margin: [0, 35, 0, 0], 
-              alignment: 'center'
-            },
-            { text: '(Firma y Sello)', 
-              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
-            }
-          ])
+          table: {
+            widths: ['50%','50%'],
+            body: [
+              ...this.buildFiscales(this.datosFis)
+              ]
+          }, margin: [20,0,20,0],
+            layout: {
+            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
+            vLineColor: () => '#444444', // color gris opaco para líneas verticales
+            hLineWidth: () => 0.7,       // grosor más fino
+            vLineWidth: () => 0.7
+            } 
         },
-        margin: [20, 0, 20, 0],
-        layout: {
-          hLineColor: () => '#444444',
-          vLineColor: () => '#444444',
-          hLineWidth: () => 0.7,
-          vLineWidth: () => 0.7
-        }
-      },
       {
         text: ['\n\ncc:Arch:' ],
         style: 'footerText'
@@ -508,8 +548,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
-  const chunks: Uint8Array[] = [];
+  let chunks: Buffer[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -563,6 +602,47 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
     return formattedDate;
   }
+
+    //Cargar tabla de fiscales
+    buildFiscales2(data: any) {
+      let datosFiscal = data;
+      let arrayData = [];
+  
+      for (let i = 0; i < datosFiscal.length; i++) {
+        let rowData = [
+          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
+
+    //Cargar tabla de fiscales - con recuadro
+    buildFiscales(data: any[]) {
+      const arrayData = [];
+  
+      for (const persona of data) {
+        const nombreCompleto = [
+          persona.profesion,
+          persona.nombre,
+          persona.primer_apellido,
+          persona.segundo_apellido
+        ]
+        .filter(Boolean) // elimina null, undefined, o strings vacíos
+        .join(' ');
+  
+        const rowData = [
+          { text: [
+                { text: nombreCompleto + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
+                  ],
+                alignment: 'center', margin: [0, 35, 0, 0]},
+          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
+        ];
+        arrayData.push(rowData);
+      }
+      return arrayData;
+    }
 
     // Función para poblar la tabla de modificaciones aprobadas
      buildModAprobadas(data: any, formatoNumerico: Intl.NumberFormat) {

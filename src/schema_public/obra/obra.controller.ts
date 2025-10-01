@@ -108,5 +108,12 @@ export class ObraController {
       return this.obraService.listaMisProyectos(misproyDto);
     } catch (error) {
     }
-  }  
+  }
+  
+  @Public()
+  @Get(':id_obra/reporte-resumen')
+  getReporteResumenObra(@Param('id_obra') id_obra: string) {
+    return this.obraService.getReporteResumenObra(+id_obra);
+  }
+  
 }

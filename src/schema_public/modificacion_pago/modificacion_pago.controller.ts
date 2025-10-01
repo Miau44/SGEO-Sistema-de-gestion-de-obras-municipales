@@ -126,9 +126,9 @@ export class ModificacionPagoController {
 
   @Public()
   @Post('tiene-incremento')
-  async tieneIncremento(@Body() validar: ValidarModificacionDto) {
+  async tieneIncremento(@Body() validar: ActualizarModPagoDto) {
     try {
-      return this.modificacionPagoService.tieneIncremento(validar.id_modificacion_pago);
+      return this.modificacionPagoService.tieneIncremento(validar);
 
     } catch (error) {
     }
