@@ -26,16 +26,20 @@ import { Externo } from 'src/schema_private/externo/entities/externo.entity';
 import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { LogService } from '../log/log.service';
 import { Log } from '../log/entities/log.entity';
+import { InformeService } from '../informe/informe_inicial.service';
+import { Informe } from '../informe/entities/informe.entity';
+import { InformeInicial } from '../informe/entities/informe_inicial.entity';
+import { Documento } from '../documento/entities/documento.entity';
 
 
 @Module({
 
   imports: [ 
     TypeOrmModule.forFeature([Computo,  ComputoCriterio, Planilla, Obra, ModificacionPago, Correlativo, Pago, Solicitud, 
-      SolicitudHistorial, Modificacion, ComputoObservacion, Item, Log])],  
+      SolicitudHistorial, Modificacion, ComputoObservacion, Item, Log, InformeInicial, Informe, Documento])],  
 
   controllers: [ComputoController],
   providers: [ComputoService, ResponseService, PlanillaService, ObraService, ModificacionPagoService, SolicitudService, 
-    CorrelativoService, ItemService, ExternoService, LogService],
+    CorrelativoService, ItemService, ExternoService, LogService, InformeService],
 })
 export class ComputoModule {}
