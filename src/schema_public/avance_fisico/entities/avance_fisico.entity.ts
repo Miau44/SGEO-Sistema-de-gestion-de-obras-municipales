@@ -17,6 +17,9 @@ export class AvanceFisico {
     @Column({nullable:true})
     id_obra: number;
 
+    @Column({ type: 'timestamp without time zone', nullable: true })
+    fecha_inspeccion: Date  
+
     @Column ()
     correlativo_carpeta: number;
 
@@ -37,6 +40,9 @@ export class AvanceFisico {
 
     @Column({default: 1})
     id_estado: number;
+
+    @Column({nullable:true})
+    id_usuario: number;
 
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()'})
     fecha_registro: Date
