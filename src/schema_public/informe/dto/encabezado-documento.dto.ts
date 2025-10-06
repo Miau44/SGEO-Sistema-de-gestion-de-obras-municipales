@@ -7,4 +7,11 @@ export class EncabezadoDocumentoDto {
   @ApiProperty()
   id_obra: number;  
 
+
+  @ApiProperty({required: false})
+  id_informe: number;
+
+  @ApiProperty({required: false})
+  id_solicitud: number;
+
 }

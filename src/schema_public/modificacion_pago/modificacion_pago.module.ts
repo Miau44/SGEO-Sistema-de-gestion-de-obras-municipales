@@ -14,13 +14,17 @@ import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.en
 import { PlanillaService } from '../planilla/planilla.service';
 import { Planilla } from '../planilla/entities/planilla.entity';
 import { Informe } from '../informe/entities/informe.entity';
+import { InformeService } from '../informe/informe_inicial.service';
+import { InformeInicial } from '../informe/entities/informe_inicial.entity';
+import { Documento } from '../documento/entities/documento.entity';
 
 @Module({
 
-imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, Modificacion, Correlativo, 
-  Planilla, Informe])],
+imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, 
+  Modificacion, Correlativo, Documento,
+  Planilla, Informe, InformeInicial])],
 
   controllers: [ModificacionPagoController],
-  providers: [ModificacionPagoService, ResponseService, CorrelativoService ,SolicitudService, PlanillaService],
+  providers: [ModificacionPagoService, ResponseService, CorrelativoService ,SolicitudService, PlanillaService, InformeService], 
 })
 export class ModificacionPagoModule {}
