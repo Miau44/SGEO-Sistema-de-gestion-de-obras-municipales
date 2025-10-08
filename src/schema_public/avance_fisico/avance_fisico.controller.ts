@@ -59,15 +59,34 @@ export class AvanceFisicoController {
     return this.avanceFisicoService.asociarDocumento(+id, dto);
   }
 
-    // Controller
-  @Get(':id/documentos')
-  listarDocs(@Param('id') id: string) {
-    return this.avanceFisicoService.listarDocumentosDeAvance(+id);
-  }
+  //   // Controller
+  // @Get(':id/documentos')
+  // listarDocs(@Param('id') id: string) {
+  //   return this.avanceFisicoService.listarDocumentosDeAvance(+id);
+  // }
 
   @Delete(':id/documentos/:idDoc')
   desasociarDoc(@Param('id') id: string, @Param('idDoc') idDoc: string) {
     return this.avanceFisicoService.detachDocumento(+id, +idDoc);
   }
+
+// @Get('documento/:id_avance_fisico')
+// getDocumento(
+//   @Param('id') id: string,
+//   // @Query('id_documento') id_documento?: string,
+//   @Query('id_tipo_documento') id_tipo_documento?: string,
+// ) {
+//   const opts = {
+//     //id_documento: id_documento ? Number(id_documento) : undefined,
+//     id_tipo_documento: id_tipo_documento ? Number(id_tipo_documento) : undefined,
+//   };
+//   return this.avanceFisicoService.getDocumentoDeAvance(+id, opts);
+// }
+
+@Get('documento/:id_avance_fisico')
+getUltimoDocumento(@Param('id_avance_fisico') id: string) {
+  return this.avanceFisicoService.getDocumentosDeAvance(+id); // sin filtros
+}
+
 
 }
