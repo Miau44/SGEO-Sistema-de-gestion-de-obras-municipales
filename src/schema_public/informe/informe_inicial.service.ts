@@ -228,7 +228,7 @@ export class InformeService {
               ELSE 0 END AS validar
       FROM parametrica AS p
       LEFT OUTER JOIN public.informe_inicial AS ii ON p.id_subtipo = ii.id_subtipo
-      WHERE p.id_tipo = 21 AND p.id_padre = 0 AND ii.id_informe = $2         
+      WHERE p.id_tipo = 21 AND ii.id_estado = 1 AND p.id_padre = 0 AND ii.id_informe = $2         
       UNION ALL         
       SELECT 172 AS id_subtipo, NULL AS desc_subtipo, 
           CASE WHEN obs_general IS NULL OR TRIM(obs_general) = '' THEN 0
