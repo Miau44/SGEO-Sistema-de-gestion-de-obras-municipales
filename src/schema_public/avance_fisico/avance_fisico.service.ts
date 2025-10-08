@@ -258,4 +258,65 @@ export class AvanceFisicoService {
       return { ok: true };
     } 
 
+
+//   async getDocumentoDeAvance(
+//   id_avance: number,
+//   opts?: { id_documento?: number; id_tipo_documento?: number }
+// ) {
+//   const { id_documento, id_tipo_documento } = opts ?? {};
+//   const rRel = this.dataSource.getRepository(AvanceFisicoDocumento);
+
+//   let qb = rRel.createQueryBuilder('rel')
+//     .innerJoin('rel.avanceFisico', 'av', 'av.id_avance_fisico = :idAv', { idAv: id_avance })
+//     .innerJoinAndSelect('rel.documento', 'doc')
+//     .where('rel.id_estado = 1')
+//     .orderBy('rel.fecha_registro', 'DESC');
+
+//   if (id_documento) qb = qb.andWhere('doc.id_documento = :idDoc', { idDoc: id_documento });
+//   if (id_tipo_documento) qb = qb.andWhere('doc.id_tipo_documento = :t', { t: id_tipo_documento });
+
+//   const rel = await qb.getOne();
+//   if (!rel) {
+//     throw new NotFoundException('No se encontró documento para ese avance con los criterios dados');
+//   }
+
+//   return {
+//     id_avance_fisico_documento: rel.id_avance_fisico_documento,
+//     id_documento: rel.documento.id_documento,
+//     nombre_documento: rel.documento.nombre_documento,
+//     url: rel.documento.ruta_documento,          // ← URL para que el usuario lo abra
+//     id_tipo_documento: rel.documento.id_tipo_documento,
+//     fecha_relacion: rel.fecha_registro,
+//   };
+// }
+
+async getDocumentosDeAvance(
+  id_avance: number,
+  opts?: { id_documento?: number; id_tipo_documento?: number }
+) {
+  const { id_documento, id_tipo_documento } = opts ?? {};
+  const rRel = this.dataSource.getRepository(AvanceFisicoDocumento);
+
+  let qb = rRel.createQueryBuilder('rel')
+    .innerJoin('rel.avanceFisico', 'av', 'av.id_avance_fisico = :idAv', { idAv: id_avance })
+    .innerJoinAndSelect('rel.documento', 'doc')
+    .where('rel.id_estado = 1')
+    .orderBy('rel.fecha_registro', 'DESC');
+
+  if (id_documento)       qb = qb.andWhere('doc.id_documento = :idDoc', { idDoc: id_documento });
+  if (id_tipo_documento)  qb = qb.andWhere('doc.id_tipo_documento = :t',  { t: id_tipo_documento });
+
+  const rels = await qb.getMany();
+
+  return rels.map(rel => ({
+    id_avance_fisico_documento: rel.id_avance_fisico_documento,
+    id_documento:               rel.documento.id_documento,
+    nombre_documento:           rel.documento.nombre_documento,
+    url:                        rel.documento.ruta_documento,
+    id_tipo_documento:          rel.documento.id_tipo_documento,
+    fecha_relacion:             rel.fecha_registro,
+  }));
+}
+
+
 }
