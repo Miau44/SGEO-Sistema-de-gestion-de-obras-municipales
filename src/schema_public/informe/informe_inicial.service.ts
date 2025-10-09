@@ -279,7 +279,7 @@ export class InformeService {
               ELSE 0 END AS validar
       FROM parametrica AS p
       LEFT OUTER JOIN public.informe_inicial AS ii ON p.id_subtipo = ii.id_subtipo
-      WHERE p.id_tipo = 21 AND p.id_padre = 0 AND ii.id_informe = $2         
+      WHERE p.id_tipo = 21 AND p.id_padre = 0 AND ii.id_estado = 1 AND ii.id_informe = $2         
       UNION ALL         
       SELECT 172 AS id_subtipo, NULL AS desc_subtipo, 
           CASE WHEN obs_general IS NULL OR TRIM(obs_general) = '' THEN 0
@@ -307,7 +307,7 @@ export class InformeService {
       (f.x ->> 'id_subtipo')::integer AS idsubtipo,
       (f.x ->> 'opcion')::integer AS opcion,
       f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
-      jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 ) AS t2
+      jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 AND it.id_estado = 1) AS t2
       ON t1.idsubtipo = t2.opcion AND t1.idpadre = t2.id_padre ) AS ijson   ON de.id_subtipo = ijson.idsubtipo    ORDER BY de.id_subtipo ASC `;
       }
       const params = [data.padre, data.informe];
