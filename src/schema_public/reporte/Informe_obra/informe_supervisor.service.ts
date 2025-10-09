@@ -321,16 +321,19 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
       {
         table: {
           widths: ['50%', '50%'],
-          body: (this.datosInf[0].de_nombre ? this.datosInf[0].de_nombre.split('\n') : []).map((nombre: string) => [
+          body: (
+            this.datosInf?.[0]?.de_nombre
+              ? this.datosInf[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
             { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'SUPERVISOR DE OBRA', style: 'textDato', bold: true }
               ], 
               margin: [0, 35, 0, 0], 
               alignment: 'center'
             },
-            { text: '(Firma y Sello)', 
-              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+            { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
             }
           ])
         },

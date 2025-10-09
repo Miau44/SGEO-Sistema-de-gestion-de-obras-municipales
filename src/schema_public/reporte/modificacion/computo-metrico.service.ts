@@ -33,8 +33,8 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class ComputoMetrico {
 
     datosEnvio: any = [];
-    datosSup: any = [];
     datosComputo: any = [];
+    datosInfSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -58,13 +58,13 @@ export class ComputoMetrico {
     return resultado[0];
   }
 
-     // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
+     // Datos informe - modificación Supervisor
+   async datosInformeModifSupervisor(solicitud: number) {
+    const query2 = `
         SELECT * 
-        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
+        FROM public."vista_reporte_InfMod_Supervisor" WHERE id_solicitud = ${solicitud}`;
+    const resultado2 = await this.sequelize.query(query2);
+    return resultado2[0];
    }
 
        // Tabla Computo Metrico 
@@ -86,19 +86,16 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   }
   this.datosEnvio = datosGenerales;
 
-  const res1 = await this.supervisorDesignado(obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
-
   const res2 = await this.computoMetrico(obra, id_modificacion_pago);
   if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
       throw new Error('No se encontraron datos del cómputo métrico');
   }
   this.datosComputo = res2;
 
-  //console.log('DATOS COMPUTO',this.datosComputo);
+  const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
+  this.datosInfSup = res3;
+
+  console.log('DATOS COMPUTO',this.datosInfSup);
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -191,18 +188,26 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
         text: '\n\n',
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildsupervisores(this.datosSup)
-              ]
-          }, layout: {
-          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-          vLineColor: () => '#444444', // color gris opaco para líneas verticales
-          hLineWidth: () => 0.7,       // grosor más fino
-          vLineWidth: () => 0.7
-          } //margin: [20,0,20,0]
-        },
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInfSup?.[0]?.de_nombre
+              ? this.datosInfSup[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            {
+              text: [
+                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textDato', bold: true }
+              ],
+              margin: [0, 35, 0, 0], alignment: 'center'
+            },
+            {
+              text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0]
+            }
+          ])
+        }
+      },
       {
         
       } as any,
@@ -258,7 +263,8 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -273,7 +279,7 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
 }
 
 //////FUNCIONES 
-  //Funcion para generar la fecha de manera escrita
+ //Funcion para generar la fecha de manera escrita
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;

@@ -196,19 +196,27 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
         ]
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildSupervisores(this.datosSup)
-              ]
-          }, margin: [20,0,20,0],
-            layout: {
-              hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-              vLineColor: () => '#444444', // color gris opaco para líneas verticales
-              hLineWidth: () => 0.7,       // grosor más fino
-              vLineWidth: () => 0.7
-              } 
-        },
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosSolGa?.[0]?.de_nombre
+              ? this.datosSolGa[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            {
+              text: [
+                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textDato', bold: true }
+              ],
+              margin: [0, 35, 0, 0],
+              alignment: 'center'
+            },
+            {
+              text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0]
+            }
+          ])
+        }
+      },
       {
         text: ['\n\n\n\n\n\n\n\n\ncc:Arch:' ],
         style: 'footerText'
@@ -257,7 +265,8 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
