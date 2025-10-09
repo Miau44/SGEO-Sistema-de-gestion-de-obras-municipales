@@ -12,7 +12,10 @@ export class CreateAvanceFisicoDto {
     @ApiProperty({ example: 50 })
     id_obra: number;
 
-    @ApiProperty({ example: 359566 })
+    @ApiProperty({ example: '2025-10-01'})
+    fecha_inspeccion: string; 
+
+    @ApiProperty({ example: 3337777 })
     correlativo_carpeta: number;        
     
     @ApiProperty()
@@ -32,6 +35,9 @@ export class CreateAvanceFisicoDto {
     @ApiProperty({ required: false, enum: ['f','s'], description: `'f'=Fiscal, 's'=Supervisor`, default: 's' })
     @IsOptional() @IsIn(['s','f'])
     rol_avance?: 's' | 'f';
+
+    @ApiProperty({ example: 123})
+    id_usuario: number;
 
     @ApiProperty({ required: false, type: [Number], example: [1455, 1456] })
     @IsOptional() @Type(() => Number) @IsInt({ each: true })
