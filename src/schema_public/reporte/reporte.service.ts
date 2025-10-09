@@ -1284,7 +1284,20 @@ export class ReportService {
                          { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
                 }
               ],
-
+              //VIA se muestra solo si:
+              ...( this.datosEnvio[0].via_nombre 
+                  ? [ 
+                      [
+                        { text: 'VIA:', style: 'textTitulo', alignment:'left' },
+                        { text: [
+                              { text: (this.datosEnvio[0].via_nombre || '') + '\n', style: 'textDato' },
+                              { text: (this.datosEnvio[0].via_cargo || ''), style: 'textTitulo' }
+                          ]                                             
+                        }
+                      ]
+                    ] 
+                  : [] // No incluir la fila
+              ),
               [
                 { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
                 { text: [
