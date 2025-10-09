@@ -508,19 +508,25 @@ private numberToWords(value: number): string {
     const centena = Math.floor(value / 100);
     const resto = value % 100;
     if (value === 100) return 'CIEN';
-    return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+    return resto === 0
+    ? this.centenas[centena]
+    : `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
   }
   if (value < 1_000_000) {
     const miles = Math.floor(value / 1000);
     const resto = value % 1000;
     const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
-    return `${milesWord} ${this.numberToWords(resto)}`.trim();
+    return resto === 0
+    ? milesWord
+    : `${milesWord} ${this.numberToWords(resto)}`.trim();
   }
   if (value < 1_000_000_000) {
     const millones = Math.floor(value / 1_000_000);
     const resto = value % 1_000_000;
     const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
-    return `${millonesWord} ${this.numberToWords(resto)}`.trim();
+    return resto === 0
+    ? millonesWord
+    : `${millonesWord} ${this.numberToWords(resto)}`.trim();
   }
   throw new Error('Valor fuera de rango');
 }
