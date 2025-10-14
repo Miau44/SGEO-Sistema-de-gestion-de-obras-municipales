@@ -32,8 +32,6 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class ActaProvisional {
 datosEnvio: any = [];
-datosSup: any = [];
-datosFis: any = [];
 datosInf: any = [];
 datosVariacion: any = [];
    
@@ -68,32 +66,14 @@ datosVariacion: any = [];
     return resultado2[0];
   }
 
-    // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query3 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado3 = await this.sequelize.query(query3);
-    return resultado3[0];
-   }
-
-    // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query4 = `
-        SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
-    const resultado4 = await this.sequelize.query(query4);
-    return resultado4[0];
-   }
-
    // Datos datos de Variación de la Acta 
-    async datosCuadroActa(obra: number) {
+  async datosCuadroActa(obra: number) {
     const query5 = `
         SELECT * 
         FROM public."vista_reporte_variacion_Acta" WHERE id_obra = ${obra}`;
     const resultado5 = await this.sequelize.query(query5);
     return resultado5[0];
-   }
+  }
  
 // REPORTE - RECEPCION PROVISIONAL
 
@@ -111,19 +91,7 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   }
   this.datosInf = datosInforme;
 
-  const res1 = await this.supervisorDesignado(id_obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del Supervisor designado');
-  }
-  this.datosSup = res1;
-
-  const res2 = await this.fiscalDesignado(id_obra);
-  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del Fiscal designado');
-  }
-  this.datosFis = res2;
-
-   const res3 = await this.datosCuadroActa(id_obra);
+  const res3 = await this.datosCuadroActa(id_obra);
   if ((!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0))){
     throw new Error('No se encontraron datos de las modificaciones');
   }
@@ -219,67 +187,6 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               'conforme a las especificaciones técnicas del contrato.',
         style: 'textDato', alignment:'justify', margin: [0, 0, 0, 7]
       },
-      // {
-      //   table: {
-      //     widths: ['*', 300],
-      //     body: [
-      //       [
-      //         { text: [{ text: 'Fecha orden de proceder:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-      //         { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDatoT' }], fillColor: '#dddddd' }
-      //       ],
-      //       [
-      //         { text: [{ text: 'Plazo contrato inicial (d.c.):\n', style: 'textTituloT', alignment: 'right' },] },
-      //         { text: [{ text: this.datosEnvio[0].plazo_contrato + '\n', style: 'textDatoT' }] }
-      //       ],
-      //       [
-      //         { text: [{ text: 'Fecha conclusión programada contrato inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-      //         { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDatoT' }], fillColor: '#dddddd' }
-      //       ],
-      //       ...(
-      //         this.datosVariacion[0].conteo === '0'
-      //           ? []
-      //           : [[ // agrega la fila
-      //               { text: [{ text: 'Variación de plazo (d.c.):', style: 'textTituloT', alignment: 'right' }], fillColor: '#dddddd' },
-      //               { text: [{ text: this.datosVariacion[0].total_diasv, style: 'textDatoT' }], fillColor: '#dddddd' }
-      //             ]]
-      //       ),
-      //       ...(
-      //         this.datosVariacion[0].conteo === '0'
-      //           ? []
-      //           : [[ // agrega la fila
-      //               { text: [{ text: 'Nueva fecha de conclusión programada:', style: 'textTituloT', alignment: 'right' },] },
-      //               { text: [{ text: this.formatearFecha(this.datosVariacion[0].nueva_fecha_conc), style: 'textDatoT' }] }
-      //             ]]
-      //       ),
-      //       [
-      //         { text: [{ text: 'Fecha real de conclusión:\n', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-      //         { text: [{ text: this.formatearFecha(this.datosInf[0].fecha_registro), style: 'textDatoT' }], fillColor: '#dddddd' }
-      //       ],
-      //       ...(
-      //         this.datosVariacion[0].conteo === '0'
-      //           ? []
-      //           : [[ // agrega la fila
-      //               { text: [{ text: 'Plazo real de ejecución (d.c.):\n', style: 'textTituloT', alignment: 'right' },] },
-      //               { text: [{ text: plazo_real, style: 'textDatoT' }] }
-      //             ]]
-      //       ),
-      //       [
-      //         { text: [{ text: 'Monto Contrato Inicial:', style: 'textTituloT', alignment: 'right' },], fillColor: '#dddddd' },
-      //         { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato, formatoNumerico2), style: 'textDatoT' }], fillColor: '#dddddd' }
-      //       ],
-      //       ...(
-      //         this.datosVariacion[0].conteo === '0'
-      //           ? []
-      //           : [[ // agrega la fila
-      //               { text: [{ text: 'Monto autorizado:\n', style: 'textTituloT', alignment: 'right' },] },
-      //               { text: [{ text: 'Bs' + this.formatIfNumber(this.datosVariacion[0].monto_variacion, formatoNumerico2), style: 'textDatoT' }] }
-      //             ]]
-      //       ),
-               
-      //     ]
-      //   }, margin: [10, 0, 10, 7] 
-      //   //layout: 'noBorders'
-      // },
 
       //NUEVAMENTE TENGO QUE MODIFICAR :'( 
       ...( this.datosVariacion[0].conteo === '0'
@@ -503,33 +410,17 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
               [ 
                 { text: [
                   {
-                    text: '\n\n\n\n\n' + (
-                          Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ),
-                        style: 'textDatoT', alignment: 'center'
+                    text: '\n\n\n\n\n' + this.datosInf[0].de_nombre, style: 'textDatoT', alignment: 'center'
                   },
-                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
+                  { text: '\n' + this.datosInf[0].de_cargo, style: 'textTituloT', alignment: 'center' },
                   { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
                 ]},
                 {
                   text: [
                   {
-                    text: '\n\n\n\n\n' + (
-                          Array.isArray(this.datosFis)
-                            ? this.datosFis
-                                .filter(f => f && f.fiscal)
-                                .map(f => f.fiscal)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ),
-                        style: 'textDatoT', alignment: 'center'
+                    text: '\n\n\n\n\n' + this.datosInf[0].a_nombre, style: 'textDatoT', alignment: 'center'
                   },
-                  { text: '\nFISCAL(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
+                  { text: '\n' + this.datosInf[0].a_cargo, style: 'textTituloT', alignment: 'center' },
                   { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
                 ]}
               ]
@@ -659,60 +550,6 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
 
     return formattedDate;
   }
-
-   //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 20, 0, 0]},
-          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-     //Cargar tabla de FISCAL - CON RECUADRO
-    buildFiscales(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 20, 0, 0]},
-          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
    
   // FORMATO DE NUMEROS
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {

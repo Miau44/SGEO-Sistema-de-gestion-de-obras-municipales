@@ -323,10 +323,14 @@ async generateInformeObraFiscal(id_obra: number, id_informe: number): Promise<Bu
       {
         table: {
           widths: ['50%', '50%'],
-          body: (this.datosInf[0].de_nombre ? this.datosInf[0].de_nombre.split('\n') : []).map((nombre: string) => [
+          body: (
+            this.datosInf?.[0]?.de_nombre
+              ? this.datosInf[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
             { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nFISCAL DE OBRA', style: 'textDato', bold: true }
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', style: 'textDato', bold: true }
               ], 
               margin: [0, 35, 0, 0], 
               alignment: 'center'
