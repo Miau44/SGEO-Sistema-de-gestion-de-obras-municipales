@@ -35,6 +35,8 @@ export class fichaInspeccion {
 
     datosEnvio: any = [];
     datosAvance: any = [];
+    datosSup: any = [];
+    datosFis: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -66,6 +68,24 @@ export class fichaInspeccion {
         return resultado2[0];
     }
 
+    //--Datos Aprobador SUPERVISOR
+    async datosAprobadorSup(obra: number) {
+      const query3 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_supervisor_obra" WHERE id_obra = ${obra}`;
+      const resultado3 = await this.sequelize.query(query3);
+      return resultado3[0];
+    }
+
+    //--Datos Aprobador FISCAL
+    async datosAprobadorFis(obra: number) {
+      const query4 = `
+          SELECT * 
+          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
+      const resultado4 = await this.sequelize.query(query4);
+      return resultado4[0];
+    }
+
     // REPORTE - RECEPCION DEFINITIVA
 
     async generatefichaInspeccion(id_obra: number, id_avance: number): Promise<Buffer> {
@@ -82,12 +102,24 @@ export class fichaInspeccion {
         }
         this.datosAvance = res1;
 
+        const res2 = await this.datosAprobadorFis(id_obra);
+        if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+        throw new Error('No se encontraron del Aprobador de Fiscal');
+        }
+        this.datosFis = res2;
+
+        const res3 = await this.datosAprobadorSup(id_obra);
+        if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+        throw new Error('No se encontraron del Aprobador de Supervisor');
+        }
+        this.datosSup = res3;
+
         const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
         const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
         const imgLogo = 'assets/images/logoSGEO.png'
         //const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
-        console.log('DATOS AVANCE', this.datosAvance);
+        //console.log('DATOS AVANCE', this.datosAvance);
         
         // Extraer la imagen
         const urlImagen  = this.datosAvance[0].ruta_documento;
@@ -124,8 +156,8 @@ export class fichaInspeccion {
                 text:[
                     { text: 'PLANILLA DE INSPECCIÓN DE OBRAS ' + '\n', style: 'subheader', alignment: 'center' },
                     { text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ - ' +  
-                        (this.datosAvance[0].rol_avance === 's' ? 'DIRECCIÓN DE EJECUCIÓN Y SUPERVISIÓN DE INFRAESTRUCTURAS ESPECIALES' 
-                            : 'DIRECCIÓN DE FISCALIZACIÓN DE OBRAS')
+                        (this.datosAvance[0].rol_avance === 's' ? this.datosSup[0].nombre_ue 
+                            : this.datosFis[0].nombre_ue)
                         + '\n\n' , style: 'textTitulo', alignment: 'center' }
                 ],
             },
