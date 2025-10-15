@@ -95,10 +95,10 @@ export class InformeModificacionSupervisor {
    }
 
         // Resumen de Modificaciones Aprobadas por obra 
-   async modificacionesAprobadas(obra: number) {
+   async modificacionesAprobadas(obra: number, id_solicitud: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND id_solicitud <= ${id_solicitud}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -176,7 +176,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     }
     this.datosInfSup = res3; 
 
-    const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+    const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
     // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
     //     throw new Error('No se encontraron datos de las modificaciones de la obra');
     //}

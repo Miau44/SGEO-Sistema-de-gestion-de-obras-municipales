@@ -73,10 +73,10 @@ export class InformeModificacionFiscal {
    }
 
     // Resumen de Modificaciones Aprobadas por obra 
-   async modificacionesAprobadas(obra: number) {
+   async modificacionesAprobadas(obra: number, id_solicitud: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND id_solicitud <= ${id_solicitud}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -151,7 +151,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   }
   this.datosFis = res1;
 
-    const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+  const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
   // if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
   //     throw new Error('No se encontraron datos de las modificaciones de la obra');
   // }
