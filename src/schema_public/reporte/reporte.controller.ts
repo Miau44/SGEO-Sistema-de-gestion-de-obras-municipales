@@ -22,6 +22,7 @@ import { InformePagoFiscal } from './pagos/informe_pago_fiscal.service';
 import { ResumenCertificado } from './pagos/resumen-certificado.service';
 import { ActaDefinitiva } from './actas/acta_definitiva.service';
 import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.service';
+import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -46,6 +47,7 @@ export class ReportController {
     private readonly resumencertificado: ResumenCertificado,
     private readonly actadefinitiva: ActaDefinitiva,
     private readonly informeobrasupervisor2: InformeObraSupervisor2,
+    private readonly fichainspeccion: fichaInspeccion,
 
   ) {}
 
@@ -516,5 +518,21 @@ export class ReportController {
       });
       res.send(pdfBuffer);
     }
+
+///////////////////////// FICHA DE INSPECCION ////////////////////////////////// 
+  @Public()
+    @Get('ficha-inspeccion')
+    async fichaInspeccion(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    @Query('id_avance') id_avance: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.fichainspeccion.generatefichaInspeccion(id_obra, id_avance);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
 
 }

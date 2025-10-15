@@ -27,6 +27,7 @@ import { InformePagoFiscal } from './pagos/informe_pago_fiscal.service';
 import { ResumenCertificado } from './pagos/resumen-certificado.service';
 import { ActaDefinitiva } from './actas/acta_definitiva.service';
 import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.service';
+import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
 
 @Module({
 
@@ -38,7 +39,8 @@ import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.servi
   providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,
               InformeModificacionSupervisor,MemoOrdenCambio,SolicitudGarantia,InformeModificacionFiscal,ComputoMetrico,AnexoOC,
               PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional, InformeInicialService, ComputoMetricoPago, 
-              PlanillaPago, InformePagoSupervisor, InformePagoFiscal, ResumenCertificado, ActaDefinitiva, InformeObraSupervisor2 ],
+              PlanillaPago, InformePagoSupervisor, InformePagoFiscal, ResumenCertificado, ActaDefinitiva, InformeObraSupervisor2, 
+              fichaInspeccion ],
   controllers: [ReportController],
 })
 export class ReporteModule {}
