@@ -128,11 +128,7 @@ export class PersonapermisoUeService {
   async usuarioXPermisoXUe(datosDto: UsuarioPermisoXUeDto) {
     try {
       if(datosDto.obra > 0){ // fiscales y supervisores
-
-
-
-
-      const query = `
+     /* const query = `
       SELECT p.id_usuario,  p.usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre,  p.id_usuario, 
       per.desc_subtipo,  ppue.desc_cod_ue, d.id_obra, f.gestion_carpeta as gestion 
       FROM public.persona AS p
@@ -151,7 +147,26 @@ export class PersonapermisoUeService {
        AND d.estado_designacion IN(99,105,102)
      --AND ppue.gestion =${datosDto.gestion}        
      --  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   
-       AND  d.id_obra =${datosDto.obra};`;
+       AND  d.id_obra =${datosDto.obra};`;*/
+
+       console.log('UsuarioPermisoXUeDto 15102025', datosDto);
+       
+      const query = `
+        SELECT DISTINCT p.id_usuario,  p.usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' 
+        ||  CASE WHEN id_cite_memo =239 THEN 'SUPERVISOR ' 
+        WHEN id_cite_memo =240 THEN 'FISCAL ' ELSE '' END  AS nombre,  p.id_usuario, 
+        CASE WHEN id_cite_memo =239 THEN 'SUPERVISOR ' 
+        WHEN id_cite_memo =240 THEN 'FISCAL ' ELSE '' END AS desc_subtipo,
+        f.desc_cod_ue, d.id_obra, f.gestion_carpeta as gestion
+
+        FROM public.persona AS p
+        INNER JOIN public.persona_permiso AS pp ON p.id_persona = pp.id_persona 
+        INNER JOIN public.designacion AS d ON  p.id_persona = d.id_persona 
+        INNER JOIN public.obra AS o ON o.id_obra = d.id_obra
+        INNER JOIN public.ficha AS f ON f.id_ficha = o.id_ficha
+        WHERE id_cite_memo IN (
+        SELECT CASE  WHEN x = 84 THEN 239 WHEN x = 83 THEN 240 END FROM unnest(ARRAY[${datosDto.id_permiso}]) AS x
+        ) AND p.id_estado IN(1,5) AND d.id_obra =${datosDto.obra} AND d.id_estado=1 AND d.estado_designacion IN(99,105,102) AND pp.id_estado =1; `;
         const resultado = await this.pperUeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")
         
