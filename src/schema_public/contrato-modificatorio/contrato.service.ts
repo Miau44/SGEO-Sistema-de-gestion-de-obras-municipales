@@ -206,6 +206,7 @@ export class ContratoService {
             direccion: item.rdomicilio,
             telefono: item.rtelef,
             rpcrpa:item.rpcrpa,
+            tipo_rpcrpa : item.tiporpcrpa ,
             url: item.rlinkcontrat,
             id_estado: 1, // Activo
             fecha_registro: new Date(),
@@ -291,6 +292,8 @@ export class ContratoService {
         }
 
         contratoExistente.rpcrpa = item.rpcrpa; // Actualizando rpcrpa en lugar de url
+        contratoExistente.tipo_rpcrpa = item.tiporpcrpa; // actualizar tipo_rpcrpa
+
         await this.contratoRepository.save(contratoExistente);
         contratosActualizados++;
       }
