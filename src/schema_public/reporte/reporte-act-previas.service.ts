@@ -472,7 +472,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     const imgPath = 'assets/images/membretado_oficio.png';
 
     //console.log('DATOS IAP',this.datosEnvio);
-    console.log('DATOS:',this.datosIAP);
+    //console.log('DATOS:',this.datosIAP);
     const bodyTabla = [];
 
     const documentDefinition = {

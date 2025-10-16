@@ -240,9 +240,22 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
                          { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
                 }
               ],
-
+              //VIA se muestra solo si:
+              ...( this.datosEnvio[0].via_nombre 
+                  ? [ 
+                      [
+                        { text: 'VIA:', style: 'textTitulo', alignment:'left' },
+                        { text: [
+                              { text: (this.datosEnvio[0].via_nombre || '') + '\n', style: 'textDato' },
+                              { text: (this.datosEnvio[0].via_cargo || ''), style: 'textTitulo' }
+                          ]                                             
+                        }
+                      ]
+                    ] 
+                  : [] // No incluir la fila
+              ),
               [
-                { text: 'DE:\n', style: 'textTitulo', alignment: 'left' },
+                { text: 'DE:', style: 'textTitulo', alignment: 'left' },
                 { text: [
                       { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
                       { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },

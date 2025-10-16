@@ -34,12 +34,11 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class PlanillaReordenamiento {
 
     datosEnvio: any = [];
-    datosSup: any = [];
-    datosFis: any = [];
     datosPlanilla: any = [];
     datosPlanillaR: any = [];
     num_modif: any = [];
     datosNuevos: any = [];
+    datosInfSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -62,24 +61,6 @@ export class PlanillaReordenamiento {
     const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
-
-   // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-   }
-
-   // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-   }
 
    // Tabla Planilla Reordenamiento
    async planillaReordenamiento(solicitud: number) {
@@ -117,6 +98,15 @@ export class PlanillaReordenamiento {
     return resultado6[0];
    }
 
+   // Datos informe - modificación Supervisor - Fiscal
+   async datosInformeModifSupervisor(solicitud: number) {
+    const query7 = `
+        SELECT * 
+        FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${solicitud}`;
+    const resultado7 = await this.sequelize.query(query7);
+    return resultado7[0];
+   }
+
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number): Promise<Buffer> {
 
@@ -125,18 +115,6 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
     throw new Error('No se encontraron datos para la ID de la obra proporcionada');
   }
   this.datosEnvio = datosGenerales;
-
-  const res1 = await this.supervisorDesignado(obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
-
-  const res2 = await this.fiscalDesignado(obra);
-  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosFis = res2;
 
   const res3 = await this.planillaReordenamiento(id_modificacion_pago);
   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
@@ -153,6 +131,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   const res5 = await this.planillaItemsNuevos(id_modificacion_pago);
   this.datosNuevos = res5;
 
+  const res6 = await this.datosInformeModifSupervisor(id_modificacion_pago);
+  this.datosInfSup = res6;
 
   //console.log('DATOS PLANILLA',this.num_modif);
   
@@ -302,54 +282,36 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
         }]
       ),
       {
-        
-      },
-      {
         text: '\n\n\n\n\n',
       },
       {
-          table: {
-            widths: ['*', '*', '*'],
-            body: [
-              [
-                {
-                  text:
-                      [
-                        { text: 
-                              (Array.isArray(this.datosFis)
-                                ? this.datosFis
-                                    .filter(f => f && f.fiscal)
-                                    .map(f => f.fiscal)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
-                      ]
-                },
+        table: {
+          widths: ['*', '*', '*'],
+          body: [
+            [
+              {
+                text:
+                    [
+                      { text: this.datosInfSup[0].de_nombre_fis, style: 'textDato', alignment: 'center' },
+                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                    ]
+              },
 
-                { text: [
-                          { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
-                          { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
-                ]
-                  },
-
-                {
-                  text:
-                      [
-                        { text: 
-                              (Array.isArray(this.datosSup)
-                                ? this.datosSup
-                                    .filter(f => f && f.supervisor)
-                                    .map(f => f.supervisor)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+              { text: [
+                        { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
+                        { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
                       ]
-                }
-              ]
+              },
+              {
+                text:
+                    [
+                      { text: this.datosInfSup[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
+                      { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                    ]
+              }
             ]
-          }, layout: 'noBorders'
+          ]
+        }, layout: 'noBorders'
       },
       {
         
@@ -400,7 +362,8 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
