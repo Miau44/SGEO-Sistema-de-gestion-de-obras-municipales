@@ -372,6 +372,129 @@ export class DesignacionService {
     }    
 
 
+            async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
+      try {
+        // Verificar si se debe generar una nueva solicitud (solo si el flujo es 11)
+        let debeGenerarSolicitud = false;
+        if (AprobarDto.id_estado_flujo === 11) {
+          debeGenerarSolicitud = await this.generarSoloSolicitud(AprobarDto.id_obra);
+        }    
+        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra);
+        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
+        const gestion = respuesta_obra.data[0].gestion;
+    
+        for (let i = 0; i < AprobarDto.designacion.length; i++) {
+          const actualizarEstado = async () => {
+            const datadesignacion = {
+              estado_designacion: 102,// se cambio el estado de designacion REEMPLAZO
+              correlativo: AprobarDto.designacion[i].correlativo,
+              fecha_aprobacion: await this.date()
+            };
+            await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
+    
+            const datasolicitud = {
+              id_estado_solicitud: 4,
+              id_estado_general: AprobarDto.id_estado_flujo,
+              usuario_registro : AprobarDto.id_usuario
+            };
+            await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
+          };
+    
+          if (debeGenerarSolicitud) {
+            const usuarioDestinoQuery = `
+              SELECT idusuario FROM public.sp_permisos_xpersona_filas() 
+              WHERE idpermiso IN (85,86)
+                AND desccodue = ${desc_cod_ue} 
+                AND gestion = ${gestion}`;
+    
+            const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
+    
+            if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
+              await this.registrarLog('aprobarReemplazoDesignacion', 'No se encontró usuario destino', AprobarDto, 'Sin resultado', 0);
+              return {
+                statusCode: 500,
+                message: false,
+                error: "Error: No se encontró un usuario destino válido.",
+              };
+            }
+    
+            await actualizarEstado(); // Se actualiza primero
+    
+            const usuario = usuarioDestinoResult[0].idusuario;
+            const data_solicitud = {
+              id_tipo_solicitud: 114,
+              id_estado_solicitud: 2,
+              id_obra: AprobarDto.id_obra,
+              id_estado_general: 12,
+              id_usuario: usuario,
+              proveido: "SOLICITUD GENERADA POR SISTEMA",
+              usuario_registro: usuario,
+              id_estado_registro: 1,
+            };
+            const  respuesta_etapa =   await this.solicitudRepocitorio.save(data_solicitud);
+
+            //para general historial
+            if (!respuesta_etapa) {
+
+              await this.registrarLog('aprobarReemplazoDesignacion', 'Error al guardar la solicitud', data_solicitud, 'null', usuario);
+              return this.responseService.error("Error al guardar la solicitud.");
+            }
+            await this.registrarLog('aprobarReemplazoDesignacion', 'Solicitud creada correctamente', data_solicitud, respuesta_etapa, usuario);
+            const datosHistorialetapa = {
+              id_solicitud: respuesta_etapa.id_solicitud,
+              id_tipo_solicitud: respuesta_etapa.id_tipo_solicitud,
+              nro_solicitud: respuesta_etapa.nro_solicitud,
+              id_estado_solicitud: respuesta_etapa.id_estado_solicitud,
+              id_obra: respuesta_etapa.id_obra,
+              id_estado_general: respuesta_etapa.id_estado_general,
+              id_usuario: respuesta_etapa.id_usuario,
+              proveido: respuesta_etapa.proveido,
+              data_solicitud: respuesta_etapa.data_solicitud,
+              fecha_envio: respuesta_etapa.fecha_envio,
+              id_usuario_previo: respuesta_etapa.id_usuario_previo,
+              usuario_registro: respuesta_etapa.usuario_registro,
+              id_estado_registro: respuesta_etapa.id_estado_registro,
+            };
+      
+            const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorialetapa)
+            await this.registrarLog('aprobarReemplazoDesignacion', 'Historial creado', datosHistorialetapa, solicitud_historial, usuario);
+            debeGenerarSolicitud = false; // prevenir que genere más de una en caso de múltiples designaciones
+          } else {
+            await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud
+          }
+        }
+    
+        // Historial de solicitud
+        const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        const datosHistorial = {
+          id_solicitud: respuesta_solicitud.data.id_solicitud,
+          id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+          nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+          id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+          id_obra: respuesta_solicitud.data.id_obra,
+          id_estado_general: respuesta_solicitud.data.id_estado_general,
+          id_usuario: respuesta_solicitud.data.id_usuario,
+          proveido: 'APROBACIÓN POR REEMPLAZO', //SE CAMBIO EL PROVEIDO
+          data_solicitud: respuesta_solicitud.data.data_solicitud,
+          fecha_envio: respuesta_solicitud.data.fecha_envio,
+          id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+          usuario_registro: respuesta_solicitud.data.usuario_registro,
+          id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+        };    
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+         await this.registrarLog('Aprobar por Reemplazo', 'Aprobar por Reemplazo de Designacion creada correctamente ', datosHistorial, 'OK', 0);
+    
+        return this.responseService.success("Solicitud generada correctamente.");
+      } catch (error) {
+        console.error("Error en aprobarReemplazoDesignacion:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
+        return this.responseService.error(error);
+      }
+    }   
+    
+
+
   async aprobarDesignacionR(AprobarDto: EstadoObraDesigDto) {
     try {
       for (let i = 0; i < AprobarDto.designacion.length; i++) {    // Actualizar estado de designación y solicitud
@@ -522,6 +645,22 @@ export class DesignacionService {
     }
   }
 
+    async maxCorrelativoSolicitud(correlativoDto: {id_obra:number, id_permiso: number, id_cite_solicitud: number}) {
+    try {
+    const query1 = `
+    SELECT COALESCE(MAX(d.correlativo_solicitud), 0) AS max_correlativo_solicitud FROM designacion AS d
+	    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
+	    INNER JOIN LATERAL (SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona
+	  WHERE d.id_obra = $1 AND dp.idpermiso IN ($2) AND d.id_cite_solicitud = $3;`;
+      const params = [correlativoDto.id_obra, correlativoDto.id_permiso, correlativoDto.id_cite_solicitud];
+      const resultado = await this.DesigRepositorio.query(query1, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  
 async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   try {
 
