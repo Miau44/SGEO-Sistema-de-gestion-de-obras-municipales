@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
@@ -10,6 +10,7 @@ import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateProtocoloModificacionDto } from '../protocolo_modificacion/dto/create-protocolo_modificacion.dto';
 
 
 
@@ -199,5 +200,15 @@ export class ModificacionPagoController {
     } catch (error) {
     }
   } 
+
+  @Public()
+  @Post('modificacion/protocolo/:id')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  crearProtocoloYActualizar(
+  @Param('id', ParseIntPipe) id_modificacion: number,
+  @Body() dto: CreateProtocoloModificacionDto,
+  ) {
+    return this.modificacionPagoService.crearProtocoloYActualizarMod(id_modificacion, dto);
+  }
 
 }

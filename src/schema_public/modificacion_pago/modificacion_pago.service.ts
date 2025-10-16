@@ -5,7 +5,7 @@ import { ResponseService } from 'src/response.service';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Modificacion } from './entities/modificacion.entity';
 import { Pago } from '../pago/entities/pago.entity';
 import { CorrelativoService } from '../correlativo/correlativo.service';
@@ -20,6 +20,8 @@ import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificac
 import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
+import { ProtocoloModificacion } from '../protocolo_modificacion/entities/protocolo_modificacion.entity';
+import { CreateProtocoloModificacionDto } from '../protocolo_modificacion/dto/create-protocolo_modificacion.dto';
 
 @Injectable()
 export class ModificacionPagoService {
@@ -32,6 +34,7 @@ export class ModificacionPagoService {
     @InjectRepository(Planilla) private planillaRepocitorio: Repository<Planilla>,
     @InjectRepository(Modificacion) private readonly modificacionRepo: Repository<Modificacion>,
 
+    private readonly dataSource: DataSource, 
     private responseService: ResponseService,
     private solicitudService: SolicitudService,
     private servicioCorrelativo: CorrelativoService,
@@ -654,5 +657,63 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       return this.responseService.error(error);
     }
   }
+
+  //servicio para crear protocolo de modificacion y actualizar fechas en tabla modificacion
+  async crearProtocoloYActualizarMod(id_modificacion: number, dto: CreateProtocoloModificacionDto,) {
+  return this.dataSource.transaction(async (manager) => {
+    // Serializa por modificación: evita dos "actuales" concurrentes
+    await manager.query('SELECT pg_advisory_xact_lock($1)', [id_modificacion]);
+
+    // 1) Apagar el protocolo "actual" (si existe)
+    await manager.getRepository(ProtocoloModificacion)
+      .createQueryBuilder()
+      .update(ProtocoloModificacion)
+      .set({ id_estado_protocolo: 0 }) // histórico/anulado
+      .where('id_modificacion = :id AND id_estado_protocolo = 1', { id: id_modificacion })
+      .execute();
+
+    // 2) Construir el nuevo protocolo (actual)
+    const toDate = (v?: string | null) => (v === undefined ? undefined : (v ? new Date(v) : null));
+    const nuevo = manager.getRepository(ProtocoloModificacion).create({
+      id_modificacion,
+      id_obra: dto.id_obra,
+      fecha_supervisor: toDate(dto.fecha_supervisor),
+      fecha_fiscal: toDate(dto.fecha_fiscal),
+      fecha_memo_minuta: toDate(dto.fecha_memo_minuta),
+      justificacion: dto.justificacion,
+      id_usuario: dto.id_usuario,
+      id_estado: 1,
+      id_estado_protocolo: 1, // lo marcamos como actual
+    });
+
+    // Validación: al menos una fecha enviada
+    if (
+      nuevo.fecha_supervisor === undefined &&
+      nuevo.fecha_fiscal === undefined &&
+      nuevo.fecha_memo_minuta === undefined
+    ) {
+      throw new BadRequestException('Debe enviar al menos una fecha para registrar el protocolo.');
+    }
+
+    const creado = await manager.getRepository(ProtocoloModificacion).save(nuevo);
+
+    // 3) Sincronizar la tabla principal 'modificacion' (solo campos presentes)
+    const update: Partial<Modificacion> = {};
+    if (nuevo.fecha_supervisor !== undefined) update.fecha_supervisor = nuevo.fecha_supervisor;
+    if (nuevo.fecha_fiscal !== undefined)     update.fecha_fiscal = nuevo.fecha_fiscal;
+    if (nuevo.fecha_memo_minuta !== undefined) update.fecha_memo_minuta = nuevo.fecha_memo_minuta;
+
+    if (Object.keys(update).length > 0) {
+      await manager.getRepository(Modificacion).update({ id_modificacion }, update);
+    }
+
+    return {
+      message: 'Protocolo creado (actual) y modificación sincronizada',
+      protocolo: creado,
+    };
+  });
+}
+
+
   
 }
