@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
 import { And, Any, Connection, DataSource, In, Not, Repository } from 'typeorm';
@@ -19,6 +19,7 @@ import { SolicitudService } from '../solicitud/solicitud.service';
 import { Persona } from '../persona/entities/persona.entity';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 import { LogService } from '../log/log.service';
+import { TraspasoPendientesDto } from './dto/traspaso_pendientes.dto';
 
 
 @Injectable()
@@ -787,7 +788,186 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     respuesta: typeof resp === 'string' ? resp : JSON.stringify(resp)
   });
 }
-  
+
+
+  // Servicio para traspaso de la bandeja de pendientes 
+  async traspasarBandejaPorUsuarios(dto: TraspasoPendientesDto) {
+    const { gestion, usuarioOrigen, usuarioNuevo, estado, simular = false, id_obra } = dto;
+
+    if (usuarioOrigen === usuarioNuevo) {
+      throw new BadRequestException('El usuario destino no puede ser igual al origen.');
+    }
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      // --- 1) Conteo: arma WHERE base y agrega obra si viene ---
+      let whereBase = `
+      s.id_usuario = $1
+      AND s.id_estado_solicitud = ANY($2)
+      AND s.id_estado_registro = 1
+      AND f.gestion_carpeta = $3
+    `;
+      const countParams: any[] = [usuarioOrigen, estado, gestion];
+
+      if (id_obra != null) {
+        whereBase += ` AND s.id_obra = $${countParams.length + 1}`;
+        countParams.push(id_obra);
+      }
+
+      const countRows = await qr.query(
+        `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra  o ON s.id_obra  = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE ${whereBase}
+      `,
+        countParams,
+      );
+      const totalElegibles = countRows?.[0]?.total ?? 0;
+
+      // --- 2) Si es simulación o no hay nada, se devuelve y se revierte la Tx ---
+      // if (simular || totalElegibles === 0) {
+      //   await qr.rollbackTransaction();
+      //   return this.responseService.success(
+      //     {
+      //       simulado: true,
+      //       totalElegibles,
+      //       usuarioOrigen,
+      //       usuarioNuevo,
+      //       id_obra: id_obra ?? null,
+      //       alcance: id_obra ? 'solo_obra' : 'todas_las_obras',
+      //     },
+      //     totalElegibles === 0
+      //       ? (id_obra
+      //         ? 'No hay pendientes para esa obra con los criterios dados'
+      //         : 'No hay pendientes para traspasar con los criterios dados')
+      //       : 'Simulación: no se realizaron cambios',
+      //   );
+      // }
+
+      // --- 3) Update con mismo WHERE dinámico (pero cambiando params) ---
+      let whereUpdate = `
+      s.id_usuario = $2
+      AND s.id_estado_solicitud = ANY($3)
+      AND s.id_estado_registro = 1
+      AND f.gestion_carpeta = $4
+    `;
+      const updateParams: any[] = [usuarioNuevo, usuarioOrigen, estado, gestion];
+
+      if (id_obra != null) {
+        whereUpdate += ` AND s.id_obra = $${updateParams.length + 1}`;
+        updateParams.push(id_obra);
+      }
+
+      const movedRows = await qr.query(
+      `
+      WITH movidos AS (
+        UPDATE solicitud s
+          SET id_usuario = $1,
+              fecha_modificacion = NOW()
+        FROM obra o
+        JOIN ficha f ON o.id_ficha = f.id_ficha
+        WHERE s.id_obra = o.id_obra
+          AND ${whereUpdate}      -- el WHERE dinámico que ya armaste
+        RETURNING s.id_solicitud
+      )
+      SELECT COUNT(*)::int AS total_movidos,
+            COALESCE(json_agg(id_solicitud), '[]'::json) AS ids_movidos
+      FROM movidos;
+      `,
+      updateParams,
+      );
+      const row = movedRows?.[0] ?? {};
+      const totalMovidos = row.total_movidos ?? 0;
+      const idsMovidos = row.ids_movidos ?? [];
+
+      await qr.commitTransaction();
+      return this.responseService.success(
+        {
+          simulado: false,
+          totalMovidos,
+          idsMovidos,    
+          usuarioOrigen,
+          usuarioNuevo,
+          id_obra: id_obra ?? null,
+          alcance: id_obra ? 'solo_obra' : 'todas_las_obras',
+        },
+        'Traspaso realizado correctamente',
+      );
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw new InternalServerErrorException('Error al traspasar la bandeja');
+    } finally {
+      await qr.release();
+    }
+  }
+
+    async resumenPendientes(dto: TraspasoPendientesDto) {
+    const { gestion, usuarioOrigen, id_obra, estado } = dto;
+
+    if (!gestion || !usuarioOrigen) {
+      throw new BadRequestException('Debe enviar la gestión y el usuario de origen');
+    }
+
+    const estados = estado?.length ? estado : [2, 5]; // valores por defecto
+
+    // Total de pendientes del usuario (por obra si se manda)
+    const queryBase = `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra o  ON s.id_obra = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE s.id_usuario = $1
+        AND f.gestion_carpeta = $2
+        AND s.id_estado_registro = 1
+        AND s.id_estado_solicitud = ANY($3)
+        ${id_obra ? 'AND s.id_obra = $4' : ''}
+    `;
+    const valuesBase = id_obra ? [usuarioOrigen, gestion, estados , id_obra] : [usuarioOrigen, gestion, estados];
+    const totalPend = await this.dataSource.query(queryBase, valuesBase);
+    const totalPendientes = totalPend?.[0]?.total ?? 0;
+
+    // Total filtrando por estados (los que se pueden mover)
+    const queryMover = `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra o  ON s.id_obra = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE s.id_usuario = $1
+        AND f.gestion_carpeta = $2
+        AND s.id_estado_registro = 1
+        AND s.id_estado_solicitud = ANY($3)
+        ${id_obra ? 'AND s.id_obra = $4' : ''}
+    `;
+    const valuesMover = id_obra
+      ? [usuarioOrigen, gestion, estados, id_obra]
+      : [usuarioOrigen, gestion, estados];
+    const totalMover = await this.dataSource.query(queryMover, valuesMover);
+    const totalAMover = totalMover?.[0]?.total ?? 0;
+
+    //Mensaje dinámico claro
+    const msg =
+      totalPendientes === 0
+        ? `El usuario ${usuarioOrigen} no tiene pendientes registrados en la gestión ${gestion}${id_obra ? ` para la obra ${id_obra}` : ''}.`
+        : `El usuario ${usuarioOrigen} tiene ${totalPendientes} pendientes en la gestión ${gestion}${id_obra ? ` (obra ${id_obra})` : ''}, de los cuales ${totalAMover} podrían ser traspasados (estados ${estados.join(', ')}).`;
+
+    //Respuesta final
+    return this.responseService.success(
+      {
+        gestion,
+        id_obra: id_obra ?? null,
+        usuarioOrigen,
+        estados,
+        totalPendientes,
+        totalAMover,
+      },
+      msg,
+    );
+  }
 
   
 }
