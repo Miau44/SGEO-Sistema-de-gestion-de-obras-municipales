@@ -4,6 +4,7 @@ import { CreateModuloReporteDto } from './dto/create-modulo_reporte.dto';
 import { UpdateModuloReporteDto } from './dto/update-modulo_reporte.dto';
 import { ReporteGestionDto } from './dto/reporte-gestion.dto';
 import { ReporteActaDto } from './dto/reporte-acta.dto';
+import { ReporteFiscalDFO } from './dto/reporte-fiscales-dfo.dto';
 
 @Controller('modulo-reportes')
 export class ModuloReportesController {
@@ -50,5 +51,13 @@ export class ModuloReportesController {
       return this.moduloReportesService.descargarReporteActa(reporteObra);
     } catch (error) {
     }
-  }     
+  } 
+  
+  @Post('reporte-fiscales-dfo')
+  exportarFiscalesDFO(@Body() reporteObra: ReporteFiscalDFO) {
+    try {  
+      return this.moduloReportesService.descargarFiscalesDFO(reporteObra);
+    } catch (error) {
+    }
+  }
 }

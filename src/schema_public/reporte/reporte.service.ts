@@ -319,7 +319,7 @@ export class ReportService {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_modificacion),
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_aprobacion),
                   style: 'textTitulo', alignment: 'center'
 
                 },
@@ -356,7 +356,7 @@ export class ReportService {
               ],
               [
                 { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
-                { text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }
+                { text: 'Bs' + this.datos[0].total_carpeta + '', style: 'textDato' }
               ]
             ]
           },
@@ -703,7 +703,7 @@ export class ReportService {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_modificacion),
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ\n La Paz, ' + this.fechaString(this.datos[0].fecha_aprobacion),
                   style: 'textTitulo', alignment: 'center'
 
                 },
@@ -741,7 +741,7 @@ export class ReportService {
               ],
               [
                 { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
-                { text: 'Bs.' + this.datos[0].total_carpeta + '', style: 'textDato' }
+                { text: 'Bs' + this.datos[0].total_carpeta + '', style: 'textDato' }
               ]
             ]
           },
