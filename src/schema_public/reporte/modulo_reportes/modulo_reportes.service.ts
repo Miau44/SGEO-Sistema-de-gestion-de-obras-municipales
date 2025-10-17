@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { Computo } from 'src/schema_public/computo/entities/computo.entity';
 import { ReporteActaDto } from './dto/reporte-acta.dto';
+import { ReporteFiscalDFO } from './dto/reporte-fiscales-dfo.dto';
 
 @Injectable()
 export class ModuloReportesService {
@@ -66,6 +67,20 @@ private readonly DECIMAL_PLACES = 5;
     } catch (error) {
       return this.responseService.error(error);
     }
-  }  
+  }
+  
+  async descargarFiscalesDFO(data: ReporteFiscalDFO) {
+    try {
+      let query = ` 
+          SELECT * FROM public."vista_reporte_fiscales_DFO" WHERE fecha_designacion >= $1 AND fecha_designacion <= $2`;
+          const parametros = [data.fecha_inicio, data.fecha_fin];
+          const res = await this.reporteRepositorio.query(query, parametros)
+
+          return this.responseService.success(res, 'Listado correctamente')
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+
+  }
 
 }
