@@ -274,6 +274,26 @@ export class ComputoService {
   }
 
 
+  async montoComputoXItem(data: ComputoItemDto) {
+    try {
+      const datos = {
+        id_item: data.id_item,
+        id_modificacion_pago: data.id_modificacion_pago
+      }
+      await this.planillaService.actualizarPlanillaXIditem(datos);
+
+      let query = ` SELECT cantidad_reordenamiento  AS monto_certificado_pago FROM planilla 
+      WHERE id_item = $1 AND
+      id_modificacion_pago = $2`;
+
+      const params = [data.id_item, data.id_modificacion_pago];
+      const resultado = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   async listaComputoXItem(data: ComputoItemDto) {
     try {
       ;

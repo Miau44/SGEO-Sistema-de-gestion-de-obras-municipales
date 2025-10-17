@@ -11,7 +11,7 @@ import { ReemplazoDto } from './dto/reemplazo.dto';
 import { GenerarDto } from './dto/generar.dto';
 import { Designacion } from './entities/designacion.entity';
 import { TraspasoPendientesDto } from './dto/traspaso_pendientes.dto';
-
+import { MaxCorrelativoSolicitudDto } from './dto/correlativo-solicitud.dto';
 
 @ApiTags('designacion')
 
@@ -116,6 +116,11 @@ async getSolicitud(@Param('id_designacion') id_designacion: number) {
     return this.designacionService.aprobarDesignacion( actEstadoDto);
   }
 
+  @Post('aprobar-designacion-reemplazo')
+  actualizarAprobarReemplazoDesignacion(@Body() actEstadoDto: EstadoObraDesigDto) {
+  return this.designacionService.aprobarReemplazoDesignacion( actEstadoDto);
+  }
+
 //mike
 
 @Public()
@@ -136,6 +141,14 @@ actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
   MaxCorrelativo(@Body() correlativoDto: MaxCorrelativoDto ) {
     try {
       return this.designacionService.maxCorrelativo(correlativoDto);
+    } catch (error) {
+    }
+  }
+
+    @Post('max-correlativo-solicitud')
+  maxCorrelativoSolicitud(@Body() correlativoDto: MaxCorrelativoSolicitudDto) {
+    try {
+      return this.designacionService.maxCorrelativoSolicitud(correlativoDto);
     } catch (error) {
     }
   }
