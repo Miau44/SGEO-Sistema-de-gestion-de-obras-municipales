@@ -282,10 +282,9 @@ export class ComputoService {
       }
       await this.planillaService.actualizarPlanillaXIditem(datos);
 
-      let query = ` SELECT cantidad_reordenamiento  AS monto_certificado_pago FROM planilla 
-      WHERE id_item = $1 AND
-      id_modificacion_pago = $2`;
-
+      let query = ` SELECT * FROM public.sp_computo_monto($1, $2);`;
+      console.log('1710205', data);
+      
       const params = [data.id_item, data.id_modificacion_pago];
       const resultado = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
