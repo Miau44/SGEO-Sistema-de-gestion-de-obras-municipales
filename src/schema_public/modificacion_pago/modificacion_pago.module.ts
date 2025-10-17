@@ -17,14 +17,14 @@ import { Informe } from '../informe/entities/informe.entity';
 import { InformeService } from '../informe/informe_inicial.service';
 import { InformeInicial } from '../informe/entities/informe_inicial.entity';
 import { Documento } from '../documento/entities/documento.entity';
-import { ProtocoloModificacion } from '../protocolo_modificacion/entities/protocolo_modificacion.entity';
+
 
 
 @Module({
 
 imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, 
   Modificacion, Correlativo, Documento,
-  Planilla, Informe, InformeInicial, ProtocoloModificacion])],
+  Planilla, Informe, InformeInicial])],
 
   controllers: [ModificacionPagoController],
   providers: [ModificacionPagoService, ResponseService, CorrelativoService ,SolicitudService, PlanillaService, InformeService], 
