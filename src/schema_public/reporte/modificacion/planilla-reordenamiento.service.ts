@@ -674,7 +674,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
      { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
        style: 'textTitulo2', alignment: 'right', bold: true }, 
      {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_autorizado,formatoNumerico2), //Cambiar por la suma de la tabla detalle
+     { text: this.formatIfNumber(datosPl[0].total_modif_ap,formatoNumerico2), //Correjido
       style: 'textTitulo2', alignment: 'right', bold: true }, 
      {}, // celdas vacias
      { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),
