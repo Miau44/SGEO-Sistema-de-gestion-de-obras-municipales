@@ -291,7 +291,7 @@ export class MemoOrdenCambio {
             },
             {
               text: 'Por lo que el nuevo monto autorizado será de Bs' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +  
-              ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%.'
+              ') totalizando un valor porcentual de modificaciones (incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.'
             },
             {
               text: '\n\nAtentamente,', 
