@@ -43,6 +43,7 @@ import { PagoModule } from './schema_public/pago/pago.module';
 import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/modulo_reportes.module';
 import { AvanceFisicoModule } from './schema_public/avance_fisico/avance_fisico.module';
 import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_documento/avance_fisico_documento.module';
+import { ProtocoloModule } from './schema_public/protocolo/protocolo.module';
 
 
 
@@ -117,7 +118,8 @@ import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_docum
   PagoModule,
   ModuloReportesModule,
   AvanceFisicoModule,
-  AvanceFisicoDocumentoModule
+  AvanceFisicoDocumentoModule,
+  ProtocoloModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
