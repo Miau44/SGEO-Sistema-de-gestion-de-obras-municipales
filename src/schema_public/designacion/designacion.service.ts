@@ -434,81 +434,97 @@ export class DesignacionService {
     }
   }  
 
-async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
-  try {
-    console.log("[1] Iniciando aprobarDesignacionR()");
-    console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
+  async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
+    try {
+      // console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
+      const reemplazo = AprobarDto.designacion?.[0];
+      if (!reemplazo) {
+        throw new Error("No se recibió información de reemplazo en el DTO.");
+      }
 
-    for (let i = 0; i < AprobarDto.designacion.length; i++) {
-      console.log(`\n [2] Iteración ${i + 1} de ${AprobarDto.designacion.length}`);
-      console.log(" Designación actual:", AprobarDto.designacion[i]);
-
-      // --- FUNCIÓN INTERNA PARA ACTUALIZAR ESTADO ---
-      const actualizarEstado = async () => {
-        console.log("[3] Entrando en actualizarEstado()");
-
-        const datadesignacion = {
-          estado_designacion: 102,
-          correlativo: AprobarDto.designacion[i].correlativo,
-          fecha_aprobacion: await this.date(),
-        };
-        console.log("Datos para actualizar designación:", datadesignacion);
-
-        const estado_designacion = await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
-        console.log("Resultado actualización designación:", estado_designacion);
-
-        const datasolicitud = {
-          id_estado_solicitud: 4,
-          id_estado_general: AprobarDto.id_estado_flujo,
-          usuario_registro: AprobarDto.id_usuario,
-        };
-        console.log("Datos para actualizar solicitud:", datasolicitud);
-
-        await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
-        console.log("Solicitud actualizada correctamente.");
+      // --- ACTUALIZAR DESIGNACIÓN REEMPLAZO APROBADO ---
+      const datadesignacion = {
+        estado_designacion: 102,
+        correlativo: reemplazo.correlativo,
+        fecha_aprobacion: await this.date(),
       };
 
-        await actualizarEstado();
+      let estado_designacion;
+      try {
+        estado_designacion = await this.update(reemplazo.id_designacion, datadesignacion);
+        // console.log("Estado de designación actualizado:", estado_designacion);
+      } catch (err) {
+        console.error("Error al actualizar designación:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar designación', datadesignacion, err, 0);
+        throw new Error("Error al actualizar el estado de la designación.");
+      }
+
+      // --- ACTUALIZAR SOLICITUD FINALIZADO---
+      const datasolicitud = {
+        id_estado_solicitud: 4,
+        id_estado_general: AprobarDto.id_estado_flujo,
+        usuario_registro: AprobarDto.id_usuario,
+      };
+
+      try {
+        await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
+        // console.log("Solicitud actualizada correctamente.");
+      } catch (err) {
+        console.error("Error al actualizar solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar solicitud', datasolicitud, err, 0);
+        throw new Error("Error al actualizar la solicitud.");
+      }
+
+      // --- HISTORIAL ---
+      let respuesta_solicitud;
+      try {
+        respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        // console.log("Solicitud encontrada:", respuesta_solicitud);
+      } catch (err) {
+        console.error("Error al obtener la solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al obtener solicitud', AprobarDto, err, 0);
+        throw new Error("Error al obtener la solicitud para historial.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.data.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+        id_obra: respuesta_solicitud.data.id_obra,
+        id_estado_general: respuesta_solicitud.data.id_estado_general,
+        id_usuario: respuesta_solicitud.data.id_usuario,
+        proveido: 'APROBACIÓN POR REEMPLAZO',
+        data_solicitud: respuesta_solicitud.data.data_solicitud,
+        fecha_envio: respuesta_solicitud.data.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.data.usuario_registro,
+        id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+      };
+      // console.log("Datos historial:", datosHistorial);
+
+      try {
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+        // console.log("Historial creado correctamente.");
+      } catch (err) {
+        console.error("Error al crear historial:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al crear historial', datosHistorial, err, 0);
+        throw new Error("Error al crear historial de solicitud.");
+      }
+
+      // --- LOG FINAL ---
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Reemplazo aprobado correctamente', datosHistorial, 'OK', 0);
+      // console.log("Aprobación de reemplazo completada correctamente.");
+
+      return this.responseService.success("Reemplazo aprobado correctamente.");
+
+    } catch (error) {
+      console.error("[ERROR] En aprobarDesignacionR:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
+      return this.responseService.error(errorMessage);
     }
-
-    // --- HISTORIAL ---
-    console.log("\n[4] Creando historial de solicitud...");
-    const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
-    console.log("Solicitud encontrada:", respuesta_solicitud);
-
-    const datosHistorial = {
-      id_solicitud: respuesta_solicitud.data.id_solicitud,
-      id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
-      nro_solicitud: respuesta_solicitud.data.nro_solicitud,
-      id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
-      id_obra: respuesta_solicitud.data.id_obra,
-      id_estado_general: respuesta_solicitud.data.id_estado_general,
-      id_usuario: respuesta_solicitud.data.id_usuario,
-      proveido: 'APROBACIÓN POR REEMPLAZO',
-      data_solicitud: respuesta_solicitud.data.data_solicitud,
-      fecha_envio: respuesta_solicitud.data.fecha_envio,
-      id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
-      usuario_registro: respuesta_solicitud.data.usuario_registro,
-      id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-    };
-    console.log("Datos historial:", datosHistorial);
-
-    await this.serviceSolicitud.createHistorial(datosHistorial);
-    console.log("Historial creado correctamente.");
-
-    await this.registrarLog('Aprobar Designacion', 'Aprobacion de Designacion creada correctamente ', datosHistorial, 'OK', 0);
-
-    console.log("[5] Finalizando proceso aprobarDesignacionR — todo OK");
-    await this.registrarLog('aprobarDesignacionR', 'Solicitud(es) procesada(s)', AprobarDto, 'OK', 0);
-
-    return this.responseService.success("Solicitud generada correctamente.");
-  } catch (error) {
-    console.error("[ERROR] En aprobarDesignacionR:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    await this.registrarLog('aprobarDesignacionR', 'Error inesperado', AprobarDto, errorMessage, 0);
-    return this.responseService.error(error);
   }
-}
 
 
   async deleteDesignacionestadoXPersona(id_obra: number) {
