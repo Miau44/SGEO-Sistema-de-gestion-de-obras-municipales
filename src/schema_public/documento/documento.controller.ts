@@ -12,6 +12,8 @@ import multer from 'multer';
 import path from 'path';
 import { Documento } from './entities/documento.entity';
 import { DocumentoObraDto } from './dto/documento_obra.dto';
+import { VistaListadoDocsObraDto } from './dto/vistaListado-documento.dto';
+
 
 @ApiTags('documentos')
 @Controller('documento')
@@ -178,6 +180,15 @@ export class DocumentoController {
 
   /****************************************************************************************
    **************************Generacion de documentos hacia atras**************************/
+  @Post('actualizar-ruta-documento')
+  async actualizarRutaDocumento(
+    @Body() data: { id_documento: number; ruta_documento: string },
+  ) {
+    return this.documentoService.updateRutaDoc(
+      data.id_documento,
+      data.ruta_documento,
+    );
+  }
 
   @Get('infObra-sin-documento')
   async obtenerInformesObraSinDocumento() {
@@ -195,8 +206,53 @@ export class DocumentoController {
   }
 
   @Get('infoPrevisionPagos-sin-documento')
-async listarInformesPrevisionPagosSinDocumento() {
-  return this.documentoService.listarInformesPrevisionPagosSinDocumento();
-}
+  async listarInformesPrevisionPagosSinDocumento() {
+    return this.documentoService.listarInformesPrevisionPagosSinDocumento();
+  }
+
+  @Get('correccion-infoInicial-con-documento')
+  listarInformesInicialesConDocumento() {
+    return this.documentoService.listarInformesInicialesConDocumento();
+  }
+
+  //lista documentos por obra
+  @Post('listar-vista-docs-por-obra')
+  @ApiBody({ type: VistaListadoDocsObraDto })
+  async listarVistaDocumentosPorObra(@Body() body: VistaListadoDocsObraDto) {
+    return this.documentoService.listarVistaDocumentosPorObra(body.id_obra);
+  }
+
+  @Public()
+  @Get('listadoDocumentospagos/:id_informe')
+  //@ApiOperation({ summary: ' id_designacion:1' })
+  listadoDocumentospagos( @Param('id_informe') id_informe: number) {
+    return this.documentoService.listadoDocumentospagos( id_informe);
+  }
+
+  @Public()
+  @Post('eliminarDocumentosPagos')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_informe:   { type: 'number', example: 1131 },
+        id_documento: { type: 'number', example: 1245 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+    },
+  })
+  eliminarDocumentosPagos(@Body() data: {id_informe: number; id_documento: number,id_usuario: number}) {
+    return this.documentoService.eliminarDocumentosPagos(data.id_informe,data.id_documento,data.id_usuario);
+  }
+  
+  @Public()
+  @Get('listar-documentos-por-subtipo')
+  async listarDocumentosPorSubtipo(
+    @Query('id_informe') id_informe: number,
+    @Query('id_subtipo_documento') id_subtipo_documento: number,
+  ) {
+    return this.documentoService.listarDocumentosPorSubtipo(id_informe, id_subtipo_documento);
+  }
+
 
 }

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EstructuraOrganizacionalService } from './estructura_organizacional.service';
 import { CreateEstructuraOrganizacionalDto } from './dto/create-estructura_organizacional.dto';
 import { UpdateEstructuraOrganizacionalDto } from './dto/update-estructura_organizacional.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { EstructuraDADto } from './dto/estructura-da.dto';
 
@@ -55,5 +55,36 @@ export class EstructuraOrganizacionalController {
   async llenarBase(@Body() estructuraDa?: EstructuraDADto): Promise<string> {
     await this.estructuraOrganizacionalService.llenarUEDesdeServicio();
     return 'Proceso de llenado completado.';
+  }
+
+  @Post('cargadoPuesto')
+  @Public()
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        gestion: { type: 'number', example: 2025 },
+        codigoue: { type: 'string', example: 263 },
+      },
+      required: ['gestion', 'codigoue'],
+    },
+  })
+  async cargadoPuesto(@Body() body: { gestion: number, codigoue: string }) { //añadir parametro de entrada a servicio test, gestion
+    //validar que el id_usuario no sea nulo
+    if (body == null) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
+    }
+    const { gestion, codigoue } = body;
+    //validar que la gestion no sea nulo y mayor a 2020
+    if (gestion == null && gestion > 2020) {
+      console.error('Error: gestion es nulo');
+      return { message: 'error', error: 'gestion es nulo' };
+    }
+    //const token = await this.ficha_itemService.obtenerToken();
+    console.log("gestion", gestion);
+    
+    return await this.estructuraOrganizacionalService.cargadoPuesto(gestion, codigoue);
   }
 }

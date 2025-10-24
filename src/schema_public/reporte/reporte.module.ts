@@ -20,6 +20,14 @@ import { InformeObraSupervisor } from './Informe_obra/informe_supervisor.service
 import { InformeObraFiscal } from './Informe_obra/informe_fiscal.service';
 import { ActaProvisional } from './actas/acta_provisional.service';
 import { InformeInicialService } from './actividades_previas/informe_inicial/informe_inicial.service';
+import { ComputoMetricoPago } from './pagos/computo-metrico-pagos.service';
+import { PlanillaPago } from './pagos/planilla-pagos.service';
+import { InformePagoSupervisor } from './pagos/informe-pago-supervisor.service';
+import { InformePagoFiscal } from './pagos/informe_pago_fiscal.service';
+import { ResumenCertificado } from './pagos/resumen-certificado.service';
+import { ActaDefinitiva } from './actas/acta_definitiva.service';
+import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.service';
+import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
 
 @Module({
 
@@ -30,7 +38,9 @@ import { InformeInicialService } from './actividades_previas/informe_inicial/inf
 
   providers: [ReportService, ResponseService, ReporteOrdenProcederService, ReporteModificacionService, ReporteActPreviasService,
               InformeModificacionSupervisor,MemoOrdenCambio,SolicitudGarantia,InformeModificacionFiscal,ComputoMetrico,AnexoOC,
-              PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional, InformeInicialService],
+              PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional, InformeInicialService, ComputoMetricoPago, 
+              PlanillaPago, InformePagoSupervisor, InformePagoFiscal, ResumenCertificado, ActaDefinitiva, InformeObraSupervisor2, 
+              fichaInspeccion ],
   controllers: [ReportController],
 })
 export class ReporteModule {}

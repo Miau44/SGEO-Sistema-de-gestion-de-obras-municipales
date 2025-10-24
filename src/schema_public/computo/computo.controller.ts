@@ -89,6 +89,16 @@ export class ComputoController {
     }
   }
 
+@Public()
+  @Post('monto_certificado_item')
+  montoComputoXItem(@Body() computoItemDto: ComputoItemDto) {
+    try {  
+      return this.computoService.montoComputoXItem(computoItemDto);
+    } catch (error) {
+    }
+  }
+
+
   @Public()
   @Get('tipo_computo/:id')
   getTipoComputo(@Param('id') id: string) {

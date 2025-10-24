@@ -10,11 +10,13 @@ import { ResponseDto } from '../parametrica/dto/response.dto';
 import { ContratoDlcDto } from './dto/contrato-dlc.dto';
 import { LogService } from '../log/log.service';
 import { Json } from 'sequelize/types/utils';
+import { ResponseService } from 'src/response.service';
 
 @Injectable()
 export class ContratoService {
 
   constructor(
+    private responseService: ResponseService,
     @InjectRepository(Contrato)
     private contratoRepo: Repository<Contrato>,
     @InjectRepository(Ficha)
@@ -142,20 +144,17 @@ export class ContratoService {
       }),
     });
     const data = await response.json();
-    console.log(data);
     this.token = data.access_token;
   }
 
-  async llenarContratosDesdeServicio(gestion: number): Promise<void> {
+  async llenarContratosDesdeServicio(gestion: number,id_usuario:number): Promise<void> {
+    console.log("gestion y usuario",gestion,id_usuario);
     try {
-      console.log('Iniciando el proceso de llenado de la base de datos...');
-      console.log(process.env.URL_DLC + 'consumer/reporteunodfo/' + gestion);
-
       const response = await fetch(process.env.URL_DLC + `consumer/reporteunodfo/${gestion}/0`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
       });
-      console.log(response.body);
+      console.log("id_usuario",id_usuario);
 
       const data = await response.json();
 
@@ -206,7 +205,11 @@ export class ContratoService {
             id_obra: obra.id_obra,
             direccion: item.rdomicilio,
             telefono: item.rtelef,
+            rpcrpa:item.rpcrpa,
             url: item.rlinkcontrat,
+            id_estado: 1, // Activo
+            fecha_registro: new Date(),
+            id_usuario:id_usuario
           });
           console.log("creando  contrato, ficha " +item.ridcodcarpeta);
           await this.contratoRepository.save(nuevoContrato);
@@ -287,7 +290,7 @@ export class ContratoService {
           continue;
         }
 
-        contratoExistente.url = item.rlinkcontrat;
+        contratoExistente.rpcrpa = item.rpcrpa; // Actualizando rpcrpa en lugar de url
         await this.contratoRepository.save(contratoExistente);
         contratosActualizados++;
       }
@@ -299,6 +302,30 @@ export class ContratoService {
     }
   }
 
+    public async consultarContrato(correlativo_carpeta: number,gestion:number): Promise<any> {
+    //OBTENER PARAMETROS DE URL DESDE .env
+    const url_sim = process.env.URL_SIM2;
+    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/${correlativo_carpeta}`;
+    console.log('Consultando servicio externo:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.token}`,
+      },
+    });
+
+    const data = await response.json();
+    console.log(data);
+    
+    if(data.statusCode==200){
+      return data;
+    }
+    else{
+      return this.responseService.error('ERROR','No se encontraron datos.',500);
+    }
+  };
   /**
  * Limpia el monto del JSON para convertirlo en un valor numérico.
  * @param monto - Monto en formato "          10.600,00".

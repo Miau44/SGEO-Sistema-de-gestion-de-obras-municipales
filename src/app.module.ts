@@ -39,6 +39,11 @@ import { SubrolesModule } from './schema_public/subroles/subroles.module';
 import { LogModule } from './schema_public/log/log.module';
 import { CorreoModule } from './schema_public/correo/correo.module';
 import { DocumentoSistemaModule } from './schema_public/documento_sistema/documento_sistema.module';
+import { PagoModule } from './schema_public/pago/pago.module';
+import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/modulo_reportes.module';
+import { AvanceFisicoModule } from './schema_public/avance_fisico/avance_fisico.module';
+import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_documento/avance_fisico_documento.module';
+
 
 
 
@@ -52,7 +57,7 @@ import { DocumentoSistemaModule } from './schema_public/documento_sistema/docume
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       autoLoadModels: true,
-      synchronize: true,
+      synchronize: false
     }),
     ReporteModule,
 
@@ -67,7 +72,7 @@ import { DocumentoSistemaModule } from './schema_public/documento_sistema/docume
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
+    synchronize: false,
   }),
 
  
@@ -108,7 +113,11 @@ import { DocumentoSistemaModule } from './schema_public/documento_sistema/docume
   SubrolesModule,
   LogModule,
   CorreoModule,
-  DocumentoSistemaModule
+  DocumentoSistemaModule,
+  PagoModule,
+  ModuloReportesModule,
+  AvanceFisicoModule,
+  AvanceFisicoDocumentoModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

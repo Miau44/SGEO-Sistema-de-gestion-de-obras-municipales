@@ -272,7 +272,8 @@ export class DesignacionService {
     
             const datasolicitud = {
               id_estado_solicitud: 4,
-              id_estado_general: AprobarDto.id_estado_flujo
+              id_estado_general: AprobarDto.id_estado_flujo,
+              usuario_registro : AprobarDto.id_usuario
             };
             await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
           };
@@ -354,8 +355,8 @@ export class DesignacionService {
           proveido: 'APROBACIÓN DE DESIGNACIÓN',
           data_solicitud: respuesta_solicitud.data.data_solicitud,
           fecha_envio: respuesta_solicitud.data.fecha_envio,
-          id_usuario_previo: 0,
-          usuario_registro: 0,
+          id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+          usuario_registro: respuesta_solicitud.data.usuario_registro,
           id_estado_registro: respuesta_solicitud.data.id_estado_registro,
         };    
         await this.serviceSolicitud.createHistorial(datosHistorial);
@@ -369,6 +370,8 @@ export class DesignacionService {
         return this.responseService.error(error);
       }
     }    
+
+    
 
 
   async aprobarDesignacionR(AprobarDto: EstadoObraDesigDto) {
@@ -430,6 +433,97 @@ export class DesignacionService {
     }
   }  
 
+  async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
+    try {
+      // console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
+      const reemplazo = AprobarDto.designacion?.[0];
+      if (!reemplazo) {
+        throw new Error("No se recibió información de reemplazo en el DTO.");
+      }
+
+      // --- ACTUALIZAR DESIGNACIÓN REEMPLAZO APROBADO ---
+      const datadesignacion = {
+        estado_designacion: 102,
+        correlativo: reemplazo.correlativo,
+        fecha_aprobacion: await this.date(),
+      };
+
+      let estado_designacion;
+      try {
+        estado_designacion = await this.update(reemplazo.id_designacion, datadesignacion);
+        // console.log("Estado de designación actualizado:", estado_designacion);
+      } catch (err) {
+        console.error("Error al actualizar designación:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar designación', datadesignacion, err, 0);
+        throw new Error("Error al actualizar el estado de la designación.");
+      }
+
+      // --- ACTUALIZAR SOLICITUD FINALIZADO---
+      const datasolicitud = {
+        id_estado_solicitud: 4,
+        id_estado_general: AprobarDto.id_estado_flujo,
+        usuario_registro: AprobarDto.id_usuario,
+      };
+
+      try {
+        await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
+        // console.log("Solicitud actualizada correctamente.");
+      } catch (err) {
+        console.error("Error al actualizar solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar solicitud', datasolicitud, err, 0);
+        throw new Error("Error al actualizar la solicitud.");
+      }
+
+      // --- HISTORIAL ---
+      let respuesta_solicitud;
+      try {
+        respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        // console.log("Solicitud encontrada:", respuesta_solicitud);
+      } catch (err) {
+        console.error("Error al obtener la solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al obtener solicitud', AprobarDto, err, 0);
+        throw new Error("Error al obtener la solicitud para historial.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.data.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+        id_obra: respuesta_solicitud.data.id_obra,
+        id_estado_general: respuesta_solicitud.data.id_estado_general,
+        id_usuario: respuesta_solicitud.data.id_usuario,
+        proveido: 'APROBACIÓN POR REEMPLAZO',
+        data_solicitud: respuesta_solicitud.data.data_solicitud,
+        fecha_envio: respuesta_solicitud.data.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.data.usuario_registro,
+        id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+      };
+      // console.log("Datos historial:", datosHistorial);
+
+      try {
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+        // console.log("Historial creado correctamente.");
+      } catch (err) {
+        console.error("Error al crear historial:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al crear historial', datosHistorial, err, 0);
+        throw new Error("Error al crear historial de solicitud.");
+      }
+
+      // --- LOG FINAL ---
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Reemplazo aprobado correctamente', datosHistorial, 'OK', 0);
+      // console.log("Aprobación de reemplazo completada correctamente.");
+
+      return this.responseService.success("Reemplazo aprobado correctamente.");
+
+    } catch (error) {
+      console.error("[ERROR] En aprobarDesignacionR:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
+      return this.responseService.error(errorMessage);
+    }
+  }
 
 
   async deleteDesignacionestadoXPersona(id_obra: number) {
@@ -521,6 +615,22 @@ export class DesignacionService {
     }
   }
 
+    async maxCorrelativoSolicitud(correlativoDto: {id_obra:number, id_permiso: number, id_cite_solicitud: number}) {
+    try {
+    const query1 = `
+    SELECT COALESCE(MAX(d.correlativo_solicitud), 0) AS max_correlativo_solicitud FROM designacion AS d
+	    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
+	    INNER JOIN LATERAL (SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona
+	  WHERE d.id_obra = $1 AND dp.idpermiso IN ($2) AND d.id_cite_solicitud = $3;`;
+      const params = [correlativoDto.id_obra, correlativoDto.id_permiso, correlativoDto.id_cite_solicitud];
+      const resultado = await this.DesigRepositorio.query(query1, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  
 async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   try {
 
@@ -614,7 +724,7 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     try {
       // 1. Buscar el id_designacion original
       const designacionOriginal = await queryRunner.manager.findOne(Designacion, {
-        where: { id_reemplazo: idDesignacionNueva }
+        where: { id_designacion: idDesignacionNueva }
       });
   
       if (!designacionOriginal) {
@@ -623,8 +733,8 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   
       // 2. Actualizar estado_designacion y fecha_reemplazo
       await queryRunner.manager.update(Designacion, designacionOriginal.id_designacion, {
-        estado_designacion: 105,
-        fecha_reemplazo: new Date(),
+        estado_designacion: 275,
+        //fecha_reemplazo: new Date(),
       });
   
       // 3. Obtener datos de la persona relacionada

@@ -9,13 +9,13 @@ export class CreatePagoDto {
     monto_presente: number;      
 
     @ApiProperty()
-    deducciones: number;      
+    deduccion: number;      
     
     @ApiProperty()
-    retenciones: number;      
+    retencion: number;      
     
     @ApiProperty()
-    multas: number;   
+    multa: number;   
 
     @ApiProperty()
     importe_por_pagar: number;   
@@ -24,7 +24,10 @@ export class CreatePagoDto {
     monto_acumulado: number;      
 
     @ApiProperty()
-    porcentaje_ejecucion: number;      
+    porcentaje_presente: number;      
+
+    @ApiProperty()
+    porcentaje_acumulado: number;    
     
     @ApiProperty()
     fecha_aprobacion_pago: Date;      
@@ -32,12 +35,21 @@ export class CreatePagoDto {
     @ApiProperty()
     fecha_aprobacion_contrato: Date;   
 
-
     @ApiProperty()
     fecha_supervisor: Date;      
-    
+
     @ApiProperty()
-    fecha_certificado: Date;   
+    fecha_fiscal: Date;   
+    
+
+    @ApiProperty()
+    fecha_frp: Date;   
+
+    @ApiProperty()
+    fecha_inicio_periodo: Date;   
+
+    @ApiProperty()
+    fecha_fin_periodo: Date;   
 
     
     @ApiProperty()

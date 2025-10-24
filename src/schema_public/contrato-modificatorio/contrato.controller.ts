@@ -62,12 +62,18 @@ export class ContratoController {
 
   
   @Public()
-  @Post('cargarContratosDlc/:gestion')
+  @Post('cargarContratosDlc/:gestion/:id_usuario')
+  //@UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
-  async llenarContratos(@Param('gestion') gestion: number): Promise<any> {
+  @ApiParam({ name: 'id_usuario', description: 'ID del usuario que realiza la carga' })
+  async cargarContratosDlc(@Param('gestion') gestion: number,@Param('id_usuario') id_usuario: number): Promise<any> {
     try {
       const r = await this.contratoService.obtenerToken();
-      return await this.contratoService.llenarContratosDesdeServicio(gestion);
+      console.log("gestion y usuario",gestion,id_usuario);
+      if(id_usuario==undefined){
+        return 'Error: id_usuario es indefinido';
+      }
+      return await this.contratoService.llenarContratosDesdeServicio(gestion,id_usuario);
     } catch (error) {
       console.error('Error:', error);
       return 'Test error';
@@ -101,6 +107,42 @@ export class ContratoController {
     } catch (error) {
       console.error('Error:', error);
       return 'Test error';
+    }
+  }
+
+  @Post('consultarContrato')
+  @Public()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 363321 },
+        gestion: { type: 'number', example: 2025 },
+      },
+      required: ['correlativo_carpeta'],
+    },
+  })
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  async consultarContrato(@Body() body: { correlativo_carpeta: number,gestion:number }) { //añadir parametro de entrada a servicio test, gestion
+    //validar que el id_usuario no sea nulo
+    if (body == null) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
+    }
+    const { correlativo_carpeta,gestion } = body;
+    //validar que la gestion no sea nulo y mayor a 2020
+    if (correlativo_carpeta == null) {
+      console.error('Error: gestion es nulo');
+      return { message: 'error', error: 'gestion es nulo' };
+    }
+
+    try {
+      const token = await this.contratoService.obtenerToken();
+      const result = await this.contratoService.consultarContrato(correlativo_carpeta,gestion);
+      return {result};
+    } catch (error) {
+      console.error('Error:', error);
+      return { message: 'Test error', error: error || error };
     }
   }
 }

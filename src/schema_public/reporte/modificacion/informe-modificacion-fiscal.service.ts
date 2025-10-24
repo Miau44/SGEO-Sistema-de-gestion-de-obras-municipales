@@ -39,6 +39,7 @@ export class InformeModificacionFiscal {
     datosAF: any = [];
     datosSaf: any = [];
     datosSec: any = [];
+    datosSD: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -72,10 +73,10 @@ export class InformeModificacionFiscal {
    }
 
     // Resumen de Modificaciones Aprobadas por obra 
-   async modificacionesAprobadas(obra: number) {
+   async modificacionesAprobadas(obra: number, id_solicitud: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND id_solicitud <= ${id_solicitud}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
@@ -125,6 +126,15 @@ export class InformeModificacionFiscal {
       return resultado5[0];
   }
 
+  //--Datos SUBALCALDE - DFO - ACTUAL
+    async datosSubDfo(da: number) {
+      const query6 = `
+          SELECT * 
+          FROM public."vista_reporte_mae_sub_dfo" WHERE desc_cod_da_comision = ${da}`;
+      const resultado6 = await this.sequelize.query(query6);
+      return resultado6[0];
+  }
+
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -141,7 +151,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   }
   this.datosFis = res1;
 
-    const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+  const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
   // if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
   //     throw new Error('No se encontraron datos de las modificaciones de la obra');
   // }
@@ -176,6 +186,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       throw new Error('No se encontraron del Secretario de la SMIP');
     }
     this.datosSec = res7;
+
+  const res8 = await this.datosSubDfo(this.datosEnvio[0].desc_cod_da);
+  this.datosSD = res8;
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -245,16 +258,16 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
                 {
                   text: (() => {
-                    const da = this.datosAF[0].desc_cod_da;
+                    const da = this.datosEnvio[0].desc_cod_da;
                     const monto = this.datosEnvio[0].monto_contrato;
-                    const nombreDA = this.datosSaf[0].nombre_da;
+                    const nombreDA = this.datosEnvio[0].nombre_da;
                     const nombreSAF = this.datosSaf[0].nombre_saf;
                     const aprobador = this.datosAF[0].aprobador;
-
+                    //console.log('VALIDACION1', da);
                     if (da >= 37 && da <= 45) {
-                      if (monto > 500000) {
+                      if (monto > 200000) {
                         return [
-                          { text: aprobador + '\n', style: 'textDato' },
+                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
                           { text: nombreDA, style: 'textTitulo' }
                         ];
                       } else {
@@ -351,44 +364,44 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
           widths: ['*', 300],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true }], fillColor: '#dddddd' }
+              { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true, fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }] }
+              { text: 'EMPRESA CONTRATISTA:\n', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }
             ],
             [
-              { text: [{ text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'MONTO CONTRATO INICIAL:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }], margin: [0,5,0,0] }
+              { text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato', margin: [0,5,0,0] }
             ],
             [
-              { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
+              { text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }
             ],
             [
-              { text: [{ text: 'TOTAL AMPLIACIÓN DE PLAZO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].dias_variacion, style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'TOTAL AMPLIACIÓN DE PLAZO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].total_dia_ampliado, style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'NUEVA FECHA DE CONCLUSIÓN:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosMod[0].nueva_conclusion), style: 'textDato' }] }
+              { text: 'NUEVA FECHA DE CONCLUSIÓN:', style: 'textTitulo', alignment: 'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional), style: 'textDato' }
             ],
           ]
         }, margin: [10, 0, 0, 7] 
@@ -400,7 +413,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
         table: {
-          widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'],
+          widths: ['6%','32%','16%','16%','16%','16%','16%'],
           body: [
             [
               { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },

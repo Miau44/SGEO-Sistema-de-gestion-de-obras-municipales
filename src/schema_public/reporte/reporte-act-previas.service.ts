@@ -46,8 +46,6 @@ export class ReporteActPreviasService {
     datosPII2: any = [];
     datosPII4: any = [];
     datosIAP: any = [];
-    datosJUFOT: any = [];
-    datosJUFOE: any = [];
     datosAF: any = [];
   
     constructor(
@@ -182,61 +180,7 @@ export class ReporteActPreviasService {
       return arrayData;
     }
 
-    //Cargar tabla de fiscales
-    buildFiscales(data: any) {
-      let datosFiscal = data;
-      let arrayData = [];
-  
-      for (let i = 0; i < datosFiscal.length; i++) {
-        let rowData = [
-          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-    //Cargar tabla de fiscales 2 - con recuadro
-    buildFiscales2(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL', bold: true, style: 'textDato' }
-                  ],
-                alignment: 'center', margin: [0, 25, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-     //Cargar tabla de fiscales
-    buildFiscales3(data: any) {
-      let datosFiscal = data;
-      let rowData = [];
-
-        for (let i = 0; i < datosFiscal.length; i++) {
-          rowData.push({ text: datosFiscal[i].memo + (i < datosFiscal.length - 1 ? ' |' : ''),
-                          style: 'textDato', alignment: 'center' });
-        }
-
-        return [rowData];
-    }
-
-    //--Cargar preguntas Informe Inicial
+   //--Cargar preguntas Informe Inicial
     buildPregInfInicial2(data: any) {
       let datosPreg = data;
       let arrayData = [];
@@ -312,30 +256,29 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
           widths: ['*', 400],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo' },], fillColor: '#dddddd' },
+              { text: 'CÓDIGO:', style: 'textTitulo', fillColor: '#dddddd' },
               { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:\n', style: 'textTitulo' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+              { text: 'OBRA:\n', style: 'textTitulo' },
+              { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
             ],
             [
-              { text: [{ text: 'ZONA:\n', style: 'textTitulo' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'ZONA:\n', style: 'textTitulo', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },] },
-              { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+              { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo' },
+              { text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }
             ],
             [
-              { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo' },], fillColor: 'dddddd' },
-              { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: 'dddddd' }
+              { text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', fillColor: 'dddddd' },
+              { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato', fillColor: 'dddddd' }
             ]
           ]
         },
         layout: 'noBorders'
       },
-
       {
         table: {
           widths: ['*', 330],
@@ -355,7 +298,6 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
         text: 'Supervisión de Obra: \n\En cumplimiento al Reglamento de Supervisión y Fiscalización de Obras, toda vez que la obra cuenta con la supervisión designada, se remite el detalle de la documentación del proyecto para su revisión. \n\n',
         style: 'textDato', alignment: 'justify',
       },
-
       {
         table: {
           widths: [30, '*', 50, 100],
@@ -379,12 +321,10 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
           + '\n** Se remite una copia a la Fiscalización de Obra. \n\n',
         style: 'textDato', alignment: 'justify',
       },
-
       {
         text: 'Fecha de Envío: ',
         style: 'textDato',
       },
-
       {
         text: ['\n\n\n'],
       },
@@ -395,8 +335,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
       {
         text: 'JEFE DE UNIDAD\n' + this.datosEnvio[0].nombre_da,
         style: 'subheader', alignment: 'center', bold:true
-      },
-        
+      },    
       {
         text: [
           '\n\n\n\n\n\n\ncc:Arch:',
@@ -454,7 +393,8 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -527,23 +467,12 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     }
     this.datosIAP = res9;
 
-    const res5 = await this.datosJefeUnidadDFO(298);
-    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron del Jefe UFOT');
-    }
-    this.datosJUFOT = res5;
-
-    const res7 = await this.datosJefeUnidadDFO(299);
-    if (!res5 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-      throw new Error('No se encontraron del Jefe UFOE');
-    }
-    this.datosJUFOE = res7;
-  
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
 
-    console.log('DATOS IAP',this.datosIAP);
+    //console.log('DATOS IAP',this.datosEnvio);
+    //console.log('DATOS:',this.datosIAP);
     const bodyTabla = [];
 
     const documentDefinition = {
@@ -569,24 +498,19 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           style: 'header', alignment: 'center'
         } as any,
         {
-          text: this.datosEnvio[0].cod_carpeta + '-' + 'IFIS' + '-' + '1\n\n',
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosIAP[0].cite_inf + '\n\n',
           style: 'subheader', alignment: 'center'
         },
         {
           table: {
-            widths: ['15%', '85%'],
+            widths: ['20%', '80%'],
             body: [
               [
-                { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                { text: 'A:', style: 'textTitulo', alignment:'right' },
                 { text: [
-                    { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
-                    { text: (
-                      this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
-                        ? this.datosAF[0].nombre_da
-                        : this.datosAF[0].nombre_ue
-                    ), style: 'textTitulo' }
-                  ],
-                  margin: [0, 5, 0, 5] 
+                    { text: this.datosIAP[0].a_nombre + '\n', style: 'textDato' },
+                    { text: this.datosIAP[0].a_cargo , style: 'textTitulo' }
+                  ] 
                 },
               ],
               // Fila VIA: solo si la condición NO se cumple
@@ -594,39 +518,29 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
                 this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
                   ? [] // No incluir la fila
                   : [[
-                      { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                      {
-                        text: [
-                          { text: this.datosJUFOT[0].nombre_jefe + '\n', style: 'textDato' },
-                          { text: this.datosJUFOT[0].cargo_jefe, style: 'textTitulo' }
-                        ],
-                        margin: [0, 5, 0, 5]
+                      { text: 'VIA:', style: 'textTitulo', alignment:'right' },
+                      { text: [
+                            { text: (this.datosIAP[0].via_nombre || '') + '\n', style: 'textDato' },
+                            { text: (this.datosIAP[0].via_cargo || ''), style: 'textTitulo' }
+                        ]                                             
                       }
                     ]]
               ),
               [
-                { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-                { 
-                  table: {
-                    widths: ['*'],
-                    body: [
-                      ...this.buildFiscales(this.datosFis)
-                    ]
-                  },
-                  style: 'textDato', layout: 'noBorders', margin: [0, 5, 0, 5] 
+                { text: 'DE:', style: 'textTitulo', alignment: 'right' },
+                { text: [
+                  { text: this.datosIAP[0].de_nombre + '\n', style: 'textDato'},
+                  { text: this.datosIAP[0].de_cargo, style: 'textTitulo'}
+                  ] 
                 },                
               ],
               [
-                { text: ' ' },
-                { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo' },
+                { text: 'REF.:', style: 'textTitulo', alignment:'right' },
+                { text: 'INFORME DE FISCALIZACIÓN PREVIO AL INICIO DE OBRA', style: 'textTitulo' },
               ],
               [
-                { text: 'REF.:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: 'INFORME DE FISCALIZACIÓN PREVIO AL INICIO DE OBRA', style: 'textTitulo', margin: [0, 5, 0, 5] },
-              ],
-              [
-                { text: 'FECHA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                { text: this.fechaString(this.datosIAP[0].fecha_modificacion), style: 'textDato', margin: [0, 5, 0, 5] },
+                { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
+                { text: this.fechaString(this.datosIAP[0].fecha_modificacion), style: 'textDato' },
               ],
             ],
           },
@@ -638,10 +552,11 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             paddingRight: () => 5, // Espaciado interno derecho
             paddingTop: () => 2, // Espaciado interno superior
             paddingBottom: () => 2, // Espaciado interno inferior
-          },
-          margin: [20, 0, 20, 10], // Márgenes de la tabla
+          }
         },
-        
+        {
+          text: '\n',
+        },
         {
           text: 'En atención a informe ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosII[0].cite + '-1' +
           ', con referencia: "INFORME INICIAL DE REVISIÓN DEL PROYECTO", se emite el presente informe.\n\n',
@@ -654,15 +569,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         {
           ul: [
                 {
-                  text: 'Mediante memorándum ' +
-                  (Array.isArray(this.datosFis)
-                    ? this.datosFis
-                        .filter(f => f && f.memo)
-                        .map(f => f.memo)
-                        .join(' | ')
-                    : ''
-                  ) +
-                  ', se designó a mi (nuestra) persona como Fiscal(es) de la obra: "' +
+                  text: 'Mediante memorándum ' + this.datosIAP[0].cites_de + ', se designó a mi (nuestra) persona como Fiscal(es) de la obra: "' +
                   this.datosEnvio?.[0]?.desc_carpeta + '".',
                   margin: [0, 0, 0, 5], style: 'textDato'
                 },
@@ -687,33 +594,28 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }
               ],
-
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }] }
+                { text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].nombre_ue + '\n', style: 'textDato' }
               ],
-
               [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }], fillColor: '#dddddd' }
+                { text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: 'Bs.' + this.datosEnvio[0].total_carpeta + '\n', style: 'textDato', fillColor: '#dddddd' }
               ],
-
               [
-                { text: [{ text: 'FECHA VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }] }
+                { text: 'FECHA VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }
               ]
             ]
           }, margin: [20, 0, 0, 0]
@@ -843,7 +745,6 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         {
           text:' ',
         },
-
         {
           text: '3.   CONCLUSIONES\n\n',
           style: 'subheader',
@@ -873,21 +774,36 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
           style: 'textDato', alignment:'justify'
         },
         {
-          text: ['\n\n'],
+          text: ['\n'],
         }, 
         {
           table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildFiscales2(this.datosFis)
-              ]
+            widths: ['50%', '50%'],
+            body: (this.datosIAP[0].de_nombre ? this.datosIAP[0].de_nombre.split('\n') : []).map((nombre: string) => [
+              { text: [
+                  { text: nombre, style: 'textDato' },
+                  { text: '\nFISCAL DE OBRA', style: 'textDato', bold: true }
+                ], 
+                margin: [0, 35, 0, 0], 
+                alignment: 'center'
+              },
+              { text: '(Firma y Sello)', 
+                style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+              }
+            ])
           },
+          margin: [20, 0, 20, 0],
+          layout: {
+            hLineColor: () => '#444444',
+            vLineColor: () => '#444444',
+            hLineWidth: () => 0.7,
+            vLineWidth: () => 0.7
+          }
         },
         {
           text: [
-            '\n\n\nCc, Archivo \nCc./Arch. Personal \n',
-          ],
-          style: 'footerText'
+            '\n\n\nCc. Archivo \nCc./Arch. Personal \n',
+          ], style: 'footerText'
         },
 
       ],
@@ -913,12 +829,12 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         coloredText: {
           fontSize: 10,
           bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
+          color: 'gray', 
         },
         coloredTextgray: {
           fontSize: 14,
           bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
+          color: 'gray', 
         },
         footerText: {
           fontSize: 6,
@@ -946,12 +862,13 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [70, 170, 50, 150] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {

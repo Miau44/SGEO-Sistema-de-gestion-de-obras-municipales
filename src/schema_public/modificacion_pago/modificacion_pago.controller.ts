@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
@@ -8,6 +8,8 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { listaModDto } from './dto/obra.dto';
 import { CreateModificacionDto } from './dto/create-modificacion.dto';
 import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificacion.dto';
+import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 
 
@@ -20,10 +22,12 @@ export class ModificacionPagoController {
   create(@Body() createModificacionPagoDto: CreateModificacionPagoDto) {
     return this.modificacionPagoService.create(createModificacionPagoDto);
   }
-
+  @Public()
   @Post('crear-modificacion-pago')
   createModificacionPago(@Body() createmaestro: CreateMaestroDto) {
+        try {
     return this.modificacionPagoService.crearModificacionPago(createmaestro);
+      } catch (error) { } 
   }
 
   @Get()
@@ -130,16 +134,37 @@ export class ModificacionPagoController {
     }
   }
 
-  //Listado de modificaciones por carpeta, servicio de lectura DLC
-  @Public()
-  @Get('ModificacionesPorContrato/:id_contrato')
+  
+  //Listado de modificaciones por contrato, servicio de lectura DLC
+  @UseGuards(AuthGuard('jwt'))
+  @Get('ModificacionesPorContrato/:id_contrato/:id_tipo')
   @HttpCode(HttpStatus.OK)
-  async ModificacionesPorCarpeta(@Param('id_contrato') id_contrato: number) {
+  async ModificacionesPorContrato(@Param('id_contrato') id_contrato: number, @Param('id_tipo') id_tipo: number) {
     try {
-      return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato);
-    } catch (error) {
+      return this.modificacionPagoService.listadoModificacionesxContrato(id_contrato, id_tipo);
+    } catch (error) {}
+  }
 
-    }
+  //Listado de modificaciones por carpeta, servicio de lectura SIM
+  @UseGuards(AuthGuard('jwt'))
+  @Public()
+  @Get('ModificacionesPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async ModificacionesPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoModificacionesxCarpeta(id_carpeta);
+    } catch (error) {}
+  }
+
+  //Listado de pagos por carpeta, Servicio de lectura SIM
+  //@UseGuards(AuthGuard('jwt'))
+  @Public()
+  @Get('PagosPorCarpeta/:id_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async PagosPorCarpeta(@Param('id_carpeta') id_carpeta: number) {
+    try {
+      return this.modificacionPagoService.listadoPagosxCarpeta(id_carpeta);
+    } catch (error) {}
   }
 
   //servicio en metodo post, guardado de numeración del contrato
@@ -152,15 +177,27 @@ export class ModificacionPagoController {
       properties: {
         id_modificacion: { type: 'number', example: 200 },
         numero_contrato_modificatorio: { type: 'string', example: 'CONTRATO-001' },
-        fecha_memo_minuta: { type: 'string', example: '2023-08-01' }
+        fecha_memo_minuta: { type: 'string', example: '2025-08-01' },
+        fecha_registro_contrato: { type: 'string', example: '2025-08-02' } 
       }
     }
   })
-  async guardadoNumeracion(@Body() body: { id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string }) {
+  async guardadoNumeracion(@Body() body: { id_modificacion: number, numero_contrato_modificatorio: string, fecha_memo_minuta: string, fecha_registro_contrato: string }) {
     try {
-      return this.modificacionPagoService.guardadoNumeracion(body.id_modificacion, body.numero_contrato_modificatorio, body.fecha_memo_minuta);
+      return this.modificacionPagoService.guardadoNumeracion(body.id_modificacion, body.numero_contrato_modificatorio, body.fecha_memo_minuta, body.fecha_registro_contrato);
     } catch (error) {
       throw new HttpException('Error al guardar la numeración', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  
+  @Public()
+  @Post('actualizar-autorizado')
+  listaActualizarPago(@Body() data: ActualizarModPagoDto) {
+    try {
+      return this.modificacionPagoService.actualizarAutorizado(data);
+    } catch (error) {
+    }
+  } 
+
 }

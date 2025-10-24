@@ -41,6 +41,8 @@ export class InformeModificacionSupervisor {
     datosDecremento: any = [];
     datosAdicion: any = [];
     datosINuevos: any = [];
+    datosMA: any = [];
+    datosAdj: any = [];
     //let solicitud: Number;
 
     constructor(
@@ -93,24 +95,24 @@ export class InformeModificacionSupervisor {
    }
 
         // Resumen de Modificaciones Aprobadas por obra 
-   async modificacionesAprobadas(obra: number) {
+   async modificacionesAprobadas(obra: number, id_solicitud: number) {
     const query3 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra} AND id_solicitud <= ${id_solicitud}`;
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
    }
 
     // Resumen de Modificacion Actual 
    async modificacionActual(solicitud: number) {
-    const query3 = `
+    const query31 = `
         SELECT * 
         FROM public."vista_reporte_modif_aprobadas" WHERE id_modificacion_pago = ${solicitud}`;
-    const resultado3 = await this.sequelize.query(query3);
-    return resultado3[0];
+    const resultado31 = await this.sequelize.query(query31);
+    return resultado31[0];
    }
 
- // Tabla ITEM - INCREMENTO - DECREMENTO
+ // Tabla ITEM - INCREMENTO - DECREMENTO - ADICION
    async itemsModificacion(solicitud: number, tipo: string) {
     const query4 = `
         SELECT * 
@@ -129,6 +131,23 @@ export class InformeModificacionSupervisor {
     return resultado5[0];
    }
 
+      // Datos ultima Modificación Aprobada
+   async datosUltimaMod(obra: number, id_modif_pago: number) {
+      const query6 = `
+          SELECT * 
+          FROM public."f_reporte_ultima_modif_InfModif"(${obra},${id_modif_pago})`;
+      const resultado6 = await this.sequelize.query(query6);
+      return resultado6[0];
+   }
+
+      // Datos lista Adjuntos - Inf. Modificacion
+    async AdjuntosModificacion(obra: number) {
+      const query7 = `
+          SELECT * 
+          FROM public."vista_reporte_adjuntos_InfModificacion" WHERE id_obra = ${obra}`;
+      const resultado7 = await this.sequelize.query(query7);
+      return resultado7[0];
+    }
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
 async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
@@ -157,7 +176,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     }
     this.datosInfSup = res3; 
 
-    const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
+    const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
     // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
     //     throw new Error('No se encontraron datos de las modificaciones de la obra');
     //}
@@ -180,6 +199,12 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     const res9 = await this.itemsNuevos(id_modif_pago);
     this.datosINuevos = res9;
+
+    const res10 = await this.datosUltimaMod(this.datosEnvio[0].id_obra, id_modif_pago);
+    this.datosMA = res10;
+
+    const res11 = await this.AdjuntosModificacion(this.datosEnvio[0].id_obra);
+    this.datosAdj = res11;
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -205,7 +230,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosIncremento);
+   console.log('DATOS MODIFICACION',this.datosEnvio);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -319,36 +344,36 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           widths: ['*', 300],
           body: [
             [
-              { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true }], fillColor: '#dddddd' }
+              { text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].cod_carpeta, style: 'textDato', bold:true, fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'OBRA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato' }] }
+              { text: 'OBRA:', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].desc_carpeta, style: 'textDato' }
             ],
             [
-              { text: [{ text: 'ZONA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'ZONA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.datosEnvio[0].desc_zona_carpeta, style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'EMPRESA CONTRATISTA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }] }
+              { text: 'EMPRESA CONTRATISTA:', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato' }
             ],
             [
-              { text: [{ text: 'MONTO CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'MONTO CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: 'Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato' }], margin: [0,5,0,0] }
+              { text: 'PLAZO DE EJECUCIÓN, CONTRATO INICIAL:', style: 'textTitulo', alignment: 'right' },
+              { text: this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato', margin: [0,5,0,0] }
             ],
             [
-              { text: [{ text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato' }], fillColor: '#dddddd' }
+              { text: 'FECHA INICIO DE OBRA:', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_inicio_ejecucion), style: 'textDato', fillColor: '#dddddd' }
             ],
             [
-              { text: [{ text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },] },
-              { text: [{ text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }] }
+              { text: 'FECHA CONCLUSIÓN PROGRAMADA:', style: 'textTitulo', alignment: 'right' },
+              { text: this.formatearFecha(this.datosEnvio[0].fecha_recep_provisional), style: 'textDato' }
             ],
           ]
         }, margin: [10, 0, 0, 7] 
@@ -360,7 +385,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
           table: {
-            widths: ['6%', '28%', '14%', '14%', '12%', '13%', '13%'], 
+            widths: ['6%','32%','16%','16%','16%','16%','16%'], 
             body: [
               [
                 { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
@@ -442,6 +467,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n'
       },
       {
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
+      },
+      {
         text: '4.1.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN INCREMENTO\n',
         style: 'textTitulo', margin: [10, 0, 0, 5]
       },
@@ -491,6 +521,11 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           ]
         }, margin: [10, 0, 0, 5] 
         
+      },
+      {
+        text: '(*)En caso de existir una diferencia de los montos totales del informe con respecto al monto total de la planilla de ' + 
+              'reordenamiento, prevalece el monto total de la suma vertical de dicha planilla.', 
+        style: 'footerText', margin: [10, 0, 0, 5], alignment:'justify', opacity: 0.8
       },
       {
         text: '4.2.1. JUSTIFICACIÓN DE ÍTEMS CON CANTIDADES EN DECREMENTO\n',
@@ -604,16 +639,20 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
             ? 'El '
             : 'La '},
-          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs' +
-        this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
-        ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n' },
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica el monto ' }, 
+          { text: this.datosEnvio[0].modificacion_gral == 1 
+            ? 'vigente de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
+            : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1) + ') de Bs' + this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
+          }, 
+          { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n' },
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
-        text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
-        'respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_modificacion + '%.', 
+        text: 'Por lo que el nuevo monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones ' + 
+        '(incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
+
       {
         text: '7.   CONCLUSIÓN\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -647,10 +686,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
-      {
-        text: this.datosInfSup[0].anexos + '\n',
-        style: 'textDato', margin: [10, 0, 0, 5]
-      },
+      ...(Array.isArray(this.datosAdj) && this.datosAdj.length > 0
+      ? [
+          {
+            text: this.datosAdj
+              .filter(a => a && a.desc_tipo_documento)
+              .map(a => '- ' + a.desc_tipo_documento)
+              .join('\n') + '\n',
+            style: 'textDato', alignment: 'left', margin: [10, 0, 0, 5]
+          }
+        ]
+      : [
+          { 
+            text: this.datosInfSup[0].anexos + '\n',
+            style: 'textDato', margin: [10, 0, 0, 5]
+          }
+        ]
+      ),
       {
         text: ['\n'],
       }, 
@@ -736,7 +788,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -763,7 +816,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   return `${dia}/${mes}/${anio}`;
 }
 
-       //Función para generar la fecha de manera escrita
+  //Función para generar la fecha de manera escrita
   fechaString(iso: string): string {
     let formattedDate = '';
     let fecha: Date;
@@ -886,7 +939,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
         { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
         { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
-        { text: [{ text: datosResp[i].nuevo_plazo, style: 'textDatoT', alignment: 'center', }] },
+        { text: [{ text: datosResp[i].total_plazo_autorizado, style: 'textDatoT', alignment: 'center', }] },
         { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
       ];
       arrayData.push(rowData);
@@ -895,35 +948,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     return arrayData;
   }
 
-  // Función para poblar la tabla de modificación Actual
-  //   buildItemsIncremento(data: any) {
-  //   let datosResp = data;
-  //   let arrayData = [];
-
-  //   for (let i = 0; i < datosResp.length; i++) {
-  //     let rowData = [
-  //       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT' }] },
-  //       { text: [{ text: datosResp[i].desc_item, alignment: 'right', style: 'textDatoT' }] },
-  //       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'right' }] },
-  //       { text: [{ text: datosResp[i].p_unitario_adjudicado, style: 'textDatoT', alignment: 'center' }] },
-  //       { text: [{ text: datosResp[i].cantidad_autorizada, style: 'textDatoT', alignment: 'center', }] },
-  //       { text: [{ text: datosResp[i].total_adjudicado, style: 'textDatoT', alignment: 'center' }] },
-  //       { text: [{ text: datosResp[i].cantidad_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
-  //       { text: [{ text: datosResp[i].total_reordenamiento, style: 'textDatoT', alignment: 'center' }] },
-  //     ];
-  //     arrayData.push(rowData);
-
-  //   }
-  //   return arrayData;
-  // }
-
 // Función para cargar las tablas de modificaciones INCREMENTO
   buildItemsIncremento(data: any, formatoNumerico: Intl.NumberFormat) {
-    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-    });
-
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -931,20 +957,20 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   
   let datosResp = data;
   let arrayData = [];
-  let totalReordenamientoSum = 0;
-  let porc_modif = 0;
+  //YOlet totalReordenamientoSum = 0;
+  //YOlet porc_modif = 0;
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
-    const totalReordenamiento = Number(datosResp[i].total_incremento) || 0;
-    totalReordenamientoSum += totalReordenamiento;
+    //YOconst totalReordenamiento = Number(datosResp[i].total_incremento) || 0;
+    //YOtotalReordenamientoSum += totalReordenamiento;
 
     let rowData = [
       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].desc_item, alignment: 'left', style: 'textDatoT' }] },
       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].p_unitario_adjudicado, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: this.formatIfNumber(datosResp[i].cantidad_autorizada, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].cantidad_sim, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].total_adjudicado, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].cant_incremento, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].total_incremento, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
@@ -956,24 +982,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
     {
-      text: this.formatIfNumber(totalReordenamientoSum, formatoNumerico2),
+      text: this.formatIfNumber(this.datosEnvio[0].total_incremento, formatoNumerico2),
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
   ];
 
   // Porcentaje adicional 
-  //const montoContrato = Number(this.datosEnvio[0].monto_contrato);
-  const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  //YO const montoContrato = Number(this.datosEnvio[0].monto_contrato);
 
-    if (!isNaN(montoContrato) && montoContrato !== 0) {
-      porc_modif = (totalReordenamientoSum * 100) / montoContrato;
-      
-    } 
+    // YO if (!isNaN(montoContrato) && montoContrato !== 0) {
+    //   //YOporc_modif = (totalReordenamientoSum * 100) / montoContrato;
+    //   porc_modif = this.formatIfNumber(this.datosEnvio[0].porcentaje_incremento,formatoNumerico2);
+    // } 
 
   const porcentajeRow = [
     {
@@ -985,7 +1010,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     },
     {}, {}, {}, {}, {}, {}, // omitidos por colSpan
     {
-      text: `${porc_modif.toFixed(2)}%`,
+      text: this.formatIfNumber(this.datosEnvio[0].porcentaje_incremento,formatoNumerico2) + '%',
       style: 'textTituloT',
       alignment: 'right',
       border: [false, true, false, true],
@@ -1000,11 +1025,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
 // Función para cargar las tablas de modificaciones DECREMENTO
   buildItemsDecremento(data: any, formatoNumerico: Intl.NumberFormat) {
-    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-    });
-
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -1012,20 +1032,20 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   
   let datosResp = data;
   let arrayData = [];
-  let totalReordenamientoSum = 0;
-  let porc_modif = 0;
+  //YOlet totalReordenamientoSum = 0;
+  //YOlet porc_modif = 0;
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
-    const totalReordenamiento = Number(datosResp[i].total_decremento) || 0;
-    totalReordenamientoSum += totalReordenamiento;
+    //YO const totalReordenamiento = Number(datosResp[i].total_decremento) || 0;
+    //YO otalReordenamientoSum += totalReordenamiento;
 
     let rowData = [
       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: datosResp[i].desc_item, alignment: 'left', style: 'textDatoT' }] },
       { text: [{ text: datosResp[i].unidad_medida_sim, style: 'textDatoT', alignment: 'center' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].p_unitario_adjudicado, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
-      { text: [{ text: this.formatIfNumber(datosResp[i].cantidad_autorizada, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
+      { text: [{ text: this.formatIfNumber(datosResp[i].cantidad_sim, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].total_adjudicado, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].cant_decremento, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
       { text: [{ text: this.formatIfNumber(datosResp[i].total_decremento, formatoNumerico), style: 'textDatoT', alignment: 'right' }] },
@@ -1037,24 +1057,24 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   const totalRow = [
     {
       colSpan: 7,
-      text: 'TOTAL (Bs):',
+      text: 'TOTAL (Bs)(*):',
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
     {
-      text: this.formatIfNumber(totalReordenamientoSum, formatoNumerico2),
+      text: this.formatIfNumber(this.datosEnvio[0].total_decremento,formatoNumerico2),
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
   ];
 
   // Porcentaje adicional 
-  //const montoContrato = Number(this.datosEnvio[0].monto_contrato);
-  const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  //YOconst montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  //YO const montoContrato = Number(this.datosEnvio[0].monto_contrato);
 
-    if (!isNaN(montoContrato) && montoContrato !== 0) {
-      porc_modif = (totalReordenamientoSum * 100) / montoContrato;
+    //YO if (!isNaN(montoContrato) && montoContrato !== 0) {
+    //   porc_modif = (totalReordenamientoSum * 100) / montoContrato;
       
-    } 
+    // } 
 
   const porcentajeRow = [
     {
@@ -1066,7 +1086,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     },
     {}, {}, {}, {}, {}, {}, // omitidos por colSpan
     {
-      text: `${porc_modif.toFixed(2)}%`,
+      text: this.formatIfNumber(this.datosEnvio[0].porcentaje_decremento,formatoNumerico2) + '%',
       style: 'textTituloT',
       alignment: 'right',
       border: [false, true, false, true],
@@ -1081,11 +1101,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
 // Función para cargar las tablas de modificaciones ADICION
   buildItemsAdicion(data: any, formatoNumerico: Intl.NumberFormat) {
-    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5
-    });
-
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -1093,13 +1108,13 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
   
   let datosResp = data;
   let arrayData = [];
-  let totalReordenamientoSum = 0;
-  let porc_modif = 0;
+  //YOlet totalReordenamientoSum = 0;
+  //YOlet porc_modif = 0;
 
   for (let i = 0; i < datosResp.length; i++) {
     // Convertir a número por si viene como string
-    const totalReordenamiento = Number(datosResp[i].total_incremento) || 0;
-    totalReordenamientoSum += totalReordenamiento;
+    //YOconst totalReordenamiento = Number(datosResp[i].total_incremento) || 0;
+    //YOtotalReordenamientoSum += totalReordenamiento;
 
     let rowData = [
       { text: [{ text: datosResp[i].orden_sim, style: 'textDatoT', alignment: 'center' }] },
@@ -1123,19 +1138,19 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     },
     {}, {}, {}, {}, {}, {}, // estos serán ignorados por el colSpan
     {
-      text: this.formatIfNumber(totalReordenamientoSum, formatoNumerico2),
+      text: this.formatIfNumber(this.datosEnvio[0].total_item_nuevo, formatoNumerico2),
       style: 'textTituloT', alignment: 'right', border: [false, true, false, true],
     },
   ];
 
   // Porcentaje adicional 
-  //const montoContrato = Number(this.datosEnvio[0].monto_contrato);
-  const montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  //YOconst montoContrato = Number(this.datosEnvio[0].monto_contrato);
+  //YOconst montoContrato = Number(this.datosEnvio[0].monto_contrato);
 
-    if (!isNaN(montoContrato) && montoContrato !== 0) {
-      porc_modif = (totalReordenamientoSum * 100) / montoContrato;
+    //YO if (!isNaN(montoContrato) && montoContrato !== 0) {
+    //   porc_modif = (totalReordenamientoSum * 100) / montoContrato;
       
-    } 
+    // } 
 
   const porcentajeRow = [
     {
@@ -1147,7 +1162,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     },
     {}, {}, {}, {}, {}, {}, // omitidos por colSpan
     {
-      text: `${porc_modif.toFixed(2)}%`,
+      text: this.formatIfNumber(this.datosEnvio[0].pocentaje_item_nuevo,formatoNumerico2) + '%',
       style: 'textTituloT',
       alignment: 'right',
       border: [false, true, false, true],
@@ -1232,22 +1247,28 @@ private numberToWords(value: number): string {
       : this.decenas[decena];
   }
   if (value < 1000) {
-    const centena = Math.floor(value / 100);
-    const resto = value % 100;
-    if (value === 100) return 'CIEN';
-    return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+  const centena = Math.floor(value / 100);
+  const resto = value % 100;
+  if (value === 100) return 'CIEN';
+  return resto === 0
+    ? this.centenas[centena]
+    : `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
   }
   if (value < 1_000_000) {
-    const miles = Math.floor(value / 1000);
-    const resto = value % 1000;
-    const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
-    return `${milesWord} ${this.numberToWords(resto)}`.trim();
+  const miles = Math.floor(value / 1000);
+  const resto = value % 1000;
+  const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
+  return resto === 0
+    ? milesWord
+    : `${milesWord} ${this.numberToWords(resto)}`.trim();
   }
   if (value < 1_000_000_000) {
-    const millones = Math.floor(value / 1_000_000);
-    const resto = value % 1_000_000;
-    const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
-    return `${millonesWord} ${this.numberToWords(resto)}`.trim();
+  const millones = Math.floor(value / 1_000_000);
+  const resto = value % 1_000_000;
+  const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
+  return resto === 0
+    ? millonesWord
+    : `${millonesWord} ${this.numberToWords(resto)}`.trim();
   }
   throw new Error('Valor fuera de rango');
 }

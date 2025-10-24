@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 import { ResponseService } from 'src/response.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Any, EntityManager, Not, Repository } from 'typeorm';
+import { And, Any, DataSource, EntityManager, Not, Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
 import { ListaDocumentoDto } from './dto/listaDocumento.dto';
 import { ConfigService } from '@nestjs/config';
@@ -29,6 +29,7 @@ export class DocumentoService {
     private configService: ConfigService,
     private entityManager: EntityManager,
     private logService: LogService,
+    private dataSource: DataSource
   ) {
     this.host = String(process.env.HOST_ADJUNTO);
     this.uploadUrl = String(process.env.URL_ADJUNTO);
@@ -320,9 +321,9 @@ export class DocumentoService {
       return result.filter((obra) =>
         Array.isArray(obra.tipos_documentos)
           ? obra.tipos_documentos.some(
-              (tipo: { documentos: any[] }) =>
-                Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
-            )
+            (tipo: { documentos: any[] }) =>
+              Array.isArray(tipo.documentos) && tipo.documentos.length > 0,
+          )
           : false,
       );
     } catch (error) {
@@ -384,7 +385,7 @@ export class DocumentoService {
     try {
       let query = `SELECT * FROM public.documento as d
 INNER JOIN public.tipo_documento as td ON d.id_tipo_documento = td.id_tipo_documento 
-WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
+WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1 AND td.id_estado = 1;`;
       const params: any[] = [data.id_obra];
 
       const resultado: any[] = await this.documentoRepositorio.query(
@@ -405,6 +406,39 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
         {},
         'Documento actualizado correctamente.',
       );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al actualizar el documento.',
+      );
+    }
+  }
+
+  async updateRutaDoc(id: number, ruta_documento: string) {
+    try {
+      const params: any[] = [id, ruta_documento];
+      const doc = await this.documentoRepositorio.findOne({
+        where: { id_documento: id },
+      });
+      if (!doc) {
+        return this.responseService.error(
+          null,
+          `No se encontró el documento con id ${id}`,
+          404
+        );
+      }
+      console.log(doc);
+      if (doc != null) {
+        doc.ruta_documento = ruta_documento;
+      }
+      const respuesta_doc = await this.documentoRepositorio.save(doc);
+      // let query = `UPDATE documento set ruta_documento = $1  where id_documento = $2`;
+      // console.log(query);
+      // const resultado: any[] = await this.documentoRepositorio.query(
+      //   query,
+      //   params,
+      // );
+      return this.responseService.success(respuesta_doc, 'documento actualizado.');
     } catch (error) {
       return this.responseService.error(
         error,
@@ -460,14 +494,9 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
         i.id_informe,
         i.id_tipo_informe,
         i.id_obra,
-        i.fecha_aprobacion AS fecha_aprobacion_informe,
-        sh.fecha_registro AS fecha_aprobacion_historial
+        i.fecha_aprobacion AS fecha_aprobacion_informe
       FROM informe i
-      JOIN solicitud s ON i.id_obra = s.id_obra
-      JOIN solicitud_historial sh ON s.id_solicitud = sh.id_solicitud
       WHERE i.id_tipo_informe = 235
-        AND sh.id_estado_general = 15
-        AND sh.id_estado_registro = 1
         AND i.fecha_aprobacion IS NOT NULL
         AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
         AND i.id_estado = 1
@@ -525,40 +554,243 @@ WHERE id_obra = $1 AND cumple = true AND d.id_estado = 1`;
   }
 
   async listarInformesPrevisionPagosSinDocumento(): Promise<any> {
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT 
         i.id_informe,
         i.id_obra,
         i.id_tipo_informe,
-        i.fecha_aprobacion AS fecha_aprobacion_informe,
-        me.fecha_memo AS fecha_aprobacion_memorandum
+        i.fecha_aprobacion AS fecha_aprobacion_informe
       FROM informe i
-      JOIN memorandum me ON i.id_obra = me.id_obra
       WHERE i.id_tipo_informe = 237
-        AND me.id_tipo_memo = 241
         AND i.fecha_aprobacion IS NOT NULL
         AND i.id_estado = 1
         AND (i.id_documento IS NULL OR i.id_documento::jsonb = '[]'::jsonb)
       ORDER BY i.id_informe DESC;
     `;
+      const resultado = await this.informeRepositorio.query(query);
 
-    const resultado = await this.informeRepositorio.query(query);
-
-    return this.responseService.success(
-      resultado.map((item: any) => ({
-        ...item,
-        servicioReporte: 'reportePrevisionPagos',
-        nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
-      })),
-      'Informes de previsión de pagos sin documento listados correctamente.',
-    );
-  } catch (error) {
-    return this.responseService.error(
-      error,
-      'Error al listar informes de previsión de pagos sin documento.',
-    );
+      return this.responseService.success(
+        resultado.map((item: any) => ({
+          ...item,
+          servicioReporte: 'reportePrevisionPagos',
+          nombre_archivo: `prevision_pagos_${item.id_informe}.pdf`,
+        })),
+        'Informes de previsión de pagos sin documento listados correctamente.',
+      );
+    } catch (error) {
+      return this.responseService.error(
+        error,
+        'Error al listar informes de previsión de pagos sin documento.',
+      );
+    }
   }
-}
 
+  async actualizarSoloRutaDocumento(id_documento: number, ruta: string) {
+    try {
+      await this.documentoRepositorio.update(id_documento, {
+        ruta_documento: ruta,
+        fecha_modificacion: new Date()
+      });
+      return this.responseService.success(
+        {},
+        'Ruta del documento actualizada correctamente.'
+      );
+    } catch (error) {
+      return this.responseService.error(error, 'Error al actualizar la ruta del documento.');
+    }
+  }
+  /***coreccion de informe incial */
+  async listarInformesInicialesConDocumento(): Promise<any> {
+    try {
+      const query = `
+     SELECT
+	documento.id_documento,
+  documento.id_obra,
+  informe.id_tipo_informe,
+  ruta_documento ,
+        informe.id_informe
+FROM 
+  documento
+JOIN 
+  informe ON informe.id_obra = documento.id_obra 
+          AND informe.id_tipo_informe = 235 
+          AND informe.fecha_aprobacion IS NOT NULL
+WHERE 
+  documento.id_tipo_documento = 235 
+  AND documento.id_estado = 1
+ORDER BY 
+  documento.id_obra ASC
+LIMIT 5`;
+
+      const resultado = await this.informeRepositorio.query(query);
+
+      return this.responseService.success(resultado, 'Informes iniciales con documento listados correctamente.');
+    } catch (error) {
+      return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    }
+  }
+
+
+  // Método para listar documentos por obra
+  async listarVistaDocumentosPorObra(id_obra: number): Promise<any> {
+    try {
+      const resultado = await this.dataSource.query(
+        `SELECT * FROM sp_listar_vista_documentos_por_obra($1)`,
+        [id_obra],
+      );
+      return this.responseService.success(resultado, 'Listado correctamente');
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
+  }
+
+
+
+  async listadoDocumentospagos(id_informe: number): Promise<any> {
+    try {
+      //get lista de tipos documentos
+      const listaTiposDocumentos = await this.dataSource.query(`SELECT id_tipo_documento, desc_tipo_documento FROM tipo_documento WHERE id_subtipo_documento = 353 AND id_estado = 1`);
+
+      //select de la tabla informe
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe },
+        select: ['id_documento', 'id_obra'],
+      });
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento);
+
+      }
+
+      const listaDocumentos = await this.dataSource.query(
+        `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
+      //console.log("documentos", listaDocumentos);
+      listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
+        tipo.documentos = [];
+        listaDocumentos.forEach((doc: {
+          fecha_registro: any;
+          nombre_documento: any; id_tipo_documento: any; ruta_documento: any; id_documento: number
+        }) => {
+
+          if (tipo.id_tipo_documento === doc.id_tipo_documento) {
+            tipo.documentos.push({
+              id_documento: doc.id_documento,
+              ruta_documento: doc.ruta_documento,
+              nombre_documento: doc.nombre_documento,
+              fecha_registro: doc.fecha_registro
+            });
+          }
+        }
+        );
+      });
+
+      return listaTiposDocumentos;
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
+  }
+
+  async eliminarDocumentosPagos(id_informe: number, id_documento: number,id_usuario:number): Promise<any> {
+    try {
+      //cambiar id_estado a 0 (eliminado) de la tabla documento
+      const resDoc = await this.documentoRepositorio.update(id_documento, { id_estado: 0 });
+
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe }
+      });
+      
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null && informe.id_documento.length > 0) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento);
+      }
+      else{
+        this.log(id_usuario,id_informe,id_documento,'ERROR:No hay documentos asociados al informe',informe?.id_documento);
+        return this.responseService.error("ERROR", 'No hay documentos asociados al informe');
+      }
+      
+      //verificar que el documento a eliminar exista en informe.id_documento
+      if (!informe.id_documento || !informe.id_documento.some(doc => doc.id_documento == id_documento)) {
+        this.log(id_usuario,id_informe,id_documento,`ERROR:Documento no encontrado en la tabla informe, id_documento: ${id_documento}`,informe.id_documento);
+        return this.responseService.error("ERROR", 'Documento no encontrado en la tabla informe informe');
+      }
+
+      let docsInicio = informe.id_documento || [];
+      const documentosValidos = await this.documentoRepositorio.find({where: {id_documento: Any(docsInicio.map(doc => doc.id_documento)),id_estado: 1}});
+      const documentosValidosIds = documentosValidos.map(doc => doc.id_documento);
+      console.log("documentosValidosIds:", documentosValidosIds);
+      var docsFinal:any = [];
+      documentosValidosIds.forEach(id => {
+        docsFinal.push({id_documento: id});
+      });
+      
+      informe.id_documento = docsFinal;
+      console.log("docs",docsInicio,docsFinal);
+      const resInforme =  await this.informeRepositorio.save(informe);
+      if(resInforme){ this.log(id_usuario,id_informe,id_documento,`Documento eliminado correctamente, id_documento: ${id_documento}`,resInforme.id_documento)}
+      else{ this.log(id_usuario,id_informe,id_documento,`ERROR:Error al eliminar adjunto, id_documento: ${id_documento}`,resInforme); 
+      return this.responseService.error("ERROR", 'Error al eliminar adjunto');
+    }
+    } catch (error) {
+      this.log(id_usuario,id_informe,id_documento,`ERROR:Error al eliminar adjunto, id_documento: ${id_documento}`,error);
+      return this.responseService.error(error, 'Error al listar informes iniciales con documento.');
+    }
+  }
+
+  async listarDocumentosPorSubtipo(id_informe: number, id_subtipo_documento: number): Promise<any> {
+    try {
+      //get lista de tipos documentos
+      const listaTiposDocumentos = await this.dataSource.query(`SELECT id_tipo_documento, desc_tipo_documento FROM tipo_documento WHERE id_subtipo_documento = $1 AND id_estado = 1`,
+      [id_subtipo_documento]);
+
+      //select de la tabla informe
+      const informe = await this.informeRepositorio.findOne({
+        where: { id_informe: id_informe },
+        select: ['id_documento', 'id_obra'],
+      });
+      var array_documentos: number[] = [];
+      if (informe != null && informe.id_documento != null) {
+        array_documentos = informe.id_documento.map((doc) => doc.id_documento)
+      }
+
+      const listaDocumentos = await this.dataSource.query(
+        `SELECT d.id_documento,id_tipo_documento,ruta_documento,nombre_documento,TO_CHAR(fecha_registro, 'DD/MM/YYYY') AS fecha_registro
+      FROM documento d WHERE d.id_estado = 1 AND d.id_documento = ANY($1)`, [array_documentos]);
+      //console.log("documentos", listaDocumentos);
+      listaTiposDocumentos.forEach((tipo: { id_tipo_documento: any; ruta_documento: any; documentos: any[]; }) => {
+        tipo.documentos = [];
+        listaDocumentos.forEach((doc: {
+          fecha_registro: any;
+          nombre_documento: any; id_tipo_documento: any; ruta_documento: any; id_documento: number
+        }) => {
+          if (tipo.id_tipo_documento === doc.id_tipo_documento) {
+            tipo.documentos.push({
+              id_documento: doc.id_documento,
+              ruta_documento: doc.ruta_documento,
+              nombre_documento: doc.nombre_documento,
+              fecha_registro: doc.fecha_registro
+            });
+          }
+        }
+        );
+      });
+      return listaTiposDocumentos;
+    } catch (error) {
+      console.error('Error al listar documentos por obra:', error);
+      return this.responseService.error('No se pudo listar los documentos');
+    }
+  }
+
+  log(id_usuario:number,id_informe:number,id_documento:number,mensaje:any,respuesta:any){
+    this.logService.create({
+        id_usuario: id_usuario,
+        parametro: JSON.stringify({id_informe, id_documento}),
+        mensaje: mensaje,
+        funcionalidad: 'Eliminar adjunto',
+        respuesta: JSON.stringify({respuesta})
+      });
+  }
 }

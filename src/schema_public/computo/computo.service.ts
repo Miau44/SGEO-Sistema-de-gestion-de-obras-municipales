@@ -274,6 +274,25 @@ export class ComputoService {
   }
 
 
+  async montoComputoXItem(data: ComputoItemDto) {
+    try {
+      const datos = {
+        id_item: data.id_item,
+        id_modificacion_pago: data.id_modificacion_pago
+      }
+      await this.planillaService.actualizarPlanillaXIditem(datos);
+
+      let query = ` SELECT * FROM public.sp_computo_monto($1, $2);`;
+      console.log('1710205', data);
+      
+      const params = [data.id_item, data.id_modificacion_pago];
+      const resultado = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   async listaComputoXItem(data: ComputoItemDto) {
     try {
       ;
@@ -296,7 +315,7 @@ export class ComputoService {
        AND m.id_modificacion = $2
 	  AND i.id_estado=1`;*/
   let query =` SELECT   c.id_computo,
-    m.id_modificacion_pago,
+    c.id_modificacion_pago,
     i.id_item, i.orden_sim, c.id_computo, 
     codigo_item, i.desc_item, unidad_medida_sim, p_unitario_adjudicado,
     total_adjudicado,  numero_veces,  tramo, descripcion, 
@@ -317,8 +336,6 @@ export class ComputoService {
     co.observacion_fiscal, i.id_obra, sh.id_solicitud_historial FROM public.item AS i
     INNER JOIN public.computo  AS c ON i.id_item = c.id_item 
     LEFT OUTER JOIN public.computo_observacion  AS co ON c.id_computo = co.id_computo 
-    INNER JOIN public.modificacion AS m ON c.id_modificacion_pago  = m.id_modificacion_pago
-
     LEFT JOIN (
     SELECT DISTINCT ON (id_solicitud) id_solicitud_historial, mp.id_solicitud, mp.id_modificacion_pago
     FROM public.solicitud_historial as sh  
@@ -326,7 +343,7 @@ export class ComputoService {
     ORDER BY id_solicitud, id_solicitud_historial DESC
 ) AS sh ON c.id_modificacion_pago = sh.id_modificacion_pago
     WHERE i.id_item =$1
-    AND m.id_modificacion_pago = $2
+    AND c.id_modificacion_pago = $2
     AND i.id_estado=1 ORDER BY c.id_computo`;
 
       const params = [data.id_item, data.id_modificacion_pago];
@@ -340,8 +357,8 @@ export class ComputoService {
   async descargarComputosMetricos(data: ComputoObra) {
     try {
       ;
-      let query =
-        `SELECT  
+
+       /* `SELECT  
         p.id_modificacion_pago as modificacion,
       i.id_item, 
       i.orden_sim AS orden,    
@@ -359,8 +376,25 @@ export class ComputoService {
       LEFT OUTER JOIN public.computo AS c  ON i.id_item = c.id_item AND c.id_modificacion_pago = $2
      INNER JOIN public.planilla  AS p  ON i.id_item = p.id_item AND p.id_modificacion_pago = $2 
 LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_planilla           
-      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;
-
+      WHERE i.id_obra = $1   AND i.id_estado = 1 ORDER BY i.orden_sim ASC;`;*/
+      let queryinicio = ` 
+     SELECT id_tipo_mod_pago FROM public.modificacion_pago WHERE id_modificacion_pago = $1;`  ;
+      const paramsinicio = [data.id_modificacion_pago];
+      const tipo_modificacion = await this.computoRepositorio.query(queryinicio, paramsinicio);
+      console.log('tipo_modificacion', tipo_modificacion);
+      if (tipo_modificacion.length === 0) {
+        throw new NotFoundException(`Modificacion Pago with ID ${data.id_modificacion_pago} not found`);
+      }
+      let query = '';
+      const v_id_tipo_mod_pago = tipo_modificacion[0]?.id_tipo_mod_pago;
+      if (v_id_tipo_mod_pago < 4) {
+        query = `SELECT * FROM  sp_computo_modificacion_pago($1, $2);`;
+      } else {
+        query = `SELECT modificacion , id_item , orden , nombre ,
+              tramo , descripcion , 
+              unidad , numero numeric, largo , ancho ,
+              alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 OR total_autorizado IS NULL;`;
+      }
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
       const resultado: any[] = await this.computoRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
@@ -543,11 +577,14 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
   private async insertarJustificacion(datosExcel: any[], id_usuario:number, id_historial:number, id_modificacion:number): Promise<void> {
     try {
       const resumen = datosExcel.reduce((acc, item) => {
-        acc.set(item.id_item, {
-          id_item: item.id_item,
-          id_modificacion_pago: item.modificacion,
-          justificacion_supervisor: item.justificacion_supervisor
-        });
+
+        if (item.justificacion_supervisor && item.justificacion_supervisor.trim() !== '') {
+          acc.set(item.id_item, {
+            id_item: item.id_item,
+            id_modificacion_pago: item.modificacion,
+            justificacion_supervisor: item.justificacion_supervisor
+          });
+        }
         return acc;
       }, new Map<number, { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }>());
       const resultado: { id_item: number; id_modificacion_pago: number, justificacion_supervisor: string }[] = Array.from(resumen.values());
@@ -679,10 +716,20 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
         id_modificacion_pago: dataadicional.id_modificacion,
         id_item: 0
       }
-      //actualizar toda la planilla 30052025 
-      await this.planillaService.actualizarPlanilla(datos);
-      await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
+        //actualizar toda la planilla 30052025 
+        await this.planillaService.actualizarPlanilla(datos);
 
+      //para no insertar justificacion si es pago
+      const tipo_modificacion = await this.modificacionService.findOne(dataadicional.id_modificacion ?? 0);
+      const v_id_tipo_mod_pago = info_obra.data.id_tipo_mod_pago;
+      if (!tipo_modificacion || tipo_modificacion.data.length === 0) {
+        console.warn(`no existe tipo de modificacion pago para justificacion ${dataadicional.id_modificacion} not found`);
+      }
+
+      if (v_id_tipo_mod_pago < 4) {
+
+        await this.insertarJustificacion(datosExcel, dataadicional.id_usuario, dataadicional.id_sol_historial, dataadicional.id_modificacion);
+      }
     } catch (error: any) {
       await this.logService.create({
       id_usuario: dataadicional?.id_usuario || 0,

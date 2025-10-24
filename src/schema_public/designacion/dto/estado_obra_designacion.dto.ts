@@ -20,7 +20,10 @@ export class EstadoObraDesigDto {
     id_obra: number;    
 
     @ApiProperty()
-    id_estado_flujo : number;       
+    id_estado_flujo : number;  
+    
+    @ApiProperty()
+    id_usuario: number;        
 
    /* @ApiProperty()
     desccodue: number;*/
