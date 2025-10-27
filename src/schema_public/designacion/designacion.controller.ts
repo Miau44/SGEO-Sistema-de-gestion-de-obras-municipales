@@ -10,6 +10,9 @@ import { MaxCorrelativoDto } from './dto/correlativo.dto';
 import { ReemplazoDto } from './dto/reemplazo.dto';
 import { GenerarDto } from './dto/generar.dto';
 import { Designacion } from './entities/designacion.entity';
+import { MaxCorrelativoSolicitudDto } from './dto/correlativo-solicitud.dto';
+import { TraspasoPendientesDto } from './dto/traspaso_pendientes.dto';
+
 
 @ApiTags('designacion')
 
@@ -72,6 +75,17 @@ async getSolicitud(@Param('id_designacion') id_designacion: number) {
     return this.designacionService.update(+id, updateSolicitudDesignacionDto);
   }*/
 
+  @Patch('traspasar-bandeja-pendientes')
+  @ApiOperation({ summary: 'Traspasar bandeja por usuarios (simular o ejecutar)' })
+  async traspasarBandeja(@Body() dto: TraspasoPendientesDto) {
+    // si tenés auth, saca el ejecutor de req.user; aquí no lo usamos.
+    return this.designacionService.traspasarBandejaPorUsuarios(dto);
+  }
+
+  @Post('bandeja/resumen')
+  async resumenPendientes(@Body() dto: TraspasoPendientesDto) {
+    return this.designacionService.resumenPendientes(dto);
+  }
 
   @Public()
   @Patch(':id_designacion')
@@ -103,6 +117,11 @@ async getSolicitud(@Param('id_designacion') id_designacion: number) {
     return this.designacionService.aprobarDesignacion( actEstadoDto);
   }
 
+  @Post('aprobar-designacion-reemplazo')
+  actualizarAprobarReemplazoDesignacion(@Body() actEstadoDto: EstadoObraDesigDto) {
+  return this.designacionService.aprobarReemplazoDesignacion( actEstadoDto);
+  }
+
 //mike
 
 @Public()
@@ -123,6 +142,14 @@ actualizarAprobarDessignacionR(@Body() actEstadoDto: EstadoObraDesigDto) {
   MaxCorrelativo(@Body() correlativoDto: MaxCorrelativoDto ) {
     try {
       return this.designacionService.maxCorrelativo(correlativoDto);
+    } catch (error) {
+    }
+  }
+
+    @Post('max-correlativo-solicitud')
+  maxCorrelativoSolicitud(@Body() correlativoDto: MaxCorrelativoSolicitudDto) {
+    try {
+      return this.designacionService.maxCorrelativoSolicitud(correlativoDto);
     } catch (error) {
     }
   }
