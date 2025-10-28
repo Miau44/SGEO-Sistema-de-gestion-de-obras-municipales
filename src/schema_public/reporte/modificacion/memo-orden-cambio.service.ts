@@ -284,7 +284,7 @@ export class MemoOrdenCambio {
                 { text: 'Asimismo, el monto ' },
                 { text: this.datosEnvio[0].modificacion_gral == 1 
                   ? 'del contrato inicial es de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.')
-                  : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1)  + ') es de Bs' + this.formatIfNumber(this.datosModAp[0].monto_total,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.') 
+                  : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1)  + ') es de Bs' + this.formatIfNumber(this.datosModAp[0].monto_total,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosModAp[0].monto_total,formatoNumerico2), 'Bs.') 
                 },
                 { text: '), tiene una variación de Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs') + ')' + '.\n\n' }
               ]
