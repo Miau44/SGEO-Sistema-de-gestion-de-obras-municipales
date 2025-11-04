@@ -240,12 +240,8 @@ export class PlanillaService {
       } else {
         // Si no hay datos, actualizar con valores en 0
         let query3 =
-          `UPDATE public.planilla
-          SET cantidad_planilla = 0, 
-          monto_planilla = 0,
-          cantidad_reordenamiento = 0,
-          total_reordenamiento = 0
-          WHERE id_modificacion_pago = $1 AND id_item = $2   `;
+          `SELECT  sp_modificacion_planilla_reset($2, $1);         
+           `;
         resultado = await this.planillaRepositorio.query(query3, params);
       }
 

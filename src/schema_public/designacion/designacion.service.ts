@@ -372,127 +372,6 @@ export class DesignacionService {
       }
     }    
 
-
-            async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
-      try {
-        // Verificar si se debe generar una nueva solicitud (solo si el flujo es 11)
-        let debeGenerarSolicitud = false;
-        if (AprobarDto.id_estado_flujo === 11) {
-          debeGenerarSolicitud = await this.generarSoloSolicitud(AprobarDto.id_obra);
-        }    
-        const respuesta_obra = await this.obraService.findOne(AprobarDto.id_obra);
-        const desc_cod_ue = respuesta_obra.data[0].desc_cod_ue;
-        const gestion = respuesta_obra.data[0].gestion;
-    
-        for (let i = 0; i < AprobarDto.designacion.length; i++) {
-          const actualizarEstado = async () => {
-            const datadesignacion = {
-              estado_designacion: 102,// se cambio el estado de designacion REEMPLAZO
-              correlativo: AprobarDto.designacion[i].correlativo,
-              fecha_aprobacion: await this.date()
-            };
-            await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
-    
-            const datasolicitud = {
-              id_estado_solicitud: 4,
-              id_estado_general: AprobarDto.id_estado_flujo,
-              usuario_registro : AprobarDto.id_usuario
-            };
-            await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
-          };
-    
-          if (debeGenerarSolicitud) {
-            const usuarioDestinoQuery = `
-              SELECT idusuario FROM public.sp_permisos_xpersona_filas() 
-              WHERE idpermiso IN (85,86)
-                AND desccodue = ${desc_cod_ue} 
-                AND gestion = ${gestion}`;
-    
-            const usuarioDestinoResult = await this.DesigRepositorio.query(usuarioDestinoQuery);
-    
-            if (!usuarioDestinoResult || usuarioDestinoResult.length === 0) {
-              await this.registrarLog('aprobarReemplazoDesignacion', 'No se encontró usuario destino', AprobarDto, 'Sin resultado', 0);
-              return {
-                statusCode: 500,
-                message: false,
-                error: "Error: No se encontró un usuario destino válido.",
-              };
-            }
-    
-            await actualizarEstado(); // Se actualiza primero
-    
-            const usuario = usuarioDestinoResult[0].idusuario;
-            const data_solicitud = {
-              id_tipo_solicitud: 114,
-              id_estado_solicitud: 2,
-              id_obra: AprobarDto.id_obra,
-              id_estado_general: 12,
-              id_usuario: usuario,
-              proveido: "SOLICITUD GENERADA POR SISTEMA",
-              usuario_registro: usuario,
-              id_estado_registro: 1,
-            };
-            const  respuesta_etapa =   await this.solicitudRepocitorio.save(data_solicitud);
-
-            //para general historial
-            if (!respuesta_etapa) {
-
-              await this.registrarLog('aprobarReemplazoDesignacion', 'Error al guardar la solicitud', data_solicitud, 'null', usuario);
-              return this.responseService.error("Error al guardar la solicitud.");
-            }
-            await this.registrarLog('aprobarReemplazoDesignacion', 'Solicitud creada correctamente', data_solicitud, respuesta_etapa, usuario);
-            const datosHistorialetapa = {
-              id_solicitud: respuesta_etapa.id_solicitud,
-              id_tipo_solicitud: respuesta_etapa.id_tipo_solicitud,
-              nro_solicitud: respuesta_etapa.nro_solicitud,
-              id_estado_solicitud: respuesta_etapa.id_estado_solicitud,
-              id_obra: respuesta_etapa.id_obra,
-              id_estado_general: respuesta_etapa.id_estado_general,
-              id_usuario: respuesta_etapa.id_usuario,
-              proveido: respuesta_etapa.proveido,
-              data_solicitud: respuesta_etapa.data_solicitud,
-              fecha_envio: respuesta_etapa.fecha_envio,
-              id_usuario_previo: respuesta_etapa.id_usuario_previo,
-              usuario_registro: respuesta_etapa.usuario_registro,
-              id_estado_registro: respuesta_etapa.id_estado_registro,
-            };
-      
-            const solicitud_historial = await this.solicitudHisRepositorio.save(datosHistorialetapa)
-            await this.registrarLog('aprobarReemplazoDesignacion', 'Historial creado', datosHistorialetapa, solicitud_historial, usuario);
-            debeGenerarSolicitud = false; // prevenir que genere más de una en caso de múltiples designaciones
-          } else {
-            await actualizarEstado(); // Solo se actualiza si no se genera nueva solicitud
-          }
-        }
-    
-        // Historial de solicitud
-        const respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
-        const datosHistorial = {
-          id_solicitud: respuesta_solicitud.data.id_solicitud,
-          id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
-          nro_solicitud: respuesta_solicitud.data.nro_solicitud,
-          id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
-          id_obra: respuesta_solicitud.data.id_obra,
-          id_estado_general: respuesta_solicitud.data.id_estado_general,
-          id_usuario: respuesta_solicitud.data.id_usuario,
-          proveido: 'APROBACIÓN POR REEMPLAZO', //SE CAMBIO EL PROVEIDO
-          data_solicitud: respuesta_solicitud.data.data_solicitud,
-          fecha_envio: respuesta_solicitud.data.fecha_envio,
-          id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
-          usuario_registro: respuesta_solicitud.data.usuario_registro,
-          id_estado_registro: respuesta_solicitud.data.id_estado_registro,
-        };    
-        await this.serviceSolicitud.createHistorial(datosHistorial);
-         await this.registrarLog('Aprobar por Reemplazo', 'Aprobar por Reemplazo de Designacion creada correctamente ', datosHistorial, 'OK', 0);
-    
-        return this.responseService.success("Solicitud generada correctamente.");
-      } catch (error) {
-        console.error("Error en aprobarReemplazoDesignacion:", error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
-        return this.responseService.error(error);
-      }
-    }   
     
 
 
@@ -555,6 +434,97 @@ export class DesignacionService {
     }
   }  
 
+  async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
+    try {
+      // console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
+      const reemplazo = AprobarDto.designacion?.[0];
+      if (!reemplazo) {
+        throw new Error("No se recibió información de reemplazo en el DTO.");
+      }
+
+      // --- ACTUALIZAR DESIGNACIÓN REEMPLAZO APROBADO ---
+      const datadesignacion = {
+        estado_designacion: 102,
+        correlativo: reemplazo.correlativo,
+        fecha_aprobacion: await this.date(),
+      };
+
+      let estado_designacion;
+      try {
+        estado_designacion = await this.update(reemplazo.id_designacion, datadesignacion);
+        // console.log("Estado de designación actualizado:", estado_designacion);
+      } catch (err) {
+        console.error("Error al actualizar designación:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar designación', datadesignacion, err, 0);
+        throw new Error("Error al actualizar el estado de la designación.");
+      }
+
+      // --- ACTUALIZAR SOLICITUD FINALIZADO---
+      const datasolicitud = {
+        id_estado_solicitud: 4,
+        id_estado_general: AprobarDto.id_estado_flujo,
+        usuario_registro: AprobarDto.id_usuario,
+      };
+
+      try {
+        await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
+        // console.log("Solicitud actualizada correctamente.");
+      } catch (err) {
+        console.error("Error al actualizar solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar solicitud', datasolicitud, err, 0);
+        throw new Error("Error al actualizar la solicitud.");
+      }
+
+      // --- HISTORIAL ---
+      let respuesta_solicitud;
+      try {
+        respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        // console.log("Solicitud encontrada:", respuesta_solicitud);
+      } catch (err) {
+        console.error("Error al obtener la solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al obtener solicitud', AprobarDto, err, 0);
+        throw new Error("Error al obtener la solicitud para historial.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.data.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+        id_obra: respuesta_solicitud.data.id_obra,
+        id_estado_general: respuesta_solicitud.data.id_estado_general,
+        id_usuario: respuesta_solicitud.data.id_usuario,
+        proveido: 'APROBACIÓN POR REEMPLAZO',
+        data_solicitud: respuesta_solicitud.data.data_solicitud,
+        fecha_envio: respuesta_solicitud.data.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.data.usuario_registro,
+        id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+      };
+      // console.log("Datos historial:", datosHistorial);
+
+      try {
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+        // console.log("Historial creado correctamente.");
+      } catch (err) {
+        console.error("Error al crear historial:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al crear historial', datosHistorial, err, 0);
+        throw new Error("Error al crear historial de solicitud.");
+      }
+
+      // --- LOG FINAL ---
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Reemplazo aprobado correctamente', datosHistorial, 'OK', 0);
+      // console.log("Aprobación de reemplazo completada correctamente.");
+
+      return this.responseService.success("Reemplazo aprobado correctamente.");
+
+    } catch (error) {
+      console.error("[ERROR] En aprobarDesignacionR:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
+      return this.responseService.error(errorMessage);
+    }
+  }
 
 
   async deleteDesignacionestadoXPersona(id_obra: number) {

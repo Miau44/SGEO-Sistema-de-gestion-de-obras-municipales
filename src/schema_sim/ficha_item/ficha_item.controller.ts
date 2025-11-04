@@ -158,6 +158,58 @@ export class FichaItemController {
     });
   }
 
+
+@Post('cargadoFichaItemPorCorrelativoNuevo')
+@Public()
+@ApiOperation({ summary: 'Cargado de fichas e ítems por correlativo' })
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      correlativo_carpeta: { type: 'number', example: 337777 },
+      id_usuario: { type: 'number', example: 3984 },
+    },
+    required: ['correlativo_carpeta', 'id_usuario'],
+  },
+})
+async cargadoFichaItemPorCorrelativoNuevo(
+  @Body() body: { correlativo_carpeta: number; id_usuario: number },
+) {
+  try {
+    const { correlativo_carpeta, id_usuario } = body;
+
+    if (!id_usuario) {
+      return { message: '❌ Error: id_usuario es nulo' };
+    }
+    if (!correlativo_carpeta) {
+      return { message: '❌ Error: correlativo_carpeta es nulo' };
+    }
+
+    // obtener token
+    await this.ficha_itemService.obtenerToken();
+
+    // procesar fichas
+    const result = await this.ficha_itemService.obtenerFichaporCorrelativo(
+      correlativo_carpeta,
+      id_usuario,
+    );
+
+    return {
+      message: '✅ Fichas procesadas correctamente',
+      result,
+    };
+
+  } catch (error) {
+    console.error('❌ Error general:', error);
+    return {
+      message: '❌ Error al cargar fichas o ítems',
+      error: (error as any).message,
+    };
+  }
+}
+
+
+
   @Post('verificarFicha')
   @Public()
   @ApiBody({
