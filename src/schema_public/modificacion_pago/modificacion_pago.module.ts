@@ -18,6 +18,8 @@ import { InformeService } from '../informe/informe_inicial.service';
 import { InformeInicial } from '../informe/entities/informe_inicial.entity';
 import { Documento } from '../documento/entities/documento.entity';
 
+
+
 @Module({
 
 imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistorial, Pago, 

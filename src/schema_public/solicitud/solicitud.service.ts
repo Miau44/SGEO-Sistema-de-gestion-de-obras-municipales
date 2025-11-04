@@ -215,7 +215,7 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
 
   async usuarioAsignadoObra(data: UsuarioSolicitudObraDto) {
     try {
-      const query = `
+     /* const query = `
         	   SELECT  DISTINCT p.id_usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' || per.desc_subtipo as nombre
         ,sh.id_obra
         FROM solicitud_historial sh
@@ -224,7 +224,10 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
         INNER JOIN (SELECT id_subtipo as id_permiso, desc_subtipo FROM parametrica WHERE id_tipo=7) AS per ON pp.id_permiso = per.id_permiso
         INNER JOIN public.rol_permiso AS rp ON p.id_persona = pp.id_persona 
         WHERE sh.id_obra =${data.obra}  AND per.id_permiso IN(${data.permiso}) AND p.id_estado IN(1,5) AND pp.id_estado =1
-        LIMIT 1; `;
+        LIMIT 1; `;*/
+//console.log('UsuarioSolicitudObraDto', data);
+
+      const query = ` SELECT * FROM public.sp_usuario_asignado_obra(${data.obra}, ARRAY[${data.permiso}]);`; 
        // const values = [data.obra, data.permiso]        
       const resultado = await this.solicitudRepositorio.query(query);
       return this.responseService.success(resultado, "Listado Correctamente.")

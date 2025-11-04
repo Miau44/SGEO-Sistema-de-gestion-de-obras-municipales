@@ -68,6 +68,11 @@ export class Contrato {
   @Column({ type: 'int' })
   id_contrato_dlc: number;
 
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  tipo_rpcrpa: string;
+
+
   @Column()
   id_usuario: number;
 

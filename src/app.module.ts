@@ -44,6 +44,7 @@ import { ModuloReportesModule } from './schema_public/reporte/modulo_reportes/mo
 import { AvanceFisicoModule } from './schema_public/avance_fisico/avance_fisico.module';
 import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_documento/avance_fisico_documento.module';
 import { ArchivoActaModule } from './schema_public/archivo_acta/archivo_acta.module';
+import { ProtocoloModule } from './schema_public/protocolo/protocolo.module';
 
 
 
@@ -119,7 +120,8 @@ import { ArchivoActaModule } from './schema_public/archivo_acta/archivo_acta.mod
   ModuloReportesModule,
   AvanceFisicoModule,
   AvanceFisicoDocumentoModule,
-  ArchivoActaModule
+  ArchivoActaModule,
+  ProtocoloModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],

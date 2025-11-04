@@ -24,8 +24,12 @@ export class Correlativo {
     @Column({ default: 1 })
     id_estado: number;
   
-    @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+   /* @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+    fecha_registro: Date*/
+
+    @CreateDateColumn({ type: 'timestamp without time zone', default: () => 'CURRENT_TIMESTAMP' })
     fecha_registro: Date
+
 
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date 

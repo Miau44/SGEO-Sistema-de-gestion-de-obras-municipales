@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDesignacionDto } from './dto/create-designacion.dto';
 import { UpdateDesignacionDto } from './dto/update-designacion.dto';
 import { And, Any, Connection, DataSource, In, Not, Repository } from 'typeorm';
@@ -19,6 +19,7 @@ import { SolicitudService } from '../solicitud/solicitud.service';
 import { Persona } from '../persona/entities/persona.entity';
 import { SolicitudHistorial } from '../solicitud/entities/solicitud_historial.entity';
 import { LogService } from '../log/log.service';
+import { TraspasoPendientesDto } from './dto/traspaso_pendientes.dto';
 
 
 @Injectable()
@@ -371,6 +372,8 @@ export class DesignacionService {
       }
     }    
 
+    
+
 
   async aprobarDesignacionR(AprobarDto: EstadoObraDesigDto) {
     try {
@@ -431,6 +434,97 @@ export class DesignacionService {
     }
   }  
 
+  async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
+    try {
+      // console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
+      const reemplazo = AprobarDto.designacion?.[0];
+      if (!reemplazo) {
+        throw new Error("No se recibió información de reemplazo en el DTO.");
+      }
+
+      // --- ACTUALIZAR DESIGNACIÓN REEMPLAZO APROBADO ---
+      const datadesignacion = {
+        estado_designacion: 102,
+        correlativo: reemplazo.correlativo,
+        fecha_aprobacion: await this.date(),
+      };
+
+      let estado_designacion;
+      try {
+        estado_designacion = await this.update(reemplazo.id_designacion, datadesignacion);
+        // console.log("Estado de designación actualizado:", estado_designacion);
+      } catch (err) {
+        console.error("Error al actualizar designación:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar designación', datadesignacion, err, 0);
+        throw new Error("Error al actualizar el estado de la designación.");
+      }
+
+      // --- ACTUALIZAR SOLICITUD FINALIZADO---
+      const datasolicitud = {
+        id_estado_solicitud: 4,
+        id_estado_general: AprobarDto.id_estado_flujo,
+        usuario_registro: AprobarDto.id_usuario,
+      };
+
+      try {
+        await this.serviceSolicitud.update(AprobarDto.id_solicitud, datasolicitud);
+        // console.log("Solicitud actualizada correctamente.");
+      } catch (err) {
+        console.error("Error al actualizar solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al actualizar solicitud', datasolicitud, err, 0);
+        throw new Error("Error al actualizar la solicitud.");
+      }
+
+      // --- HISTORIAL ---
+      let respuesta_solicitud;
+      try {
+        respuesta_solicitud = await this.serviceSolicitud.findOne(AprobarDto.id_solicitud);
+        // console.log("Solicitud encontrada:", respuesta_solicitud);
+      } catch (err) {
+        console.error("Error al obtener la solicitud:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al obtener solicitud', AprobarDto, err, 0);
+        throw new Error("Error al obtener la solicitud para historial.");
+      }
+
+      const datosHistorial = {
+        id_solicitud: respuesta_solicitud.data.id_solicitud,
+        id_tipo_solicitud: respuesta_solicitud.data.id_tipo_solicitud,
+        nro_solicitud: respuesta_solicitud.data.nro_solicitud,
+        id_estado_solicitud: respuesta_solicitud.data.id_estado_solicitud,
+        id_obra: respuesta_solicitud.data.id_obra,
+        id_estado_general: respuesta_solicitud.data.id_estado_general,
+        id_usuario: respuesta_solicitud.data.id_usuario,
+        proveido: 'APROBACIÓN POR REEMPLAZO',
+        data_solicitud: respuesta_solicitud.data.data_solicitud,
+        fecha_envio: respuesta_solicitud.data.fecha_envio,
+        id_usuario_previo: respuesta_solicitud.data.id_usuario_previo,
+        usuario_registro: respuesta_solicitud.data.usuario_registro,
+        id_estado_registro: respuesta_solicitud.data.id_estado_registro,
+      };
+      // console.log("Datos historial:", datosHistorial);
+
+      try {
+        await this.serviceSolicitud.createHistorial(datosHistorial);
+        // console.log("Historial creado correctamente.");
+      } catch (err) {
+        console.error("Error al crear historial:", err);
+        await this.registrarLog('aprobarReemplazoDesignacion', 'Error al crear historial', datosHistorial, err, 0);
+        throw new Error("Error al crear historial de solicitud.");
+      }
+
+      // --- LOG FINAL ---
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Reemplazo aprobado correctamente', datosHistorial, 'OK', 0);
+      // console.log("Aprobación de reemplazo completada correctamente.");
+
+      return this.responseService.success("Reemplazo aprobado correctamente.");
+
+    } catch (error) {
+      console.error("[ERROR] En aprobarDesignacionR:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.registrarLog('aprobarReemplazoDesignacion', 'Error inesperado', AprobarDto, errorMessage, 0);
+      return this.responseService.error(errorMessage);
+    }
+  }
 
 
   async deleteDesignacionestadoXPersona(id_obra: number) {
@@ -522,6 +616,22 @@ export class DesignacionService {
     }
   }
 
+    async maxCorrelativoSolicitud(correlativoDto: {id_obra:number, id_permiso: number, id_cite_solicitud: number}) {
+    try {
+    const query1 = `
+    SELECT COALESCE(MAX(d.correlativo_solicitud), 0) AS max_correlativo_solicitud FROM designacion AS d
+	    INNER JOIN public.persona AS p ON d.id_persona = p.id_persona
+	    INNER JOIN LATERAL (SELECT * FROM public.sp_permisos_xpersona_filas()) AS dp ON p.id_persona = dp.idpersona
+	  WHERE d.id_obra = $1 AND dp.idpermiso IN ($2) AND d.id_cite_solicitud = $3;`;
+      const params = [correlativoDto.id_obra, correlativoDto.id_permiso, correlativoDto.id_cite_solicitud];
+      const resultado = await this.DesigRepositorio.query(query1, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  
 async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
   try {
 
@@ -787,7 +897,186 @@ async actualizarReemplazar(id_designacion: number, reemplazoDto:ReemplazoDto) {
     respuesta: typeof resp === 'string' ? resp : JSON.stringify(resp)
   });
 }
-  
+
+
+  // Servicio para traspaso de la bandeja de pendientes 
+  async traspasarBandejaPorUsuarios(dto: TraspasoPendientesDto) {
+    const { gestion, usuarioOrigen, usuarioNuevo, estado, simular = false, id_obra } = dto;
+
+    if (usuarioOrigen === usuarioNuevo) {
+      throw new BadRequestException('El usuario destino no puede ser igual al origen.');
+    }
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      // --- 1) Conteo: arma WHERE base y agrega obra si viene ---
+      let whereBase = `
+      s.id_usuario = $1
+      AND s.id_estado_solicitud = ANY($2)
+      AND s.id_estado_registro = 1
+      AND f.gestion_carpeta = $3
+    `;
+      const countParams: any[] = [usuarioOrigen, estado, gestion];
+
+      if (id_obra != null) {
+        whereBase += ` AND s.id_obra = $${countParams.length + 1}`;
+        countParams.push(id_obra);
+      }
+
+      const countRows = await qr.query(
+        `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra  o ON s.id_obra  = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE ${whereBase}
+      `,
+        countParams,
+      );
+      const totalElegibles = countRows?.[0]?.total ?? 0;
+
+      // --- 2) Si es simulación o no hay nada, se devuelve y se revierte la Tx ---
+      // if (simular || totalElegibles === 0) {
+      //   await qr.rollbackTransaction();
+      //   return this.responseService.success(
+      //     {
+      //       simulado: true,
+      //       totalElegibles,
+      //       usuarioOrigen,
+      //       usuarioNuevo,
+      //       id_obra: id_obra ?? null,
+      //       alcance: id_obra ? 'solo_obra' : 'todas_las_obras',
+      //     },
+      //     totalElegibles === 0
+      //       ? (id_obra
+      //         ? 'No hay pendientes para esa obra con los criterios dados'
+      //         : 'No hay pendientes para traspasar con los criterios dados')
+      //       : 'Simulación: no se realizaron cambios',
+      //   );
+      // }
+
+      // --- 3) Update con mismo WHERE dinámico (pero cambiando params) ---
+      let whereUpdate = `
+      s.id_usuario = $2
+      AND s.id_estado_solicitud = ANY($3)
+      AND s.id_estado_registro = 1
+      AND f.gestion_carpeta = $4
+    `;
+      const updateParams: any[] = [usuarioNuevo, usuarioOrigen, estado, gestion];
+
+      if (id_obra != null) {
+        whereUpdate += ` AND s.id_obra = $${updateParams.length + 1}`;
+        updateParams.push(id_obra);
+      }
+
+      const movedRows = await qr.query(
+      `
+      WITH movidos AS (
+        UPDATE solicitud s
+          SET id_usuario = $1,
+              fecha_modificacion = NOW()
+        FROM obra o
+        JOIN ficha f ON o.id_ficha = f.id_ficha
+        WHERE s.id_obra = o.id_obra
+          AND ${whereUpdate}      -- el WHERE dinámico que ya armaste
+        RETURNING s.id_solicitud
+      )
+      SELECT COUNT(*)::int AS total_movidos,
+            COALESCE(json_agg(id_solicitud), '[]'::json) AS ids_movidos
+      FROM movidos;
+      `,
+      updateParams,
+      );
+      const row = movedRows?.[0] ?? {};
+      const totalMovidos = row.total_movidos ?? 0;
+      const idsMovidos = row.ids_movidos ?? [];
+
+      await qr.commitTransaction();
+      return this.responseService.success(
+        {
+          simulado: false,
+          totalMovidos,
+          idsMovidos,    
+          usuarioOrigen,
+          usuarioNuevo,
+          id_obra: id_obra ?? null,
+          alcance: id_obra ? 'solo_obra' : 'todas_las_obras',
+        },
+        'Traspaso realizado correctamente',
+      );
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw new InternalServerErrorException('Error al traspasar la bandeja');
+    } finally {
+      await qr.release();
+    }
+  }
+
+    async resumenPendientes(dto: TraspasoPendientesDto) {
+    const { gestion, usuarioOrigen, id_obra, estado } = dto;
+
+    if (!gestion || !usuarioOrigen) {
+      throw new BadRequestException('Debe enviar la gestión y el usuario de origen');
+    }
+
+    const estados = estado?.length ? estado : [2, 5]; // valores por defecto
+
+    // Total de pendientes del usuario (por obra si se manda)
+    const queryBase = `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra o  ON s.id_obra = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE s.id_usuario = $1
+        AND f.gestion_carpeta = $2
+        AND s.id_estado_registro = 1
+        AND s.id_estado_solicitud = ANY($3)
+        ${id_obra ? 'AND s.id_obra = $4' : ''}
+    `;
+    const valuesBase = id_obra ? [usuarioOrigen, gestion, estados , id_obra] : [usuarioOrigen, gestion, estados];
+    const totalPend = await this.dataSource.query(queryBase, valuesBase);
+    const totalPendientes = totalPend?.[0]?.total ?? 0;
+
+    // Total filtrando por estados (los que se pueden mover)
+    const queryMover = `
+      SELECT COUNT(*)::int AS total
+      FROM solicitud s
+      JOIN obra o  ON s.id_obra = o.id_obra
+      JOIN ficha f ON o.id_ficha = f.id_ficha
+      WHERE s.id_usuario = $1
+        AND f.gestion_carpeta = $2
+        AND s.id_estado_registro = 1
+        AND s.id_estado_solicitud = ANY($3)
+        ${id_obra ? 'AND s.id_obra = $4' : ''}
+    `;
+    const valuesMover = id_obra
+      ? [usuarioOrigen, gestion, estados, id_obra]
+      : [usuarioOrigen, gestion, estados];
+    const totalMover = await this.dataSource.query(queryMover, valuesMover);
+    const totalAMover = totalMover?.[0]?.total ?? 0;
+
+    //Mensaje dinámico claro
+    const msg =
+      totalPendientes === 0
+        ? `El usuario ${usuarioOrigen} no tiene pendientes registrados en la gestión ${gestion}${id_obra ? ` para la obra ${id_obra}` : ''}.`
+        : `El usuario ${usuarioOrigen} tiene ${totalPendientes} pendientes en la gestión ${gestion}${id_obra ? ` (obra ${id_obra})` : ''}, de los cuales ${totalAMover} podrían ser traspasados (estados ${estados.join(', ')}).`;
+
+    //Respuesta final
+    return this.responseService.success(
+      {
+        gestion,
+        id_obra: id_obra ?? null,
+        usuarioOrigen,
+        estados,
+        totalPendientes,
+        totalAMover,
+      },
+      msg,
+    );
+  }
 
   
 }

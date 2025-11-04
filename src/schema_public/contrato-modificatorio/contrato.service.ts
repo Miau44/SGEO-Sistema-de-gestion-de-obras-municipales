@@ -147,96 +147,242 @@ export class ContratoService {
     this.token = data.access_token;
   }
 
-  async llenarContratosDesdeServicio(gestion: number,id_usuario:number): Promise<void> {
-    console.log("gestion y usuario",gestion,id_usuario);
-    try {
-      const response = await fetch(process.env.URL_DLC + `consumer/reporteunodfo/${gestion}/0`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
-      });
-      console.log("id_usuario",id_usuario);
+  async llenarContratosDesdeServicio(gestion: number, id_usuario: number): Promise<any> {
+  // console.log('Gestión:', gestion, '| Usuario:', id_usuario);
 
-      const data = await response.json();
+  const resultado = {
+    nuevos: 0,
+    actualizados: 0,
+    sinFicha: [] as number[],
+    sinObra: [] as number[],
+    procesados: 0,
+  };
 
-      // Verificar si hay data.data
-      if (!data.data || data.data.length === 0) {
-        console.log('No se encontraron datos para insertar.');
-        return;
-      }
+  try {
+    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/0`;
+    // console.log('Consultando URL:', url);
 
-      let totalContratos = 0;
-      let totalUrl = 0;
-      // Iterar sobre los datos y guardarlos en la base de datos
-      for (const item of data.data) {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
 
-        // verificar si existe la ficha en nuestra base
-        const ficha = await this.fichaRepo.findOne({ where: { correlativo_carpeta: item.ridcodcarpeta } });
-        if (ficha == null) {
-          console.log(`No se encontró la ficha con correlativo_carpeta: ${item.ridcodcarpeta}`);
-          continue; // O manejar el error de otra manera
-        }
+    const data = await response.json();
 
-        // verificar si existe el contrato creado en nuestra base
-        const contrato = await this.contratoRepo.findOne({ where: { correlativo_carpeta: item.ridcodcarpeta } });
-        if (contrato == null) { //registramos contrato
-          // Limpiar y transformar los datos según sea necesario
-          const montoContrato = this.limpiarMonto(item.rmontocontrato);
-          const fechaContrato = this.convertirFecha(item.rfechacontrato);
-          // con ese id_ficha buscar el id_obra en la tabla obra
-          const obra = await this.obraRepo.findOne({ where: { id_ficha: ficha.id_ficha } });
-          if (obra == null) {
-            console.log(`No se encontró la obra con id_ficha: ${ficha.id_ficha}`);
-            continue; // O manejar el error de otra manera
-          }
-          const nuevoContrato = this.contratoRepository.create({
-            correlativo_carpeta: item.ridcodcarpeta,
-            cuse: item.rcuce,
-            cod_carpeta: item.rcodporceso,
-            monto_contrato: montoContrato,
-            fecha_numeracion: fechaContrato,
-            proponente_razon_social: item.radjudicadocontrato,
-            numero_contrato: item.rnrocontrato,
-            modalidad: item.rmodalidad,
-            tipo_contrato: item.rtipocontrato,
-            proponente_representante: item.elreplegal,
-            proponente_nit: item.rnit,
-            plazo_contrato: item.rplazocontrato,
-            id_contrato_dlc: item.elidcontra,
-            id_obra: obra.id_obra,
-            direccion: item.rdomicilio,
-            telefono: item.rtelef,
-            rpcrpa:item.rpcrpa,
-            url: item.rlinkcontrat,
-            id_estado: 1, // Activo
-            fecha_registro: new Date(),
-            id_usuario:id_usuario
-          });
-          console.log("creando  contrato, ficha " +item.ridcodcarpeta);
-          await this.contratoRepository.save(nuevoContrato);
-
-          obra.plazo_ejecucion = item.rplazocontrato;
-          await this.obraRepo.save(obra);
-
-          totalContratos++;
-        }
-        else { //como existe el contrato se debe verificar si la ruta no sea null tanto en la lista y el objeto
-          //verify en item
-          //console.log(item.rlinkcontrat, contrato.url);
-          if (item.rlinkcontrat != null && contrato.url == null) {
-            console.log("actualizando url, ficha " +item.ridcodcarpeta);
-            
-            contrato.url = item.rlinkcontrat;
-            await this.contratoRepository.save(contrato);
-            totalUrl++;
-          }
-        }
-      }
-      console.log('nuevos contratos:', totalContratos);
-      console.log('urls actualizadas:', totalUrl);
-    } catch (error) {
-      console.error('Error al consumir el servicio o insertar datos:', error);
+    if (!data?.data || data.data.length === 0) {
+      // console.log(' No se encontraron datos en el servicio externo.');
+      return { message: 'Sin datos para insertar' };
     }
+
+    // console.log(` Registros recibidos: ${data.data.length}`);
+    resultado.procesados = data.data.length;
+
+    for (const item of data.data) {
+      const correlativo = item.ridcodcarpeta;
+
+      const ficha = await this.fichaRepo.findOne({ where: { correlativo_carpeta: correlativo } });
+      if (!ficha) {
+        resultado.sinFicha.push(correlativo);
+        continue;
+      }
+
+      const contrato = await this.contratoRepo.findOne({ where: { correlativo_carpeta: correlativo } });
+      if (!contrato) {
+        const obra = await this.obraRepo.findOne({ where: { id_ficha: ficha.id_ficha } });
+        if (!obra) {
+          resultado.sinObra.push(correlativo);
+          continue;
+        }
+
+        const nuevoContrato = this.contratoRepository.create({
+          correlativo_carpeta: correlativo,
+          cuse: item.rcuce,
+          cod_carpeta: item.rcodporceso,
+          monto_contrato: this.limpiarMonto(item.rmontocontrato),
+          fecha_numeracion: this.convertirFecha(item.rfechacontrato),
+          proponente_razon_social: item.radjudicadocontrato,
+          numero_contrato: item.rnrocontrato,
+          modalidad: item.rmodalidad,
+          tipo_contrato: item.rtipocontrato,
+          proponente_representante: item.elreplegal,
+          proponente_nit: item.rnit,
+          plazo_contrato: item.rplazocontrato,
+          id_contrato_dlc: item.elidcontra,
+          id_obra: obra.id_obra,
+          direccion: item.rdomicilio,
+          telefono: item.rtelef,
+          rpcrpa: item.rpcrpa,
+          tipo_rpcrpa: item.tiporpcrpa,
+          url: item.rlinkcontrat,
+          id_estado: 1,
+          fecha_registro: new Date(),
+          id_usuario,
+        });
+
+        await this.contratoRepository.save(nuevoContrato);
+        obra.plazo_ejecucion = item.rplazocontrato;
+        await this.obraRepo.save(obra);
+
+        resultado.nuevos++;
+      } else if (item.rlinkcontrat && !contrato.url) {
+        contrato.url = item.rlinkcontrat;
+        await this.contratoRepository.save(contrato);
+        resultado.actualizados++;
+      }
+    }
+
+    return {
+      nuevos: resultado.nuevos,
+      actualizados: resultado.actualizados,
+      sinFicha: resultado.sinFicha,
+      sinObra: resultado.sinObra,
+      procesados: resultado.procesados,
+    };
+  } catch (error) {
+    console.error(' Error al consumir el servicio o insertar datos:', error);
+    return { status: 'error', message: (error as any).message };
   }
+}
+
+
+async llenarContratosDesdeServicioPorCodCarpeta(
+  gestion: number,
+  id_usuario: number,
+  codcarpetaOpcional: number
+): Promise<any> {
+  // console.log('=== Iniciando llenado de contratos desde servicio externo ===');
+  // console.log('Gestión:', gestion);
+  // console.log('ID Usuario:', id_usuario);
+  // console.log('Correlativo (ridcodcarpeta):', codcarpetaOpcional);
+
+  const resultado = {
+    nuevos: 0,
+    actualizados: 0,
+    sinFicha: [] as number[],
+    sinObra: [] as number[],
+    procesados: 0,
+  };
+
+  try {
+    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/0`;
+    // console.log('Consultando servicio externo en:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!data?.data || data.data.length === 0) {
+      console.log('No se encontraron datos en el servicio externo.');
+      return { message: 'Sin datos para insertar' };
+    }
+
+    // console.log('Total de registros recibidos:', data.data.length);
+
+    const contratoFiltrado = data.data.filter(
+      (item: any) => Number(item.ridcodcarpeta) === Number(codcarpetaOpcional)
+    );
+
+    if (contratoFiltrado.length === 0) {
+      console.log('No se encontró ningún registro con ridcodcarpeta =', codcarpetaOpcional);
+      return { message: `No se encontró el contrato con ridcodcarpeta ${codcarpetaOpcional}` };
+    }
+
+    // console.log('Registros encontrados con ese ridcodcarpeta:', contratoFiltrado.length);
+    resultado.procesados = contratoFiltrado.length;
+
+    for (const item of contratoFiltrado) {
+      const correlativo = item.ridcodcarpeta;
+      // console.log('Procesando correlativo:', correlativo);
+
+      const ficha = await this.fichaRepo.findOne({ where: { correlativo_carpeta: correlativo } });
+      if (!ficha) {
+        console.log('Sin ficha para correlativo', correlativo);
+        resultado.sinFicha.push(correlativo);
+        continue;
+      }
+
+      const contrato = await this.contratoRepo.findOne({ where: { correlativo_carpeta: correlativo } });
+      if (!contrato) {
+        const obra = await this.obraRepo.findOne({ where: { id_ficha: ficha.id_ficha } });
+        if (!obra) {
+          console.log('Sin obra asociada a la ficha', ficha.id_ficha);
+          resultado.sinObra.push(correlativo);
+          continue;
+        }
+
+        // console.log('Creando nuevo contrato para correlativo', correlativo);
+
+        const nuevoContrato = this.contratoRepository.create({
+          correlativo_carpeta: correlativo,
+          cuse: item.rcuce,
+          cod_carpeta: item.rcodporceso,
+          monto_contrato: this.limpiarMonto(item.rmontocontrato),
+          fecha_numeracion: this.convertirFecha(item.rfechacontrato),
+          proponente_razon_social: item.radjudicadocontrato,
+          numero_contrato: item.rnrocontrato,
+          modalidad: item.rmodalidad,
+          tipo_contrato: item.rtipocontrato,
+          proponente_representante: item.elreplegal,
+          proponente_nit: item.rnit,
+          plazo_contrato: item.rplazocontrato,
+          id_contrato_dlc: item.elidcontra,
+          id_obra: obra.id_obra,
+          direccion: item.rdomicilio,
+          telefono: item.rtelef,
+          rpcrpa: item.rpcrpa,
+          tipo_rpcrpa: item.tiporpcrpa,
+          url: item.rlinkcontrat,
+          id_estado: 1,
+          fecha_registro: new Date(),
+          id_usuario,
+        });
+
+        await this.contratoRepository.save(nuevoContrato);
+        obra.plazo_ejecucion = item.rplazocontrato;
+        await this.obraRepo.save(obra);
+
+        // console.log('Contrato guardado correctamente para correlativo', correlativo);
+        resultado.nuevos++;
+      } else if (item.rlinkcontrat && !contrato.url) {
+        contrato.url = item.rlinkcontrat;
+        await this.contratoRepository.save(contrato);
+        // console.log('URL actualizada para correlativo', correlativo);
+        resultado.actualizados++;
+      } else {
+        console.log('Contrato existente sin cambios para correlativo', correlativo);
+      }
+    }
+
+    // console.log('--------------------------------------');
+    // console.log('Resumen del proceso:');
+    // console.log('Nuevos contratos:', resultado.nuevos);
+    // console.log('URLs actualizadas:', resultado.actualizados);
+    // console.log('Sin ficha:', resultado.sinFicha.length, '-', resultado.sinFicha);
+    // console.log('Sin obra:', resultado.sinObra.length, '-', resultado.sinObra);
+    // console.log('Total procesados:', resultado.procesados);
+    // console.log('--------------------------------------');
+
+    return {
+      status: 'ok',
+      ...resultado,
+    };
+  } catch (error) {
+    console.error('Error al consumir el servicio o insertar datos:', error);
+    return { status: 'error', message: (error as any).message };
+  }
+}
+
+
+
 
   async actualizarUrlContratosDesdeServicio(gestion: number): Promise<any> {
     try {
@@ -291,6 +437,8 @@ export class ContratoService {
         }
 
         contratoExistente.rpcrpa = item.rpcrpa; // Actualizando rpcrpa en lugar de url
+        contratoExistente.tipo_rpcrpa = item.tiporpcrpa; // actualizar tipo_rpcrpa
+
         await this.contratoRepository.save(contratoExistente);
         contratosActualizados++;
       }

@@ -274,6 +274,25 @@ export class ComputoService {
   }
 
 
+  async montoComputoXItem(data: ComputoItemDto) {
+    try {
+      const datos = {
+        id_item: data.id_item,
+        id_modificacion_pago: data.id_modificacion_pago
+      }
+      await this.planillaService.actualizarPlanillaXIditem(datos);
+
+      let query = ` SELECT * FROM public.sp_computo_monto($1, $2);`;
+      console.log('1710205', data);
+      
+      const params = [data.id_item, data.id_modificacion_pago];
+      const resultado = await this.computoRepositorio.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   async listaComputoXItem(data: ComputoItemDto) {
     try {
       ;
