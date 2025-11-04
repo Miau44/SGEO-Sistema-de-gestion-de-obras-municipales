@@ -104,17 +104,25 @@ async generateComputoMetrico(obra: number, id_modificacion_pago: number): Promis
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
-    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+    if (this.datosEnvio[0].num_decimales === '2') {
       formatoNumerico = new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     } else {
-      formatoNumerico = new Intl.NumberFormat('de-DE', {
-        minimumFractionDigits: 5,
-        maximumFractionDigits: 5
-      });
+        if (this.datosEnvio[0].num_decimales === '5') {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5
+        });
+        } else {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: this.datosEnvio[0].num_decimales,
+          maximumFractionDigits: this.datosEnvio[0].num_decimales
+        });
+        }
     }
+
     //console.log('NUMERO DECIMALES', formatoNumerico);
     const documentDefinition = {
     

@@ -183,24 +183,32 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
-    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+    if (this.datosEnvio[0].num_decimales === '2') {
       formatoNumerico = new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     } else {
-      formatoNumerico = new Intl.NumberFormat('de-DE', {
-        minimumFractionDigits: 5,
-        maximumFractionDigits: 5
-      });
+        if (this.datosEnvio[0].num_decimales === '5') {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5
+        });
+        } else {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: this.datosEnvio[0].num_decimales,
+          maximumFractionDigits: this.datosEnvio[0].num_decimales
+        });
+        }
     }
+
 
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
  
-   console.log('DATOS MODIFICACION',this.datosEnvio);
+   //console.log('DATOS MODIFICACION',this.datosEnvio);
    
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -583,20 +591,20 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
             ? 'El '
             : 'La '},
-          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica' + ' el monto vigente de Bs' }, 
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica el monto ' }, 
           { text: this.datosEnvio[0].modificacion_gral == 1 
-            ? this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
-            : this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
+            ? 'vigente de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
+            : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1) + ') de Bs' + this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
           }, 
-          { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ')' + 
-            ' equivalente a ' + this.datosEnvio[0].porcentaje_modificacion + '% referente al contrato inicial.\n' },
+          { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n' },
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
       {
-        text: 'Por lo que el monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones a la fecha, ' + 
-        'respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%.', 
+        text: 'Por lo que el nuevo monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones ' + 
+        '(incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
+
       {
         text: '7.   CONCLUSIÓN\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
