@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { ContratoService } from './contrato.service';
 import { Contrato } from './entities/contrato.entity';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -61,24 +61,65 @@ export class ContratoController {
   // }
 
   
-  @Public()
-  @Post('cargarContratosDlc/:gestion/:id_usuario')
-  //@UseGuards(AuthGuard('jwt'))
-  @ApiParam({ name: 'gestion', description: 'gestión requerida' })
-  @ApiParam({ name: 'id_usuario', description: 'ID del usuario que realiza la carga' })
-  async cargarContratosDlc(@Param('gestion') gestion: number,@Param('id_usuario') id_usuario: number): Promise<any> {
-    try {
-      const r = await this.contratoService.obtenerToken();
-      console.log("gestion y usuario",gestion,id_usuario);
-      if(id_usuario==undefined){
-        return 'Error: id_usuario es indefinido';
-      }
-      return await this.contratoService.llenarContratosDesdeServicio(gestion,id_usuario);
-    } catch (error) {
-      console.error('Error:', error);
-      return 'Test error';
+@Public()
+@Post('cargarContratosDlc/:gestion/:id_usuario')
+@ApiParam({ name: 'gestion', description: 'Gestión requerida' })
+@ApiParam({ name: 'id_usuario', description: 'ID del usuario que realiza la carga' })
+async cargarContratosDlc(
+  @Param('gestion') gestion: number,
+  @Param('id_usuario') id_usuario: number,
+): Promise<any> {
+  try {
+    console.log('🟢 Iniciando carga de contratos desde servicio DLC...');
+    console.log('Gestión:', gestion, '| Usuario:', id_usuario);
+
+    if (!id_usuario) {
+      return { status: 'error', message: 'id_usuario es indefinido' };
     }
+
+    await this.contratoService.obtenerToken();
+
+    const resultado = await this.contratoService.llenarContratosDesdeServicio(gestion, id_usuario);
+
+    return {
+      status: 'ok',
+      message: 'Proceso completado correctamente',
+      resumen: resultado,
+    };
+  } catch (error) {
+    console.error('❌ Error al cargar contratos:', error);
+    return { status: 'error', message: (error as any).message };
   }
+}
+
+  
+@Public()
+@Post('cargarContratosDlcNuevo/:gestion/:id_usuario/:codcarpeta')
+@ApiParam({ name: 'gestion', description: 'Gestión requerida' })
+@ApiParam({ name: 'id_usuario', description: 'ID del usuario que realiza la carga' })
+@ApiParam({ name: 'codcarpeta', description: 'Código de carpeta' })
+async cargarContratosDlcNuevo(
+  @Param('gestion') gestion: number,
+  @Param('id_usuario') id_usuario: number,
+  @Param('codcarpeta') codcarpeta: number
+): Promise<any> {
+  try {
+    await this.contratoService.obtenerToken();
+
+    const result = await this.contratoService.llenarContratosDesdeServicioPorCodCarpeta(
+      gestion,
+      id_usuario,
+      codcarpeta
+    );
+
+    return { message: 'Proceso completado', result };
+  } catch (error) {
+    console.error('Error:', error);
+    return { message: 'error', error: (error as any).message };
+  }
+}
+
+
 
   @Public()
   @Post('cargarUrlContratosDlc/:gestion')
