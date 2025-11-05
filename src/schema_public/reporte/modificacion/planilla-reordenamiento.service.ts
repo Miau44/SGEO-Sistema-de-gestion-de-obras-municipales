@@ -300,7 +300,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_fis, style: 'textDato', alignment: 'center' },
-                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\nFISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                     ]
               },
 
@@ -313,7 +313,7 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
-                      { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                     ]
               }
             ]
