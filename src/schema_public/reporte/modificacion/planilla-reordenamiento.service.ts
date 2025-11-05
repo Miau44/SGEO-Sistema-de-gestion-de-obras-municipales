@@ -300,20 +300,20 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_fis, style: 'textDato', alignment: 'center' },
-                      { text: '\nFISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\n' + this.datosInfSup[0].de_cargo_fis, style: 'textTitulo', alignment: 'center' }
                     ]
               },
 
               { text: [
-                        { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
-                        { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                        { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center'},
+                        { text: '\nEMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
                       ]
               },
               {
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
-                      { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\n' + this.datosInfSup[0].de_cargo_sup, style: 'textTitulo', alignment: 'center' }
                     ]
               }
             ]

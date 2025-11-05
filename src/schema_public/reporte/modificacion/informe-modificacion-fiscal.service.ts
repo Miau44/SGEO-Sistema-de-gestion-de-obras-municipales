@@ -377,8 +377,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               : ['']
           ).map((nombre: string) => [
             { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', style: 'textDato', bold: true }
               ], 
               margin: [0, 35, 0, 0], 
               alignment: 'center'
