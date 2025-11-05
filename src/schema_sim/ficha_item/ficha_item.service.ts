@@ -203,6 +203,15 @@ export class ficha_itemService {
             if(fichaJson.estado === "ANULADA" && fichaExistente.estado_carpeta !== "ANULADA"){
               fichaExistente.estado_carpeta = fichaJson.estado;
               await this.fichaRepository.save(fichaExistente);
+
+              //actualizar el campo id_estado de la tabla obra a 0 (inactivo)
+              const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: fichaExistente.id_ficha } });
+              if(obraExistente){
+                obraExistente.id_estado_general = 0;
+                await this.obraRepository.save(obraExistente);
+              }
+              
+
               console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} se actualiza a estado ANULADA.`);
               msg += `${fichaJson.cod_carpeta}: se actualiza a estado ANULADA.********************\n`;
             }

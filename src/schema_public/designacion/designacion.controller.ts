@@ -10,9 +10,8 @@ import { MaxCorrelativoDto } from './dto/correlativo.dto';
 import { ReemplazoDto } from './dto/reemplazo.dto';
 import { GenerarDto } from './dto/generar.dto';
 import { Designacion } from './entities/designacion.entity';
-import { MaxCorrelativoSolicitudDto } from './dto/correlativo-solicitud.dto';
 import { TraspasoPendientesDto } from './dto/traspaso_pendientes.dto';
-
+import { MaxCorrelativoSolicitudDto } from './dto/correlativo-solicitud.dto';
 
 @ApiTags('designacion')
 

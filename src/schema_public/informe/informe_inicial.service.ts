@@ -30,6 +30,8 @@ import { CreateActaEntregaProvisionalDefinitivaDto } from './dto/create-acta-ent
 
 import { UpdateIdDocumentoPagoDto } from './dto/update-id-documento-pago.dto';
 import { EncabezadoDocumentoDto } from './dto/encabezado-documento.dto';
+import { DEFAULT_CIPHERS } from 'tls';
+import { PagoService } from '../pago/pago.service';
 
 
 
@@ -89,6 +91,19 @@ export class InformeService {
         ...createInformeDto,
         id_documento: createInformeDto.id_documento, // No necesitas transformarlo
       });
+
+      const datos = {
+        id_tipo_documento: createInformeDto.id_tipo_informe,
+        id_obra: createInformeDto.id_obra,
+        id_informe: resultado.id_informe,
+        id_solicitud: createInformeDto.id_solicitud
+      }
+      const encabezado = await this.crearencabezadoDocumentos(datos)
+      if (!encabezado) {
+        throw new Error('No se pudo crear el encabezado de documentos');
+      }
+
+      /******** 
       //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
       //para actualizar encabezado de documentos 02092025
       const datos = {
@@ -98,7 +113,6 @@ export class InformeService {
       //inicial, actividades, prevision de pagos, inf. sup., inf.fis
       const tiposValidos = [235, 236, 237, 295,296];
       if (tiposValidos.includes(resultado.id_tipo_informe)) {
-        // 👉 Aquí realizas la acción
         const encabezado = await this.encabezadoDocumentos(datos);
        
      // const encabezado =  await this.encabezadoDocumentos(datos);
@@ -118,6 +132,8 @@ export class InformeService {
       } else {
         console.log('No aplica la acción');
       }
+*/
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
 
       return this.responseService.success(resultado, "Registrado Correctamente.");
     } catch (error) {
@@ -128,23 +144,58 @@ export class InformeService {
 
   async encabezadoDocumentos(data: EncabezadoDocumentoDto) {
     try {
-      const query = ` SELECT * FROM public.sp_encabezado_documentos($1, $2);`;
-      const params = [data.id_tipo_documento, data.id_obra];
+
+      console.log('datos ', data)
+      const query = ` SELECT * FROM public.sp_encabezado_documentos($1, $2, $3);`;
+      const params = [data.id_tipo_documento, data.id_obra, data.id_solicitud];
       const resultado = await this.informeRepositorio.query(query, params);
-        return this.responseService.success(resultado, "Listado Correctamente.")   
-     /* // const encabezado =  await this.encabezadoDocumentos(datos);
-      if (resultado.id_informe) {
-        const datosencabezado = {
-          a_nombre: resultado[0].a_nombre || '',
-          a_cargo: resultado[0].a_cargo || '',
-          via_nombre: resultado[0].via_nombre || '',
-          via_cargo: resultado[0].via_cargo || '',
-          de_nombre: resultado[0].de_nombre || '',
-          de_cargo: resultado[0].de_cargo || '',
+      return this.responseService.success(resultado, "Listado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async crearencabezadoDocumentos(data: EncabezadoDocumentoDto) {
+    try {
+
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+      //para actualizar encabezado de documentos 02092025
+      const datos = {
+        id_tipo_documento: data.id_tipo_documento,
+        id_obra: data.id_obra,
+        id_informe: data.id_informe,
+        id_solicitud: data.id_solicitud
+      };
+      //inicial, actividades, prevision de pagos, inf. sup., inf.fis, acta prov, def, CMS, CMF, OCS, OCF
+      const tiposValidos = [235, 236, 237, 295, 296, 342, 343, 266, 267, 268, 269];
+      let resultado = null;
+      if (tiposValidos.includes(data.id_tipo_documento)) {
+        const encabezado = await this.encabezadoDocumentos(datos);
+        // const encabezado =  await this.encabezadoDocumentos(datos);
+        if (data.id_informe) {
+          const datosencabezado = {
+            a_nombre: encabezado.data[0].a_nombre || [],
+            a_cargo: encabezado.data[0].a_cargo || '',
+            via_nombre: encabezado.data[0].via_nombre || [],
+            via_cargo: encabezado.data[0].via_cargo || '',
+            de_nombre: encabezado.data[0].de_nombre || [],
+            de_cargo: encabezado.data[0].de_cargo || '',
+          }
+          resultado = await this.informeRepositorio.update(data.id_informe, datosencabezado)
+        console.log('resultado', resultado)
         }
-        this.informeRepositorio.update(3, datosencabezado)
-     }
-*/
+        //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+        //para actualizar encabezado de documentos 02092025
+      }
+      /*else {
+        console.log('No aplica la acción');
+      }*/
+
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+      return this.responseService.success(resultado, "Registrado Correctamente.");
+
     } catch (error) {
       return this.responseService.error(error);
     }
@@ -228,7 +279,7 @@ export class InformeService {
               ELSE 0 END AS validar
       FROM parametrica AS p
       LEFT OUTER JOIN public.informe_inicial AS ii ON p.id_subtipo = ii.id_subtipo
-      WHERE p.id_tipo = 21 AND ii.id_estado = 1 AND p.id_padre = 0 AND ii.id_informe = $2         
+      WHERE p.id_tipo = 21 AND p.id_padre = 0 AND ii.id_estado = 1 AND ii.id_informe = $2         
       UNION ALL         
       SELECT 172 AS id_subtipo, NULL AS desc_subtipo, 
           CASE WHEN obs_general IS NULL OR TRIM(obs_general) = '' THEN 0
@@ -256,7 +307,7 @@ export class InformeService {
       (f.x ->> 'id_subtipo')::integer AS idsubtipo,
       (f.x ->> 'opcion')::integer AS opcion,
       f.x ->> 'observaciones' AS observaciones FROM  informe_inicial AS it, 
-      jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 ) AS t2
+      jsonb_array_elements(descripcion::jsonb) AS f(x) WHERE id_informe =$2 AND it.id_estado = 1) AS t2
       ON t1.idsubtipo = t2.opcion AND t1.idpadre = t2.id_padre ) AS ijson   ON de.id_subtipo = ijson.idsubtipo    ORDER BY de.id_subtipo ASC `;
       }
       const params = [data.padre, data.informe];
@@ -777,6 +828,19 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
       });
 
       const resultado = await this.informeRepositorio.save(nuevoInforme);
+      //paola
+      const datos = {
+        id_tipo_documento: nuevoInforme.id_tipo_informe,
+        id_obra: nuevoInforme.id_obra,
+        id_informe: resultado.id_informe,
+//        id_informe: (resultado as any).id_informe,
+        id_solicitud: solicitud.id_solicitud
+      }
+      const encabezado = await this.crearencabezadoDocumentos(datos)
+      if (!encabezado) {
+        throw new Error('No se pudo crear el encabezado de documentos');
+      }
+
       return this.responseService.success(resultado, "Acta de entrega provisional registrada correctamente.");
     } catch (error) {
       console.error('Error en createActaEntregaProvicional:', error);
@@ -947,6 +1011,19 @@ async updateActaEntregaProvisional(dto: UpdateActaEntregaProvDto) {
 
       const nuevoInforme = this.informeRepositorio.create(baseInforme);
       const resultado = await this.informeRepositorio.save(nuevoInforme);
+
+      //Paola
+      const datos = {
+        id_tipo_documento: baseInforme.id_tipo_informe,
+        id_obra: baseInforme.id_obra,
+        id_informe: (resultado as any).id_informe,
+        id_solicitud: solicitud.id_solicitud
+      }
+      const encabezado = await this.crearencabezadoDocumentos(datos)
+
+      if (!encabezado) {
+        throw new Error('No se pudo crear el encabezado de documentos');
+      }
 
       return this.responseService.success(resultado, `Acta de entrega ${tipo_acta} registrada correctamente.`);
     } catch (error) {

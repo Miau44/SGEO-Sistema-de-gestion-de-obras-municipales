@@ -32,8 +32,6 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class ActaDefinitiva {
 datosEnvio: any = [];
-datosSup: any = [];
-datosFis: any = [];
 datosInf: any = [];
 datosVariacion: any = [];
 datosProv: any = [];
@@ -68,41 +66,23 @@ datosProv: any = [];
     return resultado2[0];
   }
 
-    // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query3 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado3 = await this.sequelize.query(query3);
-    return resultado3[0];
-   }
-
-    // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query4 = `
-        SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
-    const resultado4 = await this.sequelize.query(query4);
-    return resultado4[0];
-   }
-
-   // Datos datos de Variación de la Acta 
-    async datosCuadroActa(obra: number) {
+    // Datos datos de Variación de la Acta 
+  async datosCuadroActa(obra: number) {
     const query5 = `
         SELECT * 
         FROM public."vista_reporte_variacion_Acta" WHERE id_obra = ${obra}`;
     const resultado5 = await this.sequelize.query(query5);
     return resultado5[0];
-   }
+  }
 
     // Datos datos de Variación de la Acta 
-    async datosActaProv(obra: number) {
+  async datosActaProv(obra: number) {
     const query6 = `
         SELECT * 
         FROM public."vista_reporte_acta_provisional" WHERE id_obra = ${obra}`;
     const resultado6 = await this.sequelize.query(query6);
     return resultado6[0];
-   }
+  }
  
 // REPORTE - RECEPCION DEFINITIVA
 
@@ -120,19 +100,7 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
   }
   this.datosInf = datosInforme;
 
-  const res1 = await this.supervisorDesignado(id_obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del Supervisor designado');
-  }
-  this.datosSup = res1;
-
-  const res2 = await this.fiscalDesignado(id_obra);
-  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del Fiscal designado');
-  }
-  this.datosFis = res2;
-
-   const res3 = await this.datosCuadroActa(id_obra);
+  const res3 = await this.datosCuadroActa(id_obra);
   if ((!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0))){
     throw new Error('No se encontraron datos de las modificaciones');
   }
@@ -475,45 +443,24 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
         text: ['\n'],
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              [ 
-                { text: [
-                  {
-                    text: '\n\n\n\n\n' + (
-                          Array.isArray(this.datosSup)
-                            ? this.datosSup
-                                .filter(s => s && s.supervisor)
-                                .map(s => s.supervisor)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ),
-                        style: 'textDatoT', alignment: 'center'
-                  },
-                  { text: '\nSUPERVISOR(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
-                  { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
-                ]},
-                {
-                  text: [
-                  {
-                    text: '\n\n\n\n\n' + (
-                          Array.isArray(this.datosFis)
-                            ? this.datosFis
-                                .filter(f => f && f.fiscal)
-                                .map(f => f.fiscal)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ),
-                        style: 'textDatoT', alignment: 'center'
-                  },
-                  { text: '\nFISCAL(ES) DE OBRA', style: 'textTituloT', alignment: 'center' },
-                  { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
-                ]}
-              ]
-                //...this.buildSupervisores(this.datosSup),
-              ]
-          }, margin: [20,0,20,0],
+        table: {
+          widths: ['50%','50%'],
+          body: [
+            [ 
+              { text: [
+                { text: '\n\n\n\n\n' + this.datosInf[0].de_nombre, style: 'textDatoT', alignment: 'center' },
+                { text: '\n' + this.datosInf[0].de_cargo, style: 'textTituloT', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
+              ]},
+              {
+                text: [
+                { text: '\n\n\n\n\n' + this.datosInf[0].a_nombre, style: 'textDatoT', alignment: 'center' },
+                { text: '\n' + this.datosInf[0].a_cargo, style: 'textTituloT', alignment: 'center' },
+                { text: '\nSELLO Y FIRMA', style: 'footerText', bold: 'true', alignment: 'center'}
+              ]}
+            ]
+          ]
+        }, margin: [20,0,20,0],
           layout: {
           hLineColor: () => '#444444', // color gris opaco para líneas horizontales
           vLineColor: () => '#444444', // color gris opaco para líneas verticales
@@ -521,14 +468,6 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
           vLineWidth: () => 0.7
           }
       },
-      // {
-      //     table: {
-      //       widths: ['50%','50%'],
-      //       body: [
-      //         ...this.buildFiscales(this.datosFis)
-      //         ]
-      //     }, 
-      // },
       {
         text: ['\n\nCc.Arch.' ],
         style: 'footerText'
@@ -637,60 +576,6 @@ async generateActaDefinitiva(id_obra: number, id_informe: number): Promise<Buffe
 
     return formattedDate;
   }
-
-   //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 20, 0, 0]},
-          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-     //Cargar tabla de FISCAL - CON RECUADRO
-    buildFiscales(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 20, 0, 0]},
-          { text: 'SELLO Y FIRMA', style: 'textTituloT', alignment: 'center', margin: [0, 30, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
    
   // FORMATO DE NUMEROS
   private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {

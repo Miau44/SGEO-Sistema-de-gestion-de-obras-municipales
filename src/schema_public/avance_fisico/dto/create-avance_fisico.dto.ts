@@ -15,7 +15,7 @@ export class CreateAvanceFisicoDto {
     @ApiProperty({ example: '2025-10-01'})
     fecha_inspeccion: string; 
 
-    @ApiProperty({ example: 359566 })
+    @ApiProperty({ example: 3337777 })
     correlativo_carpeta: number;        
     
     @ApiProperty()
