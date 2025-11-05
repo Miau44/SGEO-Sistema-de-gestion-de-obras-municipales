@@ -32,14 +32,9 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class InformeModificacionFiscal {
   datosEnvio: any = [];
-    datosFis: any = [];
     datosModAp: any = [];
     datosMod: any = [];
     datosInf: any = [];
-    datosAF: any = [];
-    datosSaf: any = [];
-    datosSec: any = [];
-    datosSD: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -62,15 +57,6 @@ export class InformeModificacionFiscal {
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
-
-     // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-   }
 
     // Resumen de Modificaciones Aprobadas por obra 
    async modificacionesAprobadas(obra: number, id_solicitud: number) {
@@ -99,42 +85,6 @@ export class InformeModificacionFiscal {
     return resultado2[0];
   }
 
-  //--Datos Aprobador Fiscal
-    async datosAprobadorFiscal(obra: number) {
-      const query3 = `
-          SELECT * 
-          FROM public."vista_reporte_aprobador_fiscal_obra" WHERE id_obra = ${obra}`;
-      const resultado3 = await this.sequelize.query(query3);
-      return resultado3[0];
-  }
-
-  //--Datos SAF DA
-    async datosSafes(obra: number) {
-      const query4 = `
-          SELECT * 
-          FROM public."vista_reporte_saf" WHERE id_obra = ${obra}`;
-      const resultado4 = await this.sequelize.query(query4);
-      return resultado4[0];
-  }
-
-  //--Datos MAE - SMIP
-    async datosSecretario(obra: number) {
-      const query5 = `
-          SELECT * 
-          FROM public."vista_reporte_mae_SMIP"`;
-      const resultado5 = await this.sequelize.query(query5);
-      return resultado5[0];
-  }
-
-  //--Datos SUBALCALDE - DFO - ACTUAL
-    async datosSubDfo(da: number) {
-      const query6 = `
-          SELECT * 
-          FROM public."vista_reporte_mae_sub_dfo" WHERE desc_cod_da_comision = ${da}`;
-      const resultado6 = await this.sequelize.query(query6);
-      return resultado6[0];
-  }
-
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -144,12 +94,6 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     throw new Error('No se encontraron datos para el ID de la obra proporcionada');
   }
   this.datosEnvio = datosGenerales;
-
-  const res1 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del fiscal designado');
-  }
-  this.datosFis = res1;
 
   const res2 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
   // if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
@@ -169,53 +113,39 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
     this.datosInf = res4;
 
-  const res5 = await this.datosAprobadorFiscal(this.datosEnvio[0].id_obra);
-    if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
-      throw new Error('No se encontraron del Aprobador');
-    }
-    this.datosAF = res5;
-
-  const res6 = await this.datosSafes(this.datosEnvio[0].id_obra);
-    if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
-      throw new Error('No se encontraron del SAF-RPA');
-    }
-    this.datosSaf = res6;
-
-  const res7 = await this.datosSecretario(this.datosEnvio[0].id_obra);
-    if (!res7 || (Array.isArray(res7) && res7.length === 0) || (typeof res7 === 'object' && Object.keys(res7).length === 0)) {
-      throw new Error('No se encontraron del Secretario de la SMIP');
-    }
-    this.datosSec = res7;
-
-  const res8 = await this.datosSubDfo(this.datosEnvio[0].desc_cod_da);
-  this.datosSD = res8;
-
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+  console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
-    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+    if (this.datosEnvio[0].num_decimales === '2') {
       formatoNumerico = new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     } else {
-      formatoNumerico = new Intl.NumberFormat('de-DE', {
-        minimumFractionDigits: 5,
-        maximumFractionDigits: 5
-      });
+        if (this.datosEnvio[0].num_decimales === '5') {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5
+        });
+        } else {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: this.datosEnvio[0].num_decimales,
+          maximumFractionDigits: this.datosEnvio[0].num_decimales
+        });
+        }
     }
+
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
 
-    //console.log('DATOS MODIFICACION',this.datosAF);
- 
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -257,77 +187,38 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment: 'right' },
                 {
-                  text: (() => {
-                    const da = this.datosEnvio[0].desc_cod_da;
-                    const monto = this.datosEnvio[0].monto_contrato;
-                    const nombreDA = this.datosEnvio[0].nombre_da;
-                    const nombreSAF = this.datosSaf[0].nombre_saf;
-                    const aprobador = this.datosAF[0].aprobador;
-                    //console.log('VALIDACION1', da);
-                    if (da >= 37 && da <= 45) {
-                      if (monto > 200000) {
-                        return [
-                          { text: this.datosSD[0].nombre + '\n', style: 'textDato' },
-                          { text: nombreDA, style: 'textTitulo' }
-                        ];
-                      } else {
-                        return [
-                          { text: nombreSAF + '\n', style: 'textDato' },
-                          { text: nombreDA, style: 'textTitulo' }
-                        ];
-                      }
-                    } else {
-                      console.log('DATOS MODIFICACION',this.datosAF);
-                      if (monto > 500000) {
-                        return [
-                          { text: this.datosSec[0].nombre_sec + '\n', style: 'textDato' },
-                          { text: this.datosSec[0].nombre_da, style: 'textTitulo' }
-                        ];
-                      } else {
-                        return [
-                          { text: nombreSAF + '\n', style: 'textDato' },
-                          { text: nombreDA, style: 'textTitulo' }
-                        ];
-                      }
-                    }
-                  })(),
-                  style: ''
+                  text: [
+                    { text: this.datosInf[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInf[0].a_cargo, style: 'textTitulo', alignment: 'left'}
+                  ]
                 }   
                   
               ],
               //Fila VIA: solo si la condición NO se cumple
               ...(
-                this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
+                this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45
                    // No incluir la fila
-                  ? []
-                  : [[
-                      { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-                      {
-                        text: [
-                          { text: this.datosAF[0].aprobador + '\n', style: 'textDato' },
-                          { text: 'DIRECTOR DE FISCALIZACIÓN DE OBRAS', style: 'textTitulo' }
-                        ],
-                        margin: [0, 5, 0, 5]
-                      }
-                    ]]
+                  ? [
+                      [
+                        { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
+                        {
+                          text: [
+                            { text: this.datosInf[0].via_nombre + '\n', style: 'textDato' },
+                            { text: this.datosInf[0].via_cargo, style: 'textTitulo' }
+                          ],
+                          margin: [0, 5, 0, 5]
+                        }
+                      ]
+                    ]
+                  : []
               ),
               [
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { 
                   text: [
-                      {
-                        text: (
-                          Array.isArray(this.datosFis)
-                            ? this.datosFis
-                                .filter(f => f && f.fiscal)
-                                .map(f => f.fiscal)
-                                .join('\n')  // salto de linea 
-                            : ''
-                        ) + '\n',
-                        style: 'textDato', alignment: 'left'
-                      },
-                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
-                    ]
+                    { text: this.datosInf[0].de_nombre_fis + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInf[0].de_cargo_fis, style: 'textTitulo', alignment: 'left' },
+                  ]
                 },            
               ],
               [
@@ -478,19 +369,33 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         text: ['\n'],
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildFiscales(this.datosFis)
-              ]
-          }, margin: [20,0,20,0],
-            layout: {
-            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-            vLineColor: () => '#444444', // color gris opaco para líneas verticales
-            hLineWidth: () => 0.7,       // grosor más fino
-            vLineWidth: () => 0.7
-            } 
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInf?.[0]?.de_nombre_fis
+              ? this.datosInf[0].de_nombre_fis.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            { text: [
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', style: 'textDato', bold: true }
+              ], 
+              margin: [0, 35, 0, 0], 
+              alignment: 'center'
+            },
+            { text: '(Firma y Sello)', 
+              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+            }
+          ])
         },
+        margin: [20, 0, 20, 0],
+        layout: {
+          hLineColor: () => '#444444',
+          vLineColor: () => '#444444',
+          hLineWidth: () => 0.7,
+          vLineWidth: () => 0.7
+        }
+      },
       {
         text: ['\n\ncc:Arch:' ],
         style: 'footerText'
@@ -602,47 +507,6 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
     return formattedDate;
   }
-
-    //Cargar tabla de fiscales
-    buildFiscales2(data: any) {
-      let datosFiscal = data;
-      let arrayData = [];
-  
-      for (let i = 0; i < datosFiscal.length; i++) {
-        let rowData = [
-          { text: [{ text: datosFiscal[i].fiscal, style: 'textDato' }] },
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-    //Cargar tabla de fiscales - con recuadro
-    buildFiscales(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textDato' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
 
     // Función para poblar la tabla de modificaciones aprobadas
      buildModAprobadas(data: any, formatoNumerico: Intl.NumberFormat) {

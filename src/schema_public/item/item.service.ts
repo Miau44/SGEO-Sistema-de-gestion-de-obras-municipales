@@ -17,11 +17,12 @@ import { FormatoNumericoUtil } from 'src/common/utils/formato-numerico.utils';
 import { PlanillaService } from '../planilla/planilla.service';
 import { ObraService } from '../obra/obra.service';
 import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
+import { ItemObraContratoDto } from './dto/obra-contrato.dto';
 
 @Injectable()
 export class ItemService {
 
-  private var_decimal: 2 | 5 = 5; // valor por defecto
+  //private var_decimal = 2; // valor por defecto
 
   constructor(
     @InjectRepository(Item)
@@ -108,6 +109,17 @@ export class ItemService {
     }
     return item;
   }
+
+ async findItem(id_item: number) {
+
+    try {
+      const resultado = await this.itemRepository.findOneBy({ id_item: id_item });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 
   // Actualizar un item por id
   async update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
@@ -280,24 +292,21 @@ const resultado = await this.itemRepository.query(query);
 
       for (const registro of registros) {
         try {
-
           const id_obra = await this.findOne(registro.id_item);
-          const obra = await this.obraService.findOne(id_obra.id_obra);
-          if (!obra || !obra.data || obra.data.length === 0) {
+          // const obra = await this.obraService.findOne(id_obra.id_obra);
+          if (!id_obra) {
             throw new NotFoundException(`Obra with ID ${id_obra} not found`);
           }
-
-          const modalidad = obra.data[0].modalidad;
-          console.log('modalidad bloque', modalidad);
-          this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
-
+          const valorDecimales: number = await this.itemObraModalidad({ id_obra: id_obra.id_obra });
+          // ✅ Convertimos a tipo EXACTO 2 | 5
+          const var_decimal: 2 | 5 = valorDecimales === 5 ? 5 : 2;
           var p_unitario_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0')
           var total_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0')
-          const data = {
-            p_unitario_adjudicado: DecimalUtil.roundToDecimals((this.ensureNumber(p_unitario_adjudicado_)), this.var_decimal),
-            total_adjudicado: DecimalUtil.roundToDecimals(this.ensureNumber(total_adjudicado_), this.var_decimal)
-          };
 
+          const data = {
+            p_unitario_adjudicado: DecimalUtil.roundToDecimals((this.ensureNumber(p_unitario_adjudicado_)), var_decimal),
+            total_adjudicado: DecimalUtil.roundToDecimals(this.ensureNumber(total_adjudicado_), var_decimal)
+          };
 
           const resultado = await this.itemRepository.update({ id_item: registro.id_item }, data);
           // const resultado = await this.updateItem(registro.id_item, data);          
@@ -470,6 +479,16 @@ const resultado = await this.itemRepository.query(query);
 
 
 
+  async itemObraModalidad(dtoItem: ItemObraContratoDto): Promise<number> {
+    const query = `SELECT * FROM public.sp_item_obra_contrato($1);`;
+    const params = [dtoItem.id_obra];
 
+    const resultado = await this.itemRepository.query(query, params);
+    const modalidad = resultado[0];
 
+    if (!modalidad) {
+      throw new NotFoundException(`Modalidad not found for Obra ID ${dtoItem.id_obra}`);
+    }
+    return modalidad.cantidad_decimales ?? 2; // Devuelve number
+  }
 }

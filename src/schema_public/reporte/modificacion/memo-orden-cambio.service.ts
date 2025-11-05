@@ -35,7 +35,6 @@ export class MemoOrdenCambio {
     datosEnvio: any = [];
     datosFis: any = [];
     datosInf: any = [];
-    datosSup: any = [];
     datosModAp: any = [];
 
     constructor(
@@ -59,15 +58,6 @@ export class MemoOrdenCambio {
     return resultado[0];
   }
 
-   // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public.vista_fiscales_obra WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-   }
-
   // Datos informes de Supervisor y Fiscal
   async datosInformesSF(id_modif_pago: number) {
     const query2 = `
@@ -76,15 +66,6 @@ export class MemoOrdenCambio {
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
-
-   // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query3 = `
-        SELECT * 
-        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
-    const resultado3 = await this.sequelize.query(query3);
-    return resultado3[0];
-   }
 
    // Ultima Modificacion Aprobada 
    async modificacionAP(obra: number, id_modif_pago: number) {
@@ -104,31 +85,19 @@ export class MemoOrdenCambio {
     }
     this.datosEnvio = res;
 
-    const resFis = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-    if (!resFis || (Array.isArray(resFis) && resFis.length === 0) || (typeof resFis === 'object' && Object.keys(resFis).length === 0)) {
-      throw new Error('No se encontraron datos del fiscal designado');
-    }
-    this.datosFis = resFis;
-
     const res1 = await this.datosInformesSF(id_modif_pago);
     if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
       throw new Error('No se encontraron datos de los informes de Sup/Fis');
     }
     this.datosInf = res1;
 
-      const res2 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
-    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-    }
-    this.datosSup = res2;
-
-     const res3 = await this.modificacionAP(this.datosEnvio[0].id_obra, id_modif_pago);
-    if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
-        throw new Error('No se encontraron datos de las modificación');
-    }
-    this.datosModAp = res3;
+    const res3 = await this.modificacionAP(this.datosEnvio[0].id_obra, id_modif_pago);
+  if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+      throw new Error('No se encontraron datos de las modificación');
+  }
+  this.datosModAp = res3;
    
-    //console.log("DATOS, ", res);
+    console.log("DATOS, ", res);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -243,24 +212,24 @@ export class MemoOrdenCambio {
             widths: ['*', 350],
             body: [
               [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta, style: 'textDato', }], fillColor: '#dddddd' }
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_carpeta, style: 'textDato', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }] }
+                { text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }
               ],
               [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#dddddd' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify' }], fillColor: '#dddddd' }
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }
               ],
               [
-                { text: [{ text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }] }
+                { text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }
               ],
               [
-                { text: [{ text: 'CONTRATO Nro.:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },] },
-                { text: [{ text: this.datosEnvio[0].numero_contrato + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }] }
+                { text: 'CONTRATO Nro.:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].numero_contrato + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }
               ]
 
             ]
@@ -332,28 +301,14 @@ export class MemoOrdenCambio {
                 {
                   text:
                       [
-                        { text: 
-                              (Array.isArray(this.datosFis)
-                                ? this.datosFis
-                                    .filter(f => f && f.fiscal)
-                                    .map(f => f.fiscal)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text: this.datosInf[0].de_nombre_fis },
                         { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                       ]
                 },
                 {
                   text:
                       [
-                        { text: 
-                              (Array.isArray(this.datosSup)
-                                ? this.datosSup
-                                    .filter(f => f && f.supervisor)
-                                    .map(f => f.supervisor)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
+                        { text:this.datosInf[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
                         { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                       ]
                 }
@@ -411,7 +366,8 @@ export class MemoOrdenCambio {
     };
     // Generar el PDF en memoria
     const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    let chunks: Buffer[] = [];
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
 
     return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.on('data', (chunk) => {

@@ -148,9 +148,6 @@ export class PersonapermisoUeService {
      --AND ppue.gestion =${datosDto.gestion}        
      --  AND ppue.desc_cod_ue =${datosDto.desc_cod_ue}   
        AND  d.id_obra =${datosDto.obra};`;*/
-
-       console.log('UsuarioPermisoXUeDto 15102025', datosDto);
-       
       const query = `
         SELECT DISTINCT p.id_usuario,  p.usuario, TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || RTRIM(p.segundo_apellido) || ' | ' 
         ||  CASE WHEN id_cite_memo =239 THEN 'SUPERVISOR ' 

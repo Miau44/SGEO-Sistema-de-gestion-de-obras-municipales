@@ -5,7 +5,7 @@ import { ResponseService } from 'src/response.service';
 import { Solicitud } from '../solicitud/entities/solicitud.entity';
 import { Correlativo } from '../correlativo/entities/correlativo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Modificacion } from './entities/modificacion.entity';
 import { Pago } from '../pago/entities/pago.entity';
 import { CorrelativoService } from '../correlativo/correlativo.service';
@@ -21,6 +21,7 @@ import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 
+
 @Injectable()
 export class ModificacionPagoService {
   constructor(
@@ -32,6 +33,7 @@ export class ModificacionPagoService {
     @InjectRepository(Planilla) private planillaRepocitorio: Repository<Planilla>,
     @InjectRepository(Modificacion) private readonly modificacionRepo: Repository<Modificacion>,
 
+    private readonly dataSource: DataSource, 
     private responseService: ResponseService,
     private solicitudService: SolicitudService,
     private servicioCorrelativo: CorrelativoService,
@@ -488,12 +490,16 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   }
 
 
-  async tieneIncremento(idModificacionPago: number): Promise<boolean> {
+  async tieneIncremento(data: ActualizarModPagoDto): Promise<any> {
     const result = await this.modificacionRepo.query(
       `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
-      [idModificacionPago],
+      [data.id_modificacion_pago],
     );
-    return result[0].resultado;
+    result[0].resultado;
+    return this.responseService.success(result[0].resultado, "Correctamente.");
+  } catch(error: any) {
+    console.error("Error al generar datos de:", error);
+    return this.responseService.error(error);
   }
 
   //servicio para listar modificaciones por tipo contrato y tipo de moficacion, ABL 18/08/2024

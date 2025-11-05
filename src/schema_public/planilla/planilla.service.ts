@@ -14,13 +14,17 @@ import { FinalizarPlanillaDto } from './dto/finalizar-planilla.dto';
 import { Log } from '../log/entities/log.entity';
 import { actualizarObservacionDto } from './dto/planilla_observacion/actualizar-observacion.dto';
 import { PlanillaItemDto } from './dto/obtener-planilla-item.dto';
+import { Informe } from '../informe/entities/informe.entity';
+import { InformeService } from '../informe/informe_inicial.service';
 
 @Injectable()
 export class PlanillaService {
 
   constructor(
     @InjectRepository(Planilla) private planillaRepositorio: Repository<Planilla>,
-    private responseService: ResponseService) { }
+    private responseService: ResponseService,
+    private informeService: InformeService,
+  ) { }
 
 
   async create(createPlanillaDto: CreatePlanillaDto) {
@@ -285,8 +289,27 @@ export class PlanillaService {
   
       //Ejecutar el SP
       const spQuery = `SELECT * FROM sp_crear_informe_y_opcional_memorandum($1)`;
-      console.log('🟡 Ejecutando SP sp_crear_informe_y_opcional_memorandum...');
+     // console.log('🟡 Ejecutando SP sp_crear_informe_y_opcional_memorandum...');
       const spResult = await this.planillaRepositorio.query(spQuery, [data.id_modificacion_pago]);
+     // console.log('🟢 Resultado del SP:', resultado);
+   
+      const id_tipo =spResult[0]?.idtipoinforme ?? null;
+      const id_obra =spResult[0]?.idobra ?? null;
+      const id_informe =spResult[0]?.idinforme ?? null; 
+      const id_solicitud =spResult[0]?.idsolicitud ?? null;           
+
+      const datos = {
+        id_tipo_documento: id_tipo,
+        id_obra: id_obra,
+        id_informe: id_informe,
+        id_solicitud: id_solicitud
+      }
+   //   console.log();
+      
+      const encabezado = await this.informeService.crearencabezadoDocumentos(datos)
+      if (!encabezado) {
+        throw new Error('No se pudo crear el encabezado de documentos');
+      }      
 
   
       return this.responseService.success(

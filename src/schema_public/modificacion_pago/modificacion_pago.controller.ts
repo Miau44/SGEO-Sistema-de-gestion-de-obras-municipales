@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, HttpException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ModificacionPagoService } from './modificacion_pago.service';
 import { CreateModificacionPagoDto } from './dto/create-modificacion_pago.dto';
 import { UpdateModificacionPagoDto } from './dto/update-modificacion_pago.dto';
@@ -126,9 +126,9 @@ export class ModificacionPagoController {
 
   @Public()
   @Post('tiene-incremento')
-  async tieneIncremento(@Body() validar: ValidarModificacionDto) {
+  async tieneIncremento(@Body() validar: ActualizarModPagoDto) {
     try {
-      return this.modificacionPagoService.tieneIncremento(validar.id_modificacion_pago);
+      return this.modificacionPagoService.tieneIncremento(validar);
 
     } catch (error) {
     }
@@ -199,5 +199,6 @@ export class ModificacionPagoController {
     } catch (error) {
     }
   } 
+
 
 }
