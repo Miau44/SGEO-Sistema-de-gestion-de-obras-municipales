@@ -118,20 +118,28 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
-  console.log('DATOS MODIFICACION',this.datosEnvio);
+  //console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
-    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+    if (this.datosEnvio[0].num_decimales === '2') {
       formatoNumerico = new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     } else {
-      formatoNumerico = new Intl.NumberFormat('de-DE', {
-        minimumFractionDigits: 5,
-        maximumFractionDigits: 5
-      });
+        if (this.datosEnvio[0].num_decimales === '5') {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5
+        });
+        } else {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: this.datosEnvio[0].num_decimales,
+          maximumFractionDigits: this.datosEnvio[0].num_decimales
+        });
+        }
     }
+
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -188,9 +196,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ],
               //Fila VIA: solo si la condición NO se cumple
               ...(
-                this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45
-                   // No incluir la fila
-                  ? [
+                //this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45
+                this.datosInf[0].via_nombre
+                  ? [ 
                       [
                         { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                         {
@@ -369,8 +377,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               : ['']
           ).map((nombre: string) => [
             { text: [
-                { text: nombre, style: 'textDato' },
-                { text: '\nSUPERVISOR DE OBRA', style: 'textDato', bold: true }
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'FISCAL DE OBRA', style: 'textDato', bold: true }
               ], 
               margin: [0, 35, 0, 0], 
               alignment: 'center'
