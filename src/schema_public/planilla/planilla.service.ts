@@ -304,7 +304,7 @@ export class PlanillaService {
         id_informe: id_informe,
         id_solicitud: id_solicitud
       }
-      console.log();
+   //   console.log();
       
       const encabezado = await this.informeService.crearencabezadoDocumentos(datos)
       if (!encabezado) {

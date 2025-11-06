@@ -144,16 +144,23 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
-    if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {
+    if (this.datosEnvio[0].num_decimales === '2') {
       formatoNumerico = new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     } else {
-      formatoNumerico = new Intl.NumberFormat('de-DE', {
-        minimumFractionDigits: 5,
-        maximumFractionDigits: 5
-      });
+        if (this.datosEnvio[0].num_decimales === '5') {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5
+        });
+        } else {
+          formatoNumerico = new Intl.NumberFormat('de-DE', {
+          minimumFractionDigits: this.datosEnvio[0].num_decimales,
+          maximumFractionDigits: this.datosEnvio[0].num_decimales
+        });
+        }
     }
 
   const documentDefinition: TDocumentDefinitions = {
@@ -293,20 +300,20 @@ async generatePlanillaReordenamiento(obra: number, id_modificacion_pago: number)
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_fis, style: 'textDato', alignment: 'center' },
-                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\n' + this.datosInfSup[0].de_cargo_fis, style: 'textTitulo', alignment: 'center' }
                     ]
               },
 
               { text: [
-                        { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
-                        { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
+                        { text: this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center'},
+                        { text: '\nEMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
                       ]
               },
               {
                 text:
                     [
                       { text: this.datosInfSup[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
-                      { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                      { text: '\n' + this.datosInfSup[0].de_cargo_sup, style: 'textTitulo', alignment: 'center' }
                     ]
               }
             ]
@@ -637,7 +644,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
      { text: this.formatIfNumber(datosPl[0].total_adjudicado,formatoNumerico2),
        style: 'textTitulo2', alignment: 'right', bold: true }, 
      {}, // celdas vacias
-     { text: this.formatIfNumber(datosPl[0].total_autorizado,formatoNumerico2), //Cambiar por la suma de la tabla detalle
+     { text: this.formatIfNumber(datosPl[0].total_modif_ap,formatoNumerico2), //Correjido
       style: 'textTitulo2', alignment: 'right', bold: true }, 
      {}, // celdas vacias
      { text: this.formatIfNumber(datosPl[0].total_inc,formatoNumerico2),

@@ -3,6 +3,7 @@ import { HttpException } from '@nestjs/common';
 
 @Injectable()
 export class ResponseService {
+  [x: string]: any;
   
   error(error: any, message: string = 'Internal server error', statusCode?: number) {
     let errorMessage = 'An unknown error occurred';

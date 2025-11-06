@@ -35,7 +35,7 @@ export class MemoOrdenCambio {
     datosEnvio: any = [];
     datosFis: any = [];
     datosInf: any = [];
-    datosMod: any = [];
+    datosModAp: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -67,11 +67,11 @@ export class MemoOrdenCambio {
     return resultado2[0];
   }
 
-   // Resumen de Modificacion Actual 
-   async modificacionActual(obra: number) {
+   // Ultima Modificacion Aprobada 
+   async modificacionAP(obra: number, id_modif_pago: number) {
     const query4 = `
         SELECT * 
-        FROM public."vista_reporte_modif_aprobadas" WHERE id_obra = ${obra}`;
+        FROM public."f_reporte_ultima_modif_InfModif"(${obra},${id_modif_pago})`;
     const resultado4 = await this.sequelize.query(query4);
     return resultado4[0];
    }
@@ -91,13 +91,13 @@ export class MemoOrdenCambio {
     }
     this.datosInf = res1;
 
-    const res3 = await this.modificacionActual(this.datosEnvio[0].id_obra);
+    const res3 = await this.modificacionAP(this.datosEnvio[0].id_obra, id_modif_pago);
   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
       throw new Error('No se encontraron datos de las modificación');
   }
-  this.datosMod = res3;
+  this.datosModAp = res3;
    
-    //console.log("DATOS, ", res);
+    console.log("DATOS, ", res);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -241,29 +241,31 @@ export class MemoOrdenCambio {
         },
         {
           text: [
-            { text: 'Señor(es): \n', style: 'textDato' },
+            { text: 'Señor(es): \n' },
             {
-              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ' , de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
+              text: 'De acuerdo al informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + ', de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + 
               ' emitido por la supervisión de obra, aprobado mediante informe Orden de Cambio ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_fis + '-' + this.datosInf[0].correlativofis + ' de fecha ' + 
               this.fechaString(this.datosEnvio[0].fecha_fiscal) + ' por la fiscalización de obra, se aprueba la presente ORDEN DE CAMBIO Nro.' + this.datosEnvio[0].numero_modificacion + 
-              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].nueva_fecha_provisional) + '.\n\n',
-              style: 'textDato',  alignment: 'justify'
+              ' por ' + this.datosInf[0].referencia + ', con una variación de ' + this.datosEnvio[0].dias_variacion + ' d.c.' + ' con fecha de conclusión; ' + this.fechaString(this.datosEnvio[0].nueva_fecha_provisional) + '.\n\n'
             },
             {
-              text: 'Asimismo, el monto del contrato inicial es de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.') + ')' + 
-              ', tiene una variación de Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs') + ')' + '.\n\n',
-              style: 'textDato', alignment: 'justify', lineHeight: 1
+              text: [
+                { text: 'Asimismo, el monto ' },
+                { text: this.datosEnvio[0].modificacion_gral == 1 
+                  ? 'del contrato inicial es de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2), 'Bs.')
+                  : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1)  + ') es de Bs' + this.formatIfNumber(this.datosModAp[0].monto_total,formatoNumerico2) + ' (' + this.convertToWords(this.formatIfNumber(this.datosModAp[0].monto_total,formatoNumerico2), 'Bs.') 
+                },
+                { text: '), tiene una variación de Bs' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs') + ')' + '.\n\n' }
+              ]
             },
             {
-              text: 'Por lo que el monto autorizado será de Bs' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +  
-              ') totalizando un valor porcentual de modificaciones a la fecha respecto al contrato inicial, de ' + this.datosEnvio[0].porcentaje_total + '%.',
-              style: 'textDato', alignment: 'justify', lineHeight: 1
+              text: 'Por lo que el nuevo monto autorizado será de Bs' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +  
+              ') totalizando un valor porcentual de modificaciones (incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.'
             },
             {
               text: '\n\nAtentamente,', 
-              style: 'textDato', alignment: 'left'
             },
-          ],
+          ], style: 'textDato', alignment: 'justify', lineHeight: 1
         },
         {
           text: '\n\n\n\n\n'
