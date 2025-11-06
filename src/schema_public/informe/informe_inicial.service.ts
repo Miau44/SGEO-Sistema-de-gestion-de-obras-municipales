@@ -169,7 +169,7 @@ export class InformeService {
         id_solicitud: data.id_solicitud
       };
       //inicial, actividades, prevision de pagos, inf. sup., inf.fis, acta prov, def, CMS, CMF, OCS, OCF
-      const tiposValidos = [235, 236, 237, 295, 296, 342, 343, 266, 267, 268, 269];
+      const tiposValidos = [235, 236, 237, 295, 296, 342, 343, 266, 267, 268, 269, 356, 357];
       let resultado = null;
       if (tiposValidos.includes(data.id_tipo_documento)) {
         const encabezado = await this.encabezadoDocumentos(datos);
