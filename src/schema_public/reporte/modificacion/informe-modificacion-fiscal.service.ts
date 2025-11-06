@@ -118,7 +118,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const imgPath = 'assets/images/membretado_oficio.png';
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
-  console.log('DATOS MODIFICACION',this.datosEnvio);
+  //console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].num_decimales === '2') {
@@ -196,9 +196,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ],
               //Fila VIA: solo si la condición NO se cumple
               ...(
-                this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45
-                   // No incluir la fila
-                  ? [
+                //this.datosEnvio[0].desc_cod_da >= 37 && this.datosEnvio[0].desc_cod_da <= 45
+                this.datosInf[0].via_nombre
+                  ? [ 
                       [
                         { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
                         {
