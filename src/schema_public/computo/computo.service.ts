@@ -63,10 +63,24 @@ export class ComputoService {
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${createComputoDto.id_modificacion_pago} not found`);
       }
-      const obra = await this.obraservice.findOne(id_obra);
-      const modalidad = obra.data[0].modalidad;
-      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
 
+    /*  const obra = await this.itemService.itemObraModalidad({id_obra: id_obra.id_obra});
+      if (!obra || !obra.data || obra.data.length === 0) {
+        throw new NotFoundException(`Obra with ID ${id_obra.id_obra} not found`);
+      }           
+      const modalidad = obra.data[0].cantidad_decimales;
+      if (!modalidad || !modalidad.data ) {
+        throw new NotFoundException(`Modalidad not found for Obra ID ${id_obra.id_obra}`);
+      }
+
+      this.var_decimal = modalidad.data.cantidad_decimales;   */   
+      this.var_decimal =2;
+      /*const obra = await this.obraservice.findOne(id_obra);
+      const modalidad = obra.data[0].modalidad;
+      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;*/
+
+      const valorDecimales: number = await this.itemService.itemObraModalidad({ id_obra: id_obra })
+      const var_decimal: 2 | 5 = valorDecimales === 5 ? 5 : 2;
       createComputoDto.alto = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.alto), this.var_decimal);
       createComputoDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.largo), this.var_decimal);
       createComputoDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(createComputoDto.ancho), this.var_decimal);
@@ -128,9 +142,13 @@ export class ComputoService {
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${updateComputoPlanillaDto.id_modificacion_pago} not found`);
       }
-      const obra = await this.obraservice.findOne(id_obra);
+
+    //  this.var_decimal = modalidad.data.cantidad_decimales;
+
+     /* const obra = await this.obraservice.findOne(id_obra);
       const modalidad = obra.data[0].modalidad;
-      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;
+      this.var_decimal = modalidad === 'CONTRATACION DIRECTA' ? 2 : 5;*/
+
       updateComputoPlanillaDto.alto = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.alto), this.var_decimal);
       updateComputoPlanillaDto.largo = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.largo), this.var_decimal);
       updateComputoPlanillaDto.ancho = DecimalUtil.roundToDecimals(this.ensureNumber(updateComputoPlanillaDto.ancho), this.var_decimal);
@@ -613,20 +631,29 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       if (!info_obra || info_obra.data.length === 0) {
         throw new NotFoundException(`Obra with ID ${dataadicional.id_modificacion} not found`);
       }
-      const obra = await this.obraservice.findOne(id_obra);
+      
+     /* const obra = await this.obraservice.findOne(id_obra);
       const modalidad = obra.data[0].modalidad;
-
-
       console.log('modalidad', modalidad);
       if (modalidad === 'CONTRATACION DIRECTA') {
         this.var_decimal = 2;
       } else {
         this.var_decimal = 5;
-      }
-      if (!obra) {
+      }*/
+
+      const valorDecimales: number = await this.itemService.itemObraModalidad({ id_obra: id_obra });
+      //console.log('valorDecimales 04112025', valorDecimales);
+
+      // ✅ Convertimos a tipo EXACTO 2 | 5
+      const var_decimal: 2 | 5 = valorDecimales === 5 ? 5 : 2;
+
+    //  console.log('var_decimal cantidad_de decimales 2', var_decimal);
+          
+
+     /* if (!obra) {
         throw new NotFoundException(`Obra with ID ${id_obra} not found`);
         return
-      }
+      }*/
 
       //calcular version
       const max_version = await this.getMaxVersion(dataadicional.id_modificacion);
@@ -827,12 +854,11 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
   }
 
   async getMaxVersion(modificacion: number): Promise<number> {
-    console.log('id_mod getmax', modificacion);
     const query = `SELECT COALESCE(MAX(version), 0) AS max_version 
                   FROM public.computo_historico WHERE id_modificacion_pago =$1;`;
     const param = [modificacion]
     const result = await this.computoRepositorio.query(query, param);
-    console.log('result.rows[0]?.max_version', result[0].max_version || 0);
+   // console.log('result.rows[0]?.max_version', result[0].max_version || 0);
     return result[0]?.max_version || 0;
 
   }
