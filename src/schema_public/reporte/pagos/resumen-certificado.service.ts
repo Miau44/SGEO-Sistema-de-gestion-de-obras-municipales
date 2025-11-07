@@ -33,14 +33,13 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class ResumenCertificado {
     datosEnvio: any = [];
-    datosSup: any = [];
-    datosFis: any = [];
     datosMV: any = [];
     datosUM: any = [];
     datosDes: any = [];
     datosCA: any = [];
     datosMultas: any = [];
     datosAF: any = [];
+    datosInfSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -63,27 +62,8 @@ export class ResumenCertificado {
       const resultado = await this.sequelize.query(query);
       return resultado[0];
    }
-
     
-     // SUPERVISORES designados por obra 
-    async supervisorDesignado(obra: number) {
-      const query1 = `
-          SELECT * 
-          FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-      const resultado1 = await this.sequelize.query(query1);
-      return resultado1[0];
-   }
-
-      // FISCALES designados por obra 
-    async fiscalDesignado(obra: number) {
-      const query2 = `
-          SELECT * 
-          FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-      const resultado2 = await this.sequelize.query(query2);
-      return resultado2[0];
-   }
-
-      // Datos listado de modificaciones aprobadas
+    // Datos listado de modificaciones aprobadas
     async datosModifVariacion(obra: number) {
       const query3 = `
           SELECT * 
@@ -137,6 +117,15 @@ export class ResumenCertificado {
       return resultado8[0];
     }
 
+    // Datos informe - Pago Supervisor
+   async datosInformePagoSupervisor(solicitud: number) {
+    const query9 = `
+        SELECT * 
+        FROM public."vista_reporte_Informe_PagoSup" WHERE id_solicitud = ${solicitud}`;
+    const resultado9 = await this.sequelize.query(query9);
+    return resultado9[0];
+   }
+
   // REPORTE - RESUMEN DE CERTIFICADO DE PAGO
 
 async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
@@ -146,18 +135,6 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
       throw new Error('No se encontraron datos para el ID de la obra proporcionada');
     }
     this.datosEnvio = datosGenerales;
-
-    const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-        throw new Error('No se encontraron datos del supervisor designado');
-    }
-    this.datosSup = res1;
-
-    const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-        throw new Error('No se encontraron datos del fiscal designado');
-    }
-    this.datosFis = res2;
 
     const res3 = await this.datosModifVariacion(this.datosEnvio[0].id_obra);
     this.datosMV = res3;
@@ -182,6 +159,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
       throw new Error('No se encontraron datos del Aprobador');
     }
     this.datosAF = res8;
+
+    const res9 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
+    this.datosInfSup = res9;
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -613,30 +593,56 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
             }
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildSupervisores(this.datosSup)
-              ]
-          }, margin: [20,0,20,0], 
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInfSup?.[0]?.de_nombre
+              ? this.datosInfSup[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            {
+              text: [
+                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true }
+              ],
+              margin: [0, 35, 0, 0], alignment: 'center'
+            },
+            {
+              text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
+            }
+          ])
+        }, margin: [20,0,20,0],
             layout: {
             hLineColor: () => '#444444', // color gris opaco para líneas horizontales
             vLineColor: () => '#444444', // color gris opaco para líneas verticales
-            hLineWidth: () => 0.7,       // grosor más fino
+            hLineWidth: () => 0.3,       // grosor más fino
             vLineWidth: () => 0.7
             } 
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildFiscales(this.datosFis)
-              ]
-          }, margin: [20,0,20,0], 
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInfSup?.[0]?.de_nombre
+              ? this.datosInfSup[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            {
+              text: [
+                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
+                { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true }
+              ],
+              margin: [0, 35, 0, 0], alignment: 'center'
+            },
+            {
+              text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
+            }
+          ])
+        }, margin: [20,0,20,0],
             layout: {
             hLineColor: () => '#444444', // color gris opaco para líneas horizontales
             vLineColor: () => '#444444', // color gris opaco para líneas verticales
-            hLineWidth: () => 0.7,       // grosor más fino
+            hLineWidth: () => 0.3,       // grosor más fino
             vLineWidth: () => 0.7
             } 
       },
@@ -795,60 +801,6 @@ formatearFecha(iso: string | null | undefined): string | undefined {
 
     return formattedDate;
   }
-
-  //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
-
-  //Cargar tabla de FISCALES - CON RECUADRO
-    buildFiscales(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'FISCAL DE OBRA', bold: true, style: 'textTitulo' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
 
     //RESUMEN datos monto variacion - modificaciones aprobadas
   buildModificacionesVariacion(data: any[]) {

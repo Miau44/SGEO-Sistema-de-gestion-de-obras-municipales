@@ -34,12 +34,11 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class PlanillaPago {
 
     datosEnvio: any = [];
-    datosSup: any = [];
-    datosFis: any = [];
     datosPlanilla: any = [];
     datosPlanillaR: any = [];
     num_modif: any = [];
     datosNuevos: any = [];
+    datosInfSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -60,24 +59,6 @@ export class PlanillaPago {
         SELECT * 
         FROM public."vista_reporte_pago_gral" WHERE id_modificacion_pago = ${id_modif_pago}`;
     const resultado = await this.sequelize.query(query);
-    return resultado[0];
-   }
-
-   // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-   }
-
-   // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
     return resultado[0];
    }
 
@@ -117,6 +98,14 @@ export class PlanillaPago {
     return resultado5[0];
    }
    
+   // Datos informe - Pago Supervisor
+   async datosInformePagoSupervisor(solicitud: number) {
+    const query2 = `
+        SELECT * 
+        FROM public."vista_reporte_Informe_PagoSup" WHERE id_solicitud = ${solicitud}`;
+    const resultado2 = await this.sequelize.query(query2);
+    return resultado2[0];
+   }
 
 // REPORTE - PLANILLA DE REORDENAMIENTO
 async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<Buffer> {
@@ -127,19 +116,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   }
   this.datosEnvio = datosGenerales;
 
-  const res1 = await this.supervisorDesignado(obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
-
-  const res2 = await this.fiscalDesignado(obra);
-  if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosFis = res2;
-
-  const res3 = await this.planillaReordenamiento(obra, this.datosEnvio[0].numero_pago ,id_modificacion_pago);
+  const res3 = await this.planillaReordenamiento(obra, this.datosEnvio[0].numero_pago, id_modificacion_pago);
   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
       throw new Error('No se encontraron datos de la planilla');
   }
@@ -148,8 +125,11 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   const res4 = await this.planillaResumen(obra, id_modificacion_pago);
   this.datosPlanillaR = res4;
 
-  const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago ,id_modificacion_pago);
+  const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago, id_modificacion_pago);
   this.datosNuevos = res5;
+
+  const res6 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
+  this.datosInfSup = res6;
 
   //console.log('DATOS PAGO', this.datosEnvio);
   
@@ -395,32 +375,18 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
                 { text: [
                           { text: this.datosEnvio[0].proponente_razon_social + '\n', style: 'textDato', alignment: 'center'},
                           { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
-                ]
+                        ]
                 },
                 { text:
                       [
-                        { text: 
-                              (Array.isArray(this.datosSup)
-                                ? this.datosSup
-                                    .filter(f => f && f.supervisor)
-                                    .map(f => f.supervisor)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                        { text: this.datosInfSup[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
+                        { text: this.datosInfSup[0].de_cargo, style: 'textTitulo', alignment: 'center' }
                       ]
                 },
                 { text:
                       [
-                        { text: 
-                              (Array.isArray(this.datosFis)
-                                ? this.datosFis
-                                    .filter(f => f && f.fiscal)
-                                    .map(f => f.fiscal)
-                                    .join(' | ')
-                                : ''
-                              ) + '\n', style: 'textDato', alignment: 'center' },
-                        { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+                        { text: this.datosInfSup[0].a_nombre + '\n', style: 'textDato', alignment: 'center' },
+                        { text: this.datosInfSup[0].a_cargo, style: 'textTitulo', alignment: 'center' }
                       ]
                 }
               ]
