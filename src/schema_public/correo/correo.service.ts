@@ -24,7 +24,7 @@ export class CorreoService {
     if (!input) return [];
     const arr = Array.isArray(input) ? input : [input];
     return arr
-      .flatMap(v => String(v).split(/[,\s;]+/))
+      .flatMap(v => String(v).split(/[,\s;|]+/))
       .map(s => s.trim().toLowerCase())
       .filter(Boolean);
   }
@@ -42,159 +42,162 @@ export class CorreoService {
     return [...new Set(valid)];
   }
 
-    async enviarCorreoProceso(dto: EnviarCorreoProcesoDto): Promise<{ message: string }> {
-     const dbName = String(process.env.DATABASE_NAME).toUpperCase();
+  async enviarCorreoProceso(dto: EnviarCorreoProcesoDto): Promise<{ message: string }> {
+    const dbName = String(process.env.DATABASE_NAME || '').toUpperCase();
+    const PHP_CC_MULTIPLE = String(process.env.PHP_CC_MULTIPLE ?? 'false').toLowerCase() === 'true';
 
-     // valores que realmente se usarán
-  let para: string[];
-  let autor: string[];
-  let codigoObra: string;
-  let nombreObra: string;
-  let actividad: string;
-  let proveido: string;
+    // remitente SOLO para el PHP
+    const remitentePhp = 'sistema@miapp.com';
 
-  if (dbName === 'SGEO_PRUEBAS') {
-    // MOD PRUEBAS -> ignora lo que mande el frontend
-    para = ['ibrahim.arunim'];
-    autor = ['angel.laura','jorge.torrez'];
-    codigoObra = dto.codigoObra;
-    nombreObra = dto.nombreObra;
-    actividad = dto.actividad;
-    proveido = dto.proveido + ' Correo de pruebas ';
-    console.log('⚠️ Enviando con datos HARDCODE (modo PRUEBAS)');
-  } else {
-    // MOD PRODUCCIÓN -> usa lo que llega en el DTO
-    para = dto.para;
-    autor = dto.autor ?? [];
-    codigoObra = dto.codigoObra;
-    nombreObra = dto.nombreObra;
-    actividad = dto.actividad;
-    proveido = dto.proveido;
-    console.log('✅ Enviando con datos del FRONT (modo PRODUCCIÓN)');
-  }
+    // ---------------- Selección de datos por entorno ----------------
+    let para: string[];
+    let autor: string[];
+    let codigoObra: string;
+    let nombreObra: string;
+    let actividad: string;
+    let proveido: string;
 
-    const remitente = 'sistema@miapp.com';
+    if (dbName === 'Bkp_produccion_Nov_Sgeo') {
+      // MODO PRUEBAS: ignora lo que mande el front (hardcode)
+      para = this.normalizeEmails(['ibrahim.aruni']);
+      //autor = this.normalizeEmails(['angel.laura', 'jorge.torrez']); 
+      autor = this.normalizeEmails(['ins_93@outlook.es | igustavo.acandia@gmail.com']);
+      codigoObra = dto.codigoObra;
+      nombreObra = dto.nombreObra;
+      actividad = dto.actividad;
+      proveido = (dto.proveido ?? '') + ' (Correo de pruebas)';
+      console.log('⚠️ Enviando con datos HARDCODE (modo PRUEBAS)');
+    } else {
+      // MOD PRODUCCIÓN
+      para = this.normalizeEmails(dto.para);
+      autor = this.normalizeEmails(dto.autor ?? []);
+      codigoObra = dto.codigoObra;
+      nombreObra = dto.nombreObra;
+
+      actividad = dto.actividad;
+      proveido = dto.proveido;
+      console.log('✅ Enviando con datos del FRONT (modo PRUEBAS)');
+    }
+
+    // CC obligatorio SOLO en producción
+    if (dbName === 'SGEO_PRODUCCION') {
+      const CC_OBLIGATORIO = 'josue.torrez@lapaz.bo';
+      //const CC_OBLIGATORIO = 'jorge.torrez@lapaz.bo';
+      if (!autor.includes(CC_OBLIGATORIO)) autor.push(CC_OBLIGATORIO);
+    }
+
+    if (!para.length) {
+      throw new HttpException('La lista "para" está vacía o inválida.', HttpStatus.BAD_REQUEST);
+    }
+
+    // Quitar duplicados entre TO y CC
+    const toSet = new Set(para);
+    const toList = [...toSet];
+    const ccList = autor.filter(e => !toSet.has(e));
+
     const asuntoBase = `NUEVA TAREA: ${actividad} - ${codigoObra}`;
     const cuerpoHtml = `
       De nuestra consideración:<br><br>
       Se ha registrado un nuevo trámite en su nodo, con los siguientes detalles:<br><br>
       <ul>
-        <li><strong>OBRA:</strong> ${codigoObra}; ${nombreObra}</li>
+        <li><strong>OBRA:</strong> ${codigoObra} - ${nombreObra}</li>
         <li><strong>ACTIVIDAD:</strong> ${actividad}</li>
         <li><strong>PROVEÍDO:</strong> ${proveido}</li>
       </ul>
       <br>
     `.trim();
 
-    // 1) Normaliza entradas (acepta usernames o emails)
-    let toList0 = this.normalizeEmails(para);
-    let ccList0 = this.normalizeEmails(autor);
-
-     // solo prod
-  if (dbName === 'SGEO_PRODUCCION') {
-    const CC_OBLIGATORIO = 'josue.torrez@lapaz.bo';
-    if (!ccList0.includes(CC_OBLIGATORIO)) ccList0.push(CC_OBLIGATORIO);
-  }
-
-    // 3) Validación mínima
-    if (toList0.length === 0) {
-      throw new HttpException('La lista "para" está vacía o inválida.', HttpStatus.BAD_REQUEST);
-    }
-
-    // 4) Quita correos duplicados entre TO y CC
-    const toSet = new Set(toList0);
-    const toList = [...toSet];
-    const ccList = ccList0.filter(e => !toSet.has(e));
-
-    // 5) Envío principal: TO + primer CC (limitación del PHP)
-    const primerCC = ccList[0];
-    const paramsPrincipal = new URLSearchParams({
+    // ---------------- LOG CONSOLIDADO (UN SOLO REGISTRO) ----------------
+    // 👉 remitente (BD) = PARA
+    // 👉 destinatario (BD) = CC
+    const logMaster = this.correoRepo.create({
+      remitente: toList.join(','),     // los TO (usuarios principales)
+      destinatario: ccList.join(','),  // los CC (copias)
       asunto: asuntoBase,
       cuerpo: cuerpoHtml,
-      para: toList.join(','), // CSV
-      remitente,
-    });
-    if (primerCC) paramsPrincipal.append('autor', primerCC);
-
-    const urlPrincipal = `${this.urlBase}?${paramsPrincipal.toString()}`;
-
-    // Log principal
-    const logPrincipal = this.correoRepo.create({
-      destinatario: toList.join(','),
-      asunto: asuntoBase,
-      cuerpo: cuerpoHtml,
-      remitente,
       fecha_envio: new Date(),
       fecha_registro: new Date(),
+      id_estado: 0,
+      msg_error: '',
     });
+    await this.correoRepo.save(logMaster);
+
+    // ---------------- Envío ----------------
+    const errores: string[] = [];
+    let okPrincipal = false;
 
     try {
-      // console.log('[MAIL] MAIN URL:', urlPrincipal);
-      console.log('[MAIL] TO:', toList);
-      console.log('[MAIL] CC(1):', primerCC ?? '(sin CC)');
+      if (PHP_CC_MULTIPLE) {
+        // Un solo request: si el PHP acepta CSV en 'autor'
+        const params = new URLSearchParams({
+          asunto: asuntoBase,
+          cuerpo: cuerpoHtml,
+          para: toList.join(','), // TO CSV
+          remitente: remitentePhp,
+        });
+        if (ccList.length) params.append('autor', ccList.join(',')); // CC CSV
+        const url = `${this.urlBase}?${params.toString()}`;
 
-      const { data } = await axios.get(urlPrincipal);
-      console.log('[MAIL] RESP MAIN:', data);
+        console.log('[MAIL] URL única:', url);
+        await axios.get(url, { timeout: 15000 });
+        okPrincipal = true;
+      } else {
+        // Múltiples requests: principal + copias
+        // principal: TO + primer CC (limitación PHP)
+        const primerCC = ccList[0];
+        const paramsPrincipal = new URLSearchParams({
+          asunto: asuntoBase,
+          cuerpo: cuerpoHtml,
+          para: toList.join(','), // CSV
+          remitente: remitentePhp,
+        });
+        if (primerCC) paramsPrincipal.append('autor', primerCC);
 
-      logPrincipal.msg_error = '';
-      logPrincipal.id_estado = 1;
-      await this.correoRepo.save(logPrincipal);
-    } catch (error) {
-      logPrincipal.msg_error = error instanceof Error ? error.message : JSON.stringify(error);
-      logPrincipal.id_estado = 0;
-      await this.correoRepo.save(logPrincipal);
-      throw new HttpException(
-        `No se pudo enviar el correo principal: ${logPrincipal.msg_error}`,
-        HttpStatus.BAD_GATEWAY,
-      );
-    }
+        const urlPrincipal = `${this.urlBase}?${paramsPrincipal.toString()}`;
+        console.log('[MAIL] TO:', toList);
+        console.log('[MAIL] CC(1):', primerCC ?? '(sin CC)');
+        await axios.get(urlPrincipal, { timeout: 15000 });
+        okPrincipal = true;
 
-    // 6) Copias individuales para CC restantes
-    const copias = ccList.slice(1);
-    let enviadosCopia = 0;
-
-    for (const cc of copias) {
-      const asuntoCopia = `[CC] ${asuntoBase}`;
-      const paramsCopia = new URLSearchParams({
-        asunto: asuntoCopia,
-        cuerpo: cuerpoHtml,
-        para: cc,
-        remitente,
-      });
-      const urlCopia = `${this.urlBase}?${paramsCopia.toString()}`;
-
-      const logCopia = this.correoRepo.create({
-        destinatario: cc,
-        asunto: asuntoCopia,
-        cuerpo: cuerpoHtml,
-        remitente,
-        fecha_envio: new Date(),
-        fecha_registro: new Date(),
-      });
-
-      try {
-        // console.log('[MAIL] COPY URL:', urlCopia);
-        console.log('[MAIL] COPY TO:', cc);
-
-        const { data } = await axios.get(urlCopia);
-        console.log('[MAIL] RESP COPY:', data);
-
-        logCopia.msg_error = '';
-        logCopia.id_estado = 1;
-        await this.correoRepo.save(logCopia);
-        enviadosCopia++;
-      } catch (error) {
-        logCopia.msg_error = error instanceof Error ? error.message : JSON.stringify(error);
-        logCopia.id_estado = 0;
-        await this.correoRepo.save(logCopia);
-        console.error(`[MAIL] Error enviando copia a ${cc}:`, logCopia.msg_error);
+        // copias restantes (como correos individuales)
+        const copias = ccList.slice(1);
+        for (const cc of copias) {
+          try {
+            const paramsCopia = new URLSearchParams({
+              asunto: `[CC] ${asuntoBase}`,
+              cuerpo: cuerpoHtml,
+              para: cc,
+              remitente: remitentePhp,
+            });
+            const urlCopia = `${this.urlBase}?${paramsCopia.toString()}`;
+            console.log('[MAIL] COPY TO:', cc);
+            await axios.get(urlCopia, { timeout: 15000 });
+          } catch (e: any) {
+            const reason = e?.response
+              ? `HTTP_${e.response.status} ${JSON.stringify(e.response.data)}`
+              : String(e?.message || e);
+            errores.push(`CC ${cc}: ${reason}`);
+          }
+        }
       }
+    } catch (e: any) {
+      const reason = e?.response
+        ? `HTTP_${e.response.status} ${JSON.stringify(e.response.data)}`
+        : String(e?.message || e);
+      errores.push(`principal: ${reason}`);
     }
 
-    const resumen = `📧 Envío principal OK. Copias enviadas: ${enviadosCopia}/${copias.length}.`;
+    // ---------------- Actualizar el ÚNICO registro ----------------
+    logMaster.id_estado = okPrincipal && errores.length === 0 ? 1 : 0;
+    logMaster.msg_error = errores.join(' | ');
+    await this.correoRepo.save(logMaster);
+
+    const resumen = errores.length
+      ? `📧 Principal ${okPrincipal ? 'OK' : 'ERROR'}. Errores: ${errores.length}.`
+      : `📧 Envío OK. TO: ${toList.join(', ')} | CC: ${ccList.join(', ')}`;
+
     return { message: resumen };
   }
-
 
   findAll() {
     return `This action returns all correo`;
