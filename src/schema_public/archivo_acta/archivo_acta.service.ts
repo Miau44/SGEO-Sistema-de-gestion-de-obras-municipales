@@ -59,7 +59,7 @@ export class ArchivoActaService {
 
   async jenny(){
     let query = `select * from obra limit $1`;
-    const params = [10];
+    const params = [15];
     const resultado = await this.archivoActaRepositorio.query(query, params);
     return resultado;
   }
