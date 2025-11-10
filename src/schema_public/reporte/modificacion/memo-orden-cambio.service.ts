@@ -301,14 +301,14 @@ export class MemoOrdenCambio {
                 {
                   text:
                       [
-                        { text: this.datosInf[0].de_nombre_fis },
+                        { text: this.datosInf[0].de_nombre_fis + '\n', style: 'textDato', alignment: 'center' },
                         { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                       ]
                 },
                 {
                   text:
                       [
-                        { text:this.datosInf[0].de_nombre_sup, style: 'textDato', alignment: 'center' },
+                        { text:this.datosInf[0].de_nombre_sup + '\n', style: 'textDato', alignment: 'center' },
                         { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
                       ]
                 }
