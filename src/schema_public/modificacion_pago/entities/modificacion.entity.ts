@@ -49,6 +49,9 @@ export class Modificacion {
     @Column({ nullable:true })
     finalizado: boolean;
 
+    @Column("decimal", { precision: 15, scale: 5, nullable: true })
+    monto_variacion_ultima_mod: number;    
+
     ///campos de tabla generales
 
     @Column()

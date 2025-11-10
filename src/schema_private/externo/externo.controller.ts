@@ -5,6 +5,7 @@ import { UpdateExternoDto } from './dto/update-externo.dto';
 import { LoginExternoDto } from './dto/login-externo.dtos';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
+import { ObraExternoDto } from './dto/obra.dto';
  
 
 @ApiTags('externo')
@@ -46,8 +47,8 @@ export class ExternoController {
 
   @Public()
   @Post('/items-sgpu')
-  async itemsSGPU() {
-    return this.externoService.sgpuItemsVigentes();
+  async itemsSGPU(@Body() datos: ObraExternoDto) {
+    return this.externoService.sgpuItemsVigentes(datos);
   }
 
 
