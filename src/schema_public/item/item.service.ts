@@ -251,16 +251,16 @@ const resultado = await this.itemRepository.query(query);
           return { datossgpu, sgeo:itemsNuevos };*/
 
           const resultadoSgeo: any[] = await this.itemRepository.query(query, params);
-          const resultadoSgpu: any[] = await this.externoService.sgpuItemsVigentes();
+          const resultadoSgpu: any = await this.externoService.sgpuItemsVigentes(data);
           
           // Obtener solo los elementos de `resultadoSgeo` que no están en `resultadoSgpu`
           const noEnSgpu = resultadoSgeo.filter(
-            sgeo => !resultadoSgpu.some(sgpu => sgpu.codigoItem === sgeo.codigo_item)
+            sgeo => !resultadoSgpu.some((sgpu:any) => sgpu.codigoItem === sgeo.codigo_item)
           );
           
           // Obtener solo los elementos de `resultadoSgpu` que no están en `resultadoSgeo`
           const noEnSgeo = resultadoSgpu.filter(
-            sgpu => !resultadoSgeo.some(sgeo => sgeo.codigo_item === sgpu.codigoItem)
+            (sgpu:any) => !resultadoSgeo.some(sgeo => sgeo.codigo_item === sgpu.codigoItem)
           );
           
           // Unir los resultados si es necesario
