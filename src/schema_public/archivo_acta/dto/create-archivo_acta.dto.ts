@@ -35,6 +35,9 @@ export class CreateArchivoActaDto {
      @ApiProperty()
     id_documento: number;
 
+    @ApiProperty()
+    num_fojas_devolucion: number;
+
      @ApiProperty()
     fecha_entrega_fiscal: Date;
 
