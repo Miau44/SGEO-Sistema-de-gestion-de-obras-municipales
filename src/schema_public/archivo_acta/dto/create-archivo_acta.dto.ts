@@ -46,6 +46,5 @@ export class CreateArchivoActaDto {
     
      @ApiProperty()
     usuario_registro: number;
-
     
 }

@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateExternoDto } from './dto/create-externo.dto';
 import { UpdateExternoDto } from './dto/update-externo.dto';
 import { LoginExternoDto } from './dto/login-externo.dtos';
 import { ResponseService } from 'src/response.service';
 import { LogService } from 'src/schema_public/log/log.service';
 import { CreateLogDto } from 'src/schema_public/log/dto/create-log.dto';
+import { ObraService } from 'src/schema_public/obra/obra.service';
+import { ObraExternoDto } from './dto/obra.dto';
+import { log } from 'node:console';
 
 
 @Injectable()
@@ -13,6 +16,7 @@ export class ExternoService {
   constructor(
     private readonly responseService: ResponseService,
     private readonly logService: LogService,
+    private readonly obraService: ObraService,
   ) {}
 
   create(createExternoDto: CreateExternoDto) {
@@ -110,9 +114,9 @@ export class ExternoService {
       };
     }
   }
-  
-  
-  async sgpuItemsVigentes() {
+
+
+  async sgpuItemsVigentes(datos: ObraExternoDto) {
     try {
             
     //  const url = 'http://localhost:3004/item/sgeo-item-vigente';
@@ -134,14 +138,39 @@ export class ExternoService {
       const resultado = await response.json();
 
       if (resultado) {
-        return resultado;
+        const respuesta_obra = await this.obraService.findOne(datos.id_obra);
+        const codigo_carpeta = respuesta_obra.data[0].cod_carpeta;
+        if (!codigo_carpeta) {
+          throw new NotFoundException(`codigo obra with ID ${codigo_carpeta} not found`);
+        }
+        
+        let prefijoSgpu = '';
+        if (codigo_carpeta.startsWith('OBX') || codigo_carpeta.startsWith('OBN')) {
+          prefijoSgpu = 'GM';
+        } else if (codigo_carpeta.startsWith('EMA')) {
+          prefijoSgpu = 'EI';
+        } else if (codigo_carpeta.startsWith('EMV')) {
+          prefijoSgpu = 'EV';
+        }
+
+        const sgpuFiltrados = resultado.data.filter((sgpu: any) => {
+          const codigoItem = (sgpu?.codigoItem || '').trim().toUpperCase();
+          return codigoItem.startsWith(prefijoSgpu);
+        });
+     
+        if (sgpuFiltrados.length === 0) {          
+        }  
+        return this.responseService.success(sgpuFiltrados, "Listado Correctamente.")
+
       }
     } catch (error) {
-      return {
-      //  mensaje: error.message,
+
+ return this.responseService.error(error);      
+      /*return {
+        //  mensaje: error.message,
         estado: false,
         data: null,
-      };
+      };*/
     }
-  }    
+  }
 }
