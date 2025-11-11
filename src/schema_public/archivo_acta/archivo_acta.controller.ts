@@ -41,7 +41,6 @@ export class ArchivoActaController {
   remove(@Param('id') id: string) {
     return this.archivoActaService.remove(+id);
   }
-
   
 
 
