@@ -72,9 +72,9 @@ export class ReportService {
       throw new Error('No se encontraron datos para el ID proporcionado');
     }
     this.datos = res;
-    console.log("Generar1, ", res);
-    console.log("Generar2, ", this.datos);
-    console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
+    // console.log("Generar1, ", res);
+    // console.log("Generar2, ", this.datos);
+    // console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
 
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
@@ -260,7 +260,7 @@ export class ReportService {
       });
 
     } catch (error) {
-      console.error('Error al generar el PDF:', error);
+      //console.error('Error al generar el PDF:', error);
       throw new Error('Error al generar el PDF: ' + error);
     }
   }
@@ -1151,7 +1151,7 @@ export class ReportService {
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
   }
 
   async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
@@ -1161,7 +1161,7 @@ export class ReportService {
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
 
   }
 
@@ -1172,452 +1172,452 @@ export class ReportService {
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
 
   }
 
 //PAOLA
 //10042025
   //INFORME INICIAL SUPERVISOR 
-  async generateInformeInicial(usuario: number, obra: number): Promise<Buffer> {
-    //  async generateInformeInicial(usuario:number): Promise<Buffer> {
+  // async generateInformeInicial(usuario: number, obra: number): Promise<Buffer> {
+  //   //  async generateInformeInicial(usuario:number): Promise<Buffer> {
 
-    const res = await this.datosReporteInformeInicial(usuario, obra);
-    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
-    }
+  //   const res = await this.datosReporteInformeInicial(usuario, obra);
+  //   if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+  //     throw new Error('No se encontraron datos para la obra y el ID proporcionados.');
+  //   }
 
-    const res2 = await this.preguntasInforme(obra, 235);
-    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-      throw new Error('No se encontraron datos del informe inicial');
-    }
+  //   const res2 = await this.preguntasInforme(obra, 235);
+  //   if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+  //     throw new Error('No se encontraron datos del informe inicial');
+  //   }
     
-    const res3 = await this.preguntasInformeRestante(obra, 235, 174);
-    if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
-      throw new Error('No se encontraron datos del informe inicial.');
-    }
+  //   const res3 = await this.preguntasInformeRestante(obra, 235, 174);
+  //   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
+  //     throw new Error('No se encontraron datos del informe inicial.');
+  //   }
 
-    const res4 = await this.preguntasInformeConclusion(obra, 235, 174);
-    if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
-      throw new Error('No se encontraron datos del informe inic.');
-    }   
+  //   const res4 = await this.preguntasInformeConclusion(obra, 235, 174);
+  //   if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
+  //     throw new Error('No se encontraron datos del informe inic.');
+  //   }   
     
-    this.datosPreguntaInforme = res2;    
-    this.datosPreguntaInformeRestante = res3;
-    this.datosPreguntaInformeConclusion = res4;    
-    this.datosEnvio = res;
+  //   this.datosPreguntaInforme = res2;    
+  //   this.datosPreguntaInformeRestante = res3;
+  //   this.datosPreguntaInformeConclusion = res4;    
+  //   this.datosEnvio = res;
      
-    //console.log("DATOS", this.datosEnvio);
+  //   //console.log("DATOS", this.datosEnvio);
 
-    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
-    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  //  const imgPath = 'assets/images/logo_gamlp.png';
-    const imgPathLeft = 'assets/images/logo_smip.png';
-    const imgPath = 'assets/images/membretado_carta.png';
-     const mostrarMarcaAgua = this.datosEnvio[0].informe_aprobado;
+  //   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+  //   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+  // //  const imgPath = 'assets/images/logo_gamlp.png';
+  //   const imgPathLeft = 'assets/images/logo_smip.png';
+  //   const imgPath = 'assets/images/membretado_carta.png';
+  //    const mostrarMarcaAgua = this.datosEnvio[0].informe_aprobado;
 
-    const documentDefinition = {
-      pageSize: 'LEGAL' as any,
+  //   const documentDefinition = {
+  //     pageSize: 'LEGAL' as any,
 
-      /*  background: function(currentPage: any, pageSize: any) { 
-          return {
-            image: imgPath,
-            width: pageSize.width,
-            height: pageSize.height,
-            absolutePosition: { x: 0, y: 0 },
-            opacity: 0.3
-          }
-        },*/
+  //     /*  background: function(currentPage: any, pageSize: any) { 
+  //         return {
+  //           image: imgPath,
+  //           width: pageSize.width,
+  //           height: pageSize.height,
+  //           absolutePosition: { x: 0, y: 0 },
+  //           opacity: 0.3
+  //         }
+  //       },*/
 
-      background: function (currentPage: any, pageSize: any) {
-        return {
-          image: imgPath,
-          width: pageSize.width,
-          height: pageSize.height,
-          absolutePosition: { x: 0, y: 0 },
-          opacity: 0.9
-        };
-      },
-      ...(!mostrarMarcaAgua && {
-        watermark: {
-          text: 'PRELIMINAR ',
-          color: 'red',
-          opacity: 0.3,
-          bold: true,
-          italics: false
-        },
-      }
-      ),
+  //     background: function (currentPage: any, pageSize: any) {
+  //       return {
+  //         image: imgPath,
+  //         width: pageSize.width,
+  //         height: pageSize.height,
+  //         absolutePosition: { x: 0, y: 0 },
+  //         opacity: 0.9
+  //       };
+  //     },
+  //     ...(!mostrarMarcaAgua && {
+  //       watermark: {
+  //         text: 'PRELIMINAR ',
+  //         color: 'red',
+  //         opacity: 0.3,
+  //         bold: true,
+  //         italics: false
+  //       },
+  //     }
+  //     ),
 
 
-      content: [
-       /* {
-          text: 'INFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
-          style: 'headerTitle', alignment: 'center'
-        } as any,*/
+  //     content: [
+  //      /* {
+  //         text: 'INFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
+  //         style: 'headerTitle', alignment: 'center'
+  //       } as any,*/
 
-       /* {
-          text: 'INFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
-          style: 'headerTitle', alignment: 'center'
-        } as any,*/        
-        {
-          text: 'INFORME',
-          style: 'headerTitle', alignment: 'center'
-        } as any,
+  //      /* {
+  //         text: 'INFORME.\n ' + this.datosEnvio[0].cite + '\n\n',
+  //         style: 'headerTitle', alignment: 'center'
+  //       } as any,*/        
+  //       {
+  //         text: 'INFORME',
+  //         style: 'headerTitle', alignment: 'center'
+  //       } as any,
 
-        ...(this.datosEnvio[0].informe_aprobado
-          ? [{
-            text:  this.datosEnvio[0].cite + '\n\n',
-            style: 'headerTitle',
-            alignment: 'center'
-          }]
-          : []),
+  //       ...(this.datosEnvio[0].informe_aprobado
+  //         ? [{
+  //           text:  this.datosEnvio[0].cite + '\n\n',
+  //           style: 'headerTitle',
+  //           alignment: 'center'
+  //         }]
+  //         : []),
 
-        {
-          table: {
-            widths: [100, '*'],
-            body: [
-              [
-                { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
-                { text: [
-                         { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato' }, 
-                         { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
-                }
-              ],
-              //VIA se muestra solo si:
-              ...( this.datosEnvio[0].via_nombre 
-                  ? [ 
-                      [
-                        { text: 'VIA:', style: 'textTitulo', alignment:'left' },
-                        { text: [
-                              { text: (this.datosEnvio[0].via_nombre || '') + '\n', style: 'textDato' },
-                              { text: (this.datosEnvio[0].via_cargo || ''), style: 'textTitulo' }
-                          ]                                             
-                        }
-                      ]
-                    ] 
-                  : [] // No incluir la fila
-              ),
-              [
-                { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [
-                      { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
-                    ]
+  //       {
+  //         table: {
+  //           widths: [100, '*'],
+  //           body: [
+  //             [
+  //               { text: [{ text: 'A:', style: 'textTitulo', alignment: 'left' },] },
+  //               { text: [
+  //                        { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato' }, 
+  //                        { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }] 
+  //               }
+  //             ],
+  //             //VIA se muestra solo si:
+  //             ...( this.datosEnvio[0].via_nombre 
+  //                 ? [ 
+  //                     [
+  //                       { text: 'VIA:', style: 'textTitulo', alignment:'left' },
+  //                       { text: [
+  //                             { text: (this.datosEnvio[0].via_nombre || '') + '\n', style: 'textDato' },
+  //                             { text: (this.datosEnvio[0].via_cargo || ''), style: 'textTitulo' }
+  //                         ]                                             
+  //                       }
+  //                     ]
+  //                   ] 
+  //                 : [] // No incluir la fila
+  //             ),
+  //             [
+  //               { text: [{ text: 'DE:\n', style: 'textTitulo', alignment: 'left' },] },
+  //               { text: [
+  //                     { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+  //                     { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
+  //                   ]
 
-                  // ME stack: [
-                  //   {
-                  //     table: {
-                  //       widths: ['*'],
-                  //       body: [
-                  //         ...this.datosListaSupervisores.map((item: any) => [
-                  //           {
-                  //             text: item.nombre,
-                  //             style: 'textDato',
-                  //             alignment: 'left'
-                  //           }
-                  //         ])
-                  //       ]
-                  //     },
-                  //     layout: 'noBorders',
-                  //     alignment: 'center'
-                  //   },
-                  //   {
-                  //     text: 'SUPERVISOR DE OBRAS\n\n',
-                  //     style: 'textTitulo',
-                  //     alignment: 'left'
-                  //   }
-                  // ]
-                }
-              ],
-              [
-                { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
-                { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
-              ],
+  //                 // ME stack: [
+  //                 //   {
+  //                 //     table: {
+  //                 //       widths: ['*'],
+  //                 //       body: [
+  //                 //         ...this.datosListaSupervisores.map((item: any) => [
+  //                 //           {
+  //                 //             text: item.nombre,
+  //                 //             style: 'textDato',
+  //                 //             alignment: 'left'
+  //                 //           }
+  //                 //         ])
+  //                 //       ]
+  //                 //     },
+  //                 //     layout: 'noBorders',
+  //                 //     alignment: 'center'
+  //                 //   },
+  //                 //   {
+  //                 //     text: 'SUPERVISOR DE OBRAS\n\n',
+  //                 //     style: 'textTitulo',
+  //                 //     alignment: 'left'
+  //                 //   }
+  //                 // ]
+  //               }
+  //             ],
+  //             [
+  //               { text: [{ text: 'REF:\n', style: 'textTitulo', alignment: 'left' },] },
+  //               { text: [{ text: 'INFORME INICIAL DE REVISIÓN DEL PROYECTO\n', style: 'textTitulo' }] }
+  //             ],
 
-              /* [
-                 { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
-                 { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
-               ],*/
+  //             /* [
+  //                { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
+  //                { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
+  //              ],*/
         
-               [
-                { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
-                ...(this.datosEnvio[0].informe_aprobado  ? [    
-                  { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n\n', style: 'textDato' }] }
-                ]:[ { text: [{ text: '\n\n', style: 'textTitulo', alignment: 'left' },] }] ),
+  //              [
+  //               { text: [{ text: 'FECHA:\n', style: 'textTitulo', alignment: 'left' },] },
+  //               ...(this.datosEnvio[0].informe_aprobado  ? [    
+  //                 { text: [{ text: this.fechaString( this.datosEnvio[0].fecha_informe) + '\n\n', style: 'textDato' }] }
+  //               ]:[ { text: [{ text: '\n\n', style: 'textTitulo', alignment: 'left' },] }] ),
             
-              ]
-           /*   ...(this.datosEnvio[0].informe_aprobado
-                ? [[
-                  { text: [{ text: 'FECHA:\n', style: 'textTitulo' }] },
-                  { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
-                ],]
-                : []),*/
+  //             ]
+  //          /*   ...(this.datosEnvio[0].informe_aprobado
+  //               ? [[
+  //                 { text: [{ text: 'FECHA:\n', style: 'textTitulo' }] },
+  //                 { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_informe) + '\n', style: 'textDato' }] }
+  //               ],]
+  //               : []),*/
 
-            ]
-          }, 
-          layout: {
-            hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
-            vLineWidth: () => 0, // Sin líneas verticales
-            hLineColor: () => 'black', // Color de la línea horizontal
-            paddingLeft: () => 5, // Espaciado interno izquierdo
-            paddingRight: () => 5, // Espaciado interno derecho
-            paddingTop: () => 2, // Espaciado interno superior
-            paddingBottom: () => 2, // Espaciado interno inferior
-          },
-        },
-        {
-          text: [
-            '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
-           +' mediante Memorándum(s) '+ this.datosEnvio[0].cites_de  +', de fecha '+  this.datosEnvio[0].fechas_cites_de  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
-          ],
+  //           ]
+  //         }, 
+  //         layout: {
+  //           hLineWidth: (i: number, node: any) => (i === node.table.body.length ? 1 : 0), // Línea horizontal al final
+  //           vLineWidth: () => 0, // Sin líneas verticales
+  //           hLineColor: () => 'black', // Color de la línea horizontal
+  //           paddingLeft: () => 5, // Espaciado interno izquierdo
+  //           paddingRight: () => 5, // Espaciado interno derecho
+  //           paddingTop: () => 2, // Espaciado interno superior
+  //           paddingBottom: () => 2, // Espaciado interno inferior
+  //         },
+  //       },
+  //       {
+  //         text: [
+  //           '\nHabiendo sido designado (s) como Supervisor (es) de la obra ' + '"'+ this.datosEnvio[0].desc_carpeta + '"'
+  //          +' mediante Memorándum(s) '+ this.datosEnvio[0].cites_de  +', de fecha '+  this.datosEnvio[0].fechas_cites_de  +' correspondientemente, y tras haber revisado el proyecto, se informa lo siguiente:',
+  //         ],
        
-          style: 'textDato', alignment: 'justify'           
-        },
-        {
-          text: '\n1.  DATOS DE PROYECTO \n\n',
-          style: 'subheader',
-        },
-        {
-          table: {
-            widths: [100, '*'],
-            body: [
-              [
-                { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
-              ],
+  //         style: 'textDato', alignment: 'justify'           
+  //       },
+  //       {
+  //         text: '\n1.  DATOS DE PROYECTO \n\n',
+  //         style: 'subheader',
+  //       },
+  //       {
+  //         table: {
+  //           widths: [100, '*'],
+  //           body: [
+  //             [
+  //               { text: [{ text: 'CÓDIGO:', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+  //               { text: [{ text: this.datosEnvio[0].cod_carpeta, style: 'textDato' }], fillColor: '#f0f0f0' }
+  //             ],
 
-              [
-                { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
-              ],
+  //             [
+  //               { text: [{ text: 'OBRA:\n', style: 'textTitulo', alignment: 'right' },] },
+  //               { text: [{ text: this.datosEnvio[0].desc_carpeta + '\n', style: 'textDato' }] }
+  //             ],
 
-              [
-                { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
-              ],
+  //             [
+  //               { text: [{ text: 'ZONA:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+  //               { text: [{ text: this.datosEnvio[0].desc_zona_carpeta + '\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+  //             ],
 
-              [
-                { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
-                { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
-              ],
+  //             [
+  //               { text: [{ text: 'MONTO DE PROYECTO:\n', style: 'textTitulo', alignment: 'right' },] },
+  //               { text: [{ text: this.datosEnvio[0].total_carpeta + '\n', style: 'textDato' }] }
+  //             ],
 
-              [
-                { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
-                { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
-              ]
-            ]
-          },
-          //layout: 'noBorders'
-        },
-        {
-          text: '\n2.  ANÁLISIS \n ',
-          style: 'subheader',
-        },
-        {
-          table: {
-            widths: ['*', 50],
-            body: [
-              ...this.buildPreguntaPadre(this.datosPreguntaInforme),              
-            ]
-          },
-          layout: 'noBorders'
-        },
-        {
-          text: '\n3. OBSERVACIONES GENERALES \n\n',
-          style: 'subheader',
-        },
-        {
-          text: [
-            ' Resultado del análisis de los tres aspectos se tienen las siguientes observaciones Generales:\n\n'
-          ],
-          style: 'textDato', alignment: 'justify'
-        },
-        {
-          text: [this.datosEnvio[0].obs_general
-          ],
-          style: 'textDato', alignment: 'justify'
-        },
-        {
-          text: '\n4. CONCLUSIONES \n\n',
-          style: 'subheader',
-        },
-        {
-          table: {
-            widths: [460],
-            body: [
-              [
+  //             [
+  //               { text: [{ text: 'FECHA DE VALIDACIÓN DEL PROYECTO:\n', style: 'textTitulo', alignment: 'right' },], fillColor: '#f0f0f0' },
+  //               { text: [{ text: this.fechaString(this.datosEnvio[0].fecha_validacion_carpeta) + '\n\n', style: 'textDato' }], fillColor: '#f0f0f0' }
+  //             ]
+  //           ]
+  //         },
+  //         //layout: 'noBorders'
+  //       },
+  //       {
+  //         text: '\n2.  ANÁLISIS \n ',
+  //         style: 'subheader',
+  //       },
+  //       {
+  //         table: {
+  //           widths: ['*', 50],
+  //           body: [
+  //             ...this.buildPreguntaPadre(this.datosPreguntaInforme),              
+  //           ]
+  //         },
+  //         layout: 'noBorders'
+  //       },
+  //       {
+  //         text: '\n3. OBSERVACIONES GENERALES \n\n',
+  //         style: 'subheader',
+  //       },
+  //       {
+  //         text: [
+  //           ' Resultado del análisis de los tres aspectos se tienen las siguientes observaciones Generales:\n\n'
+  //         ],
+  //         style: 'textDato', alignment: 'justify'
+  //       },
+  //       {
+  //         text: [this.datosEnvio[0].obs_general
+  //         ],
+  //         style: 'textDato', alignment: 'justify'
+  //       },
+  //       {
+  //         text: '\n4. CONCLUSIONES \n\n',
+  //         style: 'subheader',
+  //       },
+  //       {
+  //         table: {
+  //           widths: [460],
+  //           body: [
+  //             [
                 
-                { text: [{ text: this.datosPreguntaInformeConclusion[0].desc_subtipo, style: 'textDato' }], fillColor: '#f0f0f0' }
-              ],            
-            ]
-          },
-          //layout: 'noBorders'
-        },
-        {
-          text: ['\n' +this.datosEnvio[0].conclusion
-          ],
-          style: 'textDato', alignment: 'justify'
-        },
-        {
-          text: '\n5. RECOMENDACIONES \n\n',
-          style: 'subheader',
-        },
+  //               { text: [{ text: this.datosPreguntaInformeConclusion[0].desc_subtipo, style: 'textDato' }], fillColor: '#f0f0f0' }
+  //             ],            
+  //           ]
+  //         },
+  //         //layout: 'noBorders'
+  //       },
+  //       {
+  //         text: ['\n' +this.datosEnvio[0].conclusion
+  //         ],
+  //         style: 'textDato', alignment: 'justify'
+  //       },
+  //       {
+  //         text: '\n5. RECOMENDACIONES \n\n',
+  //         style: 'subheader',
+  //       },
 
-        [
-          {
-            table: {
-              widths: ['*', 50],
-              body: [
+  //       [
+  //         {
+  //           table: {
+  //             widths: ['*', 50],
+  //             body: [
 
-                ...this.buildPreguntas(this.datosPreguntaInformeRestante)
-              ],
-            },
+  //               ...this.buildPreguntas(this.datosPreguntaInformeRestante)
+  //             ],
+  //           },
 
-          },
-        ],
+  //         },
+  //       ],
 
-        {
-          text: '\n\n'
-        },
+  //       {
+  //         text: '\n\n'
+  //       },
 
-        [
-          {
-            table: {
-              widths: ['*', 50],
-              body: [
-                [
-                  { text: '*** POR LO QUE UNA COPIA DE ESTE INFORME DEBE SER REMITIDO A: A la Fiscalización de la Obra para su remisión a las Unidades Organizacionales requeridas (en caso corresponda).', style: 'textDato', fillColor: '#dddddd' },
-                  { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
-                ],
+  //       [
+  //         {
+  //           table: {
+  //             widths: ['*', 50],
+  //             body: [
+  //               [
+  //                 { text: '*** POR LO QUE UNA COPIA DE ESTE INFORME DEBE SER REMITIDO A: A la Fiscalización de la Obra para su remisión a las Unidades Organizacionales requeridas (en caso corresponda).', style: 'textDato', fillColor: '#dddddd' },
+  //                 { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
+  //               ],
 
-                [
-                  { text: 'La Dirección de Fiscalización de Obras para solicitar su coordinación con SIREMU en la ejecución del proyecto.', style: 'textDato', fillColor: '#dddddd' },
-                  { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
-                ],
+  //               [
+  //                 { text: 'La Dirección de Fiscalización de Obras para solicitar su coordinación con SIREMU en la ejecución del proyecto.', style: 'textDato', fillColor: '#dddddd' },
+  //                 { text: '', style: 'textDato', alignment: 'center', fillColor: '#f0f0f0' },
+  //               ],
 
-              ],
-            },
+  //             ],
+  //           },
 
-          },
-        ],
-        {
-          text: '\n\n\n\n\n\n\n\n',
-        },
-        {
-          text: [
-                  { text: this.datosEnvio[0].de_nombre2 + '\n', style: 'textDato', alignment: 'center' },
-                  { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'center' },
-                ]
-        },
+  //         },
+  //       ],
+  //       {
+  //         text: '\n\n\n\n\n\n\n\n',
+  //       },
+  //       {
+  //         text: [
+  //                 { text: this.datosEnvio[0].de_nombre2 + '\n', style: 'textDato', alignment: 'center' },
+  //                 { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'center' },
+  //               ]
+  //       },
 
-        // ME {
-        //   table: {
-        //     widths: ['*'],
-        //     body: [
-        //       [
-        //         {
-        //           //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
-        //           text: '\n\n\n\n\n\n\n\n\n',
-        //           style: 'subheader',
-        //           alignment: 'center'
-        //         }
-        //       ],
-        //       ...this.datosListaSupervisores.map((item: any) => [
-        //         {
-        //           text: [{ text: item.nombre, style: 'textDato' }],
-        //           alignment: 'center'
-        //         }
-        //       ]),
+  //       // ME {
+  //       //   table: {
+  //       //     widths: ['*'],
+  //       //     body: [
+  //       //       [
+  //       //         {
+  //       //           //text: '\n\n\n' + this.datosEnvio[0].de + '\nSUPERVISOR DE OBRAS.\n\n\n',
+  //       //           text: '\n\n\n\n\n\n\n\n\n',
+  //       //           style: 'subheader',
+  //       //           alignment: 'center'
+  //       //         }
+  //       //       ],
+  //       //       ...this.datosListaSupervisores.map((item: any) => [
+  //       //         {
+  //       //           text: [{ text: item.nombre, style: 'textDato' }],
+  //       //           alignment: 'center'
+  //       //         }
+  //       //       ]),
 
-        //       [
-        //         {
-        //           text: 'SUPERVISOR DE OBRAS', 
-        //           style: 'subheader', alignment: 'center'
-        //         }
-        //       ],
-        //     ]
-        //   },
-        //   layout: 'noBorders',
-        //   alignment: 'center'
-        // },
-        {
-          text: [
-            '\n\n\n\n\n\n\nCc.Arch.Supervisor',
-          ],
-          style: 'footerText'
-        },
+  //       //       [
+  //       //         {
+  //       //           text: 'SUPERVISOR DE OBRAS', 
+  //       //           style: 'subheader', alignment: 'center'
+  //       //         }
+  //       //       ],
+  //       //     ]
+  //       //   },
+  //       //   layout: 'noBorders',
+  //       //   alignment: 'center'
+  //       // },
+  //       {
+  //         text: [
+  //           '\n\n\n\n\n\n\nCc.Arch.Supervisor',
+  //         ],
+  //         style: 'footerText'
+  //       },
 
-      ],
-
-
-      styles: {
-        header: {
-          fontSize: 12,
-          bold: true,
-        },
-        subheader: {
-          fontSize: 10,
-          bold: true,
-        },
-        coloredText: {
-          fontSize: 11,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        coloredTextgray: {
-          fontSize: 14,
-          bold: true,
-          color: 'gray', // Cambiar el color del texto a 'blue'
-        },
-        footerText: {
-          fontSize: 6,
-          bold: false,
-        },
-        textTitulo: {
-          fontSize: 9,
-          bold: true,
-        },
-        textDato: {
-          fontSize: 9,
-          bold: false,
-          //color: 'gray', 
-          opacity: 0.8,
-        },
-
-        headerText: {
-          fontSize: 12,
-          bold: true,
-          color: '#333333',
-        },
-        headerTitle: {
-          fontSize: 13,
-          bold: true,
-          color: '#333333'
-        }
+  //     ],
 
 
-      },
-      //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
-      pageMargins: [70, 180, 70, 180] as any, // Márgenes: izquierda, arriba, derecha, abajo            
+  //     styles: {
+  //       header: {
+  //         fontSize: 12,
+  //         bold: true,
+  //       },
+  //       subheader: {
+  //         fontSize: 10,
+  //         bold: true,
+  //       },
+  //       coloredText: {
+  //         fontSize: 11,
+  //         bold: true,
+  //         color: 'gray', // Cambiar el color del texto a 'blue'
+  //       },
+  //       coloredTextgray: {
+  //         fontSize: 14,
+  //         bold: true,
+  //         color: 'gray', // Cambiar el color del texto a 'blue'
+  //       },
+  //       footerText: {
+  //         fontSize: 6,
+  //         bold: false,
+  //       },
+  //       textTitulo: {
+  //         fontSize: 9,
+  //         bold: true,
+  //       },
+  //       textDato: {
+  //         fontSize: 9,
+  //         bold: false,
+  //         //color: 'gray', 
+  //         opacity: 0.8,
+  //       },
 
-    };
-    // Generar el PDF en memoria
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
-    const chunks: Uint8Array[] = [];
+  //       headerText: {
+  //         fontSize: 12,
+  //         bold: true,
+  //         color: '#333333',
+  //       },
+  //       headerTitle: {
+  //         fontSize: 13,
+  //         bold: true,
+  //         color: '#333333'
+  //       }
 
-    return new Promise<Buffer>((resolve, reject) => {
-      pdfDoc.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-      pdfDoc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      pdfDoc.end();
-    });
-  }
+
+  //     },
+  //     //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
+  //     pageMargins: [70, 180, 70, 180] as any, // Márgenes: izquierda, arriba, derecha, abajo            
+
+  //   };
+  //   // Generar el PDF en memoria
+  //   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+  //   //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  //   const chunks: Uint8Array[] = [];
+
+  //   return new Promise<Buffer>((resolve, reject) => {
+  //     pdfDoc.on('data', (chunk) => {
+  //       chunks.push(chunk);
+  //     });
+  //     pdfDoc.on('end', () => {
+  //       const result = Buffer.concat(chunks);
+  //       resolve(result);
+  //     });
+  //     pdfDoc.end();
+  //   });
+  // }
 
 
 
