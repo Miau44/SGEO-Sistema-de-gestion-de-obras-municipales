@@ -100,7 +100,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
   }
   async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
     const query1 = `
@@ -109,7 +109,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
 
   }
 
@@ -120,7 +120,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const values = [obra, tipo_informe]
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
-    console.log('preguntasInforme', resultado[0]);
+    //console.log('preguntasInforme', resultado[0]);
 
   }
 
@@ -162,7 +162,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     this.datosPreguntaInformeConclusion = res4;    
     this.datosEnvio = res;
     this.datosListaSupervisores = res5;   
-    console.log("datosListaSupervisores", this.datosListaSupervisores);
+    //console.log("datosListaSupervisores", this.datosListaSupervisores);
 
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
