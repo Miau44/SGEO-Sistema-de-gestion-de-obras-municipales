@@ -11,6 +11,7 @@ import { Obra } from '../obra/entities/obra.entity';
 import { Informe } from '../informe/entities/informe.entity';
 import {CorrelativoService} from '../correlativo/correlativo.service';
 import { Contrato } from '../contrato-modificatorio/entities/contrato.entity';
+import { MemorandumObraDto } from './dto/memorandum-obra.dto';
 @Injectable()
 export class MemorandumService {
 
@@ -161,4 +162,18 @@ export class MemorandumService {
       return this.responseService.error(error, 'Error al obtener datos.');
     }
   }
+
+  async siExisteInforme(data: MemorandumObraDto) {
+    try {
+      const query = ` SELECT * FROM public.memorandum AS i
+      LEFT OUTER JOIN obra AS  o  ON i.id_obra = o.id_obra
+      WHERE  i.id_obra = $1 AND  id_tipo_memo=$2 AND i.id_estado =1;`;
+      const params = [data.id_obra, data.id_tipo_memo];
+      const resultado = await this.memoRepository.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+    
 }
