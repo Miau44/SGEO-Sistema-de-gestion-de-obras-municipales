@@ -1105,77 +1105,82 @@ export class ReportService {
 
   //FORMULARIO DE ENVIO DE DOCUMENTACION 
 
-  async datosReporteEnvio(obra: number) {
-    const query1 = `SELECT distinct *, td.id_tipo_documento  
-      FROM  tipo_documento as td
-      INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
-      LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
-      INNER JOIN obra  as o ON  d.id_obra = o.id_obra
-      INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
-      WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
+  ////ME BORRAR
+  // async datosReporteEnvio(obra: number) {
+  //   const query1 = `SELECT distinct *, td.id_tipo_documento  
+  //     FROM  tipo_documento as td
+  //     INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica WHERE id_tipo=11 ) sub ON td.id_subtipo_documento = sub.id_subtipo
+  //     LEFT OUTER JOIN documento as d ON td.id_tipo_documento=d.id_tipo_documento
+  //     INNER JOIN obra  as o ON  d.id_obra = o.id_obra
+  //     INNER JOIN ficha as f ON o.id_ficha= f.id_ficha  
+  //     WHERE  d.id_obra = ${obra} AND id_etapa_documento =1 AND id_subtipo_documento =108 ORDER BY td.id_tipo_documento ASC;	`;
+  //   const values = [obra]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  // }
 
+////ME BORRAR
+  // async datosReporteInformeInicial(usuario:number, obra: number) {
+  //   const query1 = `SELECT * FROM public.vista_reporte_informe_inicial WHERE usuario_registro = ${usuario} AND id_obra = ${obra};	`;
+  //   const values = [usuario, obra]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  // }
 
-  async datosReporteInformeInicial(usuario:number, obra: number) {
-    const query1 = `SELECT * FROM public.vista_reporte_informe_inicial WHERE usuario_registro = ${usuario} AND id_obra = ${obra};	`;
-    const values = [usuario, obra]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
-
-  async datosReporteInformeInicialSupervisores(obra: number, permiso:number) {
-    const query1 = `SELECT * FROM public.vista_fiscal_supervisor_designacion WHERE id_obra = ${obra} AND id_permiso = 84;	`;
-    const values = [ obra, permiso]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
+  ////ME BORRAR
+  // async datosReporteInformeInicialSupervisores(obra: number, permiso:number) {
+  //   const query1 = `SELECT * FROM public.vista_fiscal_supervisor_designacion WHERE id_obra = ${obra} AND id_permiso = 84;	`;
+  //   const values = [ obra, permiso]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  // }
 
 
   //CONSULTASSS
-  async datosAdjuntoSim(obra: number) {
-    const query1 = `SELECT *  
-      FROM  tipo_documento as td
-      WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
-    const values = [obra]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-  }
 
-  async preguntasInforme(obra: number, tipo_informe: number) {
-    const query1 = `
-    SELECT * FROM public."vista_informe-inicial"  
-    WHERE id_obra = ${obra} `;
-    const values = [obra, tipo_informe]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-    //console.log('preguntasInforme', resultado[0]);
-  }
+  ////ME BORRAR
+  // async datosAdjuntoSim(obra: number) {
+  //   const query1 = `SELECT *  
+  //     FROM  tipo_documento as td
+  //     WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
+  //   const values = [obra]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  // }
 
-  async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
-    const query1 = `
-    SELECT * FROM public."vista_informe_inicial_restante"  
-    WHERE id_obra = ${obra} AND id_tipo_informe =${tipo_informe} AND id_subtipo=${subtipo}`;
-    const values = [obra, tipo_informe]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-    //console.log('preguntasInforme', resultado[0]);
+  ////ME BORRAR
+  // async preguntasInforme(obra: number, tipo_informe: number) {
+  //   const query1 = `
+  //   SELECT * FROM public."vista_informe-inicial"  
+  //   WHERE id_obra = ${obra} `;
+  //   const values = [obra, tipo_informe]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  //   //console.log('preguntasInforme', resultado[0]);
+  // }
 
-  }
+  // async preguntasInformeRestante(obra: number, tipo_informe: number, subtipo: number) {
+  //   const query1 = `
+  //   SELECT * FROM public."vista_informe_inicial_restante"  
+  //   WHERE id_obra = ${obra} AND id_tipo_informe =${tipo_informe} AND id_subtipo=${subtipo}`;
+  //   const values = [obra, tipo_informe]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  //   //console.log('preguntasInforme', resultado[0]);
 
-  async preguntasInformeConclusion(obra: number, tipo_informe: number, subtipo: number) {
-    const query1 = `
-    SELECT * FROM public."vista_reporte_informe_inicial_conclusion"  
-    WHERE id_obra = ${obra}`;
-    const values = [obra, tipo_informe]
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
-    //console.log('preguntasInforme', resultado[0]);
+  // }
 
-  }
+  // async preguntasInformeConclusion(obra: number, tipo_informe: number, subtipo: number) {
+  //   const query1 = `
+  //   SELECT * FROM public."vista_reporte_informe_inicial_conclusion"  
+  //   WHERE id_obra = ${obra}`;
+  //   const values = [obra, tipo_informe]
+  //   const resultado = await this.sequelize.query(query1);
+  //   return resultado[0];
+  //   //console.log('preguntasInforme', resultado[0]);
 
+  // }
+////ME BORRAR
 //PAOLA
 //10042025
   //INFORME INICIAL SUPERVISOR 
@@ -1683,112 +1688,116 @@ fechaFormato(iso: string): string {
 
 
   //form-documentos 1
-  buildDocumentosSIM(data: any) {
-    let datosResp = data;
-    let arrayData = [];
 
-    var c = 0;
-    for (let i = 0; i < datosResp.length; i++) {
-      c = c + 1;
-      let rowData = [
-        { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
-        { text: [{ text: datosResp[i].cumple ? 'SI' : 'SI', style: 'textDato', alignment: 'center', }] },
-        { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
-      ];
-      arrayData.push(rowData);
+  ////ME BORRAR
+  // buildDocumentosSIM(data: any) {
+  //   let datosResp = data;
+  //   let arrayData = [];
 
-    }
-    return arrayData;
-  }
+  //   var c = 0;
+  //   for (let i = 0; i < datosResp.length; i++) {
+  //     c = c + 1;
+  //     let rowData = [
+  //       { text: [{ text: c, style: 'textDato', alignment: 'center', }] },
+  //       { text: [{ text: datosResp[i].desc_tipo_documento, style: 'textDato' }] },
+  //       { text: [{ text: datosResp[i].cumple ? 'SI' : 'SI', style: 'textDato', alignment: 'center', }] },
+  //       { text: [{ text: datosResp[i].observacion, style: 'textDato' }] },
+  //     ];
+  //     arrayData.push(rowData);
+
+  //   }
+  //   return arrayData;
+  // }
 
 
-  buildPreguntaPadre(data: any) {
-    let groupedData = data.reduce((acc: any, item: any) => {
-      if (!acc[item.padre]) {
-        acc[item.padre] = {
-          desc_padre: item.desc_padre,
-          items: [],
-        };
-      }
-      acc[item.padre].items.push(item);
-      return acc;
-    }, {});
+  ////ME BORRAR
+  // buildPreguntaPadre(data: any) {
+  //   let groupedData = data.reduce((acc: any, item: any) => {
+  //     if (!acc[item.padre]) {
+  //       acc[item.padre] = {
+  //         desc_padre: item.desc_padre,
+  //         items: [],
+  //       };
+  //     }
+  //     acc[item.padre].items.push(item);
+  //     return acc;
+  //   }, {});
 
-    // Construir la tabla para cada `padre`
-    let arrayData = [];
+  //   // Construir la tabla para cada `padre`
+  //   let arrayData = [];
 
-    for (let padre in groupedData) {
-      const { desc_padre, items: preguntas } = groupedData[padre]; // Extraer desc_padre y preguntas
-      let rowData = [
-        {
-          table: {
-            body: [
-              [
-                {
-                  text:
-                    [{ text: padre + ': \n', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 5] },
-                    { text: desc_padre + ':\n', style: 'textDato', margin: [0, 5, 0, 5] }], fillColor: '#f0f0f0',
-                },
-              ],
-              // Segunda fila: Tabla de preguntas agrupadas por `padre`
-              [
-                {
-                  table: {
-                    widths: [405, 50],
-                    body: [
-                      [
-                        { text: 'Pregunta:', style: 'textDato', fillColor: '#dddddd' },
-                        { text: 'Opción:', style: 'textDato', alignment: 'center', fillColor: '#dddddd' },
-                       // { text: 'Observación:', style: 'textDato', alignment: 'center', fillColor: '#dddddd' },
-                      ],
-                      // Preguntas agrupadas
-                      ...preguntas.map((pregunta: any) => [
-                       // { text: pregunta.desc_subtipo + '\n'+ pregunta.observaciones , style: 'textDato' },                                                         
-                       {
-                        text: [
-                          { text: pregunta.desc_subtipo + '\n', style: 'textTitulo' },
-                          { text: pregunta.observaciones, italics: true, style: 'textDato' , alignment: 'justify'}
-                        ]
-                      },
+  //   for (let padre in groupedData) {
+  //     const { desc_padre, items: preguntas } = groupedData[padre]; // Extraer desc_padre y preguntas
+  //     let rowData = [
+  //       {
+  //         table: {
+  //           body: [
+  //             [
+  //               {
+  //                 text:
+  //                   [{ text: padre + ': \n', style: 'textTitulo', alignment: 'center', margin: [0, 5, 0, 5] },
+  //                   { text: desc_padre + ':\n', style: 'textDato', margin: [0, 5, 0, 5] }], fillColor: '#f0f0f0',
+  //               },
+  //             ],
+  //             // Segunda fila: Tabla de preguntas agrupadas por `padre`
+  //             [
+  //               {
+  //                 table: {
+  //                   widths: [405, 50],
+  //                   body: [
+  //                     [
+  //                       { text: 'Pregunta:', style: 'textDato', fillColor: '#dddddd' },
+  //                       { text: 'Opción:', style: 'textDato', alignment: 'center', fillColor: '#dddddd' },
+  //                      // { text: 'Observación:', style: 'textDato', alignment: 'center', fillColor: '#dddddd' },
+  //                     ],
+  //                     // Preguntas agrupadas
+  //                     ...preguntas.map((pregunta: any) => [
+  //                      // { text: pregunta.desc_subtipo + '\n'+ pregunta.observaciones , style: 'textDato' },                                                         
+  //                      {
+  //                       text: [
+  //                         { text: pregunta.desc_subtipo + '\n', style: 'textTitulo' },
+  //                         { text: pregunta.observaciones, italics: true, style: 'textDato' , alignment: 'justify'}
+  //                       ]
+  //                     },
                       
-                        { text: pregunta.opcion, style: 'textTitulo', alignment: 'center' },
-                       // { text: pregunta.observaciones, style: 'textDato', alignment: 'justify' },
+  //                       { text: pregunta.opcion, style: 'textTitulo', alignment: 'center' },
+  //                      // { text: pregunta.observaciones, style: 'textDato', alignment: 'justify' },
 
                       
                       
-                      ]),
-                    ],
-                  },
-                 // layout: 'noBorders',
-                },
-              ],
-            ],
-          },
-          layout: 'noBorders', // Quitar bordes de la tabla principal
-        },
-      ];
-      arrayData.push(rowData);
-    }
+  //                     ]),
+  //                   ],
+  //                 },
+  //                // layout: 'noBorders',
+  //               },
+  //             ],
+  //           ],
+  //         },
+  //         layout: 'noBorders', // Quitar bordes de la tabla principal
+  //       },
+  //     ];
+  //     arrayData.push(rowData);
+  //   }
 
-    return arrayData;
-  }
+  //   return arrayData;
+  // }
 
 
-  buildPreguntas(data: any) {
-    let datosResp = data;
-    let arrayData = [];
-    var c = 0;
-    for (let i = 0; i < datosResp.length; i++) {
-      let rowData =
-        [
-          { text: [{ text: datosResp[i].desc_subtipo, style: 'textDato' }] },
-          { text: [{ text: datosResp[i].opcion, style: 'textDato', alignment: 'center', }] },
-        ];
-      arrayData.push(rowData);
-    }
-    return arrayData;
-  }
+  ////ME BORRAR
+  // buildPreguntas(data: any) {
+  //   let datosResp = data;
+  //   let arrayData = [];
+  //   var c = 0;
+  //   for (let i = 0; i < datosResp.length; i++) {
+  //     let rowData =
+  //       [
+  //         { text: [{ text: datosResp[i].desc_subtipo, style: 'textDato' }] },
+  //         { text: [{ text: datosResp[i].opcion, style: 'textDato', alignment: 'center', }] },
+  //       ];
+  //     arrayData.push(rowData);
+  //   }
+  //   return arrayData;
+  // }
 
 
   /* {
