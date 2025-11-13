@@ -8,6 +8,8 @@ import { ResponseService } from 'src/response.service';
 import { Computo } from 'src/schema_public/computo/entities/computo.entity';
 import { ReporteActaDto } from './dto/reporte-acta.dto';
 import { ReporteFiscalDFO } from './dto/reporte-fiscales-dfo.dto';
+import { ReporteModificaciones } from './dto/reporte-modificaciones.dto';
+import { ReportePagos } from './dto/reporte-pagos.dto';
 
 @Injectable()
 export class ModuloReportesService {
@@ -80,7 +82,30 @@ private readonly DECIMAL_PLACES = 5;
     } catch (error) {
       return this.responseService.error(error);
     }
+  }
 
+  async descargarModificaciones(data: ReporteModificaciones) {
+    try {
+      let query = ` 
+          SELECT * FROM public."vista_db_modificaciones" `;
+          const res = await this.reporteRepositorio.query(query)
+
+          return this.responseService.success(res, 'Listado correctamente')
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  async descargarPagos(data: ReportePagos) {
+    try {
+      let query = ` 
+          SELECT * FROM public."vista_db_pagos" `;
+          const res = await this.reporteRepositorio.query(query)
+
+          return this.responseService.success(res, 'Listado correctamente')
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
 
 }
