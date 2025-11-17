@@ -5,6 +5,8 @@ import { UpdateModuloReporteDto } from './dto/update-modulo_reporte.dto';
 import { ReporteGestionDto } from './dto/reporte-gestion.dto';
 import { ReporteActaDto } from './dto/reporte-acta.dto';
 import { ReporteFiscalDFO } from './dto/reporte-fiscales-dfo.dto';
+import { ReporteModificaciones } from './dto/reporte-modificaciones.dto';
+import { ReportePagos } from './dto/reporte-pagos.dto';
 
 @Controller('modulo-reportes')
 export class ModuloReportesController {
@@ -60,4 +62,21 @@ export class ModuloReportesController {
     } catch (error) {
     }
   }
+
+  @Post('reporte-modificaciones')
+  exportarModificaciones(@Body() reporteModif: ReporteModificaciones) {
+    try {  
+      return this.moduloReportesService.descargarModificaciones(reporteModif);
+    } catch (error) {
+    }
+  }
+
+  @Post('reporte-pagos')
+  exportarPagos(@Body() reportePago: ReporteModificaciones) {
+    try {  
+      return this.moduloReportesService.descargarPagos(reportePago);
+    } catch (error) {
+    }
+  }
+
 }
