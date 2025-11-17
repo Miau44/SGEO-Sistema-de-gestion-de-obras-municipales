@@ -276,37 +276,33 @@ export class PagoService {
 
   async preAprobarPago(AprobarDto: AprobarPagoDto) {
     try {
-
-      console.log('AprobarDto',AprobarDto);
-      
-      // Validar los datos de entrada
       if (!AprobarDto.id_modificacion_pago) {
         throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
       }
       const tipoCorrelativo = AprobarDto.id_tipo; // Correlativo para Informe de Pago
-
       const queryVerifica = `
           SELECT id_informe, id_correlativo 
           FROM public.informe
           WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1
-          LIMIT 1`;
-
+          LIMIT 1 FOR UPDATE;`;
       const paramsVerifica = [AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud
       ];
 
       const [informeExistente] = await this.pagoRepositorio.query(queryVerifica, paramsVerifica);
-      console.log('informeExistente:', informeExistente);
       if (!informeExistente) {
         console.warn('No se encontró el informe para actualizar');
+        throw new Error('INFORME_NO_EXISTE');
       }
 
-      let tieneCorrelativo = false;
       if (informeExistente.id_correlativo) {
-        console.warn('Este informe ya tiene un correlativo asignado');
-        tieneCorrelativo = true;
+        console.warn('No se encontró el informe para actualizar ya existe');
+        return {
+          statusCode: 200,
+          message: 'El informe ya tiene un correlativo asignado.',
+          data: [null, 0]
+        };
       }
 
-      if (!tieneCorrelativo) { }
       // Generar el nuevo correlativo
       const correlativoMemoRes = await this.correlativoServive.create({
         id_obra: AprobarDto.id_obra,
@@ -321,7 +317,8 @@ export class PagoService {
       }
       const query4 = `
         UPDATE public.informe
-        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
+        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5,
+        fecha_modificacion = NOW()
         WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1;`;
       const params4 = [
         AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario
