@@ -87,8 +87,9 @@ private readonly DECIMAL_PLACES = 5;
   async descargarModificaciones(data: ReporteModificaciones) {
     try {
       let query = ` 
-          SELECT * FROM public."vista_db_modificaciones" `;
-          const res = await this.reporteRepositorio.query(query)
+          SELECT * FROM public."vista_db_modificaciones" WHERE gestion_carpeta = $1 `;
+          const parametro = [data.gestion];
+          const res = await this.reporteRepositorio.query(query, parametro)
 
           return this.responseService.success(res, 'Listado correctamente')
     } catch (error) {
@@ -99,8 +100,9 @@ private readonly DECIMAL_PLACES = 5;
   async descargarPagos(data: ReportePagos) {
     try {
       let query = ` 
-          SELECT * FROM public."vista_db_pagos" `;
-          const res = await this.reporteRepositorio.query(query)
+          SELECT * FROM public."vista_db_pagos" WHERE gestion_carpeta = $1 `;
+          const parametro = [data.gestion];
+          const res = await this.reporteRepositorio.query(query, parametro)
 
           return this.responseService.success(res, 'Listado correctamente')
     } catch (error) {
