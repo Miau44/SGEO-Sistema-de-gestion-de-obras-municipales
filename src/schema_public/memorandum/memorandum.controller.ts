@@ -5,6 +5,7 @@ import { UpdateMemorandumDto } from './dto/update-memorandum.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GuardarObraDto } from './dto/obra_memo_informe.dto';
 import { Public } from 'src/common/decorators/public.decorator';
+import { MemorandumObraDto } from './dto/memorandum-obra.dto';
 
 @ApiTags('Memorandum')
 @Controller('memorandum')
@@ -55,4 +56,11 @@ export class MemorandumController {
 
     }}
 
+  @Public()
+  @Post('si-existe-memorandum')
+  siExisteInforme(@Body() data: MemorandumObraDto) {
+    try {
+      return this.memorandumService.siExisteInforme(data);
+    } catch (error) { }
+  }
 }
