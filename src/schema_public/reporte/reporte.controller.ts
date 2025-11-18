@@ -163,21 +163,21 @@ export class ReportController {
   } 
 
 
+  //Me comentado
+  // @Public()
+  // @Get('informe-inicial')
+  // async getReporteInformeInicial(@Res() res: Response,
+  // @Query('id_usuario') id_usuario: number,
+  // @Query('id_obra') id_obra: number
 
-  @Public()
-  @Get('informe-inicial')
-  async getReporteInformeInicial(@Res() res: Response,
-  @Query('id_usuario') id_usuario: number,
-  @Query('id_obra') id_obra: number
-
-  ): Promise<void> {
-    const pdfBuffer = await this.reportService.generateInformeInicial(id_usuario, id_obra);    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Length': pdfBuffer.length,      
-    });
-    res.send(pdfBuffer);
-  }
+  // ): Promise<void> {
+  //   const pdfBuffer = await this.reportService.generateInformeInicial(id_usuario, id_obra);    
+  //   res.set({
+  //     'Content-Type': 'application/pdf',
+  //     'Content-Length': pdfBuffer.length,      
+  //   });
+  //   res.send(pdfBuffer);
+  // }
 
   
       
