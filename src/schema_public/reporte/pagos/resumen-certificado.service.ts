@@ -623,8 +623,8 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
         table: {
           widths: ['50%', '50%'],
           body: (
-            this.datosInfSup?.[0]?.de_nombre
-              ? this.datosInfSup[0].de_nombre.split('\n')
+            this.datosInfSup?.[0]?.a_nombre
+              ? this.datosInfSup[0].a_nombre.split('\n')
               : ['']
           ).map((nombre: string) => [
             {
