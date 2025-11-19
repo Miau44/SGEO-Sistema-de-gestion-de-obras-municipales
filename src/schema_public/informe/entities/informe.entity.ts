@@ -79,6 +79,10 @@ export class Informe {
     @Column({ type: 'date', nullable: true })
     fecha_acta: Date;
 
+    //campo de origen para protocolo o edicion
+    @Column({ type: 'varchar', default: 'edicion' })
+    tipo_edicion: string;
+
   //------------>>>>>>>>>>>>>>>>>>campos de cargos y nombres<<<<<<<<<<------------
     @Column({ type: 'json', nullable: true })
     a_nombre: string; 
