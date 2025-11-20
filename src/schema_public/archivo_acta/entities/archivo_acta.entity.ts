@@ -39,6 +39,9 @@ export class ArchivoActa {
     @Column()
     id_documento: number;
 
+    @Column()
+    num_fojas_devolucion: number;
+
     @Column({ type: 'timestamp without time zone', nullable:true})
     fecha_entrega_fiscal: Date;
 

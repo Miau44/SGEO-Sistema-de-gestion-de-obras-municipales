@@ -32,8 +32,6 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 @Injectable()
 export class InformePagoSupervisor {
     datosEnvio: any = [];
-    datosSup: any = [];
-    datosFis: any = [];
     datosInfSup: any = [];
     datosModAp: any = [];
     datosDes: any = [];
@@ -71,25 +69,7 @@ export class InformePagoSupervisor {
     return resultado[0];
   }
 
-     // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
-        SELECT * 
-        FROM public."vista_supervisores_obra" WHERE id_obra = ${obra}`;
-    const resultado1 = await this.sequelize.query(query1);
-    return resultado1[0];
-   }
-
-      // FISCALES designados por obra 
-   async fiscalDesignado(obra: number) {
-    const query2 = `
-        SELECT * 
-        FROM public."vista_fiscales_obra" WHERE id_obra = ${obra}`;
-    const resultado2 = await this.sequelize.query(query2);
-    return resultado2[0];
-   }
-
-      // Resumen de Modificaciones Aprobadas por obra 
+    // Resumen de Modificaciones Aprobadas por obra 
    async modificacionesAprobadas(obra: number) {
     const query3 = `
         SELECT * 
@@ -134,18 +114,6 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       throw new Error('No se encontraron datos para el ID de la obra proporcionada');
     }
     this.datosEnvio = datosGenerales;
-
-    const res1 = await this.supervisorDesignado(this.datosEnvio[0].id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-        throw new Error('No se encontraron datos del supervisor designado');
-    }
-    this.datosSup = res1;
-
-    const res2 = await this.fiscalDesignado(this.datosEnvio[0].id_obra);
-    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
-        throw new Error('No se encontraron datos del fiscal designado');
-    }
-    this.datosFis = res2;
 
     const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
@@ -241,41 +209,17 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         body: [
             [
               { text: 'A:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },
-              { 
-                  text: [
-                      {
-                      text: (
-                          Array.isArray(this.datosFis)
-                          ? this.datosFis
-                              .filter(f => f && f.fiscal)
-                              .map(f => f.fiscal)
-                              .join('\n')  // salto de linea 
-                          : ''
-                      ) + '\n',
-                      style: 'textDato', alignment: 'left'
-                      },
-                      { text: 'FISCAL(ES) DE OBRA', style: 'textTitulo', alignment: 'left'}
-                  ]
+              { text: [
+                    { text: this.datosInfSup[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInfSup[0].a_cargo, style: 'textTitulo', alignment: 'left'}
+                ]
               },
             ],
             [
               { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
-              { 
-                  text: [
-                      {
-                      text: (
-                          Array.isArray(this.datosSup)
-                          ? this.datosSup
-                              .filter(s => s && s.supervisor)
-                              .map(s => s.supervisor)
-                              .join('\n')  // salto de linea 
-                          : ''
-                      ) + '\n',
-                      style: 'textDato', alignment: 'left'
-                      },
-                      {
-                      text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'left'
-                      },
+              { text: [
+                    { text: this.datosInfSup[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
+                    { text: this.datosInfSup[0].de_cargo, style: 'textTitulo', alignment: 'left' },
                   ]
               },       
             ],
@@ -693,19 +637,33 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         text: ['\n'],
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildSupervisores(this.datosSup)
-              ]
-          }, margin: [20,0,20,0], 
-            layout: {
-            hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-            vLineColor: () => '#444444', // color gris opaco para líneas verticales
-            hLineWidth: () => 0.7,       // grosor más fino
-            vLineWidth: () => 0.7
-            } 
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInfSup?.[0]?.de_nombre
+              ? this.datosInfSup[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            { text: [
+                { text: nombre + '\n', style: 'textDato' },
+                { text: 'SUPERVISOR DE OBRA', style: 'textDato', bold: true }
+              ], 
+              margin: [0, 35, 0, 0], 
+              alignment: 'center'
+            },
+            { text: '(Firma y Sello)', 
+              style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0] 
+            }
+          ])
         },
+        margin: [20, 0, 20, 0],
+        layout: {
+          hLineColor: () => '#444444',
+          vLineColor: () => '#444444',
+          hLineWidth: () => 0.7,
+          vLineWidth: () => 0.7
+        }
+      },
       {
         text: ['\n\n\nCc.Arch.Supervisor' ],
         style: 'footerText'
@@ -765,7 +723,8 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -819,33 +778,6 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
 
     return formattedDate;
   }
-
-  //Cargar tabla de SUPERVISORES - CON RECUADRO
-    buildSupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato' },
-                { text: 'SUPERVISOR DE OBRA', bold: true, style: 'textDato' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato', bold: 'true', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
 
     // Función para poblar la tabla de MODIFICACIONES APROBADAS
     buildModAprobadas(data: any,formatoNumerico: Intl.NumberFormat) {
