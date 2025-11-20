@@ -33,8 +33,8 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
 export class ComputoMetricoPago {
 
     datosEnvio: any = [];
-    datosSup: any = [];
     datosComputo: any = [];
+    datosInfSup: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -58,16 +58,16 @@ export class ComputoMetricoPago {
     return resultado[0];
   }
 
-     // SUPERVISORES designados por obra 
-   async supervisorDesignado(obra: number) {
-    const query1 = `
+   // Datos informe - Pago Supervisor
+   async datosInformePagoSupervisor(solicitud: number) {
+    const query2 = `
         SELECT * 
-        FROM public.vista_supervisores_obra WHERE id_obra = ${obra}`;
-    const resultado = await this.sequelize.query(query1);
-    return resultado[0];
+        FROM public."vista_reporte_Informe_PagoSup" WHERE id_solicitud = ${solicitud}`;
+    const resultado2 = await this.sequelize.query(query2);
+    return resultado2[0];
    }
 
-       // Tabla Computo Metrico 
+   // Tabla Computo Metrico 
    async computoMetrico(obra: number, solicitud: number) {
     const query1 = `
         SELECT * 
@@ -86,17 +86,14 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
   }
   this.datosEnvio = datosGenerales;
 
-  const res1 = await this.supervisorDesignado(obra);
-  if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos del supervisor designado');
-  }
-  this.datosSup = res1;
-
   const res2 = await this.computoMetrico(obra, id_modificacion_pago);
   if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
       throw new Error('No se encontraron datos del cómputo métrico');
   }
   this.datosComputo = res2;
+
+  const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
+  this.datosInfSup = res3;
 
   //console.log('DATOS COMPUTO',this.datosComputo);
 
@@ -192,18 +189,26 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
         text: '\n\n\n',
       },
       {
-          table: {
-            widths: ['50%','50%'],
-            body: [
-              ...this.buildsupervisores(this.datosSup)
-              ]
-          }, layout: {
-          hLineColor: () => '#444444', // color gris opaco para líneas horizontales
-          vLineColor: () => '#444444', // color gris opaco para líneas verticales
-          hLineWidth: () => 0.7,       // grosor más fino
-          vLineWidth: () => 0.7
-          } //margin: [20,0,20,0]
-        },
+        table: {
+          widths: ['50%', '50%'],
+          body: (
+            this.datosInfSup?.[0]?.de_nombre
+              ? this.datosInfSup[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
+            {
+              text: [
+                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textDato', bold: true }
+              ],
+              margin: [0, 35, 0, 0], alignment: 'center'
+            },
+            {
+              text: '(Firma y Sello)', style: 'textDato', alignment: 'center', margin: [0, 45, 0, 0]
+            }
+          ])
+        }
+      },
       {
         
       } as any,
@@ -259,7 +264,8 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
-  let chunks: Buffer[] = [];
+  //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+  const chunks: Uint8Array[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
     pdfDoc.on('data', (chunk) => {
@@ -301,33 +307,6 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
 
     return formattedDate;
   }
-
-    //Cargar tabla de supervisores - con recuadro
-    buildsupervisores(data: any[]) {
-      const arrayData = [];
-  
-      for (const persona of data) {
-        const nombreCompleto = [
-          persona.profesion,
-          persona.nombre,
-          persona.primer_apellido,
-          persona.segundo_apellido
-        ]
-        .filter(Boolean) // elimina null, undefined, o strings vacíos
-        .join(' ');
-  
-        const rowData = [
-          { text: [
-                { text: nombreCompleto + '\n', style: 'textDato2' },
-                { text: 'SUPERVISOR(ES) DE OBRA', bold: true, style: 'textDato2' }
-                  ],
-                alignment: 'center', margin: [0, 35, 0, 0]},
-          { text: '(Firma y Sello)', style: 'textDato2', alignment: 'center', margin: [0, 45, 0, 0] }
-        ];
-        arrayData.push(rowData);
-      }
-      return arrayData;
-    }
 
   //Cargar tabla de computos metricos
 buildContenidoComputo(data: any[], formatoNumerico: Intl.NumberFormat) {

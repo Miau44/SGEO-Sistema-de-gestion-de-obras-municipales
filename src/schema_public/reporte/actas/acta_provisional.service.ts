@@ -115,8 +115,8 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
     maximumFractionDigits: 2
     });
 
-    console.log('DATOS obra',this.datosVariacion.conteo);
-    console.log('DATOS VARIACION',this.datosVariacion);
+    // console.log('DATOS obra',this.datosVariacion.conteo);
+    // console.log('DATOS VARIACION',this.datosVariacion);
  
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
