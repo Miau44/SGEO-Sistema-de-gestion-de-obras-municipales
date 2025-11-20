@@ -22,7 +22,11 @@ export class Documento {
     observacion: string;
 
     @Column({nullable:true})
-    nombre_documento: string;    
+    nombre_documento: string;
+    
+    //campo de origen para protocolo o edicion
+    // @Column({ type: 'varchar', default: 'edicion' })
+    // tipo_edicion: string;
 
     @Column()
     usuario_registro: number;
