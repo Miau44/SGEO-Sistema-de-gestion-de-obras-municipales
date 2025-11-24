@@ -29,7 +29,7 @@ import { CreateComputoObservacionDto } from './dto/create-computo-observacion.dt
 import { ComputoObservacion } from './entities/computo_observacion.entity';
 import { ListaFiscalDto } from './dto/lista-fiscal.dto';
 import { ItemService } from '../item/item.service';
-import { ExternoService } from 'src/schema_private/externo/externo.service';
+//import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { Log } from '../log/entities/log.entity';
 import { LogService } from '../log/log.service';
 
@@ -50,7 +50,7 @@ export class ComputoService {
     private obraservice: ObraService,
     private modificacionService: ModificacionPagoService,
     private itemService: ItemService,
-    private externoService: ExternoService,
+   // private externoService: ExternoService,
     private logService: LogService,
 
   ) { }
@@ -439,7 +439,7 @@ LEFT OUTER JOIN public.planilla_justificacion AS po  ON p.id_planilla = po.id_pl
       } else {
         query = `SELECT modificacion , id_item , orden , nombre ,
               tramo , descripcion , 
-              unidad , numero numeric, largo , ancho ,
+              unidad , numero, largo , ancho ,
               alto , area , volumen , parcial FROM  sp_computo_modificacion_pago($1, $2) WHERE total_autorizado <>0 OR total_autorizado IS NULL;`;
       }
       const params: any[] = [data.id_obra, data.id_modificacion_pago];
