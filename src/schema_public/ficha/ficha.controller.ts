@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { FichaService } from './ficha.service';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { EstructuraFichaDto } from './dto/estructura-fichaDto';
 import { ResponseService } from 'src/response.service';
 import { Public } from 'src/common/decorators/public.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 
 
@@ -71,4 +72,19 @@ export class FichaController {
     } catch (error) {
     }
   }  
+
+    
+    @Public()
+    @UseGuards(AuthGuard('jwt'))
+    @Get('listadoxficha/:cod_carpeta')
+    @HttpCode(HttpStatus.OK)
+    async listadoxficha(@Param('cod_carpeta') id_carpeta?: number) {
+      try {
+        console.log(id_carpeta);
+        id_carpeta = id_carpeta == null ? 0 : id_carpeta;
+        return this.fichaService.listado(id_carpeta);
+      } catch (error) {
+        console.log(error);
+      }
+    }
 }
