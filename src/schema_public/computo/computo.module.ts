@@ -22,8 +22,8 @@ import { CorrelativoService } from '../correlativo/correlativo.service';
 import { ComputoObservacion } from './entities/computo_observacion.entity';
 import { ItemService } from '../item/item.service';
 import { Item } from '../item/entities/item.entity';
-import { Externo } from 'src/schema_private/externo/entities/externo.entity';
-import { ExternoService } from 'src/schema_private/externo/externo.service';
+//import { Externo } from 'src/schema_private/externo/entities/externo.entity';
+//import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { LogService } from '../log/log.service';
 import { Log } from '../log/entities/log.entity';
 import { InformeService } from '../informe/informe_inicial.service';
@@ -40,6 +40,7 @@ import { Documento } from '../documento/entities/documento.entity';
 
   controllers: [ComputoController],
   providers: [ComputoService, ResponseService, PlanillaService, ObraService, ModificacionPagoService, SolicitudService, 
-    CorrelativoService, ItemService, ExternoService, LogService, InformeService],
+    CorrelativoService, ItemService, LogService, InformeService],
+    exports: [ComputoService]  
 })
 export class ComputoModule {}
