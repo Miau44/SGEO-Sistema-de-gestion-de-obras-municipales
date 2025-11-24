@@ -163,7 +163,7 @@ export class PersonapermisoUeService {
         INNER JOIN public.ficha AS f ON f.id_ficha = o.id_ficha
         WHERE id_cite_memo IN (
         SELECT CASE  WHEN x = 84 THEN 239 WHEN x = 83 THEN 240 END FROM unnest(ARRAY[${datosDto.id_permiso}]) AS x
-        ) AND p.id_estado IN(1,5) AND d.id_obra =${datosDto.obra} AND d.id_estado=1 AND d.estado_designacion IN(99,105,102) AND pp.id_estado =1; `;
+        ) AND p.id_estado IN(1,5) AND d.id_obra =${datosDto.obra} AND d.id_estado=1 AND d.estado_designacion IN(99,102) AND pp.id_estado =1; `;
         const resultado = await this.pperUeRepositorio.query(query);
         return this.responseService.success(resultado, "Listado Correctamente.")
         

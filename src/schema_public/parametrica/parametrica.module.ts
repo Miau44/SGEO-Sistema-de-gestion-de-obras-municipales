@@ -14,5 +14,7 @@ import { ResponseService } from 'src/response.service';
   imports: [TypeOrmModule.forFeature([Parametrica, ListaParametrica])],
   controllers: [ParametricaController, ListaParametricaController],
   providers: [ParametricaService, ListaParametricaService, ResponseService],
+  exports: [ParametricaService],  // Esto permite que el servicio sea usado en otros módulos si es necesario
+
 })
 export class ParametricaModule {}
