@@ -379,14 +379,14 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
                 },
                 { text:
                       [
-                        { text: this.datosInfSup[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
-                        { text: this.datosInfSup[0].de_cargo, style: 'textTitulo', alignment: 'center' }
+                        { text: (this.datosInfSup?.[0]?.de_nombre || '') + '\n', style: 'textDato', alignment: 'center' },
+                        { text: this.datosInfSup?.[0]?.de_cargo || '', style: 'textTitulo', alignment: 'center' }
                       ]
                 },
                 { text:
                       [
-                        { text: this.datosInfSup[0].a_nombre + '\n', style: 'textDato', alignment: 'center' },
-                        { text: this.datosInfSup[0].a_cargo, style: 'textTitulo', alignment: 'center' }
+                        { text: (this.datosInfSup?.[0]?.a_nombre || '') + '\n', style: 'textDato', alignment: 'center' },
+                        { text: this.datosInfSup?.[0]?.a_cargo || '', style: 'textTitulo', alignment: 'center' }
                       ]
                 }
               ]
