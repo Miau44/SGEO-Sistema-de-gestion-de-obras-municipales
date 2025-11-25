@@ -540,7 +540,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
               ],
               [
                 { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
-                { text: this.fechaString(this.datosIAP[0].fecha_modificacion), style: 'textDato' },
+                { text: this.fechaString(this.datosIAP[0].fecha_aprobacion), style: 'textDato' },
               ],
             ],
           },
