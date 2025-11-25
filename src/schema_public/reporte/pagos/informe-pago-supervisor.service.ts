@@ -886,7 +886,9 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       const centena = Math.floor(value / 100);
       const resto = value % 100;
       if (value === 100) return 'CIEN';
-      return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+      return resto === 0
+    ? this.centenas[centena]
+    : `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
     }
     if (value < 1_000_000) {
       const miles = Math.floor(value / 1000);
