@@ -348,7 +348,7 @@ export class fichaInspeccion {
                                     { text: this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional), style: 'textDato', alignment: 'right' }
                                 ],
                                 [
-                                    { text: 'Periodo de corrección de errores:', style: 'textTituloT', alignment: 'left' },
+                                    { text: 'Periodo de corrección de defectos:', style: 'textTituloT', alignment: 'left' },
                                     { text: this.datosEnvio[0].periodo_correccion + ' d.c.', style: 'textDato', alignment: 'right' }
                                 ],
                                 [
