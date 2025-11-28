@@ -582,10 +582,11 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     let q = `SELECT * FROM vista_modificacion_pago `;
     var res: any;
     if (id_carpeta > 0) {
-      q = q + ` WHERE "idCarpeta" = $1`;
+      q = q + ` WHERE "idCarpeta" = $1 ORDER BY "numeroPlanilla" ASC`;
       var res = await this.modificacionRepo.query(q, [id_carpeta]);
     }
     else {
+      q = q + ` ORDER BY "numeroPlanilla" ASC`;
       res = await this.modificacionRepo.query(q);
     }
 
