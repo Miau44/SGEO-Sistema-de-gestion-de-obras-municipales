@@ -522,7 +522,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
                               ...( this.datosEnvio[0].bandera_modif == 0
                                 ?[ 
-                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - Number(totalcertificado || 0),formatoNumerico2) + ' Bs.', 
                                     style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                                 ]
                                 :[
