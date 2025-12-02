@@ -348,6 +348,10 @@ export class fichaInspeccion {
                                     { text: this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional), style: 'textDato', alignment: 'right' }
                                 ],
                                 [
+                                    { text: 'Periodo de corrección de defectos:', style: 'textTituloT', alignment: 'left' },
+                                    { text: this.datosEnvio[0].periodo_correccion + ' d.c.', style: 'textDato', alignment: 'right' }
+                                ],
+                                [
                                     { text: 'Fecha recepción definitiva:', style: 'textTituloT', alignment: 'left' },
                                     { text: this.formatearFecha(this.datosEnvio[0].fecha_definitiva), style: 'textDato', alignment: 'right' }
                                 ],

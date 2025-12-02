@@ -57,8 +57,8 @@ export class AvanceFisicoService {
     const rol = (dto.rol_avance ?? 's') as 's'|'f';
     // 1) vigente anterior
     const anterior = await r.findOne({ where: { id_obra: dto.id_obra, id_estado: 1, id_estado_avance: 1, rol_avance: rol } });
-    if (anterior && Number(dto.porcentaje_obra) <= Number(anterior.porcentaje_obra)) {
-      throw new BadRequestException('El porcentaje no puede ser menor o igual al avance actual.');
+    if (anterior && Number(dto.porcentaje_obra) < Number(anterior.porcentaje_obra)) {
+      throw new BadRequestException('El porcentaje no puede ser menor al avance actual.');
     }
     // 2) desactualizar anterior
     if (anterior) {

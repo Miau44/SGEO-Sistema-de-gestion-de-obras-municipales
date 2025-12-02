@@ -30,7 +30,7 @@ export class ItemService {
     //    @InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
 
     private responseService: ResponseService,
-    private externoService: ExternoService,
+   // private externoService: ExternoService,
     private planillaService: PlanillaService,
     private obraService: ObraService,
 
@@ -250,7 +250,7 @@ const resultado = await this.itemRepository.query(query);
           console.log('resultado', itemsNuevos);  
           return { datossgpu, sgeo:itemsNuevos };*/
 
-          const resultadoSgeo: any[] = await this.itemRepository.query(query, params);
+     /*     const resultadoSgeo: any[] = await this.itemRepository.query(query, params);
           const resultadoSgpu: any = await this.externoService.sgpuItemsVigentes(data);
           
           // Obtener solo los elementos de `resultadoSgeo` que no están en `resultadoSgpu`
@@ -261,12 +261,12 @@ const resultado = await this.itemRepository.query(query);
           // Obtener solo los elementos de `resultadoSgpu` que no están en `resultadoSgeo`
           const noEnSgeo = resultadoSgpu.filter(
             (sgpu:any) => !resultadoSgeo.some(sgeo => sgeo.codigo_item === sgpu.codigoItem)
-          );
+          );*/
           
           // Unir los resultados si es necesario
           const resultado = {
-            noEnSgpu, // Elementos en Sgeo que no están en Sgpu
-            noEnSgeo, // Elementos en Sgpu que no están en Sgeo
+         //   noEnSgpu, // Elementos en Sgeo que no están en Sgpu
+         //   noEnSgeo, // Elementos en Sgpu que no están en Sgeo
           };
           
       
