@@ -90,7 +90,7 @@ export class FichaController {
 
   @Public()
   @UseGuards(AuthGuard('jwt'))
-  @Post('listadoResumen')
+  @Post('listado_resumen')
   @HttpCode(HttpStatus.OK)
   async listadoResumen() {
     try {
