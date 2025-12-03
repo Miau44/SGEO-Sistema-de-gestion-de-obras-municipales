@@ -11,33 +11,33 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('ficha')
 export class FichaController {
-  constructor(private readonly fichaService: FichaService, private responseService:ResponseService) {}
+  constructor(private readonly fichaService: FichaService, private responseService: ResponseService) { }
 
   @Public()
   @Post()
   create(@Body() createFichaDto: CreateFichaDto) {
     try {
-    return this.fichaService.create(createFichaDto);
-  } catch (error) {
-  }
+      return this.fichaService.create(createFichaDto);
+    } catch (error) {
+    }
   }
 
   @Get()
   findAll() {
     try {
-    return this.fichaService.findAll();
-  } catch (error) {
-  }      
+      return this.fichaService.findAll();
+    } catch (error) {
+    }
   }
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    try {    
-    return this.fichaService.findOne(+id);
-  } catch (error) {
-  }    
+    try {
+      return this.fichaService.findOne(+id);
+    } catch (error) {
+    }
   }
-  
+
   @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFichaDto: UpdateFichaDto) {
@@ -71,20 +71,32 @@ export class FichaController {
       return this.fichaService.listarFichaXUeValidadas(estructuraDto);
     } catch (error) {
     }
-  }  
+  }
 
-    
-    @Public()
-    @UseGuards(AuthGuard('jwt'))
-    @Get('listadoxficha/:cod_carpeta')
-    @HttpCode(HttpStatus.OK)
-    async listadoxficha(@Param('cod_carpeta') id_carpeta?: number) {
-      try {
-        console.log(id_carpeta);
-        id_carpeta = id_carpeta == null ? 0 : id_carpeta;
-        return this.fichaService.listado(id_carpeta);
-      } catch (error) {
-        console.log(error);
-      }
+
+  @Public()
+  @UseGuards(AuthGuard('jwt'))
+  @Get('listadoxficha/:cod_carpeta')
+  @HttpCode(HttpStatus.OK)
+  async listadoxficha(@Param('cod_carpeta') id_carpeta?: number) {
+    try {
+      console.log(id_carpeta);
+      id_carpeta = id_carpeta == null ? 0 : id_carpeta;
+      return this.fichaService.listado(id_carpeta);
+    } catch (error) {
+      console.log(error);
     }
+  }
+
+  @Public()
+  @UseGuards(AuthGuard('jwt'))
+  @Post('listadoResumen')
+  @HttpCode(HttpStatus.OK)
+  async listadoResumen() {
+    try {
+      return this.fichaService.listadoResumen();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

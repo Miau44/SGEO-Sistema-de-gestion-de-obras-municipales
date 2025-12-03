@@ -143,4 +143,26 @@ public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
     }
     return res;
   }
+
+    async listadoResumen(): Promise<any> {
+    
+    let q = `SELECT * FROM vista_ficha_resumen WHERE 1=1 `;
+    console.log(q);
+    
+    var res: any;
+    res = await this.obraRepositorio.query(q);
+    // if (id_carpeta!=null && id_carpeta > 0) {
+    //   q = q + ` AND cod_carpeta = $1`;
+    //   var res = await this.obraRepositorio.query(q, [id_carpeta]);
+    // }
+    // else {
+    //   res = await this.obraRepositorio.query(q);
+    // }
+
+    //mensaje en caso de no encontrar registros
+    if (!res || res.length === 0) {
+      throw new NotFoundException('No se encontraron registros con la carpeta especificada.');
+    }
+    return res;
+  }
 }
