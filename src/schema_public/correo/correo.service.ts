@@ -43,7 +43,7 @@ export class CorreoService {
   }
 
   async enviarCorreoProceso(dto: EnviarCorreoProcesoDto): Promise<{ message: string }> {
-    const dbName = String(process.env.DATABASE_NAME || '').toUpperCase();
+    const dbName = String(process.env.DATABASE_NAME || '').trim() .toUpperCase();
     const PHP_CC_MULTIPLE = String(process.env.PHP_CC_MULTIPLE ?? 'false').toLowerCase() === 'true';
 
     // remitente SOLO para el PHP
@@ -61,7 +61,7 @@ export class CorreoService {
       // MODO PRUEBAS: ignora lo que mande el front (hardcode)
       para = this.normalizeEmails(['ibrahim.aruni']);
       //autor = this.normalizeEmails(['angel.laura', 'jorge.torrez']); 
-      autor = this.normalizeEmails(['ins_93@outlook.es | igustavo.acandia@gmail.com']);
+      autor = this.normalizeEmails(['ins_93@outlook.es | igustavo.acandia@gmail.com | jorge.torrez ']);
       codigoObra = dto.codigoObra;
       nombreObra = dto.nombreObra;
       actividad = dto.actividad;
@@ -80,7 +80,7 @@ export class CorreoService {
     }
 
     // CC obligatorio SOLO en producción
-    if (dbName === 'SGEO_PRODUCCION') {
+    if (dbName === 'SGEO_PROD') {
       const CC_OBLIGATORIO = 'josue.torrez@lapaz.bo';
       //const CC_OBLIGATORIO = 'jorge.torrez@lapaz.bo';
       if (!autor.includes(CC_OBLIGATORIO)) autor.push(CC_OBLIGATORIO);
@@ -108,8 +108,6 @@ export class CorreoService {
     `.trim();
 
     // ---------------- LOG CONSOLIDADO (UN SOLO REGISTRO) ----------------
-    // 👉 remitente (BD) = PARA
-    // 👉 destinatario (BD) = CC
     const logMaster = this.correoRepo.create({
       remitente: toList.join(','),     // los TO (usuarios principales)
       destinatario: ccList.join(','),  // los CC (copias)
