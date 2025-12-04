@@ -120,6 +120,23 @@ export class fichaInspeccion {
         //const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
         //console.log('DATOS AVANCE', this.datosAvance);
+
+         //Cálculo del plazo real
+        // const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
+        // const fp = this.datosEnvio[0].fecha_provisional;
+        // let plazo_real = 0;
+
+        // if (this.datosEnvio[0].fecha_provisional !== null && 
+        //     this.datosEnvio[0].fecha_provisional !== undefined) {
+
+        //     const fechaFin = new Date(this.datosEnvio[0].fecha_provisional); // fecha acta provisional
+
+        //     if (!isNaN(fechaFin.getTime())) { // valida que la fecha sea correcta
+        //         const diffMs = fechaFin.getTime() - fechaInicio.getTime();
+        //         const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+        //         plazo_real = diffDias; 
+        //     }
+        // }
         
         // Extraer la imagen
         const urlImagen  = this.datosAvance[0].ruta_documento;
@@ -130,20 +147,27 @@ export class fichaInspeccion {
         // Convertir a base64
         const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
         
+        ///prueba
+        const imagenBloque = base64 && base64.length > "data:image/jpeg;base64,".length
+        ? {
+            image: base64,
+            width: 200,
+            height: 200,
+            alignment: 'center'
+        }
+        : {
+            text: '(Imagen no disponible)',
+            alignment: 'center',
+            color: 'gray',
+            italics: true,
+            margin: [0, 20, 0, 20]
+        };
+
         
 
         const documentDefinition = {
         pageSize: 'LETTER' as any,
     
-    // ...(this.datosInf[0].fecha_aprobacion !== null
-    // ? (
-    //     this.datosProv[0].monto_certificado === '0'
-    //       ? { watermark: { text: 'PAGO PENDIENTE', color: 'red', opacity: 0.2, bold: true } }
-    //       : {}
-    //   )
-    // : { watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true } }
-    // ),
-        
         header: {
         columns: [{ 
                     image: imgLogo, width: 130, margin: [5,5,0,0]
@@ -281,24 +305,34 @@ export class fichaInspeccion {
                                 widths: ['60%', '40%'],
                                 body: [
                                     [
-                                        { text: 'ÚLTIMA MODIFICACIÓN APROBADA ' + this.datosEnvio[0].tipo_modificacion_texto, style: 'textTituloT', colSpan: 2, alignment: 'center', fillColor: '#dddddd' },
+                                        { text: 'ÚLTIMA MODIFICACIÓN APROBADA ' + this.datosEnvio[0].tipo_modificacion_texto, 
+                                            style: 'textTituloT', colSpan: 2, alignment: 'center', fillColor: '#dddddd' },
                                         {}
                                     ],
                                     [
                                         { text: 'Modificación plazo:', style: 'textTituloT', alignment: 'left' },
-                                        { text: this.datosEnvio[0].dias_variacion + ' d.c.', style: 'textDato', alignment: 'right' }
+                                        { text: this.datosEnvio?.[0]?.tipo_modificacion_texto
+                                            ? this.datosEnvio[0].dias_variacion + ' d.c.'
+                                            : '-',
+                                            style: 'textDato', alignment: 'right'  }
                                     ],
                                     [
                                         { text: 'Plazo total modificación:', style: 'textTituloT', alignment: 'left' },
-                                        { text: this.datosEnvio[0].total_dias_variacion + ' d.c.', style: 'textDato', alignment: 'right' }
+                                        { text: this.datosEnvio?.[0]?.tipo_modificacion_texto
+                                            ? this.datosEnvio[0].total_dias_variacion + ' d.c.'
+                                            : '-', style: 'textDato', alignment: 'right' }
                                     ],
                                     [
                                         { text: 'Fecha conclusión según modificación:', style: 'textTituloT', alignment: 'left' },
-                                        { text: this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional), style: 'textDato', alignment: 'right' }
+                                        { text: this.datosEnvio?.[0]?.tipo_modificacion_texto
+                                            ? this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional) 
+                                            : '-', style: 'textDato', alignment: 'right' }
                                     ],
                                     [
                                         { text: 'Monto total autorizado:', style: 'textTituloT', alignment: 'left' },
-                                        { text: 'Bs' + this.datosEnvio[0].monto_total, style: 'textDato', alignment: 'right' }
+                                        { text: this.datosEnvio?.[0]?.tipo_modificacion_texto
+                                            ? 'Bs' + this.datosEnvio[0].monto_total 
+                                            : '-', style: 'textDato', alignment: 'right' }
                                     ]
                                 ]
                             }, layout: 'noBorders'
@@ -337,7 +371,9 @@ export class fichaInspeccion {
                             body: [
                                 [
                                     { text: 'Plazo total autorizado:', style: 'textTituloT', alignment: 'left' },
-                                    { text: this.datosEnvio[0].total_plazo_autorizado + ' d.c.', style: 'textDato', alignment: 'right' }
+                                    { text: this.datosEnvio?.[0]?.total_plazo_autorizado
+                                        ? this.datosEnvio?.[0]?.total_plazo_autorizado + ' d.c.'
+                                        : this.datosEnvio[0].plazo_contrato + ' d.c.', style: 'textDato', alignment: 'right' }
                                 ],
                                 [
                                     { text: 'Plazo real ejecución:', style: 'textTituloT', alignment: 'left' },
@@ -345,15 +381,21 @@ export class fichaInspeccion {
                                 ],
                                 [
                                     { text: 'Fecha recepción provisional:', style: 'textTituloT', alignment: 'left' },
-                                    { text: this.formatearFecha(this.datosEnvio[0].nueva_fecha_provisional), style: 'textDato', alignment: 'right' }
+                                    this.datosEnvio?.[0]?.fecha_provisional
+                                        ? { text: this.formatearFecha(this.datosEnvio[0].fecha_provisional), style: 'textDato', alignment: 'right' }
+                                        : { text: 'Sin acta provisional', style: 'textDato', alignment: 'right', color: 'gray', italics: true }
                                 ],
                                 [
                                     { text: 'Periodo de corrección de defectos:', style: 'textTituloT', alignment: 'left' },
-                                    { text: this.datosEnvio[0].periodo_correccion + ' d.c.', style: 'textDato', alignment: 'right' }
+                                    this.datosEnvio?.[0]?.periodo_correccion 
+                                        ? { text: this.datosEnvio[0].periodo_correccion + ' d.c.', style: 'textDato', alignment: 'right' }
+                                        : { text: 'Sin acta provisional', style: 'textDato', alignment: 'right', color: 'gray', italics: true } 
                                 ],
                                 [
                                     { text: 'Fecha recepción definitiva:', style: 'textTituloT', alignment: 'left' },
-                                    { text: this.formatearFecha(this.datosEnvio[0].fecha_definitiva), style: 'textDato', alignment: 'right' }
+                                    this.formatearFecha(this.datosEnvio?.[0]?.fecha_definitiva)
+                                        ? { text: this.formatearFecha(this.datosEnvio[0].fecha_definitiva), style: 'textDato', alignment: 'right' }
+                                        : { text: 'Sin acta definitiva', style: 'textDato', alignment: 'right', color: 'gray', italics: true }
                                 ],
                                 [
                                     { text: 'Monto total ejecutado:', style: 'textTituloT', alignment: 'left' },
@@ -390,17 +432,16 @@ export class fichaInspeccion {
                         },
                         { }
                     ],
-                    // [
-                    //     { text: '', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-                    //     { text: '', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' }
-                    // ],
                     [
-                        { 
-                            image: base64,
-                            width: 200,
-                            height: 200,
-                            alignment: 'center'
-                        },
+                        // ...(base64
+                        // ? [{
+                        //     image: base64,
+                        //     width: 200,
+                        //     height: 200,
+                        //     alignment: 'center'
+                        // }]
+                        // : []),
+                        imagenBloque,
                         {
                             table: {
                                 widths: ['*'],
@@ -419,24 +460,10 @@ export class fichaInspeccion {
                                     ]
                                 ]
                             }, layout: 'noBorders'
-                        }
-                        
+                            
+                        }                      
                     ],
-                    // [
-                    //     { 
-                    //         table: {
-                    //         widths: ['*', '*', '*'],
-                    //         body: [
-                    //             [
-                    //                 { text: 'FIRMA FISCAL', style: 'textTituloT', alignment: 'center' },
-                    //                 { text: 'FIRMA SUPERVISOR', style: 'textTituloT', alignment: 'center' },
-                    //                 { text: 'FIRMA CONTRATISTA/VECINO', style: 'textTituloT', alignment: 'center' }
-                    //             ]
-                    //         ]
-                    //         }, layout: 'noBorders', colSpan: 2, margin: [0,70,0,0] 
-                    //     },
-                    //     { }
-                    // ]
+                    
                     ]
                 }, margin: [0,5,0,0],
                 // 🔹 Aquí definimos el layout personalizado
@@ -458,10 +485,7 @@ export class fichaInspeccion {
                     paddingBottom: function () { return 3; }
                 }
             },
-
-
             {
-
             } as any,
 
         ],
