@@ -116,7 +116,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   }
   this.datosEnvio = datosGenerales;
 
-  const res3 = await this.planillaReordenamiento(obra, this.datosEnvio[0].numero_pago, id_modificacion_pago);
+  const res3 = await this.planillaReordenamiento(obra, this.datosEnvio[0].numero_pago_total, id_modificacion_pago);
   if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
       throw new Error('No se encontraron datos de la planilla');
   }
@@ -125,7 +125,7 @@ async generatePlanillaPago(obra: number, id_modificacion_pago: number): Promise<
   const res4 = await this.planillaResumen(obra, id_modificacion_pago);
   this.datosPlanillaR = res4;
 
-  const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago, id_modificacion_pago);
+  const res5 = await this.planillaItemsNuevos(obra, this.datosEnvio[0].numero_pago_total, id_modificacion_pago);
   this.datosNuevos = res5;
 
   const res6 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
