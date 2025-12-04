@@ -459,7 +459,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                       ]
                                   ]
                                 ),
-                            ...(this.datosEnvio[0].numero_pago > 1 //Si es el primer pago NO se muestra Importes anteriores
+                            ...(this.datosEnvio[0].numero_pago_total > 1 //Si es el primer pago NO se muestra Importes anteriores
                             ?[
                                [
                                 { text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
