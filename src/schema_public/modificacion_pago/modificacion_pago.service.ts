@@ -20,6 +20,7 @@ import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificac
 import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
+import { ActualizarModDto } from './dto/modificacion.dto';   
 
 
 @Injectable()
@@ -658,4 +659,18 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
   
+
+  async actualizarDiazVariacion(data: ActualizarModDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  public.sp_modificacion_parcial_ajuste('A', $1);`  ;
+      const params = [data.id_modificacion];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      
+      return this.responseService.success([true], "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 }
