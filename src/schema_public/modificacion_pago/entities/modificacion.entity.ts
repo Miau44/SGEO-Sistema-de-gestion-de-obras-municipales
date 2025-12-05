@@ -52,6 +52,10 @@ export class Modificacion {
     @Column("decimal", { precision: 15, scale: 5, nullable: true })
     monto_variacion_ultima_mod: number;    
 
+     //campo de origen para protocolo o edicion
+    @Column({ type: 'varchar', default: 'edicion' })
+    tipo_edicion: string;
+
     ///campos de tabla generales
 
     @Column()
