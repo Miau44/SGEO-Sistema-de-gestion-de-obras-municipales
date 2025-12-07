@@ -145,7 +145,7 @@ export class InformeService {
   async encabezadoDocumentos(data: EncabezadoDocumentoDto) {
     try {
 
-      console.log('datos ', data)
+     // console.log('datos ', data)
       const query = ` SELECT * FROM public.sp_encabezado_documentos($1, $2, $3);`;
       const params = [data.id_tipo_documento, data.id_obra, data.id_solicitud];
       const resultado = await this.informeRepositorio.query(query, params);
