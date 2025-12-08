@@ -675,7 +675,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
    const porcTotalRow = [
      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_reordenamiento, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
   
    arrayData.push(totalRow);
@@ -741,7 +741,7 @@ buildContenidoPlanilla2(data: any[], formatoNumerico: Intl.NumberFormat) {
    const porcTotalRow = [
      {colSpan: 3, text: 'PORCENTAJE TOTAL RESPECTO AL CONTRATO INICIAL', style: 'textTitulo2', alignment: 'right' }, {}, {}, 
      {}, {}, {}, {}, {}, {}, {}, {}, {}, 
-     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_total, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
+     { text: this.formatIfNumber(this.datosPlanillaR[0].porcentaje_reordenamiento, formatoNumerico5) + '%', style: 'textTitulo2', alignment: 'right', margin: [0,5,0,0]}
    ];
   
    arrayData.push(totalRow);
