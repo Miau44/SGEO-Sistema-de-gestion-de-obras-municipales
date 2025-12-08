@@ -21,6 +21,9 @@ import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { ActualizarModDto } from './dto/modificacion.dto';   
+import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto'
+import { IsNumeric } from 'sequelize-typescript';
+import { NOW } from 'sequelize';
 
 
 @Injectable()
@@ -55,6 +58,17 @@ export class ModificacionPagoService {
     }
 
   }
+
+
+  async createModificacion(createModificacionDto: CreateModificacionDto) {
+    try {
+      const resultado = await this.modPagoRepositorio.save(createModificacionDto);
+      return this.responseService.success(resultado, "Registrado Correctamente.")
+    } catch (error: any) {
+      return this.responseService.error(error);
+    }
+
+  }  
   findAll() {
     return `This action returns all modificacionPago`;
   }
@@ -222,7 +236,9 @@ export class ModificacionPagoService {
       };
       const respuesta_modpago = await this.create(data_modpago)
       if ([1, 2, 3].includes(tipo)) {
-        const modificacion = {
+
+        
+       /* const modificacion = {
           "id_modificacion_pago": Number(respuesta_modpago.data.id_modificacion_pago),
           "dias_variacion": 0,
           "monto_variacion": 0,
@@ -237,7 +253,29 @@ export class ModificacionPagoService {
           "id_usuario_registro": dto.id_usuario,
           "id_estado": 1
         }
-        entidadGuardada = await this.modificacionRepocitorio.save(modificacion);
+        entidadGuardada = await this.modificacionRepocitorio.save(modificacion);*/
+        const modificacion = {
+          "id_modificacion_pago": Number(respuesta_modpago.data.id_modificacion_pago),
+          "dias_variacion": 0,
+          "monto_variacion": 0,
+          "monto_total": 0,
+          "porcentaje_modificacion": 0,
+          "porcentaje_total": 0,
+          "numero_contrato_modificatorio": "",
+          "fecha_registro_contrato": null,         
+          "fecha_supervisor": null,
+          "fecha_fiscal": null,
+          "fecha_memo_minuta": null,       
+          "fecha_aprobacion": null,  
+          "finalizado": false,                      
+          "id_usuario_registro": dto.id_usuario,
+          "monto_variacion_ultima_mod": dto.id_usuario,      
+          "tipo_edicion": "0",      
+          "id_estado": 1
+
+        }
+    entidadGuardada = await this.modificacionRepocitorio.save(modificacion);
+
 
       } else if ([4, 5, 6, 7].includes(tipo)) {
         const pago = {
@@ -656,6 +694,76 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     } catch (error) {
       return this.responseService.error(error);
     }
+  }
+
+  //servicio para actualizar el Contrato Modificatorio Administrativo
+  async updateModifAdmin(data: ActualizarCMADto) { 
+    try {
+      let query = `SELECT * FROM "vista_contrato_cma" WHERE "id_modificacion" = $1`;
+      const parametros = [data.id_modificacion];
+      const datos = await this.modPagoRepositorio.query(query, parametros);
+      
+      //console.log('DATOS', datos);
+      if (datos.length === 0) {
+      return this.responseService.error(
+        new Error("No se encontró información del contrato"),
+        "No existe información", 404 ); 
+      }  
+
+      const info = datos[0];
+
+      const diasVariacion = Number(data.dias_variacion);
+      const montoVariacion = Number(data.monto_variacion);
+      const plazoContrato = Number(info.plazo_contrato);
+      const montoContrato = Number(info.monto_contrato) || 0;
+
+      if (isNaN(diasVariacion) || isNaN(montoVariacion)) {
+      throw new Error("Los valores enviados no son numéricos.");
+    }
+      //datos tabla 'modificacion'
+      
+      let d_variacion = diasVariacion - plazoContrato;
+      let m_variacion = montoVariacion - montoContrato;
+      let porc_variacion = (montoContrato === 0 ? 0 : (m_variacion / montoContrato) * 100).toFixed(5);
+      let porc_total = porc_variacion;
+
+      //console.log('porc_variacion', porc_variacion);
+           
+      
+      //Actualizar tabla modificacion
+      await this.modificacionRepo
+        .createQueryBuilder()
+        .update('modificacion')
+        .set({
+          dias_variacion: d_variacion,
+          monto_variacion: m_variacion,
+          monto_total: data.monto_variacion,
+          porcentaje_modificacion: porc_variacion,
+          porcentaje_total: porc_total,
+          fecha_modificacion: () => "NOW()"
+        })
+        .where('id_modificacion = :id', { id: data.id_modificacion })
+        .execute();
+
+        //console.log('DATOS', info);
+        //datos tabla 'modificacion_pago'
+        await this.modPagoRepositorio.query(
+      `SELECT f_actualizar_modificacionpago_cma($1, $2, $3, $4, $5, $6)`,
+      [
+        info.id_obra, 
+        info.id_modificacion_pago, 
+        porc_variacion, 
+        m_variacion,    
+        d_variacion, 
+        new Date(info.fecha_recep_provisional).toISOString()
+      ]
+    );
+
+      return this.responseService.success(datos, 'Correcto!!!'); 
+    } catch (error) {
+        return this.responseService.error(error);
+    }    
+   
   }
   
 
