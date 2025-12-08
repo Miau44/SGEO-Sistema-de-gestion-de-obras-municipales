@@ -60,7 +60,11 @@ export class Pago {
     finalizado: boolean;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
-    fecha_certificado: Date|null;       
+    fecha_certificado: Date|null;
+    
+    //campo de origen para protocolo o edicion
+    // @Column({ type: 'varchar', default: 'edicion' })
+    // tipo_edicion: string;
   
     ///campos de tabla generales
     @Column()

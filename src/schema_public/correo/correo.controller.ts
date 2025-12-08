@@ -3,7 +3,9 @@ import { CorreoService } from './correo.service';
 import { CreateCorreoDto } from './dto/create-correo.dto';
 import { UpdateCorreoDto } from './dto/update-correo.dto';
 import { EnviarCorreoProcesoDto } from './dto/enviar-correo-proceso.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Correo')
 @Controller('correo')
 export class CorreoController {
   constructor(private readonly correoService: CorreoService) {}

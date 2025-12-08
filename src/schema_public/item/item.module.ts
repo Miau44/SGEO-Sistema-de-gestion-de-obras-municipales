@@ -4,7 +4,7 @@ import { ItemService } from './item.service';
 import { ItemController } from './item.controller';
 import { Item } from './entities/item.entity';
 import { ResponseService } from 'src/response.service';
-import { ExternoService } from 'src/schema_private/externo/externo.service';
+//import { ExternoService } from 'src/schema_private/externo/externo.service';
 import { PlanillaService } from '../planilla/planilla.service';
 import { Planilla } from '../planilla/entities/planilla.entity';
 import { LogModule } from '../log/log.module';
@@ -23,7 +23,7 @@ import { Correlativo } from '../correlativo/entities/correlativo.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Item, Planilla, Obra, Informe, InformeInicial, Solicitud, SolicitudHistorial, Documento, Correlativo]), LogModule], // Se importa la entidad Item para TypeORM
   controllers: [ItemController],
-  providers: [ItemService, ResponseService, ExternoService, PlanillaService, ObraService, InformeService, SolicitudService, CorrelativoService], 
+  providers: [ItemService, ResponseService,  PlanillaService, ObraService, InformeService, SolicitudService, CorrelativoService], 
   exports: [ItemService],  // Esto permite que el servicio sea usado en otros módulos si es necesario
 })
 export class ItemModule {}
