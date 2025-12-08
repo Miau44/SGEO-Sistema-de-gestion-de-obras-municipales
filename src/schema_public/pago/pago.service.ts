@@ -250,6 +250,15 @@ export class PagoService {
         mensaje += 'El Monto de Pago no debe sobrepasar el (Monto Autorizado). Verifique los ítems resaltados en rojo para corregirlos.';
       }
 
+           
+      const params5 = [data.id_modificacion_pago]
+      const diferenciaTotalQuery = await this.pagoRepositorio.query(
+        ` SELECT CASE WHEN ROUND(n_monto_acumulado,2) > ROUND(n_total_autorizado,2) THEN TRUE ELSE FALSE END AS diferenciapago
+         FROM  public.vista_pago_resumen  WHERE id_modificacion_pago = $1  `, params5);
+      if (diferenciaTotalQuery[0].diferenciapago) {
+        mensaje += 'El Monto Certificado Total no puede ser mayor al Monto Autorizado. Verifique los ítems para corregir.';
+      }
+
       return {
         valido: mensaje === '',
         mensaje: mensaje || 'Validaciones correctas.',

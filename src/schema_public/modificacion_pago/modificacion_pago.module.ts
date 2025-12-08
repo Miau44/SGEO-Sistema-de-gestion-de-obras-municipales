@@ -28,5 +28,6 @@ imports: [TypeOrmModule.forFeature([ModificacionPago, Solicitud, SolicitudHistor
 
   controllers: [ModificacionPagoController],
   providers: [ModificacionPagoService, ResponseService, CorrelativoService ,SolicitudService, PlanillaService, InformeService], 
+  exports: [ModificacionPagoService],
 })
 export class ModificacionPagoModule {}

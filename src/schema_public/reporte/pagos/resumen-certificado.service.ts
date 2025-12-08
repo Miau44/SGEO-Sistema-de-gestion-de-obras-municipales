@@ -459,7 +459,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                                       ]
                                   ]
                                 ),
-                            ...(this.datosEnvio[0].numero_pago > 1 //Si es el primer pago NO se muestra Importes anteriores
+                            ...(this.datosEnvio[0].numero_pago_total > 1 //Si es el primer pago NO se muestra Importes anteriores
                             ?[
                                [
                                 { text: 'Importe certificados anteriores:', style: 'textTitulo', alignment: 'left'},
@@ -522,7 +522,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                             [{ text: 'Saldo:', style: 'textTitulo', alignment: 'left'},
                               ...( this.datosEnvio[0].bandera_modif == 0
                                 ?[ 
-                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - this.datosEnvio[0].monto_presente,formatoNumerico2) + ' Bs.', 
+                                  { text: this.formatIfNumber(this.datosEnvio[0].monto_contrato - Number(totalcertificado || 0),formatoNumerico2) + ' Bs.', 
                                     style: 'textDato', alignment: 'right', margin: [0, 0, 30, 0]}
                                 ]
                                 :[
@@ -930,7 +930,9 @@ formatearFecha(iso: string | null | undefined): string | undefined {
       const centena = Math.floor(value / 100);
       const resto = value % 100;
       if (value === 100) return 'CIEN';
-      return `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+      return resto === 0
+    ? this.centenas[centena]
+    : `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
     }
     if (value < 1_000_000) {
       const miles = Math.floor(value / 1000);
