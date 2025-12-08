@@ -11,6 +11,7 @@ import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificac
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ActualizarModDto } from './dto/modificacion.dto';
+import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto';
 
 
 
@@ -212,5 +213,15 @@ export class ModificacionPagoController {
 
 
   
+
+   @Public()
+  @Post('actualizar-modifAdm')
+  Actualizar_ModifAdm(@Body() data: ActualizarCMADto) {
+    try {
+      return this.modificacionPagoService.updateModifAdmin(data);
+    } catch (error) {
+      throw new HttpException('Error al actualizar datos', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  } 
 
 }
