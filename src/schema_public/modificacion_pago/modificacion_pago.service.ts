@@ -388,7 +388,7 @@ export class ModificacionPagoService {
     // 1️⃣ Validar que todos los registros en `item` sean `finalizado = true`
     const itemQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
-       FROM public.item WHERE id_obra = $1 AND id_estado = 1`, params1);
+       FROM public.item WHERE id_obra = $1 AND id_estado = 1 AND id_tipo_item =264`, params1);
     if (Number(itemQuery[0].total) === 0 || Number(itemQuery[0].total) !== Number(itemQuery[0].finalizados)) {
       mensaje += 'Todos los Ítems deben deben estar finalizados antes de enviar al Fiscal.<br><br>';
     }
@@ -410,7 +410,7 @@ export class ModificacionPagoService {
      WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_solicitud = $2 AND id_estado = 1`, params3);
 
     if (Number(informeQuery[0].total) === 0) {
-      mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
+      mensaje += 'Debe completar el Informe antes de enviar al Fiscal. <br><br>';
     }
 
     
@@ -442,7 +442,7 @@ const documentoQuery = await this.modPagoRepositorio.query(
   params4,
 );
 
-// 4️⃣ Validación
+
 if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   mensaje += 'Debe completar los documentos adjuntos obligatorios antes de enviar al Fiscal.';
 }
