@@ -224,4 +224,16 @@ export class ModificacionPagoController {
     }
   } 
 
+
+  @Public()
+  @Post('aprobar-cma')
+  Aprobar_CMA(@Body() data: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.aprobarCMA(data);
+    } catch (error) {
+      throw new HttpException('Error al actualizar datos', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  
 }
