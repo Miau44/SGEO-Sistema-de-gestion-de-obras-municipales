@@ -780,4 +780,19 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
 
+  //Aprobar Contrato Modificatorio Administrativo
+  async aprobarCMA(data: ValidarModificacionDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  public.sp_aprobacion_cma($1, $2);`  ;
+      const params = [data.id_modificacion_pago, data.id_obra];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      
+      return this.responseService.success([true], "Proceso Correcto!!!")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
 }
