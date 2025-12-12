@@ -727,9 +727,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       let porc_variacion = (montoContrato === 0 ? 0 : (m_variacion / montoContrato) * 100).toFixed(5);
       let porc_total = porc_variacion;
 
-      //console.log('porc_variacion', porc_variacion);
-           
-      
+      //console.log('porc_variacion', porc_variacion); 
       //Actualizar tabla modificacion
       await this.modificacionRepo
         .createQueryBuilder()
@@ -740,25 +738,31 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
           monto_total: data.monto_variacion,
           porcentaje_modificacion: porc_variacion,
           porcentaje_total: porc_total,
+          monto_variacion_ultima_mod: m_variacion,
           fecha_modificacion: () => "NOW()"
         })
         .where('id_modificacion = :id', { id: data.id_modificacion })
         .execute();
 
-        //console.log('DATOS', info);
+        console.log('DATOS', info);
+        console.log('porc_variacion',porc_variacion);
+        console.log('m_variacion',m_variacion);
+        console.log('d_variacion',d_variacion);
+        console.log('info.fecha_recep_provisional', new Date(info.fecha_recep_provisional).toISOString());
         //datos tabla 'modificacion_pago'
         await this.modPagoRepositorio.query(
-      `SELECT f_actualizar_modificacionpago_cma($1, $2, $3, $4, $5, $6)`,
+      `SELECT f_actualizar_modificacionpago_cma($1, $2, $3, $4, $5, $6, $7)`,
       [
         info.id_obra, 
         info.id_modificacion_pago, 
         porc_variacion, 
         m_variacion,    
         d_variacion, 
-        new Date(info.fecha_recep_provisional).toISOString()
+        new Date(info.fecha_recep_provisional).toISOString(),
+        plazoContrato
       ]
     );
-
+    console.log('d_variacion',d_variacion);
       return this.responseService.success(datos, 'Correcto!!!'); 
     } catch (error) {
         return this.responseService.error(error);
