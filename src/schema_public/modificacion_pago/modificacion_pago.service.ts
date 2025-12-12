@@ -269,7 +269,7 @@ export class ModificacionPagoService {
           "fecha_aprobacion": null,  
           "finalizado": false,                      
           "id_usuario_registro": dto.id_usuario,
-          "monto_variacion_ultima_mod": dto.id_usuario,      
+          "monto_variacion_ultima_mod": 0,      
           "tipo_edicion": "0",      
           "id_estado": 1
 
