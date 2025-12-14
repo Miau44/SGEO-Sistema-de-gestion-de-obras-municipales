@@ -1204,8 +1204,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
               [
                 { text: 'A:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { text: [
-                  { text: this.datosEnvio[0].a_nombre + '\n', style: 'textDato', alignment: 'left' },
-                  { text: this.datosEnvio[0].a_cargo, style: 'textTitulo' }
+                  { text: this.datosEnvio?.[0]?.a_nombre 
+                    ? this.datosEnvio[0].a_nombre + '\n'
+                    : '', style: 'textDato', alignment: 'left' },
+                  { text: this.datosEnvio?.[0]?.a_cargo
+                    ? this.datosEnvio[0].a_cargo
+                    : '', style: 'textTitulo' }
                 ] 
               }
               ],
@@ -1213,8 +1217,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
                 { text: 'DE:', style: 'textTitulo', margin: [0, 6, 0, 0], alignment: 'right' },
                 { 
                   text: [
-                      { text: this.datosEnvio[0].de_nombre + '\n', style: 'textDato', alignment: 'left' },
-                      { text: this.datosEnvio[0].de_cargo, style: 'textTitulo', alignment: 'left' },
+                      { text: this.datosEnvio?.[0]?.de_nombre
+                        ? this.datosEnvio[0].de_nombre + '\n'
+                        : '', style: 'textDato', alignment: 'left' },
+                      { text: this.datosEnvio?.[0]?.de_cargo
+                        ? this.datosEnvio[0].de_cargo
+                        : '', style: 'textTitulo', alignment: 'left' },
                     ]
                 },
               ],
@@ -1333,7 +1341,11 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         {
           table: {
             widths: ['50%', '50%'],
-            body: (this.datosEnvio[0].de_nombre ? this.datosEnvio[0].de_nombre.split('\n') : []).map((nombre: string) => [
+            body: (
+            this.datosEnvio?.[0]?.de_nombre
+              ? this.datosEnvio[0].de_nombre.split('\n')
+              : ['']
+          ).map((nombre: string) => [
               { 
                 text: [
                   { text: nombre, style: 'textDato' },
