@@ -786,7 +786,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   //Obtener datos Modificacion
   async obtenerModificacionOne(id_modificacion: number) {
     try {
-      let query = `SELECT * FROM public."vista_mod_pago_cma" WHERE id_modificacion = $1`  ;
+      let query = `SELECT * FROM public."vista_modificacionpago_cma" WHERE id_modificacion = $1`  ;
       const params = [id_modificacion];
       const resultado = await this.modificacionRepo.query(query, params);
         
