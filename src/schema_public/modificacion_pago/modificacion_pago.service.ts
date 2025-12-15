@@ -770,7 +770,6 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
    
   }
   
-
   async actualizarDiazVariacion(data: ActualizarModDto) {
     try {
       let query = ` 
@@ -784,6 +783,17 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
 
+  //Obtener datos Modificacion
+  async obtenerModificacionOne(id_modificacion: number) {
+    
+    try {
+      const resultado = await this.modificacionRepo.findOneBy({ id_modificacion });
+      return this.responseService.success(resultado, "Listado Correctamente!!!")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   //Aprobar Contrato Modificatorio Administrativo
   async aprobarCMA(data: ValidarModificacionDto) {
     try {
@@ -792,7 +802,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.modPagoRepositorio.query(query, params);
       
-      return this.responseService.success([true], "Proceso Correcto!!!")
+      return this.responseService.success([true], "Proceso ejecutado Correctamente!!!")
     } catch (error) {
       return this.responseService.error(error);
     }
