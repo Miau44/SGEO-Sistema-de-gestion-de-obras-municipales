@@ -785,9 +785,11 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
 
   //Obtener datos Modificacion
   async obtenerModificacionOne(id_modificacion: number) {
-    
     try {
-      const resultado = await this.modificacionRepo.findOneBy({ id_modificacion });
+      let query = `SELECT * FROM public."vista_mod_pago_cma" WHERE id_modificacion = $1`  ;
+      const params = [id_modificacion];
+      const resultado = await this.modificacionRepo.query(query, params);
+        
       return this.responseService.success(resultado, "Listado Correctamente!!!")
     } catch (error) {
       return this.responseService.error(error);
