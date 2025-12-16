@@ -8,6 +8,7 @@ import { ResponseService } from 'src/response.service';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { MemorandumService } from '../memorandum/memorandum.service';
 import { Memorandum } from '../memorandum/entities/memorandum.entity';
+import { SuspensionObraDto } from './suspension-obra.dto';
 
 
 @Injectable()
@@ -16,22 +17,19 @@ export class SuspensionService {
   constructor(
     @InjectRepository(Suspension) private suspensionRepositorio: Repository<Suspension>,
 
-  
+
     private responseService: ResponseService,
     private correlativoService: CorrelativoService,
-    private memoService: MemorandumService,        
+    private memoService: MemorandumService,
   ) { }
 
 
   async create(createSuspensionDto: CreateSuspensionDto) {
     try {
 
-      //1. Crear Suspension
-      const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
-      // 2. Crear correlativo para MEMORANDUM
       const correlativoMemoRes = await this.correlativoService.create({
         id_obra: createSuspensionDto.id_obra,
-        id_tipo_documento: createSuspensionDto.id_tipo_suspension,
+        id_tipo_documento: 243,
         correlativo: '',
         usuario_registro: createSuspensionDto.id_usuario,
         id_estado: 1
@@ -43,21 +41,28 @@ export class SuspensionService {
         throw new Error('Error al generar correlativo del memorandum');
       }
 
- const data_memo = {
+      const data_memo = {
         "id_obra": createSuspensionDto.id_obra,
-        "id_tipo_memo":createSuspensionDto.id_tipo_suspension,
+        "id_tipo_memo": createSuspensionDto.id_tipo_suspension,
         "id_correlativo": idCorrelativoMemo,
         "fecha_memo": new Date(),
         "nombre_destinatario": "",
-        "referencia":"",
-        "descripcion":"",
+        "referencia": "",
+        "descripcion": "",
         "nombre_remitente": "",
         "cargo_remitente": "",
-        "id_estado":1,
+        "id_estado": 1,
         "id_usuario": createSuspensionDto.id_usuario,
       };
-     const resultado_memo = await this.memoService.create(data_memo);      
-      //paola
+      const resultado_memo = await this.memoService.create(data_memo);
+
+      createSuspensionDto.id_memo = resultado_memo.data.id_memo;
+      const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
+
+        if (!resultado) {
+        throw new Error('No se pudo la suspension');
+      }
+  
       const datos = {
         id_tipo_memo: createSuspensionDto.id_tipo_suspension,
         id_obra: createSuspensionDto.id_obra,
@@ -65,7 +70,7 @@ export class SuspensionService {
       }
 
       console.log('datos...', datos);
-      
+
       const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
       if (!encabezado) {
         throw new Error('No se pudo crear el encabezado de documentos');
@@ -100,18 +105,18 @@ export class SuspensionService {
     return `This action removes a #${id} suspension`;
   }
 
-  /* async actualizarPlanilla() {
+   async listaSupension(data:SuspensionObraDto) {
      try {
        ;
        let query =
-         `SELECT   sp_modificacion_actualizar_planilla($1);  `;
-       const params: any[] = [data.id_modificacion_pago];
-       const resultado: any[] = await this.planillaRepositorio.query(query, params);
+         `SELECT  * FROM vista_lista_suspension WHERE id_obra = $1;  `;
+       const params: any[] = [data.id_obra];
+       const resultado: any[] = await this.suspensionRepositorio.query(query, params);
        return this.responseService.success(resultado, "Listado Correctamente.")
      } catch (error) {
        return this.responseService.error(error);
      }
-   }*/
+   }
 
 
 

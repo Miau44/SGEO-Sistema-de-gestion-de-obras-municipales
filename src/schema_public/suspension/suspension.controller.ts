@@ -4,6 +4,7 @@ import { CreateSuspensionDto } from './dto/create-suspension.dto';
 import { UpdateSuspensionDto } from './dto/update-suspension.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
+import { SuspensionObraDto } from './suspension-obra.dto';
 
 @ApiTags('suspension')
 @Controller('suspension')
@@ -40,4 +41,15 @@ export class SuspensionController {
   remove(@Param('id') id: string) {
     return this.suspensionService.remove(+id);
   }
+
+
+
+@Public()
+  @Post('lista-suspension')
+  listaItem(@Body() data: SuspensionObraDto) {
+    try {  
+      return this.suspensionService.listaSupension(data);
+    } catch (error) {
+    }
+  }  
 }

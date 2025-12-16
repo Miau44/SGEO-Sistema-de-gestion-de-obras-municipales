@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
 import { Reinicio } from "./reinicio.entity";
+import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 
 @Entity()
 export class Suspension {
@@ -31,6 +32,9 @@ export class Suspension {
     @Column()
     id_usuario: number;
 
+    @Column()
+    id_memo: number;    
+
     @Column({  default: 1 })
     id_estado: number;
   
@@ -49,7 +53,9 @@ export class Suspension {
     Reinicio:Reinicio;
 
 
-
+// correlativo entity
+    @OneToOne(() => Memorandum, (memorandum) => memorandum.id_memo)
+    memorandum: Memorandum;    
 
 
 }

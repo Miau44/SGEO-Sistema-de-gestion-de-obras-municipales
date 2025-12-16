@@ -30,6 +30,11 @@ export class CreateSuspensionDto {
     @IsInt()
     @ApiProperty()
     @IsNotEmpty()
-    id_estado: number;      
+    id_estado: number;   
+    
+      @IsInt()
+    @ApiProperty()
+    @IsNotEmpty()
+    id_memo: number;  
 
 }
