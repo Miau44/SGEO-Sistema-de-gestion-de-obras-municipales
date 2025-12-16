@@ -8,16 +8,20 @@ import { Public } from 'src/common/decorators/public.decorator';
 @ApiTags('suspension')
 @Controller('suspension')
 export class SuspensionController {
-  constructor(private readonly suspensionService: SuspensionService) {}
+  constructor(private readonly suspensionService: SuspensionService) { }
 
   @Post()
   create(@Body() createSuspensionDto: CreateSuspensionDto) {
-    return this.suspensionService.create(createSuspensionDto);
+    try {
+      return this.suspensionService.create(createSuspensionDto);
+    } catch { }
   }
 
   @Get()
   findAll() {
+    try {    
     return this.suspensionService.findAll();
+ } catch (error) { }    
   }
 
   @Get(':id')
@@ -27,7 +31,9 @@ export class SuspensionController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSuspensionDto: UpdateSuspensionDto) {
-    return this.suspensionService.update(+id, updateSuspensionDto);
+    try {
+      return this.suspensionService.update(+id, updateSuspensionDto);
+    } catch { }
   }
 
   @Delete(':id')

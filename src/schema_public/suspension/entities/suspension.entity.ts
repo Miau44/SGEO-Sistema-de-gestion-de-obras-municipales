@@ -17,7 +17,7 @@ export class Suspension {
     id_motivo_suspension:number;    
 
     @Column({nullable:true})
-    id_padre:number;       
+    id_padre_suspension:number;       
 
     @Column()
     fecha_suspension:Date;
@@ -41,12 +41,10 @@ export class Suspension {
     fecha_modificacion: Date
 
 
-
     @ManyToOne(() => Obra, (obra) => obra.suspension)
     @JoinColumn({ name: 'id_obra' }) // Indica el nombre de la columna FK
     obra: Obra; 
     
-
     @OneToMany(() => Reinicio,(reinicio)=> reinicio.id_suspension, {cascade:true} )
     Reinicio:Reinicio;
 

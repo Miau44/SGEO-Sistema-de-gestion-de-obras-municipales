@@ -41,6 +41,11 @@ export class Memorandum {
 
     @Column({nullable: true})
     id_solicitud: number;
+
+
+     @Column({ type: 'json', nullable: true })
+    de_nombre: string;
+ 
         
 
     @Column({ default : 1})
