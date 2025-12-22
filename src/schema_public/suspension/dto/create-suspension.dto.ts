@@ -12,6 +12,10 @@ export class CreateSuspensionDto {
     
     @ApiProperty()
     id_motivo_suspension: number;   
+
+    
+    @ApiProperty()
+    id_padre_suspension:number;    
     
     @ApiProperty()
     fecha_suspension: Date;  
@@ -20,7 +24,7 @@ export class CreateSuspensionDto {
     justificacion: string;  
     
     @ApiProperty()
-    id_estado_asignacion: number;  
+    finalizado: boolean;  
     
     @IsInt()
     @ApiProperty()

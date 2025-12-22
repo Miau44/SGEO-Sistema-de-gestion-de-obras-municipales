@@ -5,6 +5,7 @@ import { UpdateSuspensionDto } from './dto/update-suspension.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { SuspensionObraDto } from './suspension-obra.dto';
+import { CreateReinicioDto } from './dto/dto-reinicio/create-reinicio.dto';
 
 @ApiTags('suspension')
 @Controller('suspension')
@@ -46,10 +47,29 @@ export class SuspensionController {
 
 @Public()
   @Post('lista-suspension')
-  listaItem(@Body() data: SuspensionObraDto) {
+  listaSuspension(@Body() data: SuspensionObraDto) {
     try {  
       return this.suspensionService.listaSupension(data);
     } catch (error) {
     }
   }  
+
+  @Public()
+  @Post('lista-suspension-obra')
+  listaSuspensionCodigo(@Body() data: SuspensionObraDto) {
+    try {  
+      return this.suspensionService.listaSupensionXObra(data);
+    } catch (error) {
+    }
+  }  
+  
+
+ @Post('create-reinicio')
+  createReinicio(@Body() createReinicioDto: CreateReinicioDto) {
+    try {
+      return this.suspensionService.createReinicio(createReinicioDto);
+    } catch { }
+  }
+
+
 }

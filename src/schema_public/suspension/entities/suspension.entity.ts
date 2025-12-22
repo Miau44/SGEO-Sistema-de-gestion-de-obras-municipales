@@ -27,7 +27,7 @@ export class Suspension {
     justificacion:string;
 
     @Column()
-    id_estado_asignacion: number;
+    finalizado: boolean;
 
     @Column()
     id_usuario: number;

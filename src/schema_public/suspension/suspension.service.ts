@@ -9,6 +9,8 @@ import { CorrelativoService } from '../correlativo/correlativo.service';
 import { MemorandumService } from '../memorandum/memorandum.service';
 import { Memorandum } from '../memorandum/entities/memorandum.entity';
 import { SuspensionObraDto } from './suspension-obra.dto';
+import { Reinicio } from './entities/reinicio.entity';
+import { CreateReinicioDto } from './dto/dto-reinicio/create-reinicio.dto';
 
 
 @Injectable()
@@ -16,7 +18,7 @@ export class SuspensionService {
 
   constructor(
     @InjectRepository(Suspension) private suspensionRepositorio: Repository<Suspension>,
-
+    @InjectRepository(Reinicio) private reinicioRepositorio: Repository<Reinicio>,    
 
     private responseService: ResponseService,
     private correlativoService: CorrelativoService,
@@ -26,7 +28,6 @@ export class SuspensionService {
 
   async create(createSuspensionDto: CreateSuspensionDto) {
     try {
-
       const correlativoMemoRes = await this.correlativoService.create({
         id_obra: createSuspensionDto.id_obra,
         id_tipo_documento: 243,
@@ -34,9 +35,7 @@ export class SuspensionService {
         usuario_registro: createSuspensionDto.id_usuario,
         id_estado: 1
       });
-      console.log('⬅️ Respuesta de correlativoService.create:', correlativoMemoRes);
       const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
-
       if (correlativoMemoRes.statusCode !== 200) {
         throw new Error('Error al generar correlativo del memorandum');
       }
@@ -55,9 +54,17 @@ export class SuspensionService {
         "id_usuario": createSuspensionDto.id_usuario,
       };
       const resultado_memo = await this.memoService.create(data_memo);
-
       createSuspensionDto.id_memo = resultado_memo.data.id_memo;
+
       const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
+      if(createSuspensionDto.id_tipo_suspension == 380){
+      const respuestafalse = await this.buscarSuspensiones(createSuspensionDto.id_obra, false); 
+    const data_update = {"id_padre_suspension" : respuestafalse.data.id_suspension}   
+      this.update(respuestafalse.data.id_suspension, data_update )
+      
+      respuestafalse.data.id_suspension 
+        resultado.id_suspension 
+      }
 
         if (!resultado) {
         throw new Error('No se pudo la suspension');
@@ -69,14 +76,10 @@ export class SuspensionService {
         id_memo: resultado_memo.data.id_memo,
       }
 
-      console.log('datos...', datos);
-
       const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
       if (!encabezado) {
         throw new Error('No se pudo crear el encabezado de documentos');
       }
-
-
       return this.responseService.success(resultado, "Registrado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
@@ -93,13 +96,44 @@ export class SuspensionService {
     }
   }
 
+async buscarSuspensiones(id_obra: number, finalizado: boolean) {
+  try {
+    const resultado = await this.suspensionRepositorio.find({
+      where: {
+        id_obra,
+        finalizado,
+      },
+    });
+
+    return this.responseService.success(
+      resultado,
+      'Listado filtrado correctamente.'
+    );
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+
+
+
+
+
+
   findOne(id: number) {
     return `This action returns a #${id} suspension`;
   }
 
-  update(id: number, updateSuspensionDto: UpdateSuspensionDto) {
-    return `This action updates a #${id} suspension`;
+
+
+  async update(id_suspension: number, updateSuspensionDto: UpdateSuspensionDto) {
+    try {
+      const resultado = await this.suspensionRepositorio.update(id_suspension, updateSuspensionDto)
+      return this.responseService.success(id_suspension, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }        
   }
+
 
   remove(id: number) {
     return `This action removes a #${id} suspension`;
@@ -109,7 +143,7 @@ export class SuspensionService {
      try {
        ;
        let query =
-         `SELECT  * FROM vista_lista_suspension WHERE id_obra = $1;  `;
+         `SELECT  * FROM public.vista_lista_suspension WHERE id_obra = $1;  `;
        const params: any[] = [data.id_obra];
        const resultado: any[] = await this.suspensionRepositorio.query(query, params);
        return this.responseService.success(resultado, "Listado Correctamente.")
@@ -117,6 +151,84 @@ export class SuspensionService {
        return this.responseService.error(error);
      }
    }
+
+  async listaSupensionXObra(data:SuspensionObraDto) {
+     try {
+       ;
+       let query =
+         `SELECT  * FROM public.vista_lista_suspension_codigo WHERE id_obra = $1;  `;
+       const params: any[] = [data.id_obra];
+       const resultado: any[] = await this.suspensionRepositorio.query(query, params);
+       return this.responseService.success(resultado, "Listado Correctamente.")
+     } catch (error) {
+       return this.responseService.error(error);
+     }
+   }
+
+
+   /////////////////////////////////////////////////////////////////////////////////////////////
+
+  async createReinicio(createReinicioDto: CreateReinicioDto) {
+    try {
+
+      console.log(' 1 createReinicioDto', createReinicioDto);
+
+      const correlativoMemoRes = await this.correlativoService.create({
+        id_obra: createReinicioDto.id_obra,
+        id_tipo_documento: 373,
+        correlativo: '',
+        usuario_registro: createReinicioDto.id_usuario,
+        id_estado: 1
+      });
+      const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
+      if (correlativoMemoRes.statusCode !== 200) {
+        throw new Error('Error al generar correlativo del memorandum');
+      }
+
+   
+      console.log(' 2 idCorrelativoMemo', idCorrelativoMemo);
+
+         const data_memo = {
+        "id_obra": createReinicioDto.id_obra,
+        "id_tipo_memo": 373,
+        "id_correlativo": idCorrelativoMemo,
+        "fecha_memo": new Date(),
+        "nombre_destinatario": "",
+        "referencia": "",
+        "descripcion": "",
+        "nombre_remitente": "",
+        "cargo_remitente": "",
+        "id_estado": 1,
+        "id_usuario": createReinicioDto.id_usuario,
+      };
+      const resultado_memo_re = await this.memoService.create(data_memo);
+      console.log(' 3 resultado_memo_re', resultado_memo_re);
+      createReinicioDto.id_memo = resultado_memo_re.data.id_memo;
+         console.log(' 4 createReinicioDto.id_memo', createReinicioDto.id_memo);
+      
+console.log(' 5 createReinicioDto', createReinicioDto);      
+      const resultadoReinicio = await this.reinicioRepositorio.save(createReinicioDto);
+console.log(' 6 resultadoReinicio', resultadoReinicio);
+        if (!resultadoReinicio) {
+        throw new Error('No se pudo crear la suspension');
+      }
+  
+      const datos = {
+        id_tipo_memo: 373,
+        id_obra: createReinicioDto.id_obra,
+        id_memo: resultado_memo_re.data.id_memo,
+      }
+console.log('reinicio memo', datos);
+
+      const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
+      if (!encabezado) {
+        throw new Error('No se pudo crear el encabezado de documentos');
+      }
+      return this.responseService.success(resultadoReinicio, "Registrado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 
 
