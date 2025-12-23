@@ -192,7 +192,7 @@ export class MemorandumService {
 
       };
 
-      const tiposValidos = [373,374, 243];
+      const tiposValidos = [373,374, 243, 380,379];
       let resultado = null;
       if (tiposValidos.includes(data.id_tipo_memo)) {
         const encabezado = await this.encabezadoDocumentosMemoramdum(datos);
