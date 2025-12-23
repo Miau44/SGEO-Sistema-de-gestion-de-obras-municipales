@@ -119,10 +119,16 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
 
 
 
-  findOne(id: number) {
-    return `This action returns a #${id} suspension`;
-  }
 
+
+    async findOne(id_suspension: number) {
+    try {
+      const resultado = await this.suspensionRepositorio.findOneBy({ id_suspension });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 
   async update(id_suspension: number, updateSuspensionDto: UpdateSuspensionDto) {
