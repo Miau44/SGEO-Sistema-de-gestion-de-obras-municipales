@@ -8,11 +8,12 @@ import { LlamadaAtencionController } from './llamada_atencion.controller';
 import { ResponseService } from 'src/response.service';
 import { CorrelativoModule } from '../correlativo/correlativo.module';
 import { Memorandum } from '../memorandum/entities/memorandum.entity';
+import { MemorandumModule } from '../memorandum/memorandum.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([LlamadaAtencion, Memorandum]),
-    CorrelativoModule,
+    MemorandumModule, CorrelativoModule,
   ],
   
   controllers: [LlamadaAtencionController],

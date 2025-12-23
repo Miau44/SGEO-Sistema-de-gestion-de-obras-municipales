@@ -9,6 +9,7 @@ import { CorrelativoService } from '../correlativo/correlativo.service';
 import { LlamadaAtencion } from './entities/llamada_atencion.entity';
 import { Memorandum } from '../memorandum/entities/memorandum.entity';
 import { CrearLlamadaAtencionFormDto } from './dto/crear-llamada-atencionForm.dto';
+import { MemorandumService } from '../memorandum/memorandum.service';
 
 
 
@@ -18,6 +19,7 @@ export class LlamadaAtencionService {
     private readonly dataSource: DataSource,
     private readonly responseService: ResponseService,
     private readonly correlativoService: CorrelativoService,
+    private readonly memoService: MemorandumService,
 
     @InjectRepository(Memorandum)
     private readonly memoRepo: Repository<Memorandum>,
@@ -86,6 +88,29 @@ export class LlamadaAtencionService {
       });
 
       const memoGuardado = await queryRunner.manager.save(Memorandum, memo);
+
+      // ✅ Encabezado: actualizar de_nombre y cargo_remitente del memo recién creado
+      const datos = {
+        id_tipo_memo: ID_TIPO_MEMO,     // 374
+        id_obra: dto.id_obra,
+        id_memo: memoGuardado.id_memo,
+      };
+
+      const encabezado = await this.memoService.crearencabezadoDocumentos(datos);
+      if (!encabezado || encabezado.statusCode !== 200) {
+        throw new Error('No se pudo crear/obtener el encabezado de documentos');
+      }
+
+      // Si tu método devuelve data[0] con de_nombre y de_cargo, actualizamos el memo:
+      if (encabezado?.data?.length) {
+        const datosencabezado = {
+          de_nombre: encabezado.data[0].de_nombre || [],
+          cargo_remitente: encabezado.data[0].de_cargo || '',
+        };
+
+        // ✅ dentro de la transacción
+        await queryRunner.manager.update(Memorandum, memoGuardado.id_memo, datosencabezado);
+      }
 
       // 4) Crear LlamadaAtencion
       const llamada = queryRunner.manager.create(LlamadaAtencion, {
