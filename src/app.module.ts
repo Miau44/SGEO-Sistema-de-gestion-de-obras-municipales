@@ -46,6 +46,7 @@ import { AvanceFisicoDocumentoModule } from './schema_public/avance_fisico_docum
 import { ArchivoActaModule } from './schema_public/archivo_acta/archivo_acta.module';
 import { ProtocoloModule } from './schema_public/protocolo/protocolo.module';
 import { SuspensionModule } from './schema_public/suspension/suspension.module';
+import { LlamadaAtencionModule } from './schema_public/llamada_atencion/llamada_atencion.module';
 
 
 
@@ -123,7 +124,7 @@ import { SuspensionModule } from './schema_public/suspension/suspension.module';
   AvanceFisicoDocumentoModule,
   ArchivoActaModule,
   ProtocoloModule, 
-  SuspensionModule
+  SuspensionModule, LlamadaAtencionModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
