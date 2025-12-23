@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
 import { Reinicio } from "./reinicio.entity";
+import { Memorandum } from "src/schema_public/memorandum/entities/memorandum.entity";
 
 @Entity()
 export class Suspension {
@@ -17,7 +18,7 @@ export class Suspension {
     id_motivo_suspension:number;    
 
     @Column({nullable:true})
-    id_padre:number;       
+    id_padre_suspension:number;       
 
     @Column()
     fecha_suspension:Date;
@@ -26,10 +27,13 @@ export class Suspension {
     justificacion:string;
 
     @Column()
-    id_estado_asignacion: number;
+    finalizado: boolean;
 
     @Column()
     id_usuario: number;
+
+    @Column()
+    id_memo: number;    
 
     @Column({  default: 1 })
     id_estado: number;
@@ -41,17 +45,17 @@ export class Suspension {
     fecha_modificacion: Date
 
 
-
     @ManyToOne(() => Obra, (obra) => obra.suspension)
     @JoinColumn({ name: 'id_obra' }) // Indica el nombre de la columna FK
     obra: Obra; 
     
-
     @OneToMany(() => Reinicio,(reinicio)=> reinicio.id_suspension, {cascade:true} )
     Reinicio:Reinicio;
 
 
-
+// correlativo entity
+    @OneToOne(() => Memorandum, (memorandum) => memorandum.id_memo)
+    memorandum: Memorandum;    
 
 
 }

@@ -17,6 +17,9 @@ export class Reinicio {
     justificacion_reinicio:string;
 
     @Column()
+    id_memo: number;    
+
+    @Column()
     id_usuario: number;
 
     @Column({  default: 1 })

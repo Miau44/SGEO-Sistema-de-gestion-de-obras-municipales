@@ -10,11 +10,14 @@ import { Informe } from '../informe/entities/informe.entity';
 import { CorrelativoModule } from '../correlativo/correlativo.module';
 import { Contrato } from '../contrato-modificatorio/entities/contrato.entity';
 
+
 @Module({
   imports: [TypeOrmModule.forFeature([Memorandum, Obra, Correlativo, Informe, Contrato]),
   CorrelativoModule, ],
 
   controllers: [MemorandumController],
   providers: [MemorandumService, ResponseService],
+  exports:[MemorandumService]
+
 })
 export class MemorandumModule {}

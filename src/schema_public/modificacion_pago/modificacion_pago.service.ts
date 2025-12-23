@@ -699,7 +699,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   //servicio para actualizar el Contrato Modificatorio Administrativo
   async updateModifAdmin(data: ActualizarCMADto) { 
     try {
-      let query = `SELECT * FROM "vista_contrato_cma" WHERE "id_modificacion" = $1`;
+      let query = `SELECT * FROM public."vista_contrato_cma" WHERE id_modificacion = $1`;
       const parametros = [data.id_modificacion];
       const datos = await this.modPagoRepositorio.query(query, parametros);
       
@@ -744,11 +744,11 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         .where('id_modificacion = :id', { id: data.id_modificacion })
         .execute();
 
-        console.log('DATOS', info);
-        console.log('porc_variacion',porc_variacion);
-        console.log('m_variacion',m_variacion);
-        console.log('d_variacion',d_variacion);
-        console.log('info.fecha_recep_provisional', new Date(info.fecha_recep_provisional).toISOString());
+        // console.log('DATOS', info);
+        // console.log('porc_variacion',porc_variacion);
+        // console.log('m_variacion',m_variacion);
+        // console.log('d_variacion',d_variacion);
+        // console.log('info.fecha_recep_provisional', new Date(info.fecha_recep_provisional).toISOString());
         //datos tabla 'modificacion_pago'
         await this.modPagoRepositorio.query(
       `SELECT f_actualizar_modificacionpago_cma($1, $2, $3, $4, $5, $6, $7)`,
@@ -762,7 +762,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         plazoContrato
       ]
     );
-    console.log('d_variacion',d_variacion);
+    //console.log('d_variacion',d_variacion);
       return this.responseService.success(datos, 'Correcto!!!'); 
     } catch (error) {
         return this.responseService.error(error);
@@ -770,7 +770,6 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
    
   }
   
-
   async actualizarDiazVariacion(data: ActualizarModDto) {
     try {
       let query = ` 
@@ -784,6 +783,19 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
 
+  //Obtener datos Modificacion
+  async obtenerModificacionOne(id_modificacion: number) {
+    try {
+      let query = `SELECT * FROM public."vista_modificacionpago_cma" WHERE id_modificacion = $1`  ;
+      const params = [id_modificacion];
+      const resultado = await this.modificacionRepo.query(query, params);
+        
+      return this.responseService.success(resultado, "Listado Correctamente!!!")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   //Aprobar Contrato Modificatorio Administrativo
   async aprobarCMA(data: ValidarModificacionDto) {
     try {
@@ -792,7 +804,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       const params = [data.id_modificacion_pago, data.id_obra];
       const resultado = await this.modPagoRepositorio.query(query, params);
       
-      return this.responseService.success([true], "Proceso Correcto!!!")
+      return this.responseService.success([true], "Proceso ejecutado Correctamente!!!")
     } catch (error) {
       return this.responseService.error(error);
     }
