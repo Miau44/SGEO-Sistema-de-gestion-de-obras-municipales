@@ -185,19 +185,18 @@ export class MemorandumService {
       console.log('datos de nombre_de y cargo', data);
       
       //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
-      //para actualizar encabezado de documentos 02092025
       const datos = {
         id_tipo_memo: data.id_tipo_memo,
         id_obra: data.id_obra,
         id_memo: data.id_memo,
-       // id_correlativo: data.id_correlativo
+
       };
-        //reinicio, llamada, suspension
+
       const tiposValidos = [373,374, 243];
       let resultado = null;
       if (tiposValidos.includes(data.id_tipo_memo)) {
         const encabezado = await this.encabezadoDocumentosMemoramdum(datos);
-        // const encabezado =  await this.encabezadoDocumentos(datos);
+
         if (data.id_memo) {
           const datosencabezado = {
             de_nombre: encabezado.data[0].de_nombre || [],
@@ -206,14 +205,7 @@ export class MemorandumService {
           resultado = await this.memoRepository.update(data.id_memo, datosencabezado)
         console.log('resultado', resultado)
         }
-        //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
-        //para actualizar encabezado de documentos 02092025
       }
-      /*else {
-        console.log('No aplica la acción');
-      }*/
-
-      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
       return this.responseService.success(resultado, "Registrado Correctamente.");
 
     } catch (error) {
@@ -224,8 +216,6 @@ export class MemorandumService {
 
   async encabezadoDocumentosMemoramdum(data: EncabezadoDocumentoMemoDto) {
     try {
-
-     // console.log('datos ', data)
       const query = ` SELECT * FROM public.sp_encabezado_documentos_memo($1, $2);`;
       const params = [data.id_tipo_memo, data.id_obra];
       const resultado = await this.memoRepository.query(query, params);
