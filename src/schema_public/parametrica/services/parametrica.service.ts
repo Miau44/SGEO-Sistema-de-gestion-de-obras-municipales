@@ -161,6 +161,18 @@ export class ParametricaService {
     }
   }
 
+  
+async buscarPorSubtipo(id_tipo: number, id_subtipo: number) {
+  const query = `
+    SELECT *
+    FROM parametrica
+    WHERE id_tipo = $1 AND id_subtipo = $2 AND id_estado = 1
+    LIMIT 1;
+  `;
+  const resultado = await this.parametricaRepo.query(query, [id_tipo, id_subtipo]);
+  return this.responseService.success(resultado?.[0] ?? null, "OK");
+}
+
 
 
 

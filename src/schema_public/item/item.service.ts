@@ -421,7 +421,7 @@ const resultado = await this.itemRepository.query(query);
     try {
       let query =
         ` UPDATE public.item 
-        SET finalizado =true WHERE id_obra = $1 AND id_estado = 1`;
+        SET finalizado =true, fecha_modificacion = NOW() WHERE id_obra = $1 AND id_estado = 1  AND id_tipo_item =264; `;
       const params = [data.id_obra];
       const resultado = await this.itemRepository.query(query, params);
       return this.responseService.success(resultado, "Actualizado Correctamente.")

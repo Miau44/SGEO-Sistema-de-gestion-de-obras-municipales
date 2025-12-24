@@ -89,6 +89,7 @@ export class ModificacionPagoController {
   }
 
   // 🔹 Obtener datos de una modificación por ID
+  
   @Get(':id')
   async obtenerModificacion(@Param('id') id: number) {
     return await this.modificacionPagoService.obtenerModificacion(id);
@@ -212,6 +213,17 @@ export class ModificacionPagoController {
   } 
 
 
+  //Tabla MODIFICACION
+  @Get('modificacion/:id')
+obtenerModificacionOne(@Param('id') id: string) {
+  try {
+    return this.modificacionPagoService.obtenerModificacionOne(+id);
+  } catch (error) {
+    throw new HttpException(
+      'Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
   
 
    @Public()
@@ -224,4 +236,16 @@ export class ModificacionPagoController {
     }
   } 
 
+
+  @Public()
+  @Post('aprobar-cma')
+  Aprobar_CMA(@Body() data: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.aprobarCMA(data);
+    } catch (error) {
+      throw new HttpException('Error al actualizar datos', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  
 }
