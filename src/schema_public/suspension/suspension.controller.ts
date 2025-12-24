@@ -26,9 +26,13 @@ export class SuspensionController {
  } catch (error) { }    
   }
 
+
+    @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
+        try { 
     return this.suspensionService.findOne(+id);
+  } catch (error) { }    
   }
 
   @Patch(':id')

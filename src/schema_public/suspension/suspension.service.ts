@@ -119,10 +119,16 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
 
 
 
-  findOne(id: number) {
-    return `This action returns a #${id} suspension`;
-  }
 
+
+    async findOne(id_suspension: number) {
+    try {
+      const resultado = await this.suspensionRepositorio.findOneBy({ id_suspension });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 
 
   async update(id_suspension: number, updateSuspensionDto: UpdateSuspensionDto) {
@@ -171,7 +177,7 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
   async createReinicio(createReinicioDto: CreateReinicioDto) {
     try {
 
-      console.log(' 1 createReinicioDto', createReinicioDto);
+
 
       const correlativoMemoRes = await this.correlativoService.create({
         id_obra: createReinicioDto.id_obra,
@@ -186,7 +192,7 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
       }
 
    
-      console.log(' 2 idCorrelativoMemo', idCorrelativoMemo);
+
 
          const data_memo = {
         "id_obra": createReinicioDto.id_obra,
@@ -202,13 +208,10 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
         "id_usuario": createReinicioDto.id_usuario,
       };
       const resultado_memo_re = await this.memoService.create(data_memo);
-      console.log(' 3 resultado_memo_re', resultado_memo_re);
       createReinicioDto.id_memo = resultado_memo_re.data.id_memo;
-         console.log(' 4 createReinicioDto.id_memo', createReinicioDto.id_memo);
       
-console.log(' 5 createReinicioDto', createReinicioDto);      
       const resultadoReinicio = await this.reinicioRepositorio.save(createReinicioDto);
-console.log(' 6 resultadoReinicio', resultadoReinicio);
+
         if (!resultadoReinicio) {
         throw new Error('No se pudo crear la suspension');
       }
@@ -218,7 +221,6 @@ console.log(' 6 resultadoReinicio', resultadoReinicio);
         id_obra: createReinicioDto.id_obra,
         id_memo: resultado_memo_re.data.id_memo,
       }
-console.log('reinicio memo', datos);
 
       const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
       if (!encabezado) {

@@ -23,6 +23,9 @@ import { ResumenCertificado } from './pagos/resumen-certificado.service';
 import { ActaDefinitiva } from './actas/acta_definitiva.service';
 import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.service';
 import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
+import { LlamadaAtencion} from './memorandums/llamada_atencion.service';
+import { SuspensionObra } from './memorandums/suspension.service';
+import { ReinicioObra } from './memorandums/reinicio.service';
 
 @Controller('reporte')
 export class ReportController {
@@ -48,6 +51,9 @@ export class ReportController {
     private readonly actadefinitiva: ActaDefinitiva,
     private readonly informeobrasupervisor2: InformeObraSupervisor2,
     private readonly fichainspeccion: fichaInspeccion,
+    private readonly llamadaatencion: LlamadaAtencion,
+    private readonly suspension: SuspensionObra,
+    private readonly reinicio: ReinicioObra,
 
   ) {}
 
@@ -527,6 +533,49 @@ export class ReportController {
     @Query('id_avance') id_avance: number,
     ): Promise<void> {
       const pdfBuffer = await this.fichainspeccion.generatefichaInspeccion(id_obra, id_avance);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
+///////////////////////// MEMORANDUMS ////////////////////////////////////
+  @Public()
+    @Get('llamada-atencion')
+    async LlamadaAtencion(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    @Query('id_memo') id_memo: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.llamadaatencion.generateLlamadaAtencion(id_obra, id_memo);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+  
+  @Public()
+    @Get('suspension-obra')
+    async SuspensionObra(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    //@Query('id_memo') id_memo: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.suspension.generateSuspensionObra(id_obra);    
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,      
+      });
+      res.send(pdfBuffer);
+    }
+
+    @Public()
+    @Get('reinicio-obra')
+    async ReinicioObra(@Res() res: Response,
+    @Query('id_obra') id_obra: number,
+    //@Query('id_memo') id_memo: number,
+    ): Promise<void> {
+      const pdfBuffer = await this.reinicio.generateReinicioObra(id_obra);    
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Length': pdfBuffer.length,      
