@@ -31,6 +31,9 @@ export class Reinicio {
     @UpdateDateColumn({ type: 'timestamp without time zone', onUpdate: 'NOW()' })
     fecha_modificacion: Date
 
+    @Column()
+    finalizado: boolean;
+
     //relacion de uno a muchos con la entidad solicitud_historial
   /*  @OneToMany(() => SolicitudHistorial,(solhistorial)=> solhistorial.solicitud, {cascade:true} )
     solicitudHistorial:SolicitudHistorial[]*/
