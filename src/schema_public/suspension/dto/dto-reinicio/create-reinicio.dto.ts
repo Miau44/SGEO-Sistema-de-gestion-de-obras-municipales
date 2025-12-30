@@ -27,6 +27,8 @@ export class CreateReinicioDto {
     @IsNotEmpty()    
     id_memo: number;    
 
+    @ApiProperty()
+    finalizado: boolean;  
     
     @IsInt()
     @ApiProperty()
