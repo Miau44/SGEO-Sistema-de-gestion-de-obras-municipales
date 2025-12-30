@@ -14,7 +14,6 @@ export class LlamadaAtencion {
         @Column()
         id_memo: number;
 
-    
         @Column({ type: 'int' })
         id_subtipo_llamada: number;
 
@@ -47,6 +46,9 @@ export class LlamadaAtencion {
 
         @Column({ default : 1})
         id_estado:number;
+
+        @Column({ default: 1 })
+        id_estado_llamada_atencion: number;
 
         @ManyToOne(() => Obra, (obra) => obra.llamadasAtencion)
         @JoinColumn({ name: 'id_obra' })

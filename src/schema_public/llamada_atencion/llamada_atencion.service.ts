@@ -128,6 +128,7 @@ export class LlamadaAtencionService {
 
         id_usuario: dto.id_usuario,
         id_estado: 1,
+        id_estado_llamada_atencion: 1,
       }as any); // casteo any para evitar error de tipos con los nullables
 
       const llamadaGuardada = await queryRunner.manager.save(LlamadaAtencion, llamada);
@@ -167,6 +168,8 @@ export class LlamadaAtencionService {
 
       if (dto.libro_ordenes_obra !== undefined) llamada.libro_ordenes_obra = dto.libro_ordenes_obra ?? null;
       if (dto.hoja_nro !== undefined) llamada.hoja_nro = dto.hoja_nro ?? null;
+      if (dto.id_estado_llamada_atencion !== undefined) llamada.id_estado_llamada_atencion = dto.id_estado_llamada_atencion;
+
 
       llamada.id_usuario = dto.id_usuario;
 
@@ -244,6 +247,7 @@ export class LlamadaAtencionService {
         'la.libro_ordenes_obra',
         'la.hoja_nro',
         'la.fecha_registro',
+        'la.id_estado_llamada_atencion',
 
         // Memo (solo lo útil para grilla)
         'm.referencia',
