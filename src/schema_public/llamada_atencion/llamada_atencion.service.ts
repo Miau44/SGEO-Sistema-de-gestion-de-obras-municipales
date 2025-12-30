@@ -168,6 +168,8 @@ export class LlamadaAtencionService {
 
       if (dto.libro_ordenes_obra !== undefined) llamada.libro_ordenes_obra = dto.libro_ordenes_obra ?? null;
       if (dto.hoja_nro !== undefined) llamada.hoja_nro = dto.hoja_nro ?? null;
+      if (dto.id_estado_llamada_atencion !== undefined) llamada.id_estado_llamada_atencion = dto.id_estado_llamada_atencion;
+
 
       llamada.id_usuario = dto.id_usuario;
 
