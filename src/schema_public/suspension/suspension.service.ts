@@ -11,6 +11,7 @@ import { Memorandum } from '../memorandum/entities/memorandum.entity';
 import { SuspensionObraDto } from './suspension-obra.dto';
 import { Reinicio } from './entities/reinicio.entity';
 import { CreateReinicioDto } from './dto/dto-reinicio/create-reinicio.dto';
+import { UpdateReinicioDto } from './dto/dto-reinicio/update-reinicio.dto';
 
 
 @Injectable()
@@ -234,5 +235,23 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
 
 
 
+    async findOneReinicio(id_reinicio: number) {
+    try {
+      const resultado = await this.reinicioRepositorio.findOneBy({ id_reinicio });
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async updateReinicio(id_reinicio: number, updateReinicioDto: UpdateReinicioDto) {
+    try {
+      const resultado = await this.reinicioRepositorio.update(id_reinicio, updateReinicioDto)
+      return this.responseService.success(id_reinicio, "Actualizado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }        
+  }
 
 }

@@ -6,6 +6,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { SuspensionObraDto } from './suspension-obra.dto';
 import { CreateReinicioDto } from './dto/dto-reinicio/create-reinicio.dto';
+import { UpdateReinicioDto } from './dto/dto-reinicio/update-reinicio.dto';
+
 
 @ApiTags('suspension')
 @Controller('suspension')
@@ -75,5 +77,20 @@ export class SuspensionController {
     } catch { }
   }
 
+
+   @Patch('update-reinicio/:id')
+  updateReinicio(@Param('id') id: string, @Body() updateReinicioDto: UpdateReinicioDto) {
+    try {
+      return this.suspensionService.updateReinicio(+id, updateReinicioDto);
+    } catch { }
+  }
+
+   @Public()
+  @Get('buscar-reinicio/:id')
+  findOneReinicio(@Param('id') id: string) {
+        try { 
+    return this.suspensionService.findOneReinicio(+id);
+  } catch (error) { }    
+  }  
 
 }
