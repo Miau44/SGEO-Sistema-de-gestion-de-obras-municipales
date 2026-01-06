@@ -83,13 +83,14 @@ export class EstructuraOrganizacionalService {
 
   async llenarUEDesdeServicio(): Promise<void> {
     try {
+      const currentYear = new Date().getFullYear();
       console.log('Iniciando el proceso de llenado de la base de datos...');
       // Consumir el servicio externo
       var response = await fetch('http://192.168.7.16:3001/simv2-genera-token/estructura', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          "gestion": 2025,
+          "gestion": currentYear,
           "desc_cod_da": 0,
           "desc_cod_ue": 0,
           "cod_poa": 0,
@@ -97,11 +98,10 @@ export class EstructuraOrganizacionalService {
         })
       });
       const data = await response.json();
-      console.log(data);
-
+      
       // Iterar sobre los datos y guardarlos en la base de datos
       for (const item of data.datos) {
-        const nuevaEstructura = this.EORepositoryNuevo.create({
+        const nuevaEstructura = this.EORepository.create({
           gestion: item.gestion,
           cod_da: item.cod_da,
           desc_cod_da: item.desc_cod_da,
@@ -115,7 +115,7 @@ export class EstructuraOrganizacionalService {
           usuario_registro: 0, // Valor por defecto
         });
 
-        await this.EORepositoryNuevo.save(nuevaEstructura);
+        await this.EORepository.save(nuevaEstructura);
       }
       console.log('Datos insertados correctamente');
     } catch (error) {
