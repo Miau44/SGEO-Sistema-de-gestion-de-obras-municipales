@@ -239,20 +239,19 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision `;*/
 
 
-      const query = ` 
-      SELECT  p.id_usuario, p.usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
+      const query = `SELECT  p.id_usuario, p.usuario, p.id_persona, p.nombre as pnombre, p.primer_apellido as pprimer_apellido, 
       p.segundo_apellido as psegundo_apellido, 
       pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional, 
       p.fecha_aprobacion, p.fecha_registro, eo.nombre_da as nombre_da_comision, p.desc_cod_da_comision, permiso.permiso,  
-	  estado.desc_subtipo as sub_estado, p.id_estado
+	    estado.desc_subtipo as sub_estado, p.id_estado
       FROM persona as  p
       INNER JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
       INNER JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional
       WHERE  gestion =${estructuraGralDto.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da
-	LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =14 )  as estado ON  p.id_estado = estado.id_subtipo	  
+	    LEFT JOIN (SELECT id_subtipo, desc_subtipo FROM parametrica  WHERE id_tipo =14 )  as estado ON  p.id_estado = estado.id_subtipo	  
       LEFT JOIN (SELECT * FROM  public.sp_permisos_xpersona()) as permiso ON p.id_persona = permiso.idpersona 
-      WHERE p.id_estado <> 0;	`;
+      WHERE p.id_estado <> 0 AND p.gestion = ${estructuraGralDto.gestion};`;
 
       const resultadoSgeo: any[] = await this.personaRepo.query(query);
       const resultadoSeguridad: any[] = resultadoUsuarios.data
@@ -269,8 +268,6 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
         detalle: error.message || error,
       });
     }
-
-
   }
 
   async token() {
