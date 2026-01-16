@@ -82,7 +82,7 @@ export class LlamadaAtencion {
     this.datosLlamada= res1;
 
        
-    console.log("DATOS, ", res);
+    //console.log("DATOS, ", res);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -223,7 +223,7 @@ export class LlamadaAtencion {
             },
             {
               text: 'Por tanto se emite la presente LLAMADA DE ATENCIÓN; en tal sentido, se intruye a usted realizar ' + this.datosLlamada[0].descripcion +
-              ', mismo que debe cumplirse hasta el ' + this.fechaString(this.datosLlamada[0].fecha_cumplimiento_instruccion) + '.'
+              ', mismo que debe cumplirse hasta el ' + this.fechaString(this.datosLlamada[0].fecha_maxima_cumplimiento_memo) + '.'
             },
             {
               text: '\n\nAtentamente,', 
@@ -344,32 +344,54 @@ export class LlamadaAtencion {
   //// FUNCIONES VARIOS
   
       //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
+  // fechaString(iso: string): string {
+  //   let formattedDate = '';
+  //   let fecha: Date;
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+  //   if (iso === 'hoy') {
+  //     fecha = new Date();
+  //   } else {
+  //     fecha = new Date(iso);
+  //   }
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
+  //   if (iso) {
+  //     const h = fecha.getHours();
+  //     const m = fecha.getMinutes();
+  //     const horas = h < 10 ? `0${h}` : `${h}`;
+  //     const minutos = m < 10 ? `0${m}` : `${m}`;
 
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
+  //     // Formatea la fecha
+  //     formattedDate = fecha.toLocaleDateString('es-ES', {
+  //       year: 'numeric',
+  //       month: 'long',
+  //       day: 'numeric',
+  //     });
+  //    }
+  //   return formattedDate;
+  // }
+  fechaString(iso: any): string {
+  if (!iso) return '';
 
-    return formattedDate;
+  let fecha: Date;
+
+  // Caso especial: "hoy"
+  if (iso === 'hoy') {
+    fecha = new Date();
+  } else if (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+  
+    const [y, m, d] = iso.split('-').map(Number);
+    fecha = new Date(y, m - 1, d, 12, 0, 0); // local time
+  } else {
+    // Viene con hora o como Date
+    fecha = new Date(iso);
   }
+
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [
