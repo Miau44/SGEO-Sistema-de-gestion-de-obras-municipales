@@ -54,4 +54,9 @@ export class UpdateLlamadaAtencionDto {
   @IsDateString()
   fecha_maxima_cumplimiento_memo?: string;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsInt()
+  id_estado_llamada_atencion?: number;
+
 }
