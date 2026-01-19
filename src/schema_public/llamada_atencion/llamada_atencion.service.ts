@@ -236,7 +236,14 @@ export class LlamadaAtencionService {
         'la.fecha_registro',
         'la.id_estado_llamada_atencion',
 
-        // Memo (solo lo útil para grilla)
+        // text de estado
+        `CASE la.id_estado_llamada_atencion
+          WHEN 1 THEN 'Pendiente'
+          WHEN 2 THEN 'Finalizado'
+          ELSE 'Desconocido'
+        END AS estado_desc`,
+
+        // Memo info
         'm.referencia',
         'm.descripcion',
         'm.fecha_memo',
