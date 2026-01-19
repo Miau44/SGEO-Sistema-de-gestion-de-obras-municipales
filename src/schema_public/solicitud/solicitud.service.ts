@@ -259,7 +259,14 @@ AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_regist
     try {
       const params =[ data.gestion, data.usuario]
       const result = await this.dataSource.query(query, params);
-      return result[0];
+      return result[0] || {
+      total: 0,
+      gestion_carpeta: data.gestion,
+      pendientes: 0,
+      enprogreso: 0,
+      completadas: 0,
+    };
+     
     } catch (error) {
       console.error('Error al obtener las estadísticas de tareas:', error);
       throw new Error('No se pudieron obtener las estadísticas de tareas');
