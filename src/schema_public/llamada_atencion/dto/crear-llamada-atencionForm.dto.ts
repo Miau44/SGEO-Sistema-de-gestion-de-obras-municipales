@@ -16,13 +16,20 @@ export class CrearLlamadaAtencionFormDto {
   @IsInt()
   id_subtipo_llamada: number;
 
+  // se guardará en memo.referencia
   @ApiProperty({ example: "Por falta de letrero de obra" })
   @IsString()
   @IsNotEmpty()
-  desc_subtipo_llamada: string;
+  referencia: string;
+
+  // se guardará en memo.descripcion
+  @ApiProperty({ example: "Detalle de la llamada de atención..." })
+  @IsString()
+  @IsNotEmpty()
+  descripcion: string;
 
   // textarea (solo si es "Otros motivos")
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   referencia_otro?: string;
