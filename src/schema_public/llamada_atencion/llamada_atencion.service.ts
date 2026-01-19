@@ -11,8 +11,6 @@ import { Memorandum } from '../memorandum/entities/memorandum.entity';
 import { CrearLlamadaAtencionFormDto } from './dto/crear-llamada-atencionForm.dto';
 import { MemorandumService } from '../memorandum/memorandum.service';
 
-
-
 @Injectable()
 export class LlamadaAtencionService {
   constructor(
@@ -28,7 +26,6 @@ export class LlamadaAtencionService {
     private readonly llamadaRepo: Repository<LlamadaAtencion>,
   ) {}
 
-
   async crear(dto: CrearLlamadaAtencionFormDto) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -39,12 +36,14 @@ export class LlamadaAtencionService {
       const ID_TIPO_DOCUMENTO = 374;
       const ID_SUBTIPO_OTROS = 378;
 
-      // 0) Validación de negocio (otros motivos requiere texto)
-      if (dto.id_subtipo_llamada === ID_SUBTIPO_OTROS) {
-        const txt = (dto.referencia_otro ?? '').trim();
-        if (!txt) throw new Error('Debe ingresar el detalle en "Referencia" para "Otros motivos".');
-      }
+      
+      const esOtros = Number(dto.id_subtipo_llamada) === ID_SUBTIPO_OTROS;
+      const referencia = (dto.referencia ?? '').trim();
+      const descripcion = (dto.descripcion ?? '').trim();
 
+      if (!referencia) throw new Error('Debe ingresar la referencia.');
+      if (!descripcion) throw new Error('Debe ingresar la descripción.');
+      if (esOtros) {}
       // 1) Crear correlativo
       const corrRes = await this.correlativoService.create({
         id_obra: dto.id_obra,
@@ -60,26 +59,18 @@ export class LlamadaAtencionService {
 
       const id_correlativo = corrRes.data.id_correlativo;
 
-      // 2) Preparar referencia/descripcion según regla
-      const referencia = dto.desc_subtipo_llamada.trim();
-      const descripcion =
-        dto.id_subtipo_llamada === ID_SUBTIPO_OTROS
-          ? (dto.referencia_otro ?? '').trim()
-          : referencia;
-
-      // 3) Crear Memorandum
-      // OJO: en tu entity esos campos NO son nullable, así que aquí deben ir con algo.
+      // 2) Crear memo con los valores que llegan del FRONT
       const memo = queryRunner.manager.create(Memorandum, {
         id_obra: dto.id_obra,
         id_tipo_memo: ID_TIPO_MEMO,
         id_correlativo,
         fecha_memo: new Date(),
 
-        // si tu negocio los maneja, reemplaza '' por el valor real
         nombre_destinatario: '',
         nombre_remitente: '',
         cargo_remitente: '',
 
+        // regla ya aplicada desde el front
         referencia,
         descripcion,
 
@@ -89,36 +80,29 @@ export class LlamadaAtencionService {
 
       const memoGuardado = await queryRunner.manager.save(Memorandum, memo);
 
-      // ✅ Encabezado: actualizar de_nombre y cargo_remitente del memo recién creado
-      const datos = {
-        id_tipo_memo: ID_TIPO_MEMO,     // 374
-        id_obra: dto.id_obra,
-        id_memo: memoGuardado.id_memo,
-      };
+      // 3) para añadir el encabezado
+      const spRes = await queryRunner.manager.query(
+        `SELECT * FROM public.sp_encabezado_documentos_memo($1, $2);`,
+        [ID_TIPO_MEMO, dto.id_obra],
+      );
 
-      const encabezado = await this.memoService.crearencabezadoDocumentos(datos);
-      if (!encabezado || encabezado.statusCode !== 200) {
-        throw new Error('No se pudo crear/obtener el encabezado de documentos');
+      const row = spRes?.[0];
+
+      if (row) {
+        await queryRunner.manager.update(Memorandum, memoGuardado.id_memo, {
+          de_nombre: row.de_nombre ?? [],
+          cargo_remitente: row.de_cargo ?? '',
+        });
       }
 
-      // Si tu método devuelve data[0] con de_nombre y de_cargo, actualizamos el memo:
-      if (encabezado?.data?.length) {
-        const datosencabezado = {
-          de_nombre: encabezado.data[0].de_nombre || [],
-          cargo_remitente: encabezado.data[0].de_cargo || '',
-        };
-
-        // ✅ dentro de la transacción
-        await queryRunner.manager.update(Memorandum, memoGuardado.id_memo, datosencabezado);
-      }
-
-      // 4) Crear LlamadaAtencion
+      // 4) llamada_atencion
       const llamada = queryRunner.manager.create(LlamadaAtencion, {
         id_obra: dto.id_obra,
         id_memo: memoGuardado.id_memo,
-
         id_subtipo_llamada: dto.id_subtipo_llamada,
-        referencia_otro: dto.referencia_otro ?? null,
+
+        // opcional: solo guardar referencia_otro si es otros
+        referencia_otro: esOtros ? (dto.referencia_otro ?? referencia) : null,
 
         fecha_instruccion: dto.fecha_instruccion ?? null,
         fecha_cumplimiento_instruccion: dto.fecha_cumplimiento_instruccion ?? null,
@@ -129,12 +113,11 @@ export class LlamadaAtencionService {
         id_usuario: dto.id_usuario,
         id_estado: 1,
         id_estado_llamada_atencion: 1,
-      }as any); // casteo any para evitar error de tipos con los nullables
+      } as any);
 
       const llamadaGuardada = await queryRunner.manager.save(LlamadaAtencion, llamada);
 
       await queryRunner.commitTransaction();
-
       return this.responseService.success(
         { memorandum: memoGuardado, llamada_atencion: llamadaGuardada },
         'Llamada de atención registrada correctamente.',
@@ -146,6 +129,7 @@ export class LlamadaAtencionService {
       await queryRunner.release();
     }
   }
+
 
   async actualizar(dto: UpdateLlamadaAtencionDto) {
     const qr = this.dataSource.createQueryRunner();
@@ -159,9 +143,17 @@ export class LlamadaAtencionService {
 
       if (!llamada) throw new NotFoundException('No existe la llamada de atención');
 
-      // ---- PATCH llamada_atencion ----
+      const ID_SUBTIPO_OTROS = 378;
+   
       if (dto.id_subtipo_llamada !== undefined) llamada.id_subtipo_llamada = dto.id_subtipo_llamada;
-      if (dto.referencia_otro !== undefined) llamada.referencia_otro = dto.referencia_otro ?? null;
+      const subtipoFinal = dto.id_subtipo_llamada ?? llamada.id_subtipo_llamada;
+      const esOtros = Number(subtipoFinal) === ID_SUBTIPO_OTROS;
+
+      if (esOtros) {
+        if (dto.referencia_otro !== undefined) llamada.referencia_otro = dto.referencia_otro ?? null;
+      } else {
+        llamada.referencia_otro = null; 
+      }
       if (dto.fecha_instruccion !== undefined) llamada.fecha_instruccion = dto.fecha_instruccion ?? null;
       if (dto.fecha_cumplimiento_instruccion !== undefined) llamada.fecha_cumplimiento_instruccion = dto.fecha_cumplimiento_instruccion ?? null;
       if (dto.fecha_maxima_cumplimiento_memo !== undefined) llamada.fecha_maxima_cumplimiento_memo = dto.fecha_maxima_cumplimiento_memo ?? null;
@@ -175,21 +167,16 @@ export class LlamadaAtencionService {
 
       await qr.manager.save(LlamadaAtencion, llamada);
 
-      const tocaMemo = dto.desc_subtipo_llamada !== undefined || dto.referencia_otro !== undefined;
+      const tocaMemo = dto.referencia !== undefined || dto.descripcion !== undefined;
 
       if (tocaMemo) {
-        const memo = await qr.manager.findOne(Memorandum, {
-          where: { id_memo: llamada.id_memo, id_estado: 1 },
-        });
+        const memo = await qr.manager.findOne(Memorandum, {where: { id_memo: llamada.id_memo, id_estado: 1 },});
 
         if (!memo) throw new NotFoundException('No se encontró el memorandum asociado');
-        const desc = (dto.desc_subtipo_llamada ?? memo.referencia)?.trim(); // usa el nuevo si viene, sino el actual
-        
-        if (desc) memo.referencia = desc;
-        const otro = dto.referencia_otro?.trim();
-        memo.descripcion = otro ? otro : (desc ?? memo.descripcion);
-        memo.id_usuario = dto.id_usuario;
+        if (dto.referencia !== undefined) memo.referencia = dto.referencia.trim();
+        if (dto.descripcion !== undefined) memo.descripcion = dto.descripcion.trim();
 
+        memo.id_usuario = dto.id_usuario;
         await qr.manager.save(Memorandum, memo);
       }
 
@@ -197,10 +184,10 @@ export class LlamadaAtencionService {
 
       return { statusCode: 200, message: 'Actualizado correctamente' };
     } catch (e) {
-      await qr.rollbackTransaction();
-      throw e;
+        await qr.rollbackTransaction();
+        throw e;
     } finally {
-      await qr.release();
+        await qr.release();
     }
   }
 

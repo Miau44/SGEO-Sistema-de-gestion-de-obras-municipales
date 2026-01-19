@@ -28,6 +28,17 @@ export class UpdateLlamadaAtencionDto {
   @IsString()
   referencia_otro?: string;
 
+    //valores reales del memo
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  referencia?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  descripcion?: string;
+
   // llamadas de atencion
   @ApiProperty()
   @IsOptional()
