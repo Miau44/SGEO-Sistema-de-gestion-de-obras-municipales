@@ -28,6 +28,9 @@ import { ResumenCertificado } from './pagos/resumen-certificado.service';
 import { ActaDefinitiva } from './actas/acta_definitiva.service';
 import { InformeObraSupervisor2 } from './Informe_obra/informe_supervisor2.service';
 import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
+import { LlamadaAtencion } from './memorandums/llamada_atencion.service';
+import { SuspensionObra } from './memorandums/suspension.service';
+import { ReinicioObra } from './memorandums/reinicio.service';
 
 @Module({
 
@@ -40,7 +43,7 @@ import { fichaInspeccion } from './seguimiento/ficha_inspeccion.service';
               InformeModificacionSupervisor,MemoOrdenCambio,SolicitudGarantia,InformeModificacionFiscal,ComputoMetrico,AnexoOC,
               PlanillaReordenamiento, InformeObraSupervisor, InformeObraFiscal, ActaProvisional, InformeInicialService, ComputoMetricoPago, 
               PlanillaPago, InformePagoSupervisor, InformePagoFiscal, ResumenCertificado, ActaDefinitiva, InformeObraSupervisor2, 
-              fichaInspeccion ],
+              fichaInspeccion, LlamadaAtencion, SuspensionObra, ReinicioObra ],
   controllers: [ReportController],
 })
 export class ReporteModule {}

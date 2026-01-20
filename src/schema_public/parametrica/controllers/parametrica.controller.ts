@@ -1,10 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ParametricaService } from './../services/parametrica.service';
 import { CreateParametricaDto, UpdateParametricaDto } from './../dto/parametrica.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from './../../auth/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { FiltrosDto } from './../dto/filtrosDto.dto';
+import { BuscarSubtipoParametricaDto } from '../dto/buscar-subtipo.dto';
 
 @ApiTags('parametrica')
 @Controller('parametrica')
@@ -44,5 +45,12 @@ export class ParametricaController {
   @Post('listar')
   listarXTipo(@Body() filtrosDto: FiltrosDto) {
     return this.parametricaService.listarXTipo(filtrosDto);
-  }  
+  }
+  
+@Post('buscar-subtipo')
+@ApiOperation({ summary: 'Buscar subtipo de paramétrica por id_tipo e id_subtipo' })
+buscarPorSubtipo(@Body() dto: BuscarSubtipoParametricaDto) {
+  return this.parametricaService.buscarPorSubtipo(dto.id_tipo, dto.id_subtipo);
+}
+  
 }
