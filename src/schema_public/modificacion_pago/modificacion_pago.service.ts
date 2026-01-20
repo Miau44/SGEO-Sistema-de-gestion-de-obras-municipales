@@ -21,6 +21,9 @@ import { catchError } from 'rxjs';
 import { InformeService } from '../informe/informe_inicial.service';
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { ActualizarModDto } from './dto/modificacion.dto';   
+import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto'
+import { IsNumeric } from 'sequelize-typescript';
+import { NOW } from 'sequelize';
 
 
 @Injectable()
@@ -266,7 +269,7 @@ export class ModificacionPagoService {
           "fecha_aprobacion": null,  
           "finalizado": false,                      
           "id_usuario_registro": dto.id_usuario,
-          "monto_variacion_ultima_mod": dto.id_usuario,      
+          "monto_variacion_ultima_mod": 0,      
           "tipo_edicion": "0",      
           "id_estado": 1
 
@@ -385,7 +388,7 @@ export class ModificacionPagoService {
     // 1️⃣ Validar que todos los registros en `item` sean `finalizado = true`
     const itemQuery = await this.modPagoRepositorio.query(
       `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
-       FROM public.item WHERE id_obra = $1 AND id_estado = 1`, params1);
+       FROM public.item WHERE id_obra = $1 AND id_estado = 1 AND id_tipo_item =264`, params1);
     if (Number(itemQuery[0].total) === 0 || Number(itemQuery[0].total) !== Number(itemQuery[0].finalizados)) {
       mensaje += 'Todos los Ítems deben deben estar finalizados antes de enviar al Fiscal.<br><br>';
     }
@@ -407,7 +410,7 @@ export class ModificacionPagoService {
      WHERE id_obra = $1 AND id_tipo_informe IN( 266,268) AND id_solicitud = $2 AND id_estado = 1`, params3);
 
     if (Number(informeQuery[0].total) === 0) {
-      mensaje += 'Debe completar el Informe antes de enviar al Fiscal.';
+      mensaje += 'Debe completar el Informe antes de enviar al Fiscal. <br><br>';
     }
 
     
@@ -439,7 +442,7 @@ const documentoQuery = await this.modPagoRepositorio.query(
   params4,
 );
 
-// 4️⃣ Validación
+
 if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   mensaje += 'Debe completar los documentos adjuntos obligatorios antes de enviar al Fiscal.';
 }
@@ -693,8 +696,81 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       return this.responseService.error(error);
     }
   }
-  
 
+  //servicio para actualizar el Contrato Modificatorio Administrativo
+  async updateModifAdmin(data: ActualizarCMADto) { 
+    try {
+      let query = `SELECT * FROM public."vista_contrato_cma" WHERE id_modificacion = $1`;
+      const parametros = [data.id_modificacion];
+      const datos = await this.modPagoRepositorio.query(query, parametros);
+      
+      //console.log('DATOS', datos);
+      if (datos.length === 0) {
+      return this.responseService.error(
+        new Error("No se encontró información del contrato"),
+        "No existe información", 404 ); 
+      }  
+
+      const info = datos[0];
+
+      const diasVariacion = Number(data.dias_variacion);
+      const montoVariacion = Number(data.monto_variacion);
+      const plazoContrato = Number(info.plazo_contrato);
+      const montoContrato = Number(info.monto_contrato) || 0;
+
+      if (isNaN(diasVariacion) || isNaN(montoVariacion)) {
+      throw new Error("Los valores enviados no son numéricos.");
+    }
+      //datos tabla 'modificacion'
+      
+      let d_variacion = diasVariacion - plazoContrato;
+      let m_variacion = montoVariacion - montoContrato;
+      let porc_variacion = (montoContrato === 0 ? 0 : (m_variacion / montoContrato) * 100).toFixed(5);
+      let porc_total = porc_variacion;
+
+      //console.log('porc_variacion', porc_variacion); 
+      //Actualizar tabla modificacion
+      await this.modificacionRepo
+        .createQueryBuilder()
+        .update('modificacion')
+        .set({
+          dias_variacion: d_variacion,
+          monto_variacion: m_variacion,
+          monto_total: data.monto_variacion,
+          porcentaje_modificacion: porc_variacion,
+          porcentaje_total: porc_total,
+          monto_variacion_ultima_mod: m_variacion,
+          fecha_modificacion: () => "NOW()"
+        })
+        .where('id_modificacion = :id', { id: data.id_modificacion })
+        .execute();
+
+        // console.log('DATOS', info);
+        // console.log('porc_variacion',porc_variacion);
+        // console.log('m_variacion',m_variacion);
+        // console.log('d_variacion',d_variacion);
+        // console.log('info.fecha_recep_provisional', new Date(info.fecha_recep_provisional).toISOString());
+        //datos tabla 'modificacion_pago'
+        await this.modPagoRepositorio.query(
+      `SELECT f_actualizar_modificacionpago_cma($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        info.id_obra, 
+        info.id_modificacion_pago, 
+        porc_variacion, 
+        m_variacion,    
+        d_variacion, 
+        new Date(info.fecha_recep_provisional).toISOString(),
+        plazoContrato
+      ]
+    );
+    //console.log('d_variacion',d_variacion);
+      return this.responseService.success(datos, 'Correcto!!!'); 
+    } catch (error) {
+        return this.responseService.error(error);
+    }    
+   
+  }
+  
   async actualizarDiazVariacion(data: ActualizarModDto) {
     try {
       let query = ` 
@@ -707,5 +783,33 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
       return this.responseService.error(error);
     }
   }
+
+  //Obtener datos Modificacion
+  async obtenerModificacionOne(id_modificacion: number) {
+    try {
+      let query = `SELECT * FROM public."vista_modificacionpago_cma" WHERE id_modificacion = $1`  ;
+      const params = [id_modificacion];
+      const resultado = await this.modificacionRepo.query(query, params);
+        
+      return this.responseService.success(resultado, "Listado Correctamente!!!")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+  //Aprobar Contrato Modificatorio Administrativo
+  async aprobarCMA(data: ValidarModificacionDto) {
+    try {
+      let query = ` 
+      SELECT * FROM  public.sp_aprobacion_cma($1, $2);`  ;
+      const params = [data.id_modificacion_pago, data.id_obra];
+      const resultado = await this.modPagoRepositorio.query(query, params);
+      
+      return this.responseService.success([true], "Proceso ejecutado Correctamente!!!")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
 
 }

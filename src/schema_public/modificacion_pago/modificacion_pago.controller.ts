@@ -11,6 +11,7 @@ import { ValidarModificacionDto } from './dto/dto-modificacion/validar-modificac
 import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ActualizarModDto } from './dto/modificacion.dto';
+import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto';
 
 
 
@@ -88,6 +89,7 @@ export class ModificacionPagoController {
   }
 
   // 🔹 Obtener datos de una modificación por ID
+  
   @Get(':id')
   async obtenerModificacion(@Param('id') id: number) {
     return await this.modificacionPagoService.obtenerModificacion(id);
@@ -211,6 +213,39 @@ export class ModificacionPagoController {
   } 
 
 
+  //Tabla MODIFICACION
+  @Get('modificacion/:id')
+obtenerModificacionOne(@Param('id') id: string) {
+  try {
+    return this.modificacionPagoService.obtenerModificacionOne(+id);
+  } catch (error) {
+    throw new HttpException(
+      'Error al obtener la modificación', HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
   
 
+   @Public()
+  @Post('actualizar-modifAdm')
+  Actualizar_ModifAdm(@Body() data: ActualizarCMADto) {
+    try {
+      return this.modificacionPagoService.updateModifAdmin(data);
+    } catch (error) {
+      throw new HttpException('Error al actualizar datos', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  } 
+
+
+  @Public()
+  @Post('aprobar-cma')
+  Aprobar_CMA(@Body() data: ValidarModificacionDto) {
+    try {
+      return this.modificacionPagoService.aprobarCMA(data);
+    } catch (error) {
+      throw new HttpException('Error al actualizar datos', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  
 }
