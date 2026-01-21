@@ -62,8 +62,11 @@ export class PlanillaService {
     try {
       ;
       let query =
-        ` INSERT INTO public.planilla (id_modificacion_pago, id_item, monto_planilla, id_usuario_registro, id_estado)
-        SELECT $1 as id_modificacion_pago, id_item, total_adjudicado, $3, 1 FROM public.item WHERE id_obra =$2 AND id_estado =1`;
+       /* ` INSERT INTO public.planilla (id_modificacion_pago, id_item, monto_planilla, id_usuario_registro, id_estado)
+        SELECT $1 as id_modificacion_pago, id_item, total_adjudicado, $3, 1 FROM public.item WHERE id_obra =$2 AND id_estado =1`;*/
+
+      `SELECT sp_certificado_planilla($1,$2 3)`;
+
       const params: any[] = [data.id_modificacion_pago, data.id_obra, data.id_usuario_registro,];
       const resultado: any[] = await this.planillaRepositorio.query(query, params);
       return this.responseService.success(resultado, "Creado Correctamente.")

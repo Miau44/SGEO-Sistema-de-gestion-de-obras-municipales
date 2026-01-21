@@ -226,7 +226,7 @@ export class PagoService {
            `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
             FROM public.planilla WHERE id_modificacion_pago = $1 AND id_estado = 1`, params2);
          if (Number(planillaQuery[0].total) === 0 || Number(planillaQuery[0].total) !== Number(planillaQuery[0].finalizados)) {
-           mensaje += 'Debe Finalizar la Planilla de Compútos Métricos antes de enviar al Fiscal.<br><br>';
+           mensaje += 'Debe Finalizar la Planilla de Cómputos Métricos antes de enviar al Fiscal.<br><br>';
          }*/
 
 

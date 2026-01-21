@@ -26,6 +26,7 @@ import { IsNumeric } from 'sequelize-typescript';
 import { NOW } from 'sequelize';
 
 
+
 @Injectable()
 export class ModificacionPagoService {
   constructor(
@@ -310,8 +311,12 @@ export class ModificacionPagoService {
           id_modificacion_pago: Number(respuesta_modpago.data.id_modificacion_pago),
           id_usuario_registro: dto.id_usuario
         }
-        const respuesta_planilla = await this.servicioPlanilla.copiarItem(dto_planilla)
-
+      //  const respuesta_planilla = await this.servicioPlanilla.copiarItem(dto_planilla)
+          try {
+            return await this.servicioPlanilla.copiarItem(dto_planilla);
+          } catch (error) {
+            throw new InternalServerErrorException('Ocurrió un error al copiar de la planilla');
+          }
         // return { entidad1: respuesta_modpago, relacionado: entidadGuardada};      
         return this.responseService.success({ entidad1: respuesta_modpago, relacionado: entidadGuardada }, "Solicitud generada correctamente.");
       }
@@ -399,7 +404,7 @@ export class ModificacionPagoService {
       `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
        FROM public.planilla WHERE id_modificacion_pago = $1 AND id_estado = 1`, params2);
     if (Number(planillaQuery[0].total) === 0 || Number(planillaQuery[0].total) !== Number(planillaQuery[0].finalizados)) {
-      mensaje += 'Debe Finalizar la Planilla de Compútos Métricos antes de enviar al Fiscal.<br><br>';
+      mensaje += 'Debe Finalizar la Planilla de Cómputos Métricos antes de enviar al Fiscal.<br><br>';
     }
     console.log(' planillaQuery.rows[0].total', planillaQuery[0].total);
 
