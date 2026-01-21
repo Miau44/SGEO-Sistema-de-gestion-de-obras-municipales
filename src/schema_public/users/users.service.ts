@@ -6,13 +6,19 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import User from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UsersService {
+  urlSeguridad = process.env.URL_SEGURIDAD2;
+  idSistema = process.env.ID_SISTEMA_SEGURIDAD;
+
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ){}
+  ) {
+
+  }
 
   async getAllUsers() {
     const users = this.usersRepository.find();
@@ -39,6 +45,62 @@ export class UsersService {
       password: createUserDto.password,
     });
     return newUser;
+  }
+
+  async listaUsuariosSeguridad() {
+    const endPoint = this.urlSeguridad + `persona/listaPersona`;
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    };
+    try {
+      const response = await fetch(endPoint, options);
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+
+      // Si llegó aquí, es que SI es un array. 
+      // Lo retornamos directamente.
+      const usuariosArray = await response.json();
+      return usuariosArray;
+
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
+
+  }
+
+  async buscarUsuariosSeguridad(filtro?: string) {
+    console.log(filtro);
+
+    const endPoint = this.urlSeguridad + `persona/listaPersonaBusqueda`;
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "nombrecompleto": filtro }),
+    };
+    try {
+      const response = await fetch(endPoint, options);
+
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+
+      // Si llegó aquí, es que SI es un array. 
+      // Lo retornamos directamente.
+      const usuariosArray = await response.json();
+      return usuariosArray;
+
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
   }
 
   create(createUserDto: CreateUserDto) {

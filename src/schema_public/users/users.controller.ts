@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('usuario')
 @Controller('users')
@@ -32,5 +33,27 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Post('listarUsuariosSeguridad')
+  listarUsuariosSeguridad() {
+     
+    return this.usersService.listaUsuariosSeguridad();
+  }
+
+  @Post('buscarUsuariosSeguridad')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        
+        filtro: { type: 'string' },
+      },
+      required: ['gestion', 'codigoue'],
+    },
+  })
+  buscarUsuariosSeguridad (@Body() body: { filtro?: string }) {
+     const { filtro } = body;
+    return this.usersService.buscarUsuariosSeguridad(filtro);
   }
 }
