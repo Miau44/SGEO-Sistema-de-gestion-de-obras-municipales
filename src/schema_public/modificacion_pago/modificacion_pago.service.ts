@@ -524,7 +524,15 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
         if (!resultadoinforme || resultadoinforme.rowCount === 0) {
           throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
+        }       
+
+        try {
+         await this.finalizarItemNuevo(AprobarDto.id_obra);
+        } catch (error) {
+        throw new Error('No se pudo finalizar el item');
         }
+
+
       }
       return this.responseService.success(resultado, "aprobada correctamente.");
     } catch (error) {
@@ -534,6 +542,23 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   }
 
 
+
+
+    async finalizarItemNuevo(id_obra:number) {
+      try {
+        let query =
+          ` UPDATE public.item 
+          SET finalizado =true, fecha_modificacion = NOW() 
+          WHERE id_obra = $1 AND finalizado = false AND id_estado = 1   AND id_tipo_item =265; `;
+        const params = [id_obra];
+        const resultado = await this.modPagoRepositorio.query(query, params);
+        return this.responseService.success(resultado, "Actualizado Correctamente.")
+      } catch (error) {
+        return this.responseService.error(error);
+      }
+  
+  
+    }
   async tieneIncremento(data: ActualizarModPagoDto): Promise<any> {
     const result = await this.modificacionRepo.query(
       `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
