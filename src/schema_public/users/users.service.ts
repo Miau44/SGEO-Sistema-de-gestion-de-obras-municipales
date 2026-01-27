@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UsersService {
-  urlSeguridad = process.env.URL_SEGURIDAD2;
+  urlSeguridad = process.env.URL_SEGURIDAD_ROLES;
   idSistema = process.env.ID_SISTEMA_SEGURIDAD;
 
   constructor(
@@ -61,9 +61,6 @@ export class UsersService {
         console.error("Respuesta fallida del servidor (posible HTML):", textoError);
         throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
       }
-
-      // Si llegó aquí, es que SI es un array. 
-      // Lo retornamos directamente.
       const usuariosArray = await response.json();
       return usuariosArray;
 
@@ -75,8 +72,6 @@ export class UsersService {
   }
 
   async buscarUsuariosSeguridad(filtro?: string) {
-    console.log(filtro);
-
     const endPoint = this.urlSeguridad + `persona/listaPersonaBusqueda`;
     const options = {
       method: 'POST',
@@ -91,12 +86,107 @@ export class UsersService {
         console.error("Respuesta fallida del servidor (posible HTML):", textoError);
         throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
       }
-
-      // Si llegó aquí, es que SI es un array. 
-      // Lo retornamos directamente.
       const usuariosArray = await response.json();
       return usuariosArray;
 
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
+  }
+
+  async listarRolesSeguridad() {
+    const endPoint = this.urlSeguridad + `rol/listaSistemaRolexterno`;
+    console.log("idSistema",this.idSistema);
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "id_sistema": this.idSistema }),
+    };
+    try {
+      const response = await fetch(endPoint, options);
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+      return await response.json();
+
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
+  }
+
+  async listarRolesUsuarioSeguridad(id_usuario: number | undefined) {
+    const endPoint = this.urlSeguridad + `usuarioRol/listaRolUsuario`;
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "id_sistema": this.idSistema, "id_usuario": id_usuario }),
+    };
+    try {
+      const response = await fetch(endPoint, options);
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+      return await response.json();
+
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
+  }
+
+  async quitarRol(idUsuario: number, idRol: number, idUsuarioRol: number, idUsuarioRegistro: number) {
+    const endPoint = this.urlSeguridad + `usuarioRol/` + idUsuarioRol;
+    const options = {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idRol: idRol,
+        idUsuario: idUsuario,
+        idEstado: 2,
+        usuarioRegistro: idUsuarioRegistro
+      })
+    };
+    try {
+      const response = await fetch(endPoint, options);
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error);
+      throw error;
+    }
+  }
+
+  async asignarRol(idUsuario: number, idRol: number, idUsuarioRegistro: number, idUsuarioRol?: number) {
+    const endPoint =(idUsuarioRol!=null)?this.urlSeguridad + `usuarioRol/` + idUsuarioRol:this.urlSeguridad + `usuarioRol`;
+    const metodo = (idUsuarioRol!=null)?'PUT':'POST';
+    const options = {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idRol: idRol,
+        idUsuario: idUsuario,
+        idEstado: 1,
+        usuarioRegistro: idUsuarioRegistro
+      })
+    };
+    try {
+      const response = await fetch(endPoint, options);
+      if (!response.ok) {
+        const textoError = await response.text();
+        console.error("Respuesta fallida del servidor (posible HTML):", textoError);
+        throw new Error(`Error ${response.status}: No se recibió el array de usuarios`);
+      }
+      return await response.json();
     } catch (error) {
       console.error('Error al obtener lista de usuarios:', error);
       throw error;
@@ -109,17 +199,5 @@ export class UsersService {
 
   findAll() {
     return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }
