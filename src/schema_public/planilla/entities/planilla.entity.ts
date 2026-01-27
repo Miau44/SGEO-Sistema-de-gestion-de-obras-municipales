@@ -57,6 +57,14 @@ export class Planilla {
 
     @Column({ nullable: true })
     finalizado: boolean;
+
+
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    c_reordenamiento_acumulado: number;    
+
+    @Column({ type: 'decimal', precision: 20, scale: 5, nullable:true })
+    t_reordenamiento_acumulado: number;     
   
 
     @Column()
