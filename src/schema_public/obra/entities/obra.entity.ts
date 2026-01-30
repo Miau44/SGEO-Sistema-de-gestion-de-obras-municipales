@@ -7,6 +7,8 @@ import { Ficha } from "src/schema_public/ficha/entities/ficha.entity";
 import { Solicitud } from "src/schema_public/solicitud/entities/solicitud.entity";
 import { IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Suspension } from "src/schema_public/suspension/entities/suspension.entity";
+import { LlamadaAtencion } from "src/schema_public/llamada_atencion/entities/llamada_atencion.entity";
 
 @Entity()
 export class Obra {
@@ -119,6 +121,16 @@ export class Obra {
     //relacion uno a muchos con la entidad solicitud
     @OneToMany(() => Solicitud, (solicitud) => solicitud.obra, { cascade: true })
     solicitud: Solicitud[];
+
+    
+    //relacion uno a muchos con la entidad solicitud
+    @OneToMany(() => Suspension, (suspension) => suspension.obra, { cascade: true })
+    suspension: Suspension[];
+
+    @OneToMany(() => LlamadaAtencion, (la) => la.obra, { cascade: true })
+    llamadasAtencion: LlamadaAtencion[];
+
+
 
       
 }

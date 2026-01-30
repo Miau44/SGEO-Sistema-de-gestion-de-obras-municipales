@@ -1,7 +1,8 @@
 //import { CorrelativoMemo } from "src/schema_public/correlativo_memo/entities/correlativo_memo.entity";
 import { Correlativo } from "src/schema_public/correlativo/entities/correlativo.entity";
 import { Obra } from "src/schema_public/obra/entities/obra.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
+import { Suspension } from "src/schema_public/suspension/entities/suspension.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Memorandum {
@@ -41,6 +42,11 @@ export class Memorandum {
 
     @Column({nullable: true})
     id_solicitud: number;
+
+
+     @Column({ type: 'json', nullable: true })
+    de_nombre: string;
+ 
         
 
     @Column({ default : 1})
@@ -63,5 +69,10 @@ export class Memorandum {
     @ManyToOne(() => Correlativo, (correlativo) => correlativo.correla)
     @JoinColumn({ name: 'id_correlativo' })
     correlativ: Correlativo;
+
+// correlativo entity
+    @OneToOne(() => Suspension, (suspension) => suspension.id_memo)
+    suspension: Suspension; 
+
 
 }
