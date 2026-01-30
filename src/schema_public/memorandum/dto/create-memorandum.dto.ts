@@ -1,4 +1,4 @@
-import { IsDate, IsInt, IsNotEmpty, IsString } from "class-validator";
+import { IsDate, IsInt, IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateMemorandumDto {
@@ -55,4 +55,10 @@ export class CreateMemorandumDto {
     @ApiProperty()
     @IsNotEmpty()
     id_usuario: number;
+
+
+      @ApiProperty({ type: Object, required: false, description: 'JSON con datos de de_nombre' })
+       @IsOptional()
+       @IsObject()
+       de_nombre?: string;
 }

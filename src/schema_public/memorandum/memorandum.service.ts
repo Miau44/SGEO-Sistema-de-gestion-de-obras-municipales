@@ -12,6 +12,7 @@ import { Informe } from '../informe/entities/informe.entity';
 import {CorrelativoService} from '../correlativo/correlativo.service';
 import { Contrato } from '../contrato-modificatorio/entities/contrato.entity';
 import { MemorandumObraDto } from './dto/memorandum-obra.dto';
+import { EncabezadoDocumentoMemoDto } from './dto/encabezado-memo.dto';
 @Injectable()
 export class MemorandumService {
 
@@ -176,4 +177,54 @@ export class MemorandumService {
     }
   }
     
+
+  async crearencabezadoDocumentos(data: EncabezadoDocumentoMemoDto) {
+    try {
+
+
+      console.log('datos de nombre_de y cargo', data);
+      
+      //--------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<----------------------------------------------
+      const datos = {
+        id_tipo_memo: data.id_tipo_memo,
+        id_obra: data.id_obra,
+        id_memo: data.id_memo,
+
+      };
+
+      const tiposValidos = [373,374, 243, 380,379];
+      let resultado = null;
+      if (tiposValidos.includes(data.id_tipo_memo)) {
+        const encabezado = await this.encabezadoDocumentosMemoramdum(datos);
+
+        if (data.id_memo) {
+          const datosencabezado = {
+            de_nombre: encabezado.data[0].de_nombre || [],
+            cargo_remitente: encabezado.data[0].de_cargo || '',
+          }
+          resultado = await this.memoRepository.update(data.id_memo, datosencabezado)
+        console.log('resultado', resultado)
+        }
+      }
+      return this.responseService.success(resultado, "Registrado Correctamente.");
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  async encabezadoDocumentosMemoramdum(data: EncabezadoDocumentoMemoDto) {
+    try {
+      const query = ` SELECT * FROM public.sp_encabezado_documentos_memo($1, $2);`;
+      const params = [data.id_tipo_memo, data.id_obra];
+      const resultado = await this.memoRepository.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
 }

@@ -1,0 +1,500 @@
+import { Injectable, Inject, Body } from '@nestjs/common';
+//import * as PdfPrinter from 'pdfmake/src/printer';
+import PdfPrinter from 'pdfmake';
+import * as path from 'path';
+import * as fs from 'fs';
+import { ResponseService } from 'src/response.service';
+import { Sequelize } from 'sequelize-typescript';
+import { log, table } from 'console';
+import { existsSync } from 'fs'
+import { join } from 'path';
+
+const rootPath = process.cwd();
+const fontsPath = join(process.cwd(), 'assets', 'fonts');
+
+const fonts = {
+  Roboto: {
+    normal: join(fontsPath, 'Roboto-Regular.ttf'),
+    bold: join(fontsPath, 'Roboto-Medium.ttf'),
+    italics: join(fontsPath, 'Roboto-Italic.ttf'),
+    bolditalics: join(fontsPath, 'Roboto-MediumItalic.ttf'),
+  },
+};
+
+Object.entries(fonts.Roboto).forEach(([style, path]) => {
+  if (!existsSync(path)) {
+    console.error(`Archivo de fuente ${style} no encontrado en ${path}`);
+  } else {
+    console.log(`Archivo de fuente ${style} encontrado en ${path}`);
+  }
+});
+
+@Injectable()
+export class LlamadaAtencion {
+
+    datosEnvio: any = [];
+    datosLlamada: any = [];
+ 
+    constructor(
+      private readonly responseService: ResponseService,
+      @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+    ) { this.printer = new PdfPrinter(fonts); }
+  
+    private readonly printer = new PdfPrinter(fonts);
+    private getImageBase64(imagePath: string): string {
+      const image = fs.readFileSync(imagePath);
+      return image.toString('base64');
+    }
+  
+  //CONSULTAS
+  // Datos generales obra 
+  async datosGeneralesObra(id_obra: number) {
+    const query = `
+        SELECT * 
+        FROM public."vista_reporte_datos_obra" WHERE id_obra = ${id_obra}`;
+    const resultado = await this.sequelize.query(query);
+    return resultado[0];
+  }
+
+  // Datos Llamada de atención
+  async datosMemo(id_memo: number) {
+    const query2 = `
+        SELECT * 
+        FROM public."vista_reporte_llamada_atencion" WHERE id_memo = ${id_memo}`;
+    const resultado2 = await this.sequelize.query(query2);
+    return resultado2[0];
+  }
+
+     
+// REPORTE - MEMORANDUM DE LLAMADA DE ATENCION
+  async generateLlamadaAtencion(id_obra: number, id_memo: number): Promise<Buffer> {
+
+    const res = await this.datosGeneralesObra(id_obra);
+    if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      throw new Error('No se encontraron datos para la obra proporcionada');
+    }
+    this.datosEnvio = res;
+
+    const res1 = await this.datosMemo(id_memo);
+    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
+      throw new Error('No se encontraron datos de los informes de Sup/Fis');
+    }
+    this.datosLlamada= res1;
+
+       
+    //console.log("DATOS, ", res);
+
+    const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
+    const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
+    const imgPath = 'assets/images/membretado_oficio.png';
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+
+    const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5
+    });
+
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
+    const documentDefinition = {
+      pageSize: 'LEGAL' as any,
+      background: function (currentPage: any, pageSize: any) {
+        return {
+          image: imgPath,
+          width: pageSize.width,
+          height: pageSize.height,
+          absolutePosition: { x: 0, y: 0 }
+        }
+      },
+
+      header: {
+        columns: [
+                    
+        ],
+
+      } as any,
+      content: [
+        {
+          text: 'MEMORANDUM',
+          style: 'header', alignment: 'center',
+        } as any,
+       {
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosLlamada[0].cite + '-' + this.datosLlamada[0].correlativo,
+          style: 'subheader', alignment: 'center'
+        },
+        {
+          text: '\n'
+        },
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                {
+                  border: [false, false, true, false],
+                  text: '', alignment: 'center', fontSize: 10
+                },
+                {
+                  border: [true, false, false, false],
+                  text: 'Señor(es):', fontSize: 10
+                }
+              ],
+              [
+                {
+                  border: [false, false, true, false],
+                  text: 'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ', 
+                  style: 'textTitulo', alignment: 'center'
+                },
+                {
+                  border: [true, false, false, false],
+                  text: this.datosEnvio[0].proponente_razon_social, 
+                  style: 'textTitulo'
+                }
+              ],
+              [
+                {
+                  border: [false, false, true, true],
+                  text: 'La Paz, ' + this.fechaString(this.datosLlamada[0].fecha_instruccion), 
+                  style: 'textDato', alignment: 'center'
+                },
+                {
+                  border: [true, false, false, true],
+                  text: 'Presente.-', 
+                  style: 'textDato'
+                }
+              ]
+            ]
+          },
+          layout: {
+            defaultBorder: false
+          }
+        } as any,
+        {
+          text: '\n'
+        },
+        {
+          text: 'REF.: LLAMADA DE ATENCIÓN Nro.' + this.datosLlamada[0].correlativo, 
+          style: 'coloredText', alignment: 'center', decoration: 'underline' 
+        },
+        {
+          text: '\n'
+        },
+        // Tabla resumen de obra
+        {
+          table: {
+            widths: ['*', 350],
+            body: [
+              [
+                { text: 'OBRA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_carpeta, style: 'textDato', fillColor: '#dddddd' }
+              ],
+              [
+                { text: 'CÓDIGO:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].cod_carpeta + '\n', style: 'textDato', alignment: 'left-justify' }
+              ],
+              [
+                { text: 'ZONA:\n', style: 'textTitulo', alignment: 'right', fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].desc_zona_carpeta + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }
+              ],
+              [
+                { text: 'UNIDAD EJECUTORA:\n', style: 'textTitulo', alignment: 'right' },
+                { text: this.datosEnvio[0].nombre_ue + '', style: 'textDato', alignment: 'left-justify' }
+              ],
+              [
+                { text: 'CONTRATO Nro.:\n', style: 'textTitulo', alignment: 'right',fillColor: '#dddddd' },
+                { text: this.datosEnvio[0].numero_contrato + '', style: 'textDato', alignment: 'left-justify', fillColor: '#dddddd' }
+              ]
+            ]
+          },
+          layout: 'noBorders'
+        },
+        {
+          text: '\n'
+        },
+        {
+          text: [
+            { text: 'Señor(es): \n\n' },
+            {
+              text: 'Debido al incumplimiento de la instrucción emitida y reiterada mediante ' + this.datosLlamada[0].referencia +  
+              ' misma que debia ser cumplida hasta el ' + this.fechaString(this.datosLlamada[0].fecha_cumplimiento_instruccion) + '.\n\n'
+            },
+            {
+              text: 'Por tanto se emite la presente LLAMADA DE ATENCIÓN; en tal sentido, se intruye a usted realizar ' + this.datosLlamada[0].descripcion +
+              ', mismo que debe cumplirse hasta el ' + this.fechaString(this.datosLlamada[0].fecha_maxima_cumplimiento_memo) + '.'
+            },
+            {
+              text: '\n\nAtentamente,', 
+            },
+          ], style: 'textDato', alignment: 'justify', lineHeight: 1
+        },
+        {
+          text: '\n\n\n\n\n'
+        },
+        {          
+          text:
+            [
+            { text:this.datosLlamada[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
+            { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
+            ]
+        },
+        {
+          text: '\n\n\n'
+        },
+        {
+          text: 'NOTIFICACIÓN AL CONTRATISTA',
+          style: 'textTitulo', alignment: 'center'
+        },
+        {
+          text: '\n\n'
+        },
+        {
+          table: {
+            widths: ['25%', '75%'],
+            body: [
+              [
+                { text: 'LUGAR: ', alignment: 'left', bold: true, fontSize: 9 },
+                { text: '_________________________________________________________________', alignment: 'left', fontSize: 9 }
+              ],
+              [
+                { text: 'FECHA: ', alignment: 'left', bold: true, fontSize: 9 },
+                { text: '____/____/_____' , alignment: 'left', fontSize: 9 }
+              ],
+              [
+                { text: 'NOMBRE Y APELLIDO: ', alignment: 'left', bold: true, fontSize: 9 },
+                { text: '_________________________________________________________________', alignment: 'left', fontSize: 9 }
+              ],
+              [
+                { text: 'FIRMA: ', alignment: 'left', bold: true, fontSize: 9 },
+                { text: '______________________________', alignment: 'left', fontSize: 9 }
+              ] 
+            ]
+          },
+          layout: {
+            defaultBorder: false,
+          }
+        } as any,
+        {
+          text: '\n\n\n'
+        },
+        { 
+          text: 'C.c. Unidad Ejecutora.' + '\nC.c. Arch. Sup', style: 'footerText', alignment: 'left' 
+        },
+      
+      ],
+
+      footer: function (currentPage: { toString: () => string; }, pageCount: string) { //return currentPage.toString() + ' of ' + pageCount; 
+              return {
+                columns: [
+                  { text: currentPage.toString() + ' de ' + pageCount, alignment: 'right', style: 'footerText', margin: [0, 0, 30, 0] }
+                ]
+              }
+      } as any,
+
+      styles: {
+        header: {
+          fontSize: 25,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 12,
+          bold: true,
+        },
+        coloredText: {
+          fontSize: 10,
+          bold: true,
+          //color: 'gray',
+        },
+        textTitulo: {
+          fontSize: 9,
+          bold: true,
+        },
+        textDato: {
+          fontSize: 9,
+          bold: false,
+        },
+        footerText: {
+          fontSize: 6,
+          bold: false,
+        },
+      },
+      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+
+    };
+    // Generar el PDF en memoria
+    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
+    const chunks: Uint8Array[] = [];
+
+    return new Promise<Buffer>((resolve, reject) => {
+      pdfDoc.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      pdfDoc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      pdfDoc.end();
+    });
+  }
+
+  //// FUNCIONES VARIOS
+  
+      //funcion para generar la fecha de manera escrita
+  // fechaString(iso: string): string {
+  //   let formattedDate = '';
+  //   let fecha: Date;
+
+  //   if (iso === 'hoy') {
+  //     fecha = new Date();
+  //   } else {
+  //     fecha = new Date(iso);
+  //   }
+
+  //   if (iso) {
+  //     const h = fecha.getHours();
+  //     const m = fecha.getMinutes();
+  //     const horas = h < 10 ? `0${h}` : `${h}`;
+  //     const minutos = m < 10 ? `0${m}` : `${m}`;
+
+  //     // Formatea la fecha
+  //     formattedDate = fecha.toLocaleDateString('es-ES', {
+  //       year: 'numeric',
+  //       month: 'long',
+  //       day: 'numeric',
+  //     });
+  //    }
+  //   return formattedDate;
+  // }
+  fechaString(iso: any): string {
+  if (!iso) return '';
+
+  let fecha: Date;
+
+  // Caso especial: "hoy"
+  if (iso === 'hoy') {
+    fecha = new Date();
+  } else if (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+  
+    const [y, m, d] = iso.split('-').map(Number);
+    fecha = new Date(y, m - 1, d, 12, 0, 0); // local time
+  } else {
+    // Viene con hora o como Date
+    fecha = new Date(iso);
+  }
+
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+//Función para generar de manera escrita el monto del dinero
+private unidades = [
+'', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
+];
+
+private decenas = [
+  '', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA',
+];
+
+private especiales = [
+  'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE',
+];
+
+private centenas = [
+  '', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS',
+  'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS',
+];
+
+convertToWords(value: string, currency: string): string {
+  // Eliminar espacios y símbolos excepto dígitos, punto y coma
+  const cleanValue = value.replace(/[^\d.,]/g, '');
+
+  // Reemplazar el punto (.) por vacío solo si es separador de miles
+  const normalized = cleanValue.replace(/\./g, '').replace(',', '.');
+
+  const number = parseFloat(normalized);
+
+  if (isNaN(number)) throw new Error('Valor inválido');
+
+  const integerNumber = Math.floor(number);
+  const decimalNumber = Math.round((number - integerNumber) * 100);
+
+  const integerWords = this.numberToWords(integerNumber).trim();
+  const decimalWords = `${decimalNumber.toString().padStart(2, '0')}/100`;
+  const currencyWords = this.getCurrencyWord(currency);
+
+  return `${integerWords} ${decimalWords} ${currencyWords}`;
+}
+
+private numberToWords(value: number): string {
+  if (value === 0) return 'CERO';
+  if (value < 10) return this.unidades[value];
+  if (value === 10) return 'DIEZ';
+  if (value > 10 && value < 20) return this.especiales[value - 11];
+  if (value < 100) {
+    const decena = Math.floor(value / 10);
+    const unidad = value % 10;
+    return unidad > 0
+      ? `${this.decenas[decena]} Y ${this.unidades[unidad]}`
+      : this.decenas[decena];
+  }
+  if (value < 1000) {
+    const centena = Math.floor(value / 100);
+    const resto = value % 100;
+    if (value === 100) return 'CIEN';
+    return resto === 0
+    ? this.centenas[centena]
+    : `${this.centenas[centena]} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000) {
+    const miles = Math.floor(value / 1000);
+    const resto = value % 1000;
+    const milesWord = miles === 1 ? 'MIL' : `${this.numberToWords(miles)} MIL`;
+    return resto === 0
+    ? milesWord
+    : `${milesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  if (value < 1_000_000_000) {
+    const millones = Math.floor(value / 1_000_000);
+    const resto = value % 1_000_000;
+    const millonesWord = millones === 1 ? 'UN MILLÓN' : `${this.numberToWords(millones)} MILLONES`;
+    return resto === 0
+    ? millonesWord
+    : `${millonesWord} ${this.numberToWords(resto)}`.trim();
+  }
+  throw new Error('Valor fuera de rango');
+}
+
+private getCurrencyWord(currency: string): string {
+  switch (currency) {
+    case 'Bs.':
+    case 'Bs':
+      return 'BOLIVIANOS';
+    case '$':
+    case 'USD':
+      return 'DÓLARES';
+    case '€':
+    case 'EUR':
+      return 'EUROS';
+    default:
+      throw new Error(`Moneda no soportada: ${currency}`);
+  }
+}
+
+private formatIfNumber(value: any, formatter: Intl.NumberFormat): string {
+    if (value === null || value === undefined || value === '') return '';
+    
+    const num = Number(value);
+    if (isNaN(num)) return '';
+
+    return formatter.format(num);
+ }
+
+
+}
