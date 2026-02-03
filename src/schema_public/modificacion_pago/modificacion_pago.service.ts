@@ -26,6 +26,7 @@ import { IsNumeric } from 'sequelize-typescript';
 import { NOW } from 'sequelize';
 
 
+
 @Injectable()
 export class ModificacionPagoService {
   constructor(
@@ -310,8 +311,12 @@ export class ModificacionPagoService {
           id_modificacion_pago: Number(respuesta_modpago.data.id_modificacion_pago),
           id_usuario_registro: dto.id_usuario
         }
-        const respuesta_planilla = await this.servicioPlanilla.copiarItem(dto_planilla)
-
+      //  const respuesta_planilla = await this.servicioPlanilla.copiarItem(dto_planilla)
+          try {
+            return await this.servicioPlanilla.copiarItem(dto_planilla);
+          } catch (error) {
+            throw new InternalServerErrorException('Ocurrió un error al copiar de la planilla');
+          }
         // return { entidad1: respuesta_modpago, relacionado: entidadGuardada};      
         return this.responseService.success({ entidad1: respuesta_modpago, relacionado: entidadGuardada }, "Solicitud generada correctamente.");
       }
@@ -399,7 +404,7 @@ export class ModificacionPagoService {
       `SELECT COUNT(*) AS total, SUM(CASE WHEN finalizado = true THEN 1 ELSE 0 END) AS finalizados 
        FROM public.planilla WHERE id_modificacion_pago = $1 AND id_estado = 1`, params2);
     if (Number(planillaQuery[0].total) === 0 || Number(planillaQuery[0].total) !== Number(planillaQuery[0].finalizados)) {
-      mensaje += 'Debe Finalizar la Planilla de Compútos Métricos antes de enviar al Fiscal.<br><br>';
+      mensaje += 'Debe Finalizar la Planilla de Cómputos Métricos antes de enviar al Fiscal.<br><br>';
     }
     console.log(' planillaQuery.rows[0].total', planillaQuery[0].total);
 
@@ -519,7 +524,15 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
         if (!resultadoinforme || resultadoinforme.rowCount === 0) {
           throw new NotFoundException('Error al actualizar el informe con el nuevo correlativo');
+        }       
+
+        try {
+         await this.finalizarItemNuevo(AprobarDto.id_obra);
+        } catch (error) {
+        throw new Error('No se pudo finalizar el item');
         }
+
+
       }
       return this.responseService.success(resultado, "aprobada correctamente.");
     } catch (error) {
@@ -529,6 +542,23 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
   }
 
 
+
+
+    async finalizarItemNuevo(id_obra:number) {
+      try {
+        let query =
+          ` UPDATE public.item 
+          SET finalizado =true, fecha_modificacion = NOW() 
+          WHERE id_obra = $1 AND finalizado = false AND id_estado = 1   AND id_tipo_item =265; `;
+        const params = [id_obra];
+        const resultado = await this.modPagoRepositorio.query(query, params);
+        return this.responseService.success(resultado, "Actualizado Correctamente.")
+      } catch (error) {
+        return this.responseService.error(error);
+      }
+  
+  
+    }
   async tieneIncremento(data: ActualizarModPagoDto): Promise<any> {
     const result = await this.modificacionRepo.query(
       `SELECT sp_modificacion_tiene_incremento($1) AS resultado`,
