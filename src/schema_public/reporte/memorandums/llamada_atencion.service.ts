@@ -82,7 +82,7 @@ export class LlamadaAtencion {
     this.datosLlamada= res1;
 
        
-    //console.log("DATOS, ", res);
+    //console.log("DATOS, ", res1);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -157,7 +157,7 @@ export class LlamadaAtencion {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'La Paz, ' + this.fechaString(this.datosLlamada[0].fecha_instruccion), 
+                  text: 'La Paz, ' + this.fechaString(this.datosLlamada[0].registro_llamada_atencion), 
                   style: 'textDato', alignment: 'center'
                 },
                 {

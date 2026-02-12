@@ -34,6 +34,7 @@ export class ReinicioObra {
 
     datosEnvio: any = [];
     datosInf: any = [];
+    datosRe:any = [];
  
     constructor(
       private readonly responseService: ResponseService,
@@ -65,9 +66,18 @@ export class ReinicioObra {
     return resultado2[0];
   }
 
+   // Datos reinicio 
+  async datosReinicio(id_memo: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_reporte_reinicio" WHERE id_memo = ${id_memo}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+  }
+
      
 // REPORTE - MEMORANDUM REINICIO DE OBRA
-  async generateReinicioObra(id_obra: number): Promise<Buffer> {
+  async generateReinicioObra(id_obra: number, id_memo: number): Promise<Buffer> {
 
     const res = await this.datosGeneralesObra(id_obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -81,8 +91,14 @@ export class ReinicioObra {
     }
     this.datosInf = res1;
 
+    const res2 = await this.datosReinicio(id_memo);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos para el reinicio');
+    }
+    this.datosRe = res2;
+
        
-    console.log("DATOS, ", res);
+    console.log("DATOS, ", res2);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -122,7 +138,7 @@ export class ReinicioObra {
           style: 'header', alignment: 'center',
         } as any,
        {
-          text: this.datosEnvio[0].cod_carpeta + '-' + 'MOC-' + this.datosEnvio[0].numero_modificacion,
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosRe[0].cite + '-' + this.datosRe[0].correlativo,
           style: 'subheader', alignment: 'center'
         },
         {
@@ -157,7 +173,7 @@ export class ReinicioObra {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo_minuta), 
+                  text: 'La Paz, ' + this.fechaString(this.datosRe[0].registro_reinicio), 
                   style: 'textDato', alignment: 'center'
                 },
                 {
@@ -176,7 +192,7 @@ export class ReinicioObra {
           text: '\n'
         },
         {
-          text: 'REF.: REINICIO DE OBRA' + this.datosEnvio[0].numero_modificacion, 
+          text: 'REF.: REINICIO DE OBRA Nro.' + this.datosRe[0].correlativo, 
           style: 'coloredText', alignment: 'center', decoration: 'underline' 
         },
         {
@@ -218,9 +234,9 @@ export class ReinicioObra {
           text: [
             { text: 'Señor(es): \n\n' },
             {
-              text: 'La Supervisión de Obras, en atención a la paralización instruida mediante memorándum con cite: ' + 'XXXXXXXXXXX' +  
-              ' autoriza mediante el presente el reinicio de la obra : ' + ' OBRA XXXXXX  XX X X X ' + ', la misma que se ejecuta en la zona ' + 'ZONA XXXX' +
-              ', a partir del día' + 'FECHA XXXXX' +', en cumplimiento a los términos contractuales.\n\n'
+              text: 'La Supervisión de Obras, en atención a la paralización instruida mediante memorándum con cite: ' + '' +  
+              ' autoriza mediante el presente el reinicio de la obra : ' + this.datosEnvio[0].desc_carpeta + ', la misma que se ejecuta en la zona ' + this.datosEnvio[0].desc_zona_carpeta +
+              ', a partir del día ' + this.fechaString(this.datosRe[0].fecha_reinicio) +', en cumplimiento a los términos contractuales.\n\n'
             },
             {
               text: '\n\nAtentamente,', 

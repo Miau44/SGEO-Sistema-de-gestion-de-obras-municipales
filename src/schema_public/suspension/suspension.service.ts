@@ -3,7 +3,7 @@ import { CreateSuspensionDto } from './dto/create-suspension.dto';
 import { UpdateSuspensionDto } from './dto/update-suspension.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Suspension } from './entities/suspension.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ResponseService } from 'src/response.service';
 import { CorrelativoService } from '../correlativo/correlativo.service';
 import { MemorandumService } from '../memorandum/memorandum.service';
@@ -27,66 +27,140 @@ export class SuspensionService {
   ) { }
 
 
-  async create(createSuspensionDto: CreateSuspensionDto) {
-    try {
-      const correlativoMemoRes = await this.correlativoService.create({
-        id_obra: createSuspensionDto.id_obra,
-        id_tipo_documento: 243,
-        correlativo: '',
-        usuario_registro: createSuspensionDto.id_usuario,
-        id_estado: 1
-      });
-      const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
-      if (correlativoMemoRes.statusCode !== 200) {
-        throw new Error('Error al generar correlativo del memorandum');
-      }
+  // async create(createSuspensionDto: CreateSuspensionDto) {
+  //   try {
+  //     const correlativoMemoRes = await this.correlativoService.create({
+  //       id_obra: createSuspensionDto.id_obra,
+  //       id_tipo_documento: 243,
+  //       correlativo: '',
+  //       usuario_registro: createSuspensionDto.id_usuario,
+  //       id_estado: 1
+  //     });
+  //     const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
+  //     if (correlativoMemoRes.statusCode !== 200) {
+  //       throw new Error('Error al generar correlativo del memorandum');
+  //     }
 
-      const data_memo = {
-        "id_obra": createSuspensionDto.id_obra,
-        "id_tipo_memo": createSuspensionDto.id_tipo_suspension,
-        "id_correlativo": idCorrelativoMemo,
-        "fecha_memo": new Date(),
-        "nombre_destinatario": "",
-        "referencia": "",
-        "descripcion": "",
-        "nombre_remitente": "",
-        "cargo_remitente": "",
-        "id_estado": 1,
-        "id_usuario": createSuspensionDto.id_usuario,
-      };
-      const resultado_memo = await this.memoService.create(data_memo);
-      createSuspensionDto.id_memo = resultado_memo.data.id_memo;
+  //     const data_memo = {
+  //       "id_obra": createSuspensionDto.id_obra,
+  //       // "id_tipo_memo": createSuspensionDto.id_tipo_suspension,
+  //       "id_tipo_memo": 243,
+  //       "id_correlativo": idCorrelativoMemo,
+  //       "fecha_memo": new Date(),
+  //       "nombre_destinatario": "",
+  //       "referencia": "",
+  //       "descripcion": "",
+  //       "nombre_remitente": "",
+  //       "cargo_remitente": "",
+  //       "id_estado": 1,
+  //       "id_usuario": createSuspensionDto.id_usuario,
+  //     };
+  //     const resultado_memo = await this.memoService.create(data_memo);
+  //     createSuspensionDto.id_memo = resultado_memo.data.id_memo;
 
-      const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
-      if(createSuspensionDto.id_tipo_suspension == 380){
-      const respuestafalse = await this.buscarSuspensiones(createSuspensionDto.id_obra, false); 
-    const data_update = {"id_padre_suspension" : respuestafalse.data.id_suspension}   
-      this.update(respuestafalse.data.id_suspension, data_update )
+  //     const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
+  //     if(createSuspensionDto.id_tipo_suspension === 380){
+  //     const respuestafalse = await this.buscarSuspensiones(createSuspensionDto.id_obra, false); 
+  //   const data_update = {"id_padre_suspension" : respuestafalse.data.id_suspension}   
+  //     this.update(respuestafalse.data.id_suspension, data_update )
       
-      respuestafalse.data.id_suspension 
-        resultado.id_suspension 
-      }
+  //     respuestafalse.data.id_suspension 
+  //       resultado.id_suspension 
+  //     }
 
-        if (!resultado) {
-        throw new Error('No se pudo la suspension');
-      }
+  //       if (!resultado) {
+  //       throw new Error('No se pudo la suspension');
+  //     }
   
-      const datos = {
-        id_tipo_memo: createSuspensionDto.id_tipo_suspension,
-        id_obra: createSuspensionDto.id_obra,
-        id_memo: resultado_memo.data.id_memo,
-      }
+  //     const datos = {
+  //       id_tipo_memo: createSuspensionDto.id_tipo_suspension,
+  //       id_obra: createSuspensionDto.id_obra,
+  //       id_memo: resultado_memo.data.id_memo,
+  //     }
 
-      const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
-      if (!encabezado) {
-        throw new Error('No se pudo crear el encabezado de documentos');
-      }
-      return this.responseService.success(resultado, "Registrado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
+  //     const encabezado = await this.memoService.crearencabezadoDocumentos(datos)
+  //     if (!encabezado) {
+  //       throw new Error('No se pudo crear el encabezado de documentos');
+  //     }
+  //     return this.responseService.success(resultado, "Registrado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
+  async create(createSuspensionDto: CreateSuspensionDto) {
+  try {
+    // 1) Crear correlativo para memo (tipo doc 243)
+    const correlativoMemoRes = await this.correlativoService.create({
+      id_obra: createSuspensionDto.id_obra,
+      id_tipo_documento: 243,
+      correlativo: '',
+      usuario_registro: createSuspensionDto.id_usuario,
+      id_estado: 1,
+    });
+
+    if (correlativoMemoRes.statusCode !== 200) {
+      throw new Error('Error al generar correlativo del memorandum');
     }
-  }
 
+    const idCorrelativoMemo = correlativoMemoRes.data.id_correlativo;
+
+    // 2) Crear memo (tipo memo fijo 243)
+    const data_memo = {
+      id_obra: createSuspensionDto.id_obra,
+      id_tipo_memo: 243,
+      id_correlativo: idCorrelativoMemo,
+      fecha_memo: new Date(),
+      nombre_destinatario: '',
+      referencia: '',
+      descripcion: '',
+      nombre_remitente: '',
+      cargo_remitente: '',
+      id_estado: 1,
+      id_usuario: createSuspensionDto.id_usuario,
+    };
+
+    const resultado_memo = await this.memoService.create(data_memo);
+    createSuspensionDto.id_memo = resultado_memo.data.id_memo;
+
+    // 3) Guardar suspensión
+    const resultado = await this.suspensionRepositorio.save(createSuspensionDto);
+
+    if (!resultado) {
+      throw new Error('No se pudo crear la suspensión');
+    }
+
+    // 4) ABSORCIÓN: si es TOTAL (380)
+    if (createSuspensionDto.id_tipo_suspension === 380) {
+      await this.suspensionRepositorio.update(
+        {
+          id_obra: createSuspensionDto.id_obra,
+          id_tipo_suspension: 379,
+          finalizado: true,
+          id_estado: 1,
+          id_padre_suspension: IsNull(),
+        },
+        { id_padre_suspension: resultado.id_suspension }
+      );
+    }
+
+    // 5) Crear encabezado de documentos
+    const datos = {
+      id_tipo_memo: createSuspensionDto.id_tipo_suspension,
+      id_obra: createSuspensionDto.id_obra,
+      id_memo: resultado_memo.data.id_memo,
+    };
+
+    const encabezado = await this.memoService.crearencabezadoDocumentos(datos);
+    if (!encabezado) {
+      throw new Error('No se pudo crear el encabezado de documentos');
+    }
+
+    return this.responseService.success(resultado, 'Registrado Correctamente.');
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
   async findAll() {
     try {
@@ -150,7 +224,7 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
      try {
        ;
        let query =
-         `SELECT  * FROM public.vista_lista_suspension WHERE id_obra = $1;  `;
+         `SELECT  * FROM public.vista_lista_suspension WHERE id_obra = $1 ORDER BY id_suspension DESC;  `;
        const params: any[] = [data.id_obra];
        const resultado: any[] = await this.suspensionRepositorio.query(query, params);
        return this.responseService.success(resultado, "Listado Correctamente.")

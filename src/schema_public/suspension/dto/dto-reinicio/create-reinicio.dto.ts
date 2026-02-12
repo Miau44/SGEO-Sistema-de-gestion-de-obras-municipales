@@ -22,9 +22,8 @@ export class CreateReinicioDto {
     @ApiProperty()
     justificacion_reinicio: string;
 
-  @IsInt()
-    @ApiProperty()
-    @IsNotEmpty()    
+    @IsInt()
+    @ApiProperty()    
     id_memo: number;    
 
     @ApiProperty()
