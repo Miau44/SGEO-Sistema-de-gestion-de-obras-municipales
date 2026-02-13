@@ -245,7 +245,18 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
        return this.responseService.error(error);
      }
    }
-
+  async listaHijosTotal(data: { id_obra: number; id_total: number }) {
+  const query = `
+    SELECT id_suspension, id_obra, suspension
+    FROM public.vista_lista_suspension_hijos_totales
+    WHERE id_obra = $1 AND id_padre_suspension = $2
+    ORDER BY id_suspension DESC;
+  `;
+  const params = [data.id_obra, data.id_total];
+  const resultado = await this.suspensionRepositorio.query(query, params);
+  return this.responseService.success(resultado, "Listado Correctamente.");
+}
+  
 
    /////////////////////////////////////////////////////////////////////////////////////////////
 
