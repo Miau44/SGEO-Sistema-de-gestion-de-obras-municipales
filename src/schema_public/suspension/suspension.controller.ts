@@ -68,6 +68,12 @@ export class SuspensionController {
     } catch (error) {
     }
   }  
+
+  @Public()
+@Post('lista-suspension-hijos_totales')
+listaSuspensionHijosTotal(@Body() data: { id_obra: number; id_total: number }) {
+  return this.suspensionService.listaHijosTotal(data);
+}
   
 
  @Post('create-reinicio')
