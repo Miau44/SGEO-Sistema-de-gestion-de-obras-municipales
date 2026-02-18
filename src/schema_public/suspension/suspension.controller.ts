@@ -83,6 +83,12 @@ listaSuspensionHijosTotal(@Body() data: { id_obra: number; id_total: number }) {
     } catch { }
   }
 
+  @Public()
+  @Post('lista-suspension-para-reinicio')
+  listaSuspensionParaReinicio(@Body() data: { id_obra: number; id_suspension: number }) {
+    return this.suspensionService.listaSuspensionParaReinicio(data);
+  }
+
 
    @Patch('update-reinicio/:id')
   updateReinicio(@Param('id') id: string, @Body() updateReinicioDto: UpdateReinicioDto) {

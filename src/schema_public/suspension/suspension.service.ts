@@ -318,6 +318,31 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
     }
   }
 
+  async listaSuspensionParaReinicio(data: { id_obra: number; id_suspension: number }) {
+  const query = `
+    SELECT s.id_suspension,
+           s.id_obra,
+           (v.cod_carpeta || '-' || p.detalle || '-' || c.correlativo::text) AS suspension
+    FROM suspension s
+    JOIN memorandum m ON s.id_memo = m.id_memo
+    JOIN correlativo c ON m.id_correlativo = c.id_correlativo
+    JOIN datos_generales_x_obra v ON s.id_obra = v.id_obra
+    JOIN (SELECT id_subtipo, detalle FROM parametrica WHERE id_tipo = 45) p
+      ON s.id_tipo_suspension = p.id_subtipo
+    WHERE s.id_estado = 1
+      AND c.id_estado = 1
+      AND s.finalizado = true
+      AND s.id_obra = $1
+      AND s.id_suspension = $2
+      AND NOT EXISTS (
+        SELECT 1 FROM reinicio r
+        WHERE r.id_suspension = s.id_suspension AND r.id_estado = 1
+      )
+  `;
+  const params = [data.id_obra, data.id_suspension];
+  const resultado = await this.suspensionRepositorio.query(query, params);
+  return this.responseService.success(resultado, "Listado Correctamente.");
+}
 
 
     async findOneReinicio(id_reinicio: number) {
