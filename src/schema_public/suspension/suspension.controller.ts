@@ -74,7 +74,12 @@ export class SuspensionController {
 listaSuspensionHijosTotal(@Body() data: { id_obra: number; id_total: number }) {
   return this.suspensionService.listaHijosTotal(data);
 }
-  
+
+@Public()
+@Get('validar-total/:id_obra')
+validarTotal(@Param('id_obra') id_obra: string) {
+  return this.suspensionService.puedeCrearTotal(+id_obra);
+}
 
  @Post('create-reinicio')
   createReinicio(@Body() createReinicioDto: CreateReinicioDto) {
