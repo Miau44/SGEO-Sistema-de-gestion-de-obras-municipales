@@ -188,8 +188,8 @@ export class ficha_itemService {
           }
 
           //validar que codigo_ficha tenga el texto 2025
-          if (!fichaJson.codigo_ficha.includes("2025")) {
-            msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion 2025.\n`;
+          if (!fichaJson.codigo_ficha.includes(this.gestion.toString())) {
+            msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion `+this.gestion.toString()+`.\n`;
             continue;
           }
 
