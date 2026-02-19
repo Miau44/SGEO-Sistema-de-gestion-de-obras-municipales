@@ -90,6 +90,39 @@ export class SuspensionService {
 
   async create(createSuspensionDto: CreateSuspensionDto) {
   try {
+    // ✅ 0) VALIDACIÓN ESTRICTA: bloquear otra TOTAL si ya hay una TOTAL vigente
+    if (createSuspensionDto.id_tipo_suspension === 380) {
+      const bloqueoQuery = `
+    SELECT 1
+    FROM suspension s
+    LEFT JOIN reinicio r
+      ON r.id_suspension = s.id_suspension
+     AND r.id_estado = 1
+    WHERE s.id_obra = $1
+      AND s.id_estado = 1
+      AND s.id_tipo_suspension = 380
+      AND (
+        s.finalizado = false
+        OR (
+          s.finalizado = true
+          AND (r.id_reinicio IS NULL OR r.finalizado <> true)
+        )
+      )
+    LIMIT 1;
+  `;
+
+      const existe = await this.suspensionRepositorio.query(bloqueoQuery, [
+        createSuspensionDto.id_obra,
+      ]);
+
+      if (existe.length > 0) {
+        return this.responseService.error({
+          message:
+            'No puede crear otra Suspensión TOTAL: existe una TOTAL vigente (no finalizada o con reinicio pendiente).',
+        });
+      }
+    }
+
     // 1) Crear correlativo para memo (tipo doc 243)
     const correlativoMemoRes = await this.correlativoService.create({
       id_obra: createSuspensionDto.id_obra,
@@ -130,19 +163,44 @@ export class SuspensionService {
       throw new Error('No se pudo crear la suspensión');
     }
 
+    // // 4) ABSORCIÓN: si es TOTAL (380)
+    // if (createSuspensionDto.id_tipo_suspension === 380) {
+    //   await this.suspensionRepositorio.update(
+    //     {
+    //       id_obra: createSuspensionDto.id_obra,
+    //       id_tipo_suspension: 379,
+    //       finalizado: true,
+    //       id_estado: 1,
+    //       id_padre_suspension: IsNull(),
+    //     },
+    //     { id_padre_suspension: resultado.id_suspension }
+    //   );
+    // }
+
     // 4) ABSORCIÓN: si es TOTAL (380)
     if (createSuspensionDto.id_tipo_suspension === 380) {
-      await this.suspensionRepositorio.update(
-        {
-          id_obra: createSuspensionDto.id_obra,
-          id_tipo_suspension: 379,
-          finalizado: true,
-          id_estado: 1,
-          id_padre_suspension: IsNull(),
-        },
-        { id_padre_suspension: resultado.id_suspension }
+      const query = `
+    UPDATE suspension s
+    SET id_padre_suspension = $1
+    WHERE s.id_obra = $2
+      AND s.id_tipo_suspension = 379
+      AND s.finalizado = true
+      AND s.id_estado = 1
+      AND s.id_padre_suspension IS NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM reinicio r
+        WHERE r.id_suspension = s.id_suspension
+          AND r.id_estado = 1
       );
+  `;
+
+      await this.suspensionRepositorio.query(query, [
+        resultado.id_suspension,       // id_total
+        createSuspensionDto.id_obra,   // id_obra
+      ]);
     }
+
 
     // 5) Crear encabezado de documentos
     const datos = {
@@ -245,8 +303,73 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
        return this.responseService.error(error);
      }
    }
+  //   async listaHijosTotal(data: { id_obra: number; id_total: number }) {
+  //   const query = `
+  //     SELECT id_suspension, id_obra, suspension
+  //     FROM public.vista_lista_suspension_hijos_totales
+  //     WHERE id_obra = $1 AND id_padre_suspension = $2
+  //     ORDER BY id_suspension DESC;
+  //   `;
+  //   const params = [data.id_obra, data.id_total];
+  //   const resultado = await this.suspensionRepositorio.query(query, params);
+  //   return this.responseService.success(resultado, "Listado Correctamente.");
+  // }
+  async listaHijosTotal(data: { id_obra: number; id_total: number }) {
+    const query = `
+    SELECT s.id_suspension,
+           s.id_obra,
+           (v.cod_carpeta || '-' || p.detalle || '-' || c.correlativo::text) AS suspension
+    FROM suspension s
+    JOIN memorandum m ON s.id_memo = m.id_memo
+    JOIN correlativo c ON m.id_correlativo = c.id_correlativo
+    JOIN datos_generales_x_obra v ON s.id_obra = v.id_obra
+    JOIN (SELECT id_subtipo, detalle FROM parametrica WHERE id_tipo = 45) p
+      ON s.id_tipo_suspension = p.id_subtipo
+    WHERE s.id_obra = $1
+      AND s.id_padre_suspension = $2
+      AND s.id_tipo_suspension = 379
+      AND s.id_estado = 1
+      AND c.id_estado = 1
+      AND s.finalizado = true
+      AND NOT EXISTS (
+        SELECT 1
+        FROM reinicio r
+        WHERE r.id_suspension = s.id_suspension
+          AND r.id_estado = 1
+      )
+    ORDER BY s.id_suspension DESC;
+  `;
+    const params = [data.id_obra, data.id_total];
+    const resultado = await this.suspensionRepositorio.query(query, params);
+    return this.responseService.success(resultado, "Listado Correctamente.");
+  }
 
+  async puedeCrearTotal(id_obra: number) {
+  const q = `
+    SELECT 1
+    FROM suspension s
+    LEFT JOIN reinicio r
+      ON r.id_suspension = s.id_suspension AND r.id_estado = 1
+    WHERE s.id_obra = $1
+      AND s.id_estado = 1
+      AND s.id_tipo_suspension = 380
+      AND (
+        s.finalizado = false
+        OR (s.finalizado = true AND (r.id_reinicio IS NULL OR r.finalizado <> true))
+      )
+    LIMIT 1;
+  `;
+  const existe = await this.suspensionRepositorio.query(q, [id_obra]);
 
+  if (existe.length) {
+    return this.responseService.success(
+      { permitir: false, motivo: 'Existe una TOTAL vigente (finalice suspensión + reinicio).' },
+      'OK'
+    );
+  }
+  return this.responseService.success({ permitir: true, motivo: null }, 'OK');
+}
+  
    /////////////////////////////////////////////////////////////////////////////////////////////
 
   async createReinicio(createReinicioDto: CreateReinicioDto) {
@@ -307,6 +430,55 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
     }
   }
 
+//   async listaSuspensionParaReinicio(data: { id_obra: number; id_suspension: number }) {
+//   const query = `
+//     SELECT s.id_suspension,
+//            s.id_obra,
+//            (v.cod_carpeta || '-' || p.detalle || '-' || c.correlativo::text) AS suspension
+//     FROM suspension s
+//     JOIN memorandum m ON s.id_memo = m.id_memo
+//     JOIN correlativo c ON m.id_correlativo = c.id_correlativo
+//     JOIN datos_generales_x_obra v ON s.id_obra = v.id_obra
+//     JOIN (SELECT id_subtipo, detalle FROM parametrica WHERE id_tipo = 45) p
+//       ON s.id_tipo_suspension = p.id_subtipo
+//     WHERE s.id_estado = 1
+//       AND c.id_estado = 1
+//       AND s.finalizado = true
+//       AND s.id_obra = $1
+//       AND s.id_suspension = $2
+//       AND NOT EXISTS (
+//         SELECT 1 FROM reinicio r
+//         WHERE r.id_suspension = s.id_suspension AND r.id_estado = 1
+//       )
+//   `;
+//   const params = [data.id_obra, data.id_suspension];
+//   const resultado = await this.suspensionRepositorio.query(query, params);
+//   return this.responseService.success(resultado, "Listado Correctamente.");
+// }
+
+async listaSuspensionParaReinicio(data: { id_obra: number; id_suspension: number }) {
+  const query = `
+    SELECT s.id_suspension,
+           s.id_obra,
+           (v.cod_carpeta || '-' || p.detalle || '-' || c.correlativo::text) AS suspension
+    FROM suspension s
+    JOIN memorandum m ON s.id_memo = m.id_memo
+    JOIN correlativo c ON m.id_correlativo = c.id_correlativo
+    JOIN datos_generales_x_obra v ON s.id_obra = v.id_obra
+    JOIN (SELECT id_subtipo, detalle FROM parametrica WHERE id_tipo = 45) p
+      ON s.id_tipo_suspension = p.id_subtipo
+    WHERE s.id_estado = 1
+      AND c.id_estado = 1
+      AND s.finalizado = true
+      AND s.id_obra = $1
+      AND s.id_suspension = $2
+  `;
+
+  const params = [data.id_obra, data.id_suspension];
+  const resultado = await this.suspensionRepositorio.query(query, params);
+
+  return this.responseService.success(resultado, "Listado Correctamente.");
+}
 
 
     async findOneReinicio(id_reinicio: number) {
