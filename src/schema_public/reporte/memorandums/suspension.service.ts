@@ -102,7 +102,7 @@ export class SuspensionObra {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosSusp[0].suspension_finalizada;
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -124,6 +124,10 @@ export class SuspensionObra {
           absolutePosition: { x: 0, y: 0 }
         }
       },
+      ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
 
       header: {
         columns: [
