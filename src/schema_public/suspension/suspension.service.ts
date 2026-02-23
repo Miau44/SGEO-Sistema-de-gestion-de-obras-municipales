@@ -345,7 +345,7 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
   }
 
   async puedeCrearTotal(id_obra: number) {
-  const q = `
+    const q = `
     SELECT 1
     FROM suspension s
     LEFT JOIN reinicio r
@@ -359,17 +359,47 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
       )
     LIMIT 1;
   `;
-  const existe = await this.suspensionRepositorio.query(q, [id_obra]);
+    const existe = await this.suspensionRepositorio.query(q, [id_obra]);
 
-  if (existe.length) {
+    if (existe.length) {
+      return this.responseService.success(
+        { permitir: false, motivo: 'Existe una TOTAL vigente (finalice suspensión + reinicio).' },
+        'OK'
+      );
+    }
+    return this.responseService.success({ permitir: true, motivo: null }, 'OK');
+  }
+
+  async validarBloqueoNuevaSuspension(id_obra: number) {
+    const query = `
+            SELECT EXISTS (
+          SELECT 1
+          FROM suspension s
+          LEFT JOIN LATERAL (
+            SELECT r1.id_reinicio, r1.finalizado
+            FROM reinicio r1
+            WHERE r1.id_suspension = s.id_suspension
+              AND r1.id_estado = 1
+            ORDER BY r1.id_reinicio DESC
+            LIMIT 1
+          ) r ON true
+          WHERE s.id_obra = $1
+            AND s.id_estado = 1
+            AND s.id_tipo_suspension = 380
+            AND (
+              s.finalizado = false
+              OR r.id_reinicio IS NULL
+              OR r.finalizado = false
+            )
+        ) AS bloqueado;
+    `;
+    const [row] = await this.suspensionRepositorio.query(query, [id_obra]);
     return this.responseService.success(
-      { permitir: false, motivo: 'Existe una TOTAL vigente (finalice suspensión + reinicio).' },
-      'OK'
+      { bloqueado: row?.bloqueado === true },
+      'Validación realizada.'
     );
   }
-  return this.responseService.success({ permitir: true, motivo: null }, 'OK');
-}
-  
+
    /////////////////////////////////////////////////////////////////////////////////////////////
 
   async createReinicio(createReinicioDto: CreateReinicioDto) {
