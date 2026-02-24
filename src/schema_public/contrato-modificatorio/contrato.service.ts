@@ -267,7 +267,7 @@ async llenarContratosDesdeServicioPorCodCarpeta(
   };
 
   try {
-    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/0`;
+    const url = `${process.env.URL_DLC}consumer/reporteunodfo/${gestion}/${codcarpetaOpcional}`;
     // console.log('Consultando servicio externo en:', url);
 
     const response = await fetch(url, {

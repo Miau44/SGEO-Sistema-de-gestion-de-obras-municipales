@@ -559,9 +559,9 @@ export class ReportController {
     @Get('suspension-obra')
     async SuspensionObra(@Res() res: Response,
     @Query('id_obra') id_obra: number,
-    //@Query('id_memo') id_memo: number,
+    @Query('id_memo') id_memo: number,
     ): Promise<void> {
-      const pdfBuffer = await this.suspension.generateSuspensionObra(id_obra);    
+      const pdfBuffer = await this.suspension.generateSuspensionObra(id_obra, id_memo);    
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Length': pdfBuffer.length,      
@@ -573,9 +573,9 @@ export class ReportController {
     @Get('reinicio-obra')
     async ReinicioObra(@Res() res: Response,
     @Query('id_obra') id_obra: number,
-    //@Query('id_memo') id_memo: number,
+    @Query('id_memo') id_memo: number,
     ): Promise<void> {
-      const pdfBuffer = await this.reinicio.generateReinicioObra(id_obra);    
+      const pdfBuffer = await this.reinicio.generateReinicioObra(id_obra, id_memo);    
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Length': pdfBuffer.length,      

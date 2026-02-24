@@ -34,6 +34,7 @@ export class SuspensionObra {
 
     datosEnvio: any = [];
     datosInf: any = [];
+    datosSusp: any = [];
  
     constructor(
       private readonly responseService: ResponseService,
@@ -65,9 +66,17 @@ export class SuspensionObra {
     return resultado2[0];
   }
 
-     
-// REPORTE - MEMORANDUM DE SUSPENSION DE OBRA
-  async generateSuspensionObra(id_obra: number): Promise<Buffer> {
+  // Datos Suspecion 
+  async datosSuspencion(id_memo: number) {
+    const query3 = `
+        SELECT * 
+        FROM public."vista_reporte_suspension" WHERE id_memo = ${id_memo}`;
+    const resultado3 = await this.sequelize.query(query3);
+    return resultado3[0];
+  }
+
+  // REPORTE - MEMORANDUM DE SUSPENSION DE OBRA
+  async generateSuspensionObra(id_obra: number, id_memo: number): Promise<Buffer> {
 
     const res = await this.datosGeneralesObra(id_obra);
     if (!res || (Array.isArray(res) && res.length === 0) || (typeof res === 'object' && Object.keys(res).length === 0)) {
@@ -81,13 +90,19 @@ export class SuspensionObra {
     }
     this.datosInf = res1;
 
+    const res2 = await this.datosSuspencion(id_memo);
+    if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
+      throw new Error('No se encontraron datos de la suspensión');
+    }
+    this.datosSusp = res2;
+
        
-    console.log("DATOS, ", res);
+    console.log("DATOS, ", res2);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     const imgPath = 'assets/images/membretado_oficio.png';
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosSusp[0].suspension_finalizada;
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -109,6 +124,10 @@ export class SuspensionObra {
           absolutePosition: { x: 0, y: 0 }
         }
       },
+      ...(!marcaAgua && {
+        watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
+      }
+      ),
 
       header: {
         columns: [
@@ -122,7 +141,7 @@ export class SuspensionObra {
           style: 'header', alignment: 'center',
         } as any,
        {
-          text: this.datosEnvio[0].cod_carpeta + '-' + 'MOC-' + this.datosEnvio[0].numero_modificacion,
+          text: this.datosEnvio[0].cod_carpeta + '-' + this.datosSusp[0].cite + '-' + this.datosSusp[0].correlativo,
           style: 'subheader', alignment: 'center'
         },
         {
@@ -157,7 +176,7 @@ export class SuspensionObra {
               [
                 {
                   border: [false, false, true, true],
-                  text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo_minuta), 
+                  text: 'La Paz, ' + this.fechaString(this.datosSusp[0].registro_suspencion), 
                   style: 'textDato', alignment: 'center'
                 },
                 {
@@ -176,7 +195,7 @@ export class SuspensionObra {
           text: '\n'
         },
         {
-          text: 'REF.: SUSPENSIÓN ' + this.datosEnvio[0].numero_modificacion + ' DE OBRA', 
+          text: 'REF.: SUSPENSIÓN ' + this.datosSusp[0].tipo_sus.toUpperCase() + ' DE OBRA', 
           style: 'coloredText', alignment: 'center', decoration: 'underline' 
         },
         {
@@ -218,8 +237,8 @@ export class SuspensionObra {
           text: [
             { text: 'Señor(es): \n\n' },
             {
-              text: 'La Supervisión de Obras, instruye mediante el presente Memorándum, la suspensión ' + 'XXXXXXXXXXX' +  
-              ' de la obra: ' + 'XXXXXXXXXXXXXX'+ ' ,la misma que se ejecuta en la zona ' + 'Zona XXXX '+ ' a partid del ' + ' FECHA XXXXXX  XX X X X ' + 
+              text: 'La Supervisión de Obras, instruye mediante el presente Memorándum, la suspensión ' + this.datosSusp[0].tipo_sus +
+              ' de la obra: ' + this.datosEnvio[0].desc_carpeta + ' ,la misma que se ejecuta en la zona ' + this.datosEnvio[0].desc_zona_carpeta + ' a partir del ' + this.fechaString(this.datosSusp[0].fecha_suspension) + 
               ' y hasta una nueva comunicación, en sujeción al pliego de condiciones que regula el contrato.\n\n'
             },
             {
@@ -233,7 +252,7 @@ export class SuspensionObra {
         {          
           text:
             [
-            { text:this.datosInf[0].de_nombre_sup + '\n', style: 'textDato', alignment: 'center' },
+            { text:this.datosSusp[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
             { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
             ]
         },
