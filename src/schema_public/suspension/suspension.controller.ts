@@ -23,18 +23,18 @@ export class SuspensionController {
 
   @Get()
   findAll() {
-    try {    
-    return this.suspensionService.findAll();
- } catch (error) { }    
+    try {
+      return this.suspensionService.findAll();
+    } catch (error) { }
   }
 
 
-    @Public()
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-        try { 
-    return this.suspensionService.findOne(+id);
-  } catch (error) { }    
+    try {
+      return this.suspensionService.findOne(+id);
+    } catch (error) { }
   }
 
   @Patch(':id')
@@ -51,46 +51,69 @@ export class SuspensionController {
 
 
 
-@Public()
+  @Public()
   @Post('lista-suspension')
   listaSuspension(@Body() data: SuspensionObraDto) {
-    try {  
+    try {
       return this.suspensionService.listaSupension(data);
     } catch (error) {
     }
-  }  
+  }
 
   @Public()
   @Post('lista-suspension-obra')
   listaSuspensionCodigo(@Body() data: SuspensionObraDto) {
-    try {  
+    try {
       return this.suspensionService.listaSupensionXObra(data);
     } catch (error) {
     }
-  }  
-  
+  }
 
- @Post('create-reinicio')
+  @Public()
+  @Post('lista-suspension-hijos_totales')
+  listaSuspensionHijosTotal(@Body() data: { id_obra: number; id_total: number }) {
+    return this.suspensionService.listaHijosTotal(data);
+  }
+
+  @Public()
+  @Get('validar-total/:id_obra')
+  validarTotal(@Param('id_obra') id_obra: string) {
+    return this.suspensionService.puedeCrearTotal(+id_obra);
+  }
+
+  @Public()
+  @Get('validar-bloqueo-nueva-suspension/:id_obra')
+  validarBloqueo(@Param('id_obra') id_obra: string) {
+    return this.suspensionService.validarBloqueoNuevaSuspension(+id_obra);
+  }
+
+  @Post('create-reinicio')
   createReinicio(@Body() createReinicioDto: CreateReinicioDto) {
     try {
       return this.suspensionService.createReinicio(createReinicioDto);
     } catch { }
   }
 
+  @Public()
+  @Post('lista-suspension-para-reinicio')
+  listaSuspensionParaReinicio(@Body() data: { id_obra: number; id_suspension: number }) {
+    return this.suspensionService.listaSuspensionParaReinicio(data);
+  }
 
-   @Patch('update-reinicio/:id')
+
+  @Patch('update-reinicio/:id')
   updateReinicio(@Param('id') id: string, @Body() updateReinicioDto: UpdateReinicioDto) {
     try {
       return this.suspensionService.updateReinicio(+id, updateReinicioDto);
     } catch { }
   }
 
-   @Public()
+  @Public()
   @Get('buscar-reinicio/:id')
   findOneReinicio(@Param('id') id: string) {
-        try { 
-    return this.suspensionService.findOneReinicio(+id);
-  } catch (error) { }    
-  }  
+    try {
+      return this.suspensionService.findOneReinicio(+id);
+    } catch (error) { }
+  }
 
 }

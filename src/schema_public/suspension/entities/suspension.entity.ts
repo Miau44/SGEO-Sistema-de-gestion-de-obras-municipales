@@ -17,8 +17,8 @@ export class Suspension {
     @Column({nullable:true})
     id_motivo_suspension:number;    
 
-    @Column({nullable:true})
-    id_padre_suspension:number;       
+    @Column({ type: 'int', nullable: true })
+    id_padre_suspension: number | null;      
 
     @Column()
     fecha_suspension:Date;
