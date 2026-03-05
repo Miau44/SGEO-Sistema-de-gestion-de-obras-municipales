@@ -85,8 +85,10 @@ export class PersonapermisoUeService {
         INNER JOIN public.personapermiso_ue AS ppue ON pp.id_persona_permiso = ppue.id_persona_permiso
         INNER  JOIN (SELECT desc_cod_ue, nombre_ue, sigla_ue, gestion from estructura_organizacional AS ue 
         GROUP BY desc_cod_ue,nombre_ue,sigla_ue, gestion) as ue ON ppue.desc_cod_ue = ue.desc_cod_ue AND ppue.gestion = ue.gestion
-        WHERE  p.usuario = $1 AND ppue.id_estado =1  `;
-      const params = [ datosDto.usuario];
+        WHERE  p.usuario = $1
+               AND ppue.gestion = $2
+               AND ppue.id_estado =1  `;
+      const params = [ datosDto.usuario, datosDto.gestion];
       const resultado = await this.pperUeRepositorio.query(query, params);
       return this.responseService.success(resultado, "Listado Correctamente.")
     } catch (error) {
