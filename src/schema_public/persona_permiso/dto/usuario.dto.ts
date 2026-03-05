@@ -4,7 +4,10 @@ import { ApiProperty } from "@nestjs/swagger";
 export class UsuarioDto {
 
       @ApiProperty()
-      usuario: string;    
+      usuario: string;
+      
+      @ApiProperty()
+      gestion: number;
         
   
   }
