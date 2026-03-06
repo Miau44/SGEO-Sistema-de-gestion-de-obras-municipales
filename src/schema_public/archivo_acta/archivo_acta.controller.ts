@@ -1,47 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, ParseIntPipe,} from '@nestjs/common';
 import { ArchivoActaService } from './archivo_acta.service';
 import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
-import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
 
 @Controller('archivo-acta')
 export class ArchivoActaController {
-  constructor(private readonly archivoActaService: ArchivoActaService) {}
+  constructor(
+    private readonly archivoActaService: ArchivoActaService,
+  ) {}
 
+  //  CREAR ARCHIVO ACTA
   @Post()
-  create(@Body() createArchivoActaDto: CreateArchivoActaDto) {
-    return this.archivoActaService.create(createArchivoActaDto);
+  async create(@Body() dto: CreateArchivoActaDto) {
+    return await this.archivoActaService.create(dto);
   }
 
+  //  LISTAR TODOS (id_estado = 1)
   @Get()
-  findAll() {
-    return this.archivoActaService.findAll();
+  async findAll() {
+    return await this.archivoActaService.findAll();
   }
 
-  @Patch(':id')
-  update_ingreso(@Param('id') id: string, @Body() dto: UpdateArchivoActaDto) {
-    return this.archivoActaService.update_ingreso(+id, dto);
-  }
-
-  @Get('/jenny')
-  jenny() {
-   return this.archivoActaService.jenny();
-  }
-
+  //  OBTENER UNO POR ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.archivoActaService.findOne(+id);
+  async findOne(
+  @Param('id', ParseIntPipe) id: number,
+  ) {
+    return await this.archivoActaService.findOne(id);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArchivoActaDto: UpdateArchivoActaDto) {
-    return this.archivoActaService.update(+id, updateArchivoActaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.archivoActaService.remove(+id);
-  }
-  
-
-
 }

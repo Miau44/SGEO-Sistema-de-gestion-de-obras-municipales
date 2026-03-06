@@ -1,66 +1,86 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
-import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArchivoActa } from './entities/archivo_acta.entity';
+import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
+import { Informe } from '../informe/entities/informe.entity';
 
 @Injectable()
 export class ArchivoActaService {
-  [x: string]: any;
 
   constructor(
-      @InjectRepository(ArchivoActa) 
-      private archivoActaRepositorio: Repository<ArchivoActa>
-  ) { }
+    @InjectRepository(ArchivoActa)
+    private readonly archivoActaRepo: Repository<ArchivoActa>,
 
-  async create(createArchivoActaDto: CreateArchivoActaDto) {
-    try {
-      console.log('CREAR SI', createArchivoActaDto);
-      const resultado = this.archivoActaRepositorio.create(createArchivoActaDto);
-      const resultado2 = await this.archivoActaRepositorio.save(resultado);
-      const data = {
-                      data:resultado2,
-                      statusCode:200,
-                      mess:"Registrado Correctamente"
-                   };
-      return data;
-      //return this.responseService.success(resultado2, "Registrado Correctamente.")
-    } catch (error) {
-        console.log('CREAR NO', error);
-        return this.responseService.error(error)
+    @InjectRepository(Informe)
+    private readonly informeRepo: Repository<Informe>,
+  ) {}
+
+  // CREAR ARCHIVO ACTA
+  async create(dto: CreateArchivoActaDto) {
+
+    //  Validación básica
+    if (!dto.id_informe) {
+      throw new BadRequestException('id_informe es obligatorio');
     }
-    
+
+    //  Validación tipo recepción (1 = ingreso, 2 = salida)
+    if (
+      dto.id_tipo_recepcion !== undefined &&
+      dto.id_tipo_recepcion !== 1 &&
+      dto.id_tipo_recepcion !== 2
+    ) {
+      throw new BadRequestException(
+        'id_tipo_recepcion solo puede ser 1 (Ingreso) o 2 (Salida)',
+      );
+    }
+
+    //  Buscar informe
+    const informe = await this.informeRepo.findOne({
+      where: { id_informe: dto.id_informe },
+    });
+
+    if (!informe) {
+      throw new NotFoundException('El informe no existe');
+    }
+
+    //  Crear archivo acta usando id_obra del informe
+    const archivoActa = this.archivoActaRepo.create({
+      ...dto,
+      id_obra: informe.id_obra,
+      id_estado: 1,
+    });
+
+    const saved = await this.archivoActaRepo.save(archivoActa);
+
+    return {
+      data: saved,
+      message: 'Archivo Acta registrado correctamente',
+    };
   }
 
-  findAll() {
-    //return `This action returns all archivoActa`;
-    return this.archivoActaRepositorio.find({ where: { id_estado: 1 }, order: { fecha_registro: 'ASC' } });
+  // LISTAR ACTIVOS
+  async findAll() {
+    return this.archivoActaRepo.find({
+      where: { id_estado: 1 },
+      order: { fecha_registro: 'ASC' },
+    });
   }
 
+  // OBTENER POR ID
   async findOne(id: number) {
-    //return `This action returns a #${id} archivoActa`;
-    const row = await this.archivoActaRepositorio.findOne({ where: { id_archivo_acta: id } });
-    if (!row) throw new NotFoundException('Regitro no encontrado');
+    const row = await this.archivoActaRepo.findOne({
+      where: { id_archivo_acta: id },
+    });
+
+    if (!row) {
+      throw new NotFoundException('Registro no encontrado');
+    }
+
     return row;
-  }
-
-  update(id: number, updateArchivoActaDto: UpdateArchivoActaDto) {
-    return `This action updates a #${id} archivoActa`;
-  }
-
-  update_ingreso(id: number, updateArchivoActaDto: UpdateArchivoActaDto) {
-    return `This action updates a #${id} archivoActa`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} archivoActa`;
-  }
-
-  async jenny(){
-    let query = `select * from obra limit $1`;
-    const params = [15];
-    const resultado = await this.archivoActaRepositorio.query(query, params);
-    return resultado;
   }
 }

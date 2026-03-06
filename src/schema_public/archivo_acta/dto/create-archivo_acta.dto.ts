@@ -1,53 +1,88 @@
-import { ApiProperty } from "@nestjs/swagger";
+import {IsNotEmpty, IsNumber, IsString, IsOptional, IsDateString, Min, Max,} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateArchivoActaDto {
 
-     @ApiProperty()
-    id_obra: number;      
+  @ApiProperty({
+    example: 0,
+    description: 'ID del informe',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  id_informe: number;
 
-     @ApiProperty()
-    id_tipo_acta: number;
+  @ApiPropertyOptional({
+    example: 1,
+    description: '1 = Ingreso, 2 = Salida',
+  })
+  @IsNumber()
+  @Min(1)
+  @Max(2)
+  @IsOptional()
+  id_tipo_recepcion?: number;
 
-     @ApiProperty()
-    id_tipo_registro: number;
-    
-     @ApiProperty()
-    nombre_encargado: string;
+  @ApiPropertyOptional({
+    example: 'Juan Pérez',
+  })
+  @IsString()
+  @IsOptional()
+  nombre_encargado?: string;
 
-     @ApiProperty()
-    hora_registro: string;
+  @ApiPropertyOptional({
+    example: '10:30',
+  })
+  @IsString()
+  @IsOptional()
+  hora_registro?: string;
 
-     @ApiProperty()
-    numero_fojas: number;
+  @ApiPropertyOptional({
+    example: 15,
+  })
+  @IsNumber()
+  @IsOptional()
+  numero_fojas?: number;
 
-     @ApiProperty()
-    fecha_in_out: Date;
+  @ApiPropertyOptional({
+    example: 'Carlos López',
+  })
+  @IsString()
+  @IsOptional()
+  nombre_fiscal?: string;
 
-     @ApiProperty()
-    nombre_fiscal: string;
+  @ApiPropertyOptional({
+    example: 8456123,
+  })
+  @IsNumber()
+  @IsOptional()
+  ci_encargado?: number;
 
-     @ApiProperty()
-    ci_encargado: number;
+  @ApiPropertyOptional({
+    example: 'Recepción conforme',
+  })
+  @IsString()
+  @IsOptional()
+  observacion?: string;
 
-     @ApiProperty()
-    observacion: string;
+  @ApiPropertyOptional({
+    example: 7,
+  })
+  @IsNumber()
+  @IsOptional()
+  id_documento?: number;
 
-     @ApiProperty()
-    id_documento: number;
+  @ApiPropertyOptional({
+    example: '2026-02-23',
+    description: 'Fecha en formato YYYY-MM-DD',
+  })
+  @IsDateString()
+  @IsOptional()
+  fecha_entrega_dfo?: string;
 
-    @ApiProperty()
-    num_fojas_devolucion: number;
-
-     @ApiProperty()
-    fecha_entrega_fiscal: Date;
-
-     @ApiProperty()
-    fecha_devolucion_fiscal: Date;
-
-     @ApiProperty()
-    id_estado: number;
-    
-     @ApiProperty()
-    usuario_registro: number;
-    
+  @ApiProperty({
+    example: 3,
+    description: 'Usuario que registra',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  id_usuario: number;
 }

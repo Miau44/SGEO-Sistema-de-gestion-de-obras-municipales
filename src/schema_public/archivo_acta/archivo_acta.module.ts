@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArchivoActaService } from './archivo_acta.service';
 import { ArchivoActaController } from './archivo_acta.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArchivoActa } from './entities/archivo_acta.entity';
+import { Informe } from '../informe/entities/informe.entity';
 
 @Module({
-  imports: [ 
-      TypeOrmModule.forFeature([ArchivoActa])], 
+  imports: [
+    TypeOrmModule.forFeature([
+      ArchivoActa,
+      Informe, 
+    ]),
+  ],
   controllers: [ArchivoActaController],
   providers: [ArchivoActaService],
 })
