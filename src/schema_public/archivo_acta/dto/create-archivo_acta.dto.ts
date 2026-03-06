@@ -1,11 +1,19 @@
-import {IsNotEmpty, IsNumber, IsString, IsOptional, IsDateString, Min, Max,} from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsDateString,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateArchivoActaDto {
 
   @ApiProperty({
-    example: 0,
-    description: 'ID del informe',
+    example: 10,
+    description: 'ID del informe asociado',
   })
   @IsNumber()
   @IsNotEmpty()
@@ -13,7 +21,7 @@ export class CreateArchivoActaDto {
 
   @ApiPropertyOptional({
     example: 1,
-    description: '1 = Ingreso, 2 = Salida Supervisor , 3 = Salida Empresa',
+    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa',
   })
   @IsNumber()
   @Min(1)
@@ -22,57 +30,49 @@ export class CreateArchivoActaDto {
   id_tipo_recepcion?: number;
 
   @ApiPropertyOptional({
-    example: 'Juan Pérez',
+    example: 25,
+    description: 'ID del documento (solo para salidas)',
   })
+  @IsNumber()
+  @IsOptional()
+  id_documento?: number;
+
+  @ApiPropertyOptional({ example: 'Juan Pérez' })
   @IsString()
   @IsOptional()
   nombre_encargado?: string;
 
-  @ApiPropertyOptional({
-    example: '10:30',
-  })
+  @ApiPropertyOptional({ example: '10:30' })
   @IsString()
   @IsOptional()
   hora_registro?: string;
 
-  @ApiPropertyOptional({
-    example: 15,
-  })
+  @ApiPropertyOptional({ example: 15 })
   @IsNumber()
   @IsOptional()
   numero_fojas?: number;
 
   @ApiPropertyOptional({
     example: 'Carlos López',
+    description: 'Solo para salida fiscal',
   })
   @IsString()
   @IsOptional()
   nombre_fiscal?: string;
 
-  @ApiPropertyOptional({
-    example: 8456123,
-  })
+  @ApiPropertyOptional({ example: 8456123 })
   @IsNumber()
   @IsOptional()
   ci_encargado?: number;
 
-  @ApiPropertyOptional({
-    example: 'Recepción conforme',
-  })
+  @ApiPropertyOptional({ example: 'Recepción conforme' })
   @IsString()
   @IsOptional()
   observacion?: string;
 
   @ApiPropertyOptional({
-    example: 7,
-  })
-  @IsNumber()
-  @IsOptional()
-  id_documento?: number;
-
-  @ApiPropertyOptional({
     example: '2026-02-23',
-    description: 'Fecha en formato YYYY-MM-DD',
+    description: 'Fecha de entrega (solo salidas)',
   })
   @IsDateString()
   @IsOptional()

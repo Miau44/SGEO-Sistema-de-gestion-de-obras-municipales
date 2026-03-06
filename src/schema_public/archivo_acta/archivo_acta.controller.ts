@@ -36,4 +36,10 @@ guardar(
 ) {
   return this.archivoActaService.guardar(id, dto);
 }
+
+@Get(':id/destino')
+getDestino(@Param('id') id: number) {
+  return this.archivoActaService.obtenerDestinoSalida(id);
+}
+
 }

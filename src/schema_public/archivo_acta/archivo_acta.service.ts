@@ -5,6 +5,7 @@ import { ArchivoActa } from './entities/archivo_acta.entity';
 import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
 import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
 import { Informe } from '../informe/entities/informe.entity';
+import { Contrato } from '../contrato-modificatorio/entities/contrato.entity'; 
 
 @Injectable()
 export class ArchivoActaService {
@@ -15,6 +16,8 @@ export class ArchivoActaService {
 
     @InjectRepository(Informe)
     private readonly informeRepo: Repository<Informe>,
+    @InjectRepository(Contrato)
+    private readonly contratoRepo: Repository<Contrato>,
   ) {}
 
   // CREAR ARCHIVO ACTA
@@ -25,7 +28,7 @@ export class ArchivoActaService {
       throw new BadRequestException('id_informe es obligatorio');
     }
 
-    //  Validación tipo recepción (1 = ingreso, 2 = salida)
+    //  Validación tipo recepción (1 = ingreso, 2 = salida fiscal 3 = salida empresa)
     if (
     dto.id_tipo_recepcion !== undefined &&
     dto.id_tipo_recepcion !== 1 &&
@@ -82,11 +85,11 @@ export class ArchivoActaService {
     return row;
   }
 // Servicio de guardar 
-  async guardar(
+ async guardar(
   id_archivo_acta: number,
   dto: UpdateArchivoActaDto,
 ) {
-  //  Buscar registro existente
+  // Buscar registro existente
   const archivoActa = await this.archivoActaRepo.findOne({
     where: { id_archivo_acta },
   });
@@ -95,39 +98,106 @@ export class ArchivoActaService {
     throw new NotFoundException('Archivo Acta no encontrado');
   }
 
-  // Validar tipo recepción (si viene)
+  //  Determinar tipo recepción final
   const tipoRecepcion =
     dto.id_tipo_recepcion ?? archivoActa.id_tipo_recepcion;
 
+  if (![1, 2, 3].includes(tipoRecepcion)) {
+    throw new BadRequestException('id_tipo_recepcion inválido');
+  }
+
+  //  Determinar id_documento final
+  const idDocumentoFinal =
+    dto.id_documento ?? archivoActa.id_documento;
+
   if (
-    tipoRecepcion !== undefined &&
-    tipoRecepcion !== 1 &&
-    tipoRecepcion !== 2 &&
-    tipoRecepcion !== 3
+    (tipoRecepcion === 2 || tipoRecepcion === 3) &&
+    dto.id_documento !== undefined &&
+    !idDocumentoFinal
   ) {
     throw new BadRequestException(
-      'id_tipo_recepcion inválido',
+      'id_documento inválido para salida',
     );
   }
 
-  //  Reglas por tipo (ejemplo)
-  if (tipoRecepcion === 1 && !dto.fecha_entrega_dfo && !archivoActa.fecha_entrega_dfo) {
-    throw new BadRequestException(
-      'La fecha de ingreso es obligatoria',
-    );
+  //  Si es ingreso, limpiamos id_documento
+  if (tipoRecepcion === 1) {
+    archivoActa.id_documento = null;
   }
 
-  // Actualizar solo lo que llega
+  //  Actualizar solo lo que llega
   Object.assign(archivoActa, dto);
 
   archivoActa.fecha_modificacion = new Date();
 
-  //  Guardar cambios
+  // Guardar
   const saved = await this.archivoActaRepo.save(archivoActa);
 
   return {
     data: saved,
-    message: 'Archivo Acta guardado correctamente',
+    message: 'Archivo Acta actualizado correctamente',
   };
+}
+
+async obtenerDestinoSalida(id_archivo_acta: number) {
+  //  Buscar archivo_acta
+  const archivoActa = await this.archivoActaRepo.findOne({
+    where: { id_archivo_acta },
+  });
+
+  if (!archivoActa) {
+    throw new NotFoundException('Archivo Acta no encontrado');
+  }
+
+  //  INGRESO
+  if (archivoActa.id_tipo_recepcion === 1) {
+    return {
+      tipo: 'INGRESO',
+      texto: null,
+    };
+  }
+
+  //  SALIDA EMPRESA 
+  if (archivoActa.id_tipo_recepcion === 3) {
+    const contrato = await this.contratoRepo.findOne({
+      where: { id_obra: archivoActa.id_obra },
+    });
+
+    if (!contrato) {
+      throw new BadRequestException(
+        'No se encontró contrato para la obra',
+      );
+    }
+
+    return {
+      tipo: 'SALIDA_EMPRESA',
+      empresa: contrato.proponente_razon_social,
+      representante: contrato.proponente_representante,
+    };
+  }
+
+  //  SALIDA FISCAL 
+  if (archivoActa.id_tipo_recepcion === 2) {
+
+    const fiscal = await this.archivoActaRepo.query(
+      `
+      SELECT fiscal
+      FROM vista_fiscales_obra
+      WHERE id_obra = $1
+      `,
+      [archivoActa.id_obra],
+    );
+
+    if (!fiscal.length) {
+      throw new BadRequestException(
+        'No se encontró fiscal para la obra',
+      );
+    }
+
+    return {
+      tipo: 'SALIDA_FISCAL',
+      fiscal: fiscal[0].fiscal,
+    };
+  }
 }
 }

@@ -15,6 +15,9 @@ export class ArchivoActa {
   @Column()
   id_tipo_recepcion: number;
 
+  @Column({ type: 'int', nullable: true })
+  id_documento?: number | null;
+
   @Column()
   nombre_encargado: string;
 
@@ -24,7 +27,7 @@ export class ArchivoActa {
   @Column()
   numero_fojas: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   fecha_entrega_dfo: Date;
 
   @Column()
