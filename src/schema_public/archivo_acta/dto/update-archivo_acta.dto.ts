@@ -1,9 +1,9 @@
 import { IsNumber, IsString, IsOptional, IsDateString, Min, Max, } from 'class-validator';
 export class UpdateArchivoActaDto {
-  // 1 = Ingreso, 2 = Salida
+  // 1 = Ingreso, 2 = Salida supervisor , 3 = salida empresa 
   @IsNumber()
   @Min(1)
-  @Max(2)
+  @Max(3)
   @IsOptional()
   id_tipo_recepcion?: number;
 
@@ -43,3 +43,5 @@ export class UpdateArchivoActaDto {
   @IsOptional()
   id_usuario?: number;
 }
+
+

@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import {Injectable, BadRequestException, NotFoundException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArchivoActa } from './entities/archivo_acta.entity';
 import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
+import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
 import { Informe } from '../informe/entities/informe.entity';
 
 @Injectable()
@@ -30,14 +27,15 @@ export class ArchivoActaService {
 
     //  Validación tipo recepción (1 = ingreso, 2 = salida)
     if (
-      dto.id_tipo_recepcion !== undefined &&
-      dto.id_tipo_recepcion !== 1 &&
-      dto.id_tipo_recepcion !== 2
-    ) {
-      throw new BadRequestException(
-        'id_tipo_recepcion solo puede ser 1 (Ingreso) o 2 (Salida)',
-      );
-    }
+    dto.id_tipo_recepcion !== undefined &&
+    dto.id_tipo_recepcion !== 1 &&
+    dto.id_tipo_recepcion !== 2 &&
+    dto.id_tipo_recepcion !== 3
+) {
+  throw new BadRequestException(
+    'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa)',
+  );
+}
 
     //  Buscar informe
     const informe = await this.informeRepo.findOne({
@@ -83,4 +81,53 @@ export class ArchivoActaService {
 
     return row;
   }
+// Servicio de guardar 
+  async guardar(
+  id_archivo_acta: number,
+  dto: UpdateArchivoActaDto,
+) {
+  //  Buscar registro existente
+  const archivoActa = await this.archivoActaRepo.findOne({
+    where: { id_archivo_acta },
+  });
+
+  if (!archivoActa) {
+    throw new NotFoundException('Archivo Acta no encontrado');
+  }
+
+  // Validar tipo recepción (si viene)
+  const tipoRecepcion =
+    dto.id_tipo_recepcion ?? archivoActa.id_tipo_recepcion;
+
+  if (
+    tipoRecepcion !== undefined &&
+    tipoRecepcion !== 1 &&
+    tipoRecepcion !== 2 &&
+    tipoRecepcion !== 3
+  ) {
+    throw new BadRequestException(
+      'id_tipo_recepcion inválido',
+    );
+  }
+
+  //  Reglas por tipo (ejemplo)
+  if (tipoRecepcion === 1 && !dto.fecha_entrega_dfo && !archivoActa.fecha_entrega_dfo) {
+    throw new BadRequestException(
+      'La fecha de ingreso es obligatoria',
+    );
+  }
+
+  // Actualizar solo lo que llega
+  Object.assign(archivoActa, dto);
+
+  archivoActa.fecha_modificacion = new Date();
+
+  //  Guardar cambios
+  const saved = await this.archivoActaRepo.save(archivoActa);
+
+  return {
+    data: saved,
+    message: 'Archivo Acta guardado correctamente',
+  };
+}
 }

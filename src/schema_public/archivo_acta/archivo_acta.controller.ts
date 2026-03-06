@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, Param, ParseIntPipe,} from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param, ParseIntPipe,} from '@nestjs/common';
 import { ArchivoActaService } from './archivo_acta.service';
 import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
+import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
 
 @Controller('archivo-acta')
 export class ArchivoActaController {
@@ -27,4 +28,12 @@ export class ArchivoActaController {
   ) {
     return await this.archivoActaService.findOne(id);
   }
+
+  @Put(':id_archivo_acta')
+guardar(
+  @Param('id_archivo_acta', ParseIntPipe) id: number,
+  @Body() dto: UpdateArchivoActaDto,
+) {
+  return this.archivoActaService.guardar(id, dto);
+}
 }

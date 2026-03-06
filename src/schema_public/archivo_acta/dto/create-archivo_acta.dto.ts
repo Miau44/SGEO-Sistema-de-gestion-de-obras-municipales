@@ -13,11 +13,11 @@ export class CreateArchivoActaDto {
 
   @ApiPropertyOptional({
     example: 1,
-    description: '1 = Ingreso, 2 = Salida',
+    description: '1 = Ingreso, 2 = Salida Supervisor , 3 = Salida Empresa',
   })
   @IsNumber()
   @Min(1)
-  @Max(2)
+  @Max(3)
   @IsOptional()
   id_tipo_recepcion?: number;
 
