@@ -63,7 +63,7 @@ export class ReportService {
     const gestionNum = Number(gestion);
 
     if (gestionNum === 2025) {
-      return 'assets/images/MEMBRETADO_CARTA_2025.png';
+      return 'assets/images/membretado_carta_2025.png';
     }
 
     return 'assets/images/membretado_carta.png';
