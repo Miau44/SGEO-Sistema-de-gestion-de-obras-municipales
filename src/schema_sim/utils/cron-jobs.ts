@@ -24,7 +24,7 @@ export function inicioCronJobs({ ficha_itemservice, contratoservice }: CronServi
 
   async function ejecutarProceso() {
     const token = await ficha_itemservice.obtenerToken();
-    const ues = await ficha_itemservice.obtenerUes(2025,9684);
+    const ues = await ficha_itemservice.obtenerUes(2026,9684);
     
     const tkn = await contratoservice.obtenerToken();
     const contratos = await contratoservice.llenarContratosDesdeServicio(2025,9684);
