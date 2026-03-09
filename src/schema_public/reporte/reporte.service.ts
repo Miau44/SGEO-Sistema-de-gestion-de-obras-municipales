@@ -63,10 +63,10 @@ export class ReportService {
     const gestionNum = Number(gestion);
 
     if (gestionNum === 2025) {
-      return 'assets/images/membretado_carta_2025.png';
+      return 'assets/images/membretado_carta.png';
     }
 
-    return 'assets/images/membretado_carta.png';
+    return 'assets/images/membretado_carta_nuevo.png';
   }
 
   async datosGeneralesReporte(id: number) {
