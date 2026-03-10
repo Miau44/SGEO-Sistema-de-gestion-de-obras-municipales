@@ -114,6 +114,25 @@ export class ReporteOrdenProcederService {
     const resultado = await this.sequelize.query(query1);
     return resultado[0];
   }
+
+  private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
+    const gestionNum = Number(gestion);
+
+    if (gestionNum === 2025) {
+      return 'assets/images/membretado_carta.png';
+    }
+    return 'assets/images/membretado_carta_nuevo.png';
+  }
+
+  private obtenerMembretadoOficioPorGestion(gestion: number | string): string {
+    const gestionNum = Number(gestion);
+
+    if (gestionNum === 2025) {
+      return 'assets/images/membretado_oficio.png';
+    }
+    return 'assets/images/membretado_oficio_nuevo.png';
+  }
+
   
   // FORMULARIO DOCUMENTOS ETAPA II
   async generateDocumentoContrato(obra: number): Promise<Buffer> {
@@ -364,7 +383,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-   const imgPath = 'assets/images/membretado_carta.png';
+  const imgPath = this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta);
+  console.log('imgPath:',this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta));
  
     const documentDefinition = {
     pageSize: 'LETTER' as any,
