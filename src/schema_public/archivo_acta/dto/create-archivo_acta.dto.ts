@@ -1,53 +1,88 @@
-import { ApiProperty } from "@nestjs/swagger";
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsDateString,
+  Min,
+  Max,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateArchivoActaDto {
 
-     @ApiProperty()
-    id_obra: number;      
+  @ApiProperty({
+    example: 10,
+    description: 'ID del informe asociado',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  id_informe: number;
 
-     @ApiProperty()
-    id_tipo_acta: number;
+  @ApiPropertyOptional({
+    example: 1,
+    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa',
+  })
+  @IsNumber()
+  @Min(1)
+  @Max(3)
+  @IsOptional()
+  id_tipo_recepcion?: number;
 
-     @ApiProperty()
-    id_tipo_registro: number;
-    
-     @ApiProperty()
-    nombre_encargado: string;
+  @ApiPropertyOptional({
+    example: 25,
+    description: 'ID del documento (solo para salidas)',
+  })
+  @IsNumber()
+  @IsOptional()
+  id_documento?: number;
 
-     @ApiProperty()
-    hora_registro: string;
+  @ApiPropertyOptional({ example: 'Juan Pérez' })
+  @IsString()
+  @IsOptional()
+  nombre_encargado?: string;
 
-     @ApiProperty()
-    numero_fojas: number;
+  @ApiPropertyOptional({ example: '10:30' })
+  @IsString()
+  @IsOptional()
+  hora_registro?: string;
 
-     @ApiProperty()
-    fecha_in_out: Date;
+  @ApiPropertyOptional({ example: 15 })
+  @IsNumber()
+  @IsOptional()
+  numero_fojas?: number;
 
-     @ApiProperty()
-    nombre_fiscal: string;
+  @ApiPropertyOptional({
+    example: 'Carlos López',
+    description: 'Solo para salida fiscal',
+  })
+  @IsString()
+  @IsOptional()
+  nombre_fiscal?: string;
 
-     @ApiProperty()
-    ci_encargado: number;
+  @ApiPropertyOptional({ example: 8456123 })
+  @IsNumber()
+  @IsOptional()
+  ci_encargado?: number;
 
-     @ApiProperty()
-    observacion: string;
+  @ApiPropertyOptional({ example: 'Recepción conforme' })
+  @IsString()
+  @IsOptional()
+  observacion?: string;
 
-     @ApiProperty()
-    id_documento: number;
+  @ApiPropertyOptional({
+    example: '2026-02-23',
+    description: 'Fecha de entrega (solo salidas)',
+  })
+  @IsDateString()
+  @IsOptional()
+  fecha_entrega_dfo?: string;
 
-    @ApiProperty()
-    num_fojas_devolucion: number;
-
-     @ApiProperty()
-    fecha_entrega_fiscal: Date;
-
-     @ApiProperty()
-    fecha_devolucion_fiscal: Date;
-
-     @ApiProperty()
-    id_estado: number;
-    
-     @ApiProperty()
-    usuario_registro: number;
-    
+  @ApiProperty({
+    example: 3,
+    description: 'Usuario que registra',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  id_usuario: number;
 }

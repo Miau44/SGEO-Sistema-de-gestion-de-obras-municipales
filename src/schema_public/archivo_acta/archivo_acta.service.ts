@@ -1,66 +1,203 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
-import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
+import {Injectable, BadRequestException, NotFoundException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArchivoActa } from './entities/archivo_acta.entity';
+import { CreateArchivoActaDto } from './dto/create-archivo_acta.dto';
+import { UpdateArchivoActaDto } from './dto/update-archivo_acta.dto';
+import { Informe } from '../informe/entities/informe.entity';
+import { Contrato } from '../contrato-modificatorio/entities/contrato.entity'; 
 
 @Injectable()
 export class ArchivoActaService {
-  [x: string]: any;
 
   constructor(
-      @InjectRepository(ArchivoActa) 
-      private archivoActaRepositorio: Repository<ArchivoActa>
-  ) { }
+    @InjectRepository(ArchivoActa)
+    private readonly archivoActaRepo: Repository<ArchivoActa>,
 
-  async create(createArchivoActaDto: CreateArchivoActaDto) {
-    try {
-      console.log('CREAR SI', createArchivoActaDto);
-      const resultado = this.archivoActaRepositorio.create(createArchivoActaDto);
-      const resultado2 = await this.archivoActaRepositorio.save(resultado);
-      const data = {
-                      data:resultado2,
-                      statusCode:200,
-                      mess:"Registrado Correctamente"
-                   };
-      return data;
-      //return this.responseService.success(resultado2, "Registrado Correctamente.")
-    } catch (error) {
-        console.log('CREAR NO', error);
-        return this.responseService.error(error)
+    @InjectRepository(Informe)
+    private readonly informeRepo: Repository<Informe>,
+    @InjectRepository(Contrato)
+    private readonly contratoRepo: Repository<Contrato>,
+  ) {}
+
+  // CREAR ARCHIVO ACTA
+  async create(dto: CreateArchivoActaDto) {
+
+    //  Validación básica
+    if (!dto.id_informe) {
+      throw new BadRequestException('id_informe es obligatorio');
     }
-    
+
+    //  Validación tipo recepción (1 = ingreso, 2 = salida fiscal 3 = salida empresa)
+    if (
+    dto.id_tipo_recepcion !== undefined &&
+    dto.id_tipo_recepcion !== 1 &&
+    dto.id_tipo_recepcion !== 2 &&
+    dto.id_tipo_recepcion !== 3
+) {
+  throw new BadRequestException(
+    'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa)',
+  );
+}
+
+    //  Buscar informe
+    const informe = await this.informeRepo.findOne({
+      where: { id_informe: dto.id_informe },
+    });
+
+    if (!informe) {
+      throw new NotFoundException('El informe no existe');
+    }
+
+    //  Crear archivo acta usando id_obra del informe
+    const archivoActa = this.archivoActaRepo.create({
+      ...dto,
+      id_obra: informe.id_obra,
+      id_estado: 1,
+    });
+
+    const saved = await this.archivoActaRepo.save(archivoActa);
+
+    return {
+      data: saved,
+      message: 'Archivo Acta registrado correctamente',
+    };
   }
 
-  findAll() {
-    //return `This action returns all archivoActa`;
-    return this.archivoActaRepositorio.find({ where: { id_estado: 1 }, order: { fecha_registro: 'ASC' } });
+  // LISTAR ACTIVOS
+  async findAll() {
+    return this.archivoActaRepo.find({
+      where: { id_estado: 1 },
+      order: { fecha_registro: 'ASC' },
+    });
   }
 
+  // OBTENER POR ID
   async findOne(id: number) {
-    //return `This action returns a #${id} archivoActa`;
-    const row = await this.archivoActaRepositorio.findOne({ where: { id_archivo_acta: id } });
-    if (!row) throw new NotFoundException('Regitro no encontrado');
+    const row = await this.archivoActaRepo.findOne({
+      where: { id_archivo_acta: id },
+    });
+
+    if (!row) {
+      throw new NotFoundException('Registro no encontrado');
+    }
+
     return row;
   }
+// Servicio de guardar 
+ async guardar(
+  id_archivo_acta: number,
+  dto: UpdateArchivoActaDto,
+) {
+  // Buscar registro existente
+  const archivoActa = await this.archivoActaRepo.findOne({
+    where: { id_archivo_acta },
+  });
 
-  update(id: number, updateArchivoActaDto: UpdateArchivoActaDto) {
-    return `This action updates a #${id} archivoActa`;
+  if (!archivoActa) {
+    throw new NotFoundException('Archivo Acta no encontrado');
   }
 
-  update_ingreso(id: number, updateArchivoActaDto: UpdateArchivoActaDto) {
-    return `This action updates a #${id} archivoActa`;
+  //  Determinar tipo recepción final
+  const tipoRecepcion =
+    dto.id_tipo_recepcion ?? archivoActa.id_tipo_recepcion;
+
+  if (![1, 2, 3].includes(tipoRecepcion)) {
+    throw new BadRequestException('id_tipo_recepcion inválido');
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} archivoActa`;
+  //  Determinar id_documento final
+  const idDocumentoFinal =
+    dto.id_documento ?? archivoActa.id_documento;
+
+  if (
+    (tipoRecepcion === 2 || tipoRecepcion === 3) &&
+    dto.id_documento !== undefined &&
+    !idDocumentoFinal
+  ) {
+    throw new BadRequestException(
+      'id_documento inválido para salida',
+    );
   }
 
-  async jenny(){
-    let query = `select * from obra limit $1`;
-    const params = [15];
-    const resultado = await this.archivoActaRepositorio.query(query, params);
-    return resultado;
+  //  Si es ingreso, limpiamos id_documento
+  if (tipoRecepcion === 1) {
+    archivoActa.id_documento = null;
   }
+
+  //  Actualizar solo lo que llega
+  Object.assign(archivoActa, dto);
+
+  archivoActa.fecha_modificacion = new Date();
+
+  // Guardar
+  const saved = await this.archivoActaRepo.save(archivoActa);
+
+  return {
+    data: saved,
+    message: 'Archivo Acta actualizado correctamente',
+  };
+}
+
+async obtenerDestinoSalida(id_archivo_acta: number) {
+  //  Buscar archivo_acta
+  const archivoActa = await this.archivoActaRepo.findOne({
+    where: { id_archivo_acta },
+  });
+
+  if (!archivoActa) {
+    throw new NotFoundException('Archivo Acta no encontrado');
+  }
+
+  //  INGRESO
+  if (archivoActa.id_tipo_recepcion === 1) {
+    return {
+      tipo: 'INGRESO',
+      texto: null,
+    };
+  }
+
+  //  SALIDA EMPRESA 
+  if (archivoActa.id_tipo_recepcion === 3) {
+    const contrato = await this.contratoRepo.findOne({
+      where: { id_obra: archivoActa.id_obra },
+    });
+
+    if (!contrato) {
+      throw new BadRequestException(
+        'No se encontró contrato para la obra',
+      );
+    }
+
+    return {
+      tipo: 'SALIDA_EMPRESA',
+      empresa: contrato.proponente_razon_social,
+      representante: contrato.proponente_representante,
+    };
+  }
+
+  //  SALIDA FISCAL 
+  if (archivoActa.id_tipo_recepcion === 2) {
+
+    const fiscal = await this.archivoActaRepo.query(
+      `
+      SELECT fiscal
+      FROM vista_fiscales_obra
+      WHERE id_obra = $1
+      `,
+      [archivoActa.id_obra],
+    );
+
+    if (!fiscal.length) {
+      throw new BadRequestException(
+        'No se encontró fiscal para la obra',
+      );
+    }
+
+    return {
+      tipo: 'SALIDA_FISCAL',
+      fiscal: fiscal[0].fiscal,
+    };
+  }
+}
 }
