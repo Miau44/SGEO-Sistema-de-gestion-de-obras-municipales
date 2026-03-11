@@ -55,6 +55,28 @@ export class InformeInicialService {
   //CONSULTAS
  //CONSULTASSS
 
+  private obtenerMembretadoOficioPorGestion(gestion: number | string): string {
+    const gestionNum = Number(gestion);
+
+    if (gestionNum === 2025) {
+      return 'assets/images/membretado_oficio.png';
+    }
+
+    return 'assets/images/membretado_oficio_nuevo.png';
+  }
+
+  private obtenerMargenesOficioPorGestion(
+    gestion: number | string,
+  ): [number, number, number, number] {
+    const gestionNum = Number(gestion);
+
+    if (gestionNum === 2025) {
+      return [70, 180, 70, 180];
+    }
+
+    return [70, 115, 70, 125];
+  }
+
    async datosReporteEnvio(obra: number) {
     const query1 = `SELECT distinct *, td.id_tipo_documento  
   FROM  tipo_documento as td
@@ -169,8 +191,11 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //  const imgPath = 'assets/images/logo_gamlp.png';
     const imgPathLeft = 'assets/images/logo_smip.png';
-    const imgPath = 'assets/images/membretado_carta.png';
-     const mostrarMarcaAgua = this.datosEnvio[0].informe_aprobado;
+    //const imgPath = 'assets/images/membretado_oficio_nuevo.png';
+    const gestion = this.datosEnvio[0].gestion_carpeta;
+    const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
+    const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
+    const mostrarMarcaAgua = this.datosEnvio[0].informe_aprobado;
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -531,7 +556,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       },
       //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
-      pageMargins: [70, 180, 70, 180] as any, // Márgenes: izquierda, arriba, derecha, abajo            
+      pageMargins: pageMargins as any // Márgenes: izquierda, arriba, derecha, abajo            
 
     };
     // Generar el PDF en memoria
