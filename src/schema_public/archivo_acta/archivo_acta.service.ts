@@ -75,7 +75,7 @@ export class ArchivoActaService {
   // OBTENER POR ID
   async findOne(id: number) {
     const row = await this.archivoActaRepo.findOne({
-      where: { id_archivo_acta: id },
+      where: { id_informe: id },
     });
 
     if (!row) {
@@ -111,7 +111,7 @@ export class ArchivoActaService {
     dto.id_documento ?? archivoActa.id_documento;
 
   if (
-    (tipoRecepcion === 2 || tipoRecepcion === 3) &&
+    (tipoRecepcion === 2 ) &&
     dto.id_documento !== undefined &&
     !idDocumentoFinal
   ) {
@@ -121,7 +121,7 @@ export class ArchivoActaService {
   }
 
   //  Si es ingreso, limpiamos id_documento
-  if (tipoRecepcion === 1) {
+  if (tipoRecepcion === 1 || tipoRecepcion === 3) {
     archivoActa.id_documento = null;
   }
 
@@ -139,8 +139,11 @@ export class ArchivoActaService {
   };
 }
 
-async obtenerDestinoSalida(id_archivo_acta: number) {
-  //  Buscar archivo_acta
+async obtenerDestinoSalida(
+  id_archivo_acta: number,
+  tipo_recepcion: number
+) {
+  // Buscar archivo_acta
   const archivoActa = await this.archivoActaRepo.findOne({
     where: { id_archivo_acta },
   });
@@ -149,16 +152,16 @@ async obtenerDestinoSalida(id_archivo_acta: number) {
     throw new NotFoundException('Archivo Acta no encontrado');
   }
 
-  //  INGRESO
-  if (archivoActa.id_tipo_recepcion === 1) {
+  // INGRESO
+  if (tipo_recepcion === 1) {
     return {
       tipo: 'INGRESO',
       texto: null,
     };
   }
 
-  //  SALIDA EMPRESA 
-  if (archivoActa.id_tipo_recepcion === 3) {
+  // SALIDA EMPRESA
+  if (tipo_recepcion === 3) {
     const contrato = await this.contratoRepo.findOne({
       where: { id_obra: archivoActa.id_obra },
     });
@@ -176,8 +179,8 @@ async obtenerDestinoSalida(id_archivo_acta: number) {
     };
   }
 
-  //  SALIDA FISCAL 
-  if (archivoActa.id_tipo_recepcion === 2) {
+  // SALIDA FISCAL
+  if (tipo_recepcion === 2) {
 
     const fiscal = await this.archivoActaRepo.query(
       `
