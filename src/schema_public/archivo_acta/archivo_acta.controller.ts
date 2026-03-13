@@ -37,9 +37,15 @@ guardar(
   return this.archivoActaService.guardar(id, dto);
 }
 
-@Get(':id/destino')
-getDestino(@Param('id') id: number) {
-  return this.archivoActaService.obtenerDestinoSalida(id);
+@Get('destino-salida/:id_archivo_acta/:tipo')
+async obtenerDestinoSalida(
+  @Param('id_archivo_acta') id_archivo_acta: number,
+  @Param('tipo') id_tipo_recepcion: number,
+) {
+  return this.archivoActaService.obtenerDestinoSalida(
+    Number(id_archivo_acta),
+    Number(id_tipo_recepcion),
+  );
 }
 
 }
