@@ -59,6 +59,49 @@ export class ReporteActPreviasService {
       return image.toString('base64');
     }
 
+    // funcion de membretados y margenes por gestion
+    private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
+      const gestionNum = Number(gestion);
+
+      if (gestionNum === 2025) {
+        return 'assets/images/membretado_carta.png';
+      }
+
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    private obtenerMargenesCartaPorGestion(
+      gestion: number | string,
+    ): [number, number, number, number] {
+      const gestionNum = Number(gestion);
+
+      if (gestionNum === 2025) {
+        return [60, 30, 40, 30];
+      }
+      return [60, 30, 40, 30];
+    }
+
+    private obtenerMembretadoOficioPorGestion(gestion: number | string): string {
+      const gestionNum = Number(gestion);
+
+      if (gestionNum === 2025) {
+        return 'assets/images/membretado_oficio.png';
+      }
+
+      return 'assets/images/membretado_oficio_nuevo.png';
+    }
+
+    private obtenerMargenesOficioPorGestion(
+      gestion: number | string,
+    ): [number, number, number, number] {
+      const gestionNum = Number(gestion);
+
+      if (gestionNum === 2025) {
+        return [70, 170, 50, 140];
+      }
+        return [70, 115, 70, 125];
+    }
+
+
     //--Datos Aprobador Fiscal
     async datosAprobadorFiscal(obra: number) {
       const query1 = `
@@ -217,7 +260,10 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
   //ME const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   //ME const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = 'assets/images/membretado_carta.png';
+  //const imgPath = 'assets/images/membretado_carta.png';
+  const gestion = this.datosEnvio[0].gestion_carpeta;
+  const imgPath = this.obtenerMembretadoCartaPorGestion(gestion);
+  const pageMargins = this.obtenerMargenesCartaPorGestion(gestion);
 
   const documentDefinition = {
     pageSize: 'LETTER' as any,
@@ -389,7 +435,8 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
       },
 
     },
-    pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: pageMargins as any,
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
@@ -469,7 +516,10 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_oficio.png';
+    //const imgPath = 'assets/images/membretado_oficio.png';
+    const gestion = this.datosEnvio[0].gestion_carpeta;
+    const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
+    const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
 
     //console.log('DATOS IAP',this.datosEnvio);
     //console.log('DATOS:',this.datosIAP);
@@ -862,7 +912,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: pageMargins as any,
 
     };
     // Generar el PDF en memoria
