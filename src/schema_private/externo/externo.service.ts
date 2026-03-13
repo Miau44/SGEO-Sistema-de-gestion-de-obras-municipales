@@ -184,6 +184,12 @@ export class ExternoService {
         const response = await fetch(url!, options);
         const resultado = await response.json();
 
+        const parametricaResp = await this.parametricaService.listarXTipo({
+        id: 43,
+        campo: 'id_tipo'
+      });
+      const listaParametrica = parametricaResp?.data || [];
+
         const prefijosValidos = await this.obtenerPrefijosValidos(this.parametricaService.listarXTipo({ id: 43, campo: 'id_tipo' }));
         const obra = await this.obraService.findOne(datos.id_obra);
         const carpeta = obra?.data?.[0]?.cod_carpeta?.toUpperCase();
@@ -195,6 +201,31 @@ export class ExternoService {
           prefijoObra = "EI";
         else if (carpeta.startsWith("EMV")) 
           prefijoObra = "EV";
+
+         // Buscar el registro de la paramétrica para el prefijo actual
+      const registroPrefijo = listaParametrica.find((item: any) =>
+        (item.desc_subtipo || '').trim().toUpperCase() === prefijoObra
+      );
+
+      const detallePrefijo = (registroPrefijo?.detalle || '').trim().toLowerCase();
+
+//       console.log('carpeta =>', carpeta);
+// console.log('prefijoObra =>', prefijoObra);
+// console.log('listaParametrica =>', listaParametrica);
+// console.log('registroPrefijo =>', registroPrefijo);
+// console.log('detallePrefijo =>', detallePrefijo);
+
+        // BLOQUEO TEMPORAL
+       if (detallePrefijo !== '')  {
+        return {
+          statusCode: 200,
+          message: 'Bloqueo temporal por actualización pendiente.',
+          bloqueoTemporal: true,
+          detalleBloqueo:
+            'Bloqueo temporal por actualización pendiente, EMAVIAS / EMAVERDE / SAMAPA: precios inhabilitados hasta que las empresas actualicen sus precios conforme a normativa vigente.',
+          data: []
+        };
+      }
 
         const filtrados = [];
         for (const item of resultado.data) {
