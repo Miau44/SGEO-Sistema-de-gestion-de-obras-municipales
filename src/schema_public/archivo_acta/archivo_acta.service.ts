@@ -140,17 +140,20 @@ export class ArchivoActaService {
 }
 
 async obtenerDestinoSalida(
-  id_archivo_acta: number,
+  id_informe: number,
   tipo_recepcion: number
 ) {
-  // Buscar archivo_acta
-  const archivoActa = await this.archivoActaRepo.findOne({
-    where: { id_archivo_acta },
+
+  // 1️⃣ Buscar informe
+  const informe = await this.informeRepo.findOne({
+    where: { id_informe },
   });
 
-  if (!archivoActa) {
-    throw new NotFoundException('Archivo Acta no encontrado');
+  if (!informe) {
+    throw new NotFoundException('Informe no encontrado');
   }
+
+  const idObra = informe.id_obra;
 
   // INGRESO
   if (tipo_recepcion === 1) {
@@ -163,19 +166,13 @@ async obtenerDestinoSalida(
   // SALIDA EMPRESA
   if (tipo_recepcion === 3) {
     const contrato = await this.contratoRepo.findOne({
-      where: { id_obra: archivoActa.id_obra },
+      where: { id_obra: idObra },
     });
-
-    if (!contrato) {
-      throw new BadRequestException(
-        'No se encontró contrato para la obra',
-      );
-    }
 
     return {
       tipo: 'SALIDA_EMPRESA',
-      empresa: contrato.proponente_razon_social,
-      representante: contrato.proponente_representante,
+      empresa: contrato?.proponente_razon_social || 'No registrado',
+      representante: contrato?.proponente_representante || 'No registrado',
     };
   }
 
@@ -188,18 +185,12 @@ async obtenerDestinoSalida(
       FROM vista_fiscales_obra
       WHERE id_obra = $1
       `,
-      [archivoActa.id_obra],
+      [idObra],
     );
-
-    if (!fiscal.length) {
-      throw new BadRequestException(
-        'No se encontró fiscal para la obra',
-      );
-    }
 
     return {
       tipo: 'SALIDA_FISCAL',
-      fiscal: fiscal[0].fiscal,
+      fiscal: fiscal[0]?.fiscal || 'No registrado',
     };
   }
 }
