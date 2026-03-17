@@ -59,6 +59,20 @@ export class ReportService {
     return image.toString('base64');
   }
 
+  //funcion para poner membretado de la gestion que correspende a la obra y al pdf
+  obtenerMembretePorGestionMemorandums(codigoCarpeta: string): string {
+    if (!codigoCarpeta) {
+      return 'assets/images/membretado_oficio.png'; 
+    }
+    const gestionObra = parseInt(codigoCarpeta.split('-').pop() || '');
+    if (gestionObra >= 2026) {
+      return 'assets/images/membretado_oficio_nuevo.png';
+    } else {
+      return 'assets/images/membretado_oficio.png';
+    }
+  }
+
+
   private obtenerMembretadoPorGestion(gestion: number | string): string {
     const gestionNum = Number(gestion);
 
