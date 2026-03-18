@@ -105,7 +105,7 @@ export class MemoOrdenCambio {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestionMemorandums(codigoCarpeta);
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {

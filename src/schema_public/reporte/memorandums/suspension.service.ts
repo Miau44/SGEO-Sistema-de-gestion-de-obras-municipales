@@ -107,7 +107,7 @@ export class SuspensionObra {
     const marcaAgua = this.datosSusp[0].suspension_finalizada;
 
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestionMemorandums(codigoCarpeta);
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,

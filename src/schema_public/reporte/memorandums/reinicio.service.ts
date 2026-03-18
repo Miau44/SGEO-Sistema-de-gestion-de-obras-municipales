@@ -108,7 +108,7 @@ export class ReinicioObra {
     const marcaAgua = this.datosRe[0].reinicio_finalizado;
 
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestionMemorandums(codigoCarpeta);
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,

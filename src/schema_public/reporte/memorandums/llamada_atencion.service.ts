@@ -90,22 +90,9 @@ export class LlamadaAtencion {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
-
-    //poner membretado segun el año de la obra
-    /*const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    let gestionObra = 0;
-    if (codigoCarpeta) {
-      gestionObra = parseInt(codigoCarpeta.split('-').pop());
-    }
-    let imgPath = '';
-    if (gestionObra >= 2026) {
-      imgPath = 'assets/images/membretado_oficio_nuevo.png'; 
-    } else {
-      imgPath = 'assets/images/membretado_oficio.png'; 
-    }*/
     //llamada a la funcion obtenerMembretePorGestionMemorandums para poner le membretado de la gestion correspondiente
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestionMemorandums(codigoCarpeta);
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
