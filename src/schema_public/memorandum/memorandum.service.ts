@@ -30,7 +30,7 @@ export class MemorandumService {
   async create(createMemorandumDto: CreateMemorandumDto) {
     try {
       const resultado = await this.memoRepository.save(createMemorandumDto);
-      return this.responseService.success(resultado, "GUardado Correctamente.")
+      return this.responseService.success(resultado, "Guardado Correctamente.")
     } catch (error) {
       return this.responseService.error(error);
     }
