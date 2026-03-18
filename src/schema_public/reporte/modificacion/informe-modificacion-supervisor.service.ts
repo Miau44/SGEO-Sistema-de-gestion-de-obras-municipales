@@ -8,6 +8,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -47,6 +48,7 @@ export class InformeModificacionSupervisor {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -178,7 +180,9 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_oficio.png';
+    //const imgPath = 'assets/images/membretado_oficio.png';
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales

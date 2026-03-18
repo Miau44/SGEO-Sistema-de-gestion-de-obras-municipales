@@ -90,7 +90,7 @@ export class LlamadaAtencion {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
-    //llamada a la funcion obtenerMembretePorGestionMemorandums para poner le membretado de la gestion correspondiente
+    //llamada a la funcion obtenerMembretePorGestion para poner le membretado de la gestion correspondiente
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
     const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
