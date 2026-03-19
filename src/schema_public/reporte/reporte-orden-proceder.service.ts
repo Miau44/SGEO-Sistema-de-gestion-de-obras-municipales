@@ -135,6 +135,8 @@ export class ReporteOrdenProcederService {
   }
 
   
+
+  
   // FORMULARIO DOCUMENTOS ETAPA II
   async generateDocumentoContrato(obra: number): Promise<Buffer> {
 
@@ -1188,6 +1190,13 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     //const imgPath = 'assets/images/membretado_oficio.png';
     const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
     const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    let margenesDinamicos;
+    if (gestionObra >= 2026) {
+      margenesDinamicos = [70, 130, 50, 140]; 
+    } else {
+      margenesDinamicos = [70, 170, 50, 140]; 
+    }
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -1446,7 +1455,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: margenesDinamicos as any,
+      //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     }
     // Generar el PDF en memoria
