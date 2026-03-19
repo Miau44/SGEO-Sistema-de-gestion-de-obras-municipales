@@ -201,8 +201,8 @@ export class ArchivoActaService {
     if (tipo_recepcion === 2) {
       const fiscal = await this.archivoActaRepo.query(
         `
-        SELECT fiscal
-        FROM vista_fiscales_obra
+        SELECT supervisor
+        FROM vista_supervisores_obra
         WHERE id_obra = $1
         `,
         [idObra],
@@ -210,7 +210,7 @@ export class ArchivoActaService {
 
       return {
         tipo: 'SALIDA_FISCAL',
-        fiscal: fiscal[0]?.fiscal || 'No registrado',
+        fiscal: fiscal[0]?.supervisor || 'No registrado',
       };
     }
   }
