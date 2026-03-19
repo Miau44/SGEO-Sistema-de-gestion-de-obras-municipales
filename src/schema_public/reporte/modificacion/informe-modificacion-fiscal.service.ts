@@ -119,10 +119,15 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
   const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-  console.log(codigoCarpeta)
   const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
-  console.log(imgPath)
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    let margenesDinamicos;
+    if (gestionObra >= 2026) {
+      margenesDinamicos = [70, 130, 50, 140]; 
+    } else {
+      margenesDinamicos = [70, 170, 50, 140]; 
+    }
 
   //console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
@@ -454,7 +459,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria

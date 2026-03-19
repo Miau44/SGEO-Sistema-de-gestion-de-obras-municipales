@@ -185,6 +185,14 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+    let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    let margenesDinamicos;
+    if (gestionObra >= 2026) {
+      margenesDinamicos = [70, 130, 50, 140]; 
+    } else {
+      margenesDinamicos = [70, 170, 50, 140]; 
+    }
+
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].num_decimales === '2') {
@@ -753,7 +761,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
