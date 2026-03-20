@@ -1,3 +1,4 @@
+import { Persona } from './../persona/entities/persona.entity';
 import { Contrato } from './../contrato-modificatorio/entities/contrato.entity';
 import {
   Injectable,
@@ -24,6 +25,9 @@ export class ArchivoActaService {
 
     @InjectRepository(Contrato)
     private readonly contratoRepo: Repository<Contrato>,
+
+    @InjectRepository(Contrato)
+    private readonly persona: Repository<Persona>,
   ) {}
 
   // ============================
@@ -74,9 +78,11 @@ export class ArchivoActaService {
     };
   }
 
-  async getUltimoPorInforme(id_informe: number) {
+  async getUltimoPorInforme(id_informe: number , id_tipo_recepcion  : number) {
   const ultimo = await this.archivoActaRepo.findOne({
-    where: { id_informe },
+    where: { id_informe ,
+      id_tipo_recepcion,
+    },
     order: { fecha_registro: 'DESC' },
   });
 
@@ -214,4 +220,9 @@ export class ArchivoActaService {
       };
     }
   }
+  async MostrarNombreusuario(id_usuario: number) {
+  return await this.persona.find({
+    where: { id_usuario: id_usuario }
+  });
+}
 }

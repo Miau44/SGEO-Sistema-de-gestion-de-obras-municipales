@@ -29,12 +29,13 @@ export class ArchivoActaController {
   // 🔥 RUTAS ESPECÍFICAS (PRIMERO)
   // ============================
 
-  @Get('ultimo/:id_informe')
-  getUltimo(
-    @Param('id_informe', ParseIntPipe) id_informe: number,
-  ) {
-    return this.archivoActaService.getUltimoPorInforme(id_informe);
-  }
+ @Get('ultimo/:id_informe/:tipo')
+getUltimo(
+  @Param('id_informe', ParseIntPipe) id_informe: number,
+  @Param('tipo', ParseIntPipe) tipo: number,
+) {
+  return this.archivoActaService.getUltimoPorInforme(id_informe, tipo);
+}
 
   @Get('destino-salida/:id_informe/:tipo')
   async obtenerDestinoSalida(
