@@ -8,6 +8,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -37,7 +38,8 @@ export class LlamadaAtencion {
  
     constructor(
       private readonly responseService: ResponseService,
-      @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      @Inject(Sequelize) private sequelize: Sequelize,
+      private readonly reportService: ReportService, // Inyecta Sequelize correctamente
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -86,8 +88,11 @@ export class LlamadaAtencion {
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_oficio.png';
+    //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    //llamada a la funcion obtenerMembretePorGestion para poner le membretado de la gestion correspondiente
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,

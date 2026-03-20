@@ -8,7 +8,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
-
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 
 const rootPath = process.cwd();
@@ -45,6 +45,7 @@ export class ReporteOrdenProcederService {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -132,6 +133,8 @@ export class ReporteOrdenProcederService {
     }
     return 'assets/images/membretado_oficio_nuevo.png';
   }
+
+  
 
   
   // FORMULARIO DOCUMENTOS ETAPA II
@@ -1184,7 +1187,16 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_oficio.png';
+    //const imgPath = 'assets/images/membretado_oficio.png';
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    let margenesDinamicos;
+    if (gestionObra >= 2026) {
+      margenesDinamicos = [70, 130, 50, 140]; 
+    } else {
+      margenesDinamicos = [70, 170, 50, 140]; 
+    }
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,
@@ -1443,7 +1455,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         },
 
       },
-      pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: margenesDinamicos as any,
+      //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     }
     // Generar el PDF en memoria
