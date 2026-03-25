@@ -59,15 +59,16 @@ export class ReportService {
     return image.toString('base64');
   }
 
-  private obtenerMembretadoPorGestion(gestion: number | string): string {
-    const gestionNum = Number(gestion);
-
-    if (gestionNum === 2025) {
-      return 'assets/images/membretado_carta.png';
+  //funcion para poner membretado de la gestion que correspende a la obra y al pdf
+  obtenerMembretePorGestion(codigoCarpeta: string): string {
+    const gestionObra = parseInt(codigoCarpeta.split('-').pop() || '');
+    if (gestionObra >= 2026) {
+      return 'assets/images/membretado_oficio_nuevo.png';
+    } else {
+      return 'assets/images/membretado_oficio.png';
     }
-
-    return 'assets/images/membretado_carta_nuevo.png';
   }
+
 
   async datosGeneralesReporte(id: number) {
     //const query1 = ` SELECT * FROM sp_reporte_memorandum2(${gestion},${id})`;
@@ -107,9 +108,8 @@ export class ReportService {
       'footer.png',
     );
     //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
-       const imgPath = this.obtenerMembretadoPorGestion(
-      this.datos[0].gestion_carpeta,
-    );
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
    
     try {
@@ -381,9 +381,8 @@ export class ReportService {
       'footer.png',
     );
       
-    const imgPath = this.obtenerMembretadoPorGestion(
-      this.datos[0].gestion_carpeta,
-    );
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
     const documentDefinition = {
@@ -653,9 +652,8 @@ export class ReportService {
     //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
     //ME const imgPath = 'assets/images/logo_gamlp.png';
   
-    const imgPath = this.obtenerMembretadoPorGestion(
-      this.datos[0].gestion_carpeta,
-    );
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
     const documentDefinition = {
@@ -909,9 +907,8 @@ export class ReportService {
       'footer.png',
     );
 
-    const imgPath = this.obtenerMembretadoPorGestion(
-      this.datos[0].gestion_carpeta,
-    );
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
     const documentDefinition = {
@@ -1193,9 +1190,8 @@ export class ReportService {
       'footer.png',
     );
   
-    const imgPath = this.obtenerMembretadoPorGestion(
-      this.datos[0].gestion_carpeta,
-    );
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
     const documentDefinition = {
