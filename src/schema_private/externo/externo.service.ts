@@ -87,6 +87,10 @@ export class ExternoService {
       clave: loginDto.clave,
       sistema: 'SGEO',
     };
+
+    const payloadLog = {
+      usuario: loginDto.usuario
+    };
   
     const options = {
       method: 'POST',
@@ -97,10 +101,16 @@ export class ExternoService {
     try {
       const response = await fetch(url, options);
       const resultado = await response.json();
+      
+    //   const respuestaLog = {
+    //   statusCode: resultado?.statusCode ?? null,
+    //   message: resultado?.message ?? null,
+    //   id_usuario: resultado?.data?.id_usuario ?? 0,
+    // };
   
       await this.logService.create({
         id_usuario: resultado?.data?.id_usuario ?? 0,
-        parametro: JSON.stringify(payload),
+        parametro: JSON.stringify(payloadLog),
         mensaje: 'Login exitoso',
         funcionalidad: 'login',
         respuesta: JSON.stringify(resultado),
