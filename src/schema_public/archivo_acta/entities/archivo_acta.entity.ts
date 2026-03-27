@@ -39,8 +39,8 @@ export class ArchivoActa {
   @Column({ default: 1 })
   id_estado: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  fecha_registro: Date;
+@Column({ type: 'timestamp without time zone' })
+    fecha_registro: Date
 
   @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_modificacion: Date
