@@ -31,7 +31,7 @@ export class ArchivoActa {
   fecha_entrega_dfo: Date;
 
   @Column()
-  nombre_fiscal: string;
+  nombre_responsable: string;
 
   @Column()
   id_usuario: number;
@@ -42,6 +42,7 @@ export class ArchivoActa {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fecha_registro: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  fecha_modificacion: Date;
+  @Column({ type: 'timestamp without time zone', nullable: true })
+    fecha_modificacion: Date
 }
+

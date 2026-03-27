@@ -57,7 +57,7 @@ export class ArchivoActaService {
 
   // SALIDA (tipo 2 y 3)
   if (dto.id_tipo_recepcion === 2 || dto.id_tipo_recepcion === 3) {
-    if (!dto.nombre_fiscal || dto.nombre_fiscal.trim() === '') {
+    if (!dto.nombre_responsable || dto.nombre_responsable.trim() === '') {
       throw new BadRequestException('El campo "Recepcionado por" es obligatorio');
     }
   }
