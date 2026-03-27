@@ -203,28 +203,27 @@ export class ExternoService {
           prefijoObra = "EV";
 
          // Buscar el registro de la paramétrica para el prefijo actual
-      const registroPrefijo = listaParametrica.find((item: any) =>
-        (item.desc_subtipo || '').trim().toUpperCase() === prefijoObra
-      );
+        const registroPrefijo = listaParametrica.find((item: any) =>
+          (item.desc_subtipo || '').trim().toUpperCase() === prefijoObra
+        );
 
-      const detallePrefijo = (registroPrefijo?.detalle || '').trim().toLowerCase();
+        const detallePrefijo = (registroPrefijo?.detalle || '').trim();
 
-//       console.log('carpeta =>', carpeta);
-// console.log('prefijoObra =>', prefijoObra);
-// console.log('listaParametrica =>', listaParametrica);
-// console.log('registroPrefijo =>', registroPrefijo);
-// console.log('detallePrefijo =>', detallePrefijo);
+        //       console.log('carpeta =>', carpeta);
+        // console.log('prefijoObra =>', prefijoObra);
+        // console.log('listaParametrica =>', listaParametrica);
+        // console.log('registroPrefijo =>', registroPrefijo);
+        // console.log('detallePrefijo =>', detallePrefijo);
 
         // BLOQUEO TEMPORAL
-       if (detallePrefijo !== '')  {
-        return {
-          statusCode: 200,
-          message: 'Bloqueo temporal por actualización pendiente.',
-          bloqueoTemporal: true,
-          detalleBloqueo:
-            'Bloqueo temporal por actualización pendiente, EMAVIAS / EMAVERDE / SAMAPA: precios inhabilitados hasta que las empresas actualicen sus precios conforme a normativa vigente.',
-          data: []
-        };
+        if (detallePrefijo !== '') {
+          return {
+            statusCode: 200,
+            message: 'Bloqueo temporal.',
+            bloqueoTemporal: true,
+            detalleBloqueo: detallePrefijo,
+            data: []
+          };
       }
 
         const filtrados = [];

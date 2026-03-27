@@ -34,60 +34,99 @@ export class ArchivoActaService {
   // CREAR ARCHIVO ACTA
   // ============================
   async create(dto: CreateArchivoActaDto) {
-    if (!dto.id_informe) {
-      throw new BadRequestException('id_informe es obligatorio');
-    }
-
-    if (
-      dto.id_tipo_recepcion !== undefined &&
-      ![1, 2, 3].includes(dto.id_tipo_recepcion)
-    ) {
-      throw new BadRequestException(
-        'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa)',
-      );
-    }
-
-    // 🔹 Validar informe
-    const informe = await this.informeRepo.findOne({
-      where: { id_informe: dto.id_informe },
-    });
-
-    if (!informe) {
-      throw new NotFoundException('El informe no existe');
-    }
-
-    // 🔥 Obtener registro anterior (clave)
-    const anterior = await this.archivoActaRepo.findOne({
-      where: { id_informe: dto.id_informe },
-      order: { fecha_registro: 'DESC' },
-    });
-
-    // 🔹 Crear nuevo registro
-    const archivoActa = this.archivoActaRepo.create({
-      ...dto,
-      id_obra: informe.id_obra,
-      id_estado: 1,
-    });
-
-    const saved = await this.archivoActaRepo.save(archivoActa);
-
-    return {
-      data: saved,
-      anterior: anterior || null, // 🔥 importante para frontend
-      message: 'Archivo Acta registrado correctamente',
-    };
+  if (!dto.id_informe) {
+    throw new BadRequestException('id_informe es obligatorio');
   }
 
-  async getUltimoPorInforme(id_informe: number , id_tipo_recepcion  : number) {
-  const ultimo = await this.archivoActaRepo.findOne({
-    where: { id_informe ,
-      id_tipo_recepcion,
+  if (
+    dto.id_tipo_recepcion !== undefined &&
+    ![1, 2, 3].includes(dto.id_tipo_recepcion)
+  ) {
+    throw new BadRequestException(
+      'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa)',
+    );
+  }
+
+  // 🔥 VALIDACIONES NUEVAS (CLAVE)
+  // INGRESO (tipo 1)
+  if (dto.id_tipo_recepcion === 1) {
+    if (!dto.nombre_encargado || dto.nombre_encargado.trim() === '') {
+      throw new BadRequestException('El campo "Ingresado por" es obligatorio');
+    }
+  }
+
+  // SALIDA (tipo 2 y 3)
+  if (dto.id_tipo_recepcion === 2 || dto.id_tipo_recepcion === 3) {
+    if (!dto.nombre_fiscal || dto.nombre_fiscal.trim() === '') {
+      throw new BadRequestException('El campo "Recepcionado por" es obligatorio');
+    }
+  }
+
+  // 🔹 Validar informe
+  const informe = await this.informeRepo.findOne({
+    where: { id_informe: dto.id_informe },
+  });
+
+  if (!informe) {
+    throw new NotFoundException('El informe no existe');
+  }
+
+  // 🔥 EVITAR DUPLICADOS (MUY IMPORTANTE)
+  const existente = await this.archivoActaRepo.findOne({
+    where: {
+      id_informe: dto.id_informe,
+      id_tipo_recepcion: dto.id_tipo_recepcion,
     },
+  });
+
+  if (existente) {
+    throw new BadRequestException(
+      `Ya existe un registro para este tipo de recepción (${dto.id_tipo_recepcion})`,
+    );
+  }
+
+  // 🔹 Crear nuevo registro
+  const archivoActa = this.archivoActaRepo.create({
+    ...dto,
+    id_obra: informe.id_obra,
+    id_estado: 1,
+  });
+
+  const saved = await this.archivoActaRepo.save(archivoActa);
+
+  return {
+    data: saved,
+    message: 'Archivo Acta registrado correctamente',
+  };
+}
+
+  async getUltimoPorInforme(id_informe: number, id_tipo_recepcion: number) {
+
+  const ultimo = await this.archivoActaRepo.findOne({
+    where: { id_informe, id_tipo_recepcion },
     order: { fecha_registro: 'DESC' },
   });
 
-    return ultimo || null;
+  if (!ultimo) return null;
+
+  let documento = null;
+
+  if (ultimo.id_documento) {
+    const doc = await this.archivoActaRepo.query(`
+      SELECT nombre_documento, ruta_documento
+      FROM documento
+      WHERE id_documento = $1
+    `, [ultimo.id_documento]);
+
+    documento = doc[0] || null;
   }
+
+  return {
+    ...ultimo,
+    nombre_documento: documento?.nombre_documento || null,
+    ruta_documento: documento?.ruta_documento || null,
+  };
+}
 
   // ============================
   // LISTAR ACTIVOS
