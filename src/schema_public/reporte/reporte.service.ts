@@ -61,6 +61,7 @@ export class ReportService {
 
   //funcion para poner membretado de la gestion que correspende a la obra y al pdf
   obtenerMembretePorGestion(codigoCarpeta: string): string {
+    console.log("codigoCarpeta_f",codigoCarpeta)
     const gestionObra = parseInt(codigoCarpeta.split('-').pop() || '');
     if (gestionObra >= 2026) {
       return 'assets/images/membretado_oficio_nuevo.png';
@@ -89,9 +90,6 @@ export class ReportService {
       throw new Error('No se encontraron datos para el ID proporcionado');
     }
     this.datos = res;
-    // console.log("Generar1, ", res);
-    // console.log("Generar2, ", this.datos);
-    // console.log("Generarcodcarpeta, ", this.datos[0].codcarpeta);
 
     const headerImage = path.join(
       __dirname,
@@ -107,15 +105,14 @@ export class ReportService {
       'images',
       'footer.png',
     );
-    //const imgUrl = 'http://localhost:3009/images/logo.png';  // Cambia la URL según tu configuración
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const codigoCarpeta = this.datos[0].cod_carpeta;
+    
     const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
    
     try {
       const documentDefinition = {
         pageSize: 'LETTER' as any,
-        //pageMargins: [0, 0, 0, 0], // Elimina los márgenes para que la imagen cubra toda la hoja
         background: function (currentPage: any, pageSize: any) {
           return {
             image: imgPath,
@@ -365,7 +362,7 @@ export class ReportService {
     }
 
     this.datos = res;
-
+    console.log("datos",this.datos);
     const headerImage = path.join(
       __dirname,
       '..',
@@ -380,8 +377,10 @@ export class ReportService {
       'images',
       'footer.png',
     );
-      
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    console.log("data",this.datos[0]);
+    const codigoCarpeta = this.datos[0].cod_carpeta;
+    console.log("cod",codigoCarpeta);
+    
     const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
