@@ -29,6 +29,7 @@ export class UsersController {
     return this.usersService.listaUsuariosSeguridad(idSistema);
   }
 
+
   @Post('buscarUsuariosSeguridad')
   @ApiBody({
     schema: {
@@ -46,21 +47,27 @@ export class UsersController {
     return this.usersService.buscarUsuariosSeguridad(filtro, idSistema);
   }
 
-  @Post('listarRolesSeguridad')
-  listarRolesSeguridad() {
-    return this.usersService.listarRolesSeguridad();
-  }
-
-  @Post('listarRolesUsuarioSeguridad')
+ @Post('listarRolesSeguridad')
 @ApiBody({
   schema: {
     type: 'object',
     properties: {
-      id_usuario: { type: 'number' },
-      idSistema: { type: 'number' }
+      idSistema: {
+        type: 'number',
+        example: 18
+      }
     }
-  },
+  }
 })
+listarRolesSeguridad(
+  @Body() body: { idSistema?: number }
+) {
+
+  const idSistema = body.idSistema ?? 18;
+
+  return this.usersService.listarRolesSeguridad(idSistema);
+
+}
 listarRolesUsuarioSeguridad(
   @Body() body: { id_usuario?: number; idSistema?: number }
 ) {
