@@ -58,7 +58,7 @@ export class CreateArchivoActaDto {
   })
   @IsString()
   @IsOptional()
-  nombre_fiscal?: string;
+  nombre_responsable?: string;
 
   @ApiPropertyOptional({ example: 8456123 })
   @IsNumber()
