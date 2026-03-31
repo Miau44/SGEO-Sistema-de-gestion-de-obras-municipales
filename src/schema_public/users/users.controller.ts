@@ -8,7 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 @ApiTags('usuario')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -22,9 +22,9 @@ export class UsersController {
 
   @Post('listarUsuariosSeguridad')
   listarUsuariosSeguridad(
-    @Body () body:{ idSistema?:number}
+    @Body() body:{ idSistema?:number}
   ) {
-    const idSistema=body.idSistema ?? 18;
+    const idSistema = body.idSistema ?? 18;
 
     return this.usersService.listaUsuariosSeguridad(idSistema);
   }
@@ -41,47 +41,65 @@ export class UsersController {
       required: ['gestion', 'codigoue'],
     },
   })
-  buscarUsuariosSeguridad(@Body() body: { filtro?: string; idSistema?: number }) {
+
+   buscarUsuariosSeguridad(@Body() body: { filtro?: string; idSistema?: number }) {
     const { filtro , idSistema } = body;
     return this.usersService.buscarUsuariosSeguridad(filtro, idSistema);
   }
 
   @Post('listarRolesSeguridad')
-  listarRolesSeguridad() {
-    return this.usersService.listarRolesSeguridad();
-  }
-
-  @Post('listarRolesUsuarioSeguridad')
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      id_usuario: { type: 'number' },
-      idSistema: { type: 'number' }
-    }
-  },
-})
-listarRolesUsuarioSeguridad(
-  @Body() body: { id_usuario?: number; idSistema?: number }
-) {
-
-  const { id_usuario, idSistema } = body;
-
-  return this.usersService.listarRolesUsuarioSeguridad(
-    id_usuario,
-    idSistema
-  );
-}
-
-  @Put('quitarRol')
-    @ApiBody({
+  @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        id_usuario: { type: 'number' },
+        idSistema: {
+          type: 'number',
+          example: 18
+        }
+      }
+    }
+  })
+  listarRolesSeguridad(
+    @Body() body: { idSistema?: number }
+  ) {
+
+    const idSistema = body.idSistema ?? 18;
+
+    return this.usersService.listarRolesSeguridad(idSistema);
+
+  }
+
+  @Post('listarRolesUsuarioSeguridad')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id_usuario: { type: 'number', example: 3948 },
+        idSistema: { type: 'number', example: 18 }
+      }
+    }
+  })
+  listarRolesUsuarioSeguridad(
+    @Body() body: { id_usuario?: number; idSistema?: number }
+  ) {
+
+    const { id_usuario, idSistema } = body;
+
+    return this.usersService.listarRolesUsuarioSeguridad(
+      id_usuario,
+      idSistema
+    );
+  }
+
+  @Put('quitarRol')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+         id_usuario: { type: 'number' },
         idRol: { type: 'number' },
         idUsuarioRol: { type: 'number' },
-        idUsuarioRegistro: { type: 'number' },
+        idUsuarioRegistro: { type: 'number' }
       },
       required: ['gestion', 'codigoue'],
     },
@@ -90,9 +108,8 @@ listarRolesUsuarioSeguridad(
     const { idUsuario, idRol, idUsuarioRol,idUsuarioRegistro } = body;
     return this.usersService.quitarRol(idUsuario, idRol, idUsuarioRol,idUsuarioRegistro);
   }
-
   @Put('asignarRol')
-      @ApiBody({
+  @ApiBody({
     schema: {
       type: 'object',
       properties: {
@@ -108,4 +125,5 @@ listarRolesUsuarioSeguridad(
     const { idUsuario, idRol, idUsuarioRol,idUsuarioRegistro } = body;
     return this.usersService.asignarRol(idUsuario, idRol, idUsuarioRegistro,idUsuarioRol);
   }
+
 }
