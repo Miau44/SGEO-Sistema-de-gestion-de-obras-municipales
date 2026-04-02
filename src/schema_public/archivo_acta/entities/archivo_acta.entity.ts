@@ -27,6 +27,9 @@ export class ArchivoActa {
   @Column()
   numero_fojas: number;
 
+  @Column ({nullable: true})
+  hoja_ruta: string;
+
   @Column({ type: 'date', nullable: true })
   fecha_entrega_dfo: Date;
 
