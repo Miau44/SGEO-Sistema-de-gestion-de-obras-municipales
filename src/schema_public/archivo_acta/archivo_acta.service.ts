@@ -256,7 +256,7 @@ export class ArchivoActaService {
     }
 
     // SALIDA FISCAL LEGAJO MODIFICACIONES Y PAGOS
-    if (tipo_recepcion === 2 || tipo_recepcion === 4 || tipo_recepcion === 5 ) {
+    if (tipo_recepcion === 2 ) {
       const fiscal = await this.archivoActaRepo.query(
         `
         SELECT supervisor
@@ -271,6 +271,36 @@ export class ArchivoActaService {
         fiscal: fiscal[0]?.supervisor || 'No registrado',
       };
     }
+
+
+   if (tipo_recepcion === 4 || tipo_recepcion === 5) {
+
+  const fiscal = await this.archivoActaRepo.query(
+    `
+    SELECT fiscal
+    FROM vista_fiscales_obra
+    WHERE id_obra = $1
+    `,
+    [idObra],
+  );
+
+  const supervisor = await this.archivoActaRepo.query(
+    `
+    SELECT supervisor
+    FROM vista_supervisores_obra
+    WHERE id_obra = $1
+    `,
+    [idObra],
+  );
+
+  return {
+    tipo: 'SALIDA_FISCAL_SUPERVISOR',
+    fiscal: fiscal[0]?.fiscal || 'No registrado',
+    supervisor: supervisor[0]?.supervisor || 'No registrado',
+  };
+}
+
+    
   }
   async MostrarNombreusuario(id_usuario: number) {
   return await this.persona.find({
