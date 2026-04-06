@@ -21,7 +21,7 @@ export class CreateArchivoActaDto {
 
   @ApiPropertyOptional({
     example: 1,
-    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa',
+    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa , 4 = Legajo modificaciones , 5 = Legajo pagos',
   })
   @IsNumber()
   @Min(1)
@@ -60,10 +60,10 @@ export class CreateArchivoActaDto {
   @IsOptional()
   nombre_responsable?: string;
 
-  @ApiPropertyOptional({ example: 8456123 })
+  @ApiPropertyOptional({ example: 'CC467 '})
   @IsNumber()
   @IsOptional()
-  ci_encargado?: number;
+  hoja_ruta?: string;
 
   @ApiPropertyOptional({ example: 'Recepción conforme' })
   @IsString()
