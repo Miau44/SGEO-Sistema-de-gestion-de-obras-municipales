@@ -21,7 +21,7 @@ export class CreateArchivoActaDto {
 
   @ApiPropertyOptional({
     example: 1,
-    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa , 4 = Legajo modificaciones , 5 = Legajo pagos',
+    description: '1 = Ingreso, 2 = Salida Fiscal, 3 = Salida Empresa , 4 = Legajo modificaciones ingreso, 5 = Legajo modificaciones salida, 6 = Legajos pagos ingreso, 7 = Legajos pagos salida ',
   })
   @IsNumber()
   @Min(1)
