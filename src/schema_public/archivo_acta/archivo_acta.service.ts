@@ -204,7 +204,7 @@ export class ArchivoActaService {
     const idDocumentoFinal =
       dto.id_documento ?? archivoActa.id_documento;
 
-    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 5 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
+    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
       throw new BadRequestException(
         'id_documento es obligatorio para salida',
       );
