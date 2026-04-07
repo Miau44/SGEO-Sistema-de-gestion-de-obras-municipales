@@ -906,7 +906,7 @@ export class ReportService {
       'footer.png',
     );
 
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const codigoCarpeta = this.datos[0].cod_carpeta;
     const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
 
