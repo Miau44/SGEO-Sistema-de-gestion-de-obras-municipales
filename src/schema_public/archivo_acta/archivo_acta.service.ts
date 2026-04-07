@@ -48,8 +48,8 @@ export class ArchivoActaService {
   }
 
   // 🔥 VALIDACIONES NUEVAS (CLAVE)
-  // INGRESO (tipo 1)
-  if (dto.id_tipo_recepcion === 1) {
+  // INGRESO (tipo 1 y 5 )
+  if (dto.id_tipo_recepcion === 1 || dto.id_tipo_recepcion === 5 ) {
     if (!dto.nombre_encargado || dto.nombre_encargado.trim() === '') {
       throw new BadRequestException('El campo "Ingresado por" es obligatorio');
     }
@@ -204,7 +204,7 @@ export class ArchivoActaService {
     const idDocumentoFinal =
       dto.id_documento ?? archivoActa.id_documento;
 
-    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 5 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
+    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
       throw new BadRequestException(
         'id_documento es obligatorio para salida',
       );
@@ -246,12 +246,13 @@ export class ArchivoActaService {
     const idObra = Contrato.id_obra;
 
     // INGRESO
+   // INGRESO
     if (tipo_recepcion === 1) {
       return {
         tipo: 'INGRESO',
         texto: null,
       };
-    }
+   }
 
     // SALIDA EMPRESA
     if (tipo_recepcion === 3) {
