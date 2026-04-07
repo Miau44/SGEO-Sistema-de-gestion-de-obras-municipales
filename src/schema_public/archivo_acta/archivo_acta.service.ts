@@ -40,16 +40,16 @@ export class ArchivoActaService {
 
   if (
     dto.id_tipo_recepcion !== undefined &&
-    ![1, 2, 3].includes(dto.id_tipo_recepcion)
+    ![1, 2, 3 ,4 , 5, 6, 7].includes(dto.id_tipo_recepcion)
   ) {
     throw new BadRequestException(
-      'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa)',
+      'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa) , 4 (legajo modificaciones) , 5 (legajo pagos)',
     );
   }
 
   // 🔥 VALIDACIONES NUEVAS (CLAVE)
-  // INGRESO (tipo 1)
-  if (dto.id_tipo_recepcion === 1) {
+  // INGRESO (tipo 1 y 5 )
+  if (dto.id_tipo_recepcion === 1 || dto.id_tipo_recepcion === 5 ) {
     if (!dto.nombre_encargado || dto.nombre_encargado.trim() === '') {
       throw new BadRequestException('El campo "Ingresado por" es obligatorio');
     }
@@ -62,6 +62,31 @@ export class ArchivoActaService {
     }
   }
 
+  //LEGAJO MODIFICACIONES INGRESO (TIPO 4)
+  if (dto.id_tipo_recepcion === 4 ){
+    if (!dto.nombre_responsable || dto.nombre_responsable.trim() === ''){
+      throw new BadRequestException('El campo "Recepcionado por " es obligatorio')
+    }
+  }
+
+  //LEGAJO MODIFICACIONES SALIDA (TIPO 5 )
+  if (dto.id_tipo_recepcion === 5){
+    if (!dto.nombre_responsable || dto.nombre_responsable.trim ()=== ''){
+      throw new BadRequestException('El campo "Recepcionado por " es obligatorio')
+    }
+  }
+  //LEGAJO PAGOS INGRESO (TIPO 6 )
+  if (dto.id_tipo_recepcion === 6){
+    if (!dto.nombre_responsable || dto.nombre_responsable.trim ()=== ''){
+      throw new BadRequestException('El campo "Recepcionado por " es obligatorio')
+    }
+  }
+  //LEGAJO PAGOS SALIDA (TIPO 7 )
+  if (dto.id_tipo_recepcion === 7){
+    if (!dto.nombre_responsable || dto.nombre_responsable.trim ()=== ''){
+      throw new BadRequestException('El campo "Recepcionado por " es obligatorio')
+    }
+  }
   // 🔹 Validar informe
   const informe = await this.informeRepo.findOne({
     where: { id_informe: dto.id_informe },
@@ -172,21 +197,21 @@ export class ArchivoActaService {
     const tipoRecepcion =
       dto.id_tipo_recepcion ?? archivoActa.id_tipo_recepcion;
 
-    if (![1, 2, 3].includes(tipoRecepcion)) {
+    if (![1, 2, 3, 4 ,5, 6, 7].includes(tipoRecepcion)) {
       throw new BadRequestException('id_tipo_recepcion inválido');
     }
 
     const idDocumentoFinal =
       dto.id_documento ?? archivoActa.id_documento;
 
-    if (tipoRecepcion === 2 && !idDocumentoFinal) {
+    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
       throw new BadRequestException(
         'id_documento es obligatorio para salida',
       );
     }
 
     // 🔹 limpiar documento si no aplica
-    if (tipoRecepcion === 1 || tipoRecepcion === 3) {
+    if (tipoRecepcion === 1 || tipoRecepcion === 3 || tipoRecepcion === 6) {
       archivoActa.id_documento = null;
     }
 
@@ -221,12 +246,13 @@ export class ArchivoActaService {
     const idObra = Contrato.id_obra;
 
     // INGRESO
+   // INGRESO
     if (tipo_recepcion === 1) {
       return {
         tipo: 'INGRESO',
         texto: null,
       };
-    }
+   }
 
     // SALIDA EMPRESA
     if (tipo_recepcion === 3) {
@@ -242,8 +268,8 @@ export class ArchivoActaService {
       };
     }
 
-    // SALIDA FISCAL
-    if (tipo_recepcion === 2) {
+    // SALIDA FISCAL LEGAJO MODIFICACIONES Y PAGOS
+    if (tipo_recepcion === 2 ) {
       const fiscal = await this.archivoActaRepo.query(
         `
         SELECT supervisor
@@ -258,6 +284,36 @@ export class ArchivoActaService {
         fiscal: fiscal[0]?.supervisor || 'No registrado',
       };
     }
+
+
+   if (tipo_recepcion === 4 || tipo_recepcion === 5 || tipo_recepcion === 6 || tipo_recepcion === 7) {
+
+  const fiscal = await this.archivoActaRepo.query(
+    `
+    SELECT fiscal
+    FROM vista_fiscales_obra
+    WHERE id_obra = $1
+    `,
+    [idObra],
+  );
+
+  const supervisor = await this.archivoActaRepo.query(
+    `
+    SELECT supervisor
+    FROM vista_supervisores_obra
+    WHERE id_obra = $1
+    `,
+    [idObra],
+  );
+
+  return {
+    tipo: 'SALIDA_FISCAL_SUPERVISOR',
+    fiscal: fiscal[0]?.fiscal || 'No registrado',
+    supervisor: supervisor[0]?.supervisor || 'No registrado',
+  };
+}
+
+    
   }
   async MostrarNombreusuario(id_usuario: number) {
   return await this.persona.find({
