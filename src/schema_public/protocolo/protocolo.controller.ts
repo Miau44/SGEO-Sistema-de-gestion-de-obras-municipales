@@ -59,6 +59,10 @@ export class ProtocoloController {
     return this.protocoloService.crearProtocoloModificacion(dto);
   }
 
+  @Get('historial/:id_modificacion_pago')
+  obtenerHistorialProtocolo(@Param('id_modificacion_pago') id_modificacion_pago: number) {
+    return this.protocoloService.obtenerHistorialProtocolo(id_modificacion_pago);
+  }
 
 
 }
