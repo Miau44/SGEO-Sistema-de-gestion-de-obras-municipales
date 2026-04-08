@@ -258,6 +258,43 @@ export class ProtocoloService {
     return result as FechasModificacionProtocoloResponse[];
   }
 
+  async obtenerHistorialProtocolo(id_modificacion_pago: number) {
+    const historial = await this.dataSource.query(
+      `
+      SELECT 
+        mh.id_historico,
+        mh.id_modificacion,
+        mh.id_modificacion_pago,
+        mh.dias_variacion,
+        mh.monto_variacion,
+        mh.monto_total,
+        mh.tipo_edicion,
+        mh.accion_historia,
+        mh.fecha_historia,
+        mh.usuario_historia,
+        p.justificacion
+      FROM modificacion_historico mh
+      
+      -- Unimos con la tabla protocolo para traer la justificación
+      LEFT JOIN protocolo p 
+        ON p.id_tabla_historico = mh.id_historico 
+        AND p.referencia_tabla_historico = 'modificacion_historico'
+        
+      WHERE mh.id_modificacion_pago = $1
+        AND mh.tipo_edicion = 'protocolo'
+        
+      ORDER BY mh.fecha_historia DESC;
+      `,
+      [id_modificacion_pago]
+    );
+
+    return {
+      statusCode: 200,
+      message: 'Historial de protocolo recuperado exitosamente',
+      data: historial,
+    };
+  }
+
   //datos para informe protocolo
   async obtenerDatosInforme(
     filtro: FiltroDatosInformeDto,
