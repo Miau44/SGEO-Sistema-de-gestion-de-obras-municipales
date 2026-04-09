@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
 
 @Entity('archivo_acta')
 export class ArchivoActa {
@@ -42,10 +42,10 @@ export class ArchivoActa {
   @Column({ default: 1 })
   id_estado: number;
 
-@Column({ type: 'timestamp without time zone' })
-    fecha_registro: Date
+  @CreateDateColumn({ type: 'timestamp without time zone' })
+  fecha_registro: Date;
 
   @Column({ type: 'timestamp without time zone', nullable: true })
-    fecha_modificacion: Date
+  fecha_modificacion: Date | null;
 }
 
