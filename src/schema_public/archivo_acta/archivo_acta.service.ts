@@ -115,6 +115,8 @@ export class ArchivoActaService {
     ...dto,
     id_obra: informe.id_obra,
     id_estado: 1,
+    fecha_registro: new Date(),   // siempre asignar fecha de registro
+    fecha_modificacion: null, 
   });
 
   const saved = await this.archivoActaRepo.save(archivoActa);
