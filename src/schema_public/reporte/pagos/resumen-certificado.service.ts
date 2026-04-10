@@ -125,6 +125,20 @@ export class ResumenCertificado {
     const resultado9 = await this.sequelize.query(query9);
     return resultado9[0];
    }
+  async obtenerJustificacionRetencion(id_modif_pago: number) {
+     const query10 = `
+        SELECT d.detalle
+            FROM public.descuento d
+            JOIN public.pago p ON d.id_pago = p.id_pago
+            WHERE p.id_modificacion_pago = ${id_modif_pago}
+          AND d.id_tipo_descuento = 345
+          AND d.id_estado = 1
+        LIMIT 1;
+     `;
+     const [resultados10]: any = await this.sequelize.query(query10);
+     console.log(resultados10)
+     return resultados10[0]?.detalle || null;
+   }
 
   // REPORTE - RESUMEN DE CERTIFICADO DE PAGO
 
@@ -147,6 +161,8 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
         throw new Error('No se encontraron datos de los descuentos');
     }
     this.datosDes = res5;
+
+    const textoJustificacion = await this.obtenerJustificacionRetencion(id_modif_pago);
 
     const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosCA = res6;
@@ -379,6 +395,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                   table: {
                     widths: ['50%','50%'],
                     body: [
+                            ...(textoJustificacion
+                              ? [
+                                  [
+                                    { text: 'Justificación:', style: 'textTitulo', alignment: 'left'},
+                                    { text: textoJustificacion, style: 'textDato', alignment: 'right', margin: [-80, 0, 10, 0]}
+                                  ]
+                                ]
+                              : []
+                            ),
                             [{ text: 'Retención certificados anteriores:', style: 'textTitulo', alignment: 'left'},
                             { text: this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
