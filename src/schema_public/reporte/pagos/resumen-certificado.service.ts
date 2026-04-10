@@ -148,6 +148,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
     }
     this.datosDes = res5;
 
+
     const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosCA = res6;
     
@@ -379,6 +380,23 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
                   table: {
                     widths: ['50%','50%'],
                     body: [
+                            ...(this.datosDes[0]?.justificacion_retencion
+                              ? [
+                                  [
+                                    { 
+                                      colSpan: 2, 
+                                      text: [
+                                        { text: 'Justificación: ', style: 'textTitulo', bold: true }, 
+                                        { text: this.datosDes[0].justificacion_retencion, style: 'textDato' } 
+                                      ],
+                                      alignment: 'justify', 
+                                      margin: [0, 0, 5, 0] 
+                                    },
+                                    {}
+                                  ]
+                                ]
+                              : []
+                            ),
                             [{ text: 'Retención certificados anteriores:', style: 'textTitulo', alignment: 'left'},
                             { text: this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2) + ' Bs.', style: 'textDato', alignment: 'right', margin: [0, 0, 10, 0]}
                             ],
