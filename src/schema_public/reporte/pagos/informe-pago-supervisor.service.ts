@@ -26,7 +26,7 @@ Object.entries(fonts.Roboto).forEach(([style, path]) => {
   if (!existsSync(path)) {
     console.error(`Archivo de fuente ${style} no encontrado en ${path}`);
   } else {
-    console.log(`Archivo de fuente ${style} encontrado en ${path}`);
+    console.log(`Archivo de fuente ${style}datosDes encontrado en ${path}`);
   }
 });
 
@@ -415,10 +415,15 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                       { text: 'DEDUCCIONES ', style: 'textTituloT'},
                       { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
-                    [
-                      { text: 'RETENCIONES ', style: 'textTituloT' },
-                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
-                    ],
+                    ...(this.datosDes[0]?.justificacion_retencion
+                      ? [
+                        [
+                          { text: 'RETENCIONES (*)', style: 'textTituloT' },
+                          { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente, formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      : []
+                    ),
                     [
                       { text: 'MULTAS ', style: 'textTituloT'},
                       { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
@@ -440,6 +445,21 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   ]
               }, margin: [60, 0, 60, 7]
             },
+            ...(this.datosDes[0]?.justificacion_retencion
+              ? [
+                  [
+                    {
+                      text: [
+                        { text: '(*) Justificación: ', style: 'textTitulo', bold: true }, 
+                        { text: this.datosDes[0].justificacion_retencion, style: 'textDato' } 
+                      ],
+                      alignment: 'justify', 
+                      margin: [60, 0, 60, 10] 
+                    }
+                  ]
+                ]
+              : []
+            ),
             {
               text: '4.   CONCLUSIÓN',
               style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -537,10 +557,15 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                       { text: 'DEDUCCIONES ', style: 'textTituloT'},
                       { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].deduccion_presente,formatoNumerico2), style: 'textTituloT'},
                     ],
-                    [
-                      { text: 'RETENCIONES ', style: 'textTituloT' },
-                      { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente,formatoNumerico2), style: 'textTituloT'},
-                    ],
+                    ...(this.datosDes[0]?.justificacion_retencion
+                      ? [
+                        [
+                          { text: 'RETENCIONES (*)', style: 'textTituloT' },
+                          { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].retencion_presente, formatoNumerico2), style: 'textTituloT'},
+                        ]
+                      ]
+                      : []
+                    ),
                     [
                       { text: 'MULTAS ', style: 'textTituloT'},
                       { text: 'Bs(-)' + this.formatIfNumber(this.datosDes[0].multa_presente,formatoNumerico2), style: 'textTituloT'},
@@ -562,6 +587,21 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   ]
               }, margin: [60, 0, 60, 7]
             },
+            ...(this.datosDes[0]?.justificacion_retencion
+              ? [
+                  [
+                    {
+                      text: [
+                        { text: '(*) Justificación: ', style: 'textTitulo', bold: true }, 
+                        { text: this.datosDes[0].justificacion_retencion, style: 'textDato' } 
+                      ],
+                      alignment: 'justify', 
+                      margin: [60, 0, 60, 10] 
+                    }
+                  ]
+                ]
+              : []
+            ),
             {
               text: '3.   CONCLUSIÓN',
               style: 'textTitulo', margin: [0, 0, 0, 5]
