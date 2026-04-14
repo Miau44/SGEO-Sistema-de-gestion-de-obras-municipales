@@ -337,23 +337,25 @@ async listaHistorialXSolicitud(data: HistorialSolicitudDto) {
         p.id_estado IN (1,5) AND sh.id_estado_general <>0  AND  sh.id_estado_registro <>0  ORDER BY sh.id_solicitud_historial DESC; `;
     const queryProtocolo = `
         SELECT 
-            pr.fecha_registro AS fecha,
-            TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido) AS nodo,
-            eg.desc_modulo AS modulo,
-            pr.justificacion
-        FROM public.protocolo AS pr
-        INNER JOIN (
-            SELECT DISTINCT ON (id_usuario) 
-                   id_usuario, nombre, primer_apellido, segundo_apellido
-            FROM public.persona
-            WHERE id_estado = 5 
-              AND fecha_aprobacion IS NOT NULL
-            ORDER BY id_usuario, fecha_aprobacion DESC
-        ) AS p ON pr.id_usuario = p.id_usuario
-        INNER JOIN public.solicitud_historial AS sh ON pr.id_tabla_historico = sh.id_solicitud_historial
-        INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
-        WHERE sh.id_solicitud = $1
-        ORDER BY pr.fecha_registro DESC;
+            fecha, nodo, modulo, justificacion
+        FROM (
+            SELECT DISTINCT ON (pr.id_usuario, pr.justificacion)
+                pr.fecha_registro AS fecha,
+                TRIM(p.nombre) || ' ' || TRIM(p.primer_apellido) || ' ' || TRIM(p.segundo_apellido) AS nodo,
+                eg.desc_modulo AS modulo,
+                pr.justificacion
+            FROM public.protocolo AS pr
+            INNER JOIN (
+                SELECT DISTINCT ON (id_usuario) 
+                       id_usuario, nombre, primer_apellido, segundo_apellido
+                FROM public.persona
+            ) AS p ON pr.id_usuario = p.id_usuario
+            INNER JOIN public.solicitud_historial AS sh ON pr.id_tabla_historico = sh.id_solicitud_historial
+            INNER JOIN public.estado_general AS eg ON sh.id_estado_general = eg.id_estado_general
+            WHERE sh.id_solicitud = $1
+            ORDER BY pr.id_usuario, pr.justificacion, pr.fecha_registro DESC
+        ) AS subquery
+        ORDER BY fecha DESC;
     `;
     const params = [data.id_solicitud]        
     const resultadoHistorial = await this.solicitudRepositorio.query(queryHistorial, params);
