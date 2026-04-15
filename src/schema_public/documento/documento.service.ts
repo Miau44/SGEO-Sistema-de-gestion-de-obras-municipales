@@ -796,21 +796,9 @@ LIMIT 5`;
   
   async listaImagenesReporteFotografico(id_obra: number) {
     try {
-      const query = `
-        SELECT 
-          d.id_documento AS id,
-          COALESCE(d.nombre_documento, d.observacion, 'Sin descripción') AS descripcion,
-          d.ruta_documento AS url
-        FROM public.documento AS d
-        INNER JOIN public.tipo_documento AS td ON d.id_tipo_documento = td.id_tipo_documento
-        WHERE d.id_obra = $1
-          AND td.id_tipo_documento IN (42, 45, 46, 51, 62)
-          AND d.ruta_documento IS NOT NULL
-          AND d.ruta_documento <> ''
-          AND d.id_estado = 1 
-          AND td.id_estado = 1
-      `;
+      const query = `SELECT * FROM public.sp_listar_imagenes_reporte_fotografico($1);`;
       const params = [id_obra];
+      
       const resultado = await this.documentoRepositorio.query(query, params);
 
       return this.responseService.success(resultado, 'Imágenes listadas correctamente.');
