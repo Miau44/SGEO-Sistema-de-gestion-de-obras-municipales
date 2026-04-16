@@ -308,12 +308,30 @@ WHERE sol.idusuario= ${data.usuario} `;
   async listaMisProyectos(misproyectos: MisProyectoDto) {
     try {
       let resultado = [];
-      const values = [misproyectos.gestion, misproyectos.id_usuario,misproyectos.permiso]; //llamamos una vez
+      const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
       const query = `select * from sp_obra($1,$2,$3)`;
       resultado = await this.obraRepositorio.query(query, values);
       return this.responseService.success(resultado || [], "Listado Correctamente.");
     } catch (error) {
       console.error('Error en listaMisProyectos:', error);
+      return this.responseService.error(error);
+    }
+  }
+
+  async cambiarEstado(idObra: number, id_estado_general: number) {
+    try {
+      const query = `
+      UPDATE obra
+      SET id_estado_general = $1
+      WHERE id_obra = $2
+    `;
+      await this.obraRepositorio.query(query, [id_estado_general, idObra]);
+
+      return this.responseService.success(
+        { id_obra: idObra, id_estado_general },
+        'Estado actualizado correctamente.'
+      );
+    } catch (error) {
       return this.responseService.error(error);
     }
   }
