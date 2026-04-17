@@ -13,6 +13,7 @@ import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
+import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -125,4 +126,13 @@ export class ObraController {
     return this.obraService.getReporteResumenObra(+id_obra);
   }
 
+  @Public()
+  @Patch(':id_obra/coordenadas')
+  updateCoordenadas(
+    @Param('id_obra') id: string,
+    @Body() dto: UpdateCoordenadasObraDto
+  ) {
+    return this.obraService.updateCoordenadas(+id, dto);
+  }
+  
 }
