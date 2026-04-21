@@ -15,6 +15,7 @@ import { EstadoObraDesigDto } from '../designacion/dto/estado_obra_designacion.d
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
+import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
 
 @Injectable()
 export class ObraService {
@@ -308,12 +309,30 @@ WHERE sol.idusuario= ${data.usuario} `;
   async listaMisProyectos(misproyectos: MisProyectoDto) {
     try {
       let resultado = [];
-      const values = [misproyectos.gestion, misproyectos.id_usuario,misproyectos.permiso]; //llamamos una vez
+      const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
       const query = `select * from sp_obra($1,$2,$3)`;
       resultado = await this.obraRepositorio.query(query, values);
       return this.responseService.success(resultado || [], "Listado Correctamente.");
     } catch (error) {
       console.error('Error en listaMisProyectos:', error);
+      return this.responseService.error(error);
+    }
+  }
+
+  async cambiarEstado(idObra: number, id_estado_general: number) {
+    try {
+      const query = `
+      UPDATE obra
+      SET id_estado_general = $1
+      WHERE id_obra = $2
+    `;
+      await this.obraRepositorio.query(query, [id_estado_general, idObra]);
+
+      return this.responseService.success(
+        { id_obra: idObra, id_estado_general },
+        'Estado actualizado correctamente.'
+      );
+    } catch (error) {
       return this.responseService.error(error);
     }
   }
@@ -327,5 +346,18 @@ WHERE sol.idusuario= ${data.usuario} `;
       return this.responseService.error(error);
     }
   }
+
+  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+  try {
+    await this.obraRepositorio.update(id_obra, {
+      latitud: dto.latitud,
+      longitud: dto.longitud,
+    });
+
+    return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
 }

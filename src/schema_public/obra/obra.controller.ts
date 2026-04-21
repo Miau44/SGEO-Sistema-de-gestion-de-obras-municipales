@@ -13,11 +13,12 @@ import { TipoObraModObraDto } from './dto/tipo-obra-modalidad.dto';
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
+import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
 
 @ApiTags('obra')
 @Controller('obra')
 export class ObraController {
-  constructor(private readonly obraService: ObraService) {}
+  constructor(private readonly obraService: ObraService) { }
 
 
   @Public()
@@ -32,20 +33,20 @@ export class ObraController {
   @Public()
   @Get()
   findAll() {
-    try {    
-    return this.obraService.findAll();
-  } catch (error) {
-  } 
+    try {
+      return this.obraService.findAll();
+    } catch (error) {
+    }
   }
 
   @Public()
   @Get(':id')
 
   findOne(@Param('id') id_obra: string) {
-    try {  
-    return this.obraService.findOne(+id_obra);
-  } catch (error) {
-  } 
+    try {
+      return this.obraService.findOne(+id_obra);
+    } catch (error) {
+    }
   }
 
   @Public()
@@ -87,13 +88,13 @@ export class ObraController {
       return this.obraService.listarObrasXSolicitudes(estadoDto);
     } catch (error) {
     }
-  }  
+  }
 
   @Public()
   @Patch(':id_obra')
   actualizar(@Param('id_obra') id_obra: string, @Body() tipoObraModDto: TipoObraModObraDto) {
     return this.obraService.actualizar(+id_obra, tipoObraModDto);
-  }  
+  }
 
   @Public()
   @Post('si-existe-persona')
@@ -109,11 +110,29 @@ export class ObraController {
     } catch (error) {
     }
   }
-  
+
+  @Public()
+  @Patch('cambiar-estado/:id_obra')
+  cambiarEstado(
+    @Param('id_obra') id_obra: string,
+    @Body() body: { id_estado_general: number }
+  ) {
+    return this.obraService.cambiarEstado(+id_obra, body.id_estado_general);
+  }
+
   @Public()
   @Get(':id_obra/reporte-resumen')
   getReporteResumenObra(@Param('id_obra') id_obra: string) {
     return this.obraService.getReporteResumenObra(+id_obra);
+  }
+
+  @Public()
+  @Patch(':id_obra/coordenadas')
+  updateCoordenadas(
+    @Param('id_obra') id: string,
+    @Body() dto: UpdateCoordenadasObraDto
+  ) {
+    return this.obraService.updateCoordenadas(+id, dto);
   }
   
 }

@@ -51,5 +51,10 @@ export class ExternoController {
     return this.externoService.sgpuItemsVigentes(datos);
   }
 
+  @Public()
+  @Post('/items-sgpu-all')
+  async itemsSGPUAll() {
+  return this.externoService.sgpuItemsVigentesexterno();
+}
 
 }
