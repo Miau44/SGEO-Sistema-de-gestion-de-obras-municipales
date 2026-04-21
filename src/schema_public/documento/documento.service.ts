@@ -793,4 +793,17 @@ LIMIT 5`;
         respuesta: JSON.stringify({respuesta})
       });
   }
+  
+  async listaImagenesReporteFotografico(id_obra: number) {
+    try {
+      const query = `SELECT * FROM public.sp_listar_imagenes_reporte_fotografico($1);`;
+      const params = [id_obra];
+      
+      const resultado = await this.documentoRepositorio.query(query, params);
+
+      return this.responseService.success(resultado, 'Imágenes listadas correctamente.');
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
 }
