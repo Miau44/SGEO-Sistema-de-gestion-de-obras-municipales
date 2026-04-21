@@ -336,26 +336,6 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
-  async crearEstadoGeneral(data: {
-    id_estado_general: number,
-    desc_estado_gral: string,
-    desc_subestado: string,
-    usuario_registro: number
-  }) {
-
-    const query = `
-      INSERT INTO estado_general (id_estado_general, desc_estado_gral, desc_subestado, usuario_registro)
-      VALUES ($1, $2, $3, $4)
-    `;
-
-    return await this.obraRepositorio.query(query, [
-      data.id_estado_general,
-      data.desc_estado_gral,
-      data.desc_subestado,
-      data.usuario_registro
-    ]);
-  }
-
   async getReporteResumenObra(id_obra: number) {
     try {
       const query = `SELECT * FROM public.f_reporte_resumen_obra($1);`;

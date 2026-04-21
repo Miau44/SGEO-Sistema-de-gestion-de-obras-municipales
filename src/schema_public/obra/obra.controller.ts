@@ -119,16 +119,6 @@ export class ObraController {
     return this.obraService.cambiarEstado(+id_obra, body.id_estado_general);
   }
 
-  @Post('crear-estado-general')
-  crearEstadoGeneral(@Body() body: {
-    id_estado_general: number,
-    desc_estado_gral: string,
-    desc_subestado: string,
-    usuario_registro: number
-  }) {
-    return this.obraService.crearEstadoGeneral(body);
-  }
-
   @Public()
   @Get(':id_obra/reporte-resumen')
   getReporteResumenObra(@Param('id_obra') id_obra: string) {
