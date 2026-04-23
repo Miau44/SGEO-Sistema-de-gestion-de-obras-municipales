@@ -284,7 +284,32 @@ export class ExternoService {
     return cachePrefijos;
   }
 
+async sgpuItemsVigentesexterno() {
+  try {
 
+     const url =  process.env.URL_SGPU+ 'item/sgeo-item-vigente';
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const response = await fetch(url!, options);
+    const resultado = await response.json();
+
+    // 👉 SOLO DEVUELVE TODO SIN FILTRAR
+    return this.responseService.success(
+      resultado.data || [],
+      "Listado correctamente."
+    );
+
+  } catch (error: any) {
+    console.error("ERROR SGPU:", error);
+    throw new InternalServerErrorException(error.message);
+  }
+}
 
 
 }

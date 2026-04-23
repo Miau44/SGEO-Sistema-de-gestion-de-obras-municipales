@@ -47,6 +47,7 @@ import { ArchivoActaModule } from './schema_public/archivo_acta/archivo_acta.mod
 import { ProtocoloModule } from './schema_public/protocolo/protocolo.module';
 import { SuspensionModule } from './schema_public/suspension/suspension.module';
 import { LlamadaAtencionModule } from './schema_public/llamada_atencion/llamada_atencion.module';
+import { EstadoGeneralModule } from './schema_public/estado_general/estado_general.module';
 
 
 
@@ -124,7 +125,7 @@ import { LlamadaAtencionModule } from './schema_public/llamada_atencion/llamada_
   AvanceFisicoDocumentoModule,
   ArchivoActaModule,
   ProtocoloModule, 
-  SuspensionModule, LlamadaAtencionModule
+  SuspensionModule, LlamadaAtencionModule,EstadoGeneralModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
