@@ -596,7 +596,9 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           widths: ['50%', '50%'],
           body: [
             [
-              [ { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
+              [ 
+                {text: 'Firma en conformidad del presente certificado:', style: 'textTitulo'},
+                { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
                 { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
               ],
               { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center' }
@@ -613,17 +615,19 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
       {
         table: {
           widths: ['50%', '50%'],
+          heights: [50],
           body: (
             this.datosInfSup?.[0]?.de_nombre
               ? this.datosInfSup[0].de_nombre.split('\n')
               : ['']
           ).map((nombre: string) => [
             {
-              text: [
-                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
-                { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true }
+              stack: [
+                {text: 'Se aprueba el presente pago:', style:'textTitulo', alignment: 'left'},
+                { text: nombre + '\n', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
-              margin: [0, 35, 0, 0], alignment: 'center'
+              //margin: [0, 35, 0, 0], alignment: 'center'
             },
             {
               text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
@@ -646,11 +650,12 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
               : ['']
           ).map((nombre: string) => [
             {
-              text: [
-                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
-                { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true }
+              stack: [
+                {text: 'Se considera procedente el pago:', style: 'textTitulo', alignment: 'left'},
+                { text: nombre + '\n', style: 'textDato' , alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
+                { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
-              margin: [0, 35, 0, 0], alignment: 'center'
+              //margin: [0, 35, 0, 0], alignment: 'center'
             },
             {
               text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
@@ -669,7 +674,16 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           widths: ['50%', '50%'],
           body: [
             [
-              [ { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
+              [
+                {
+                text: [
+                  { text: 'Remito el certificado de pago a ', style: 'textTitulo' },
+                  { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo' }
+                ]
+                },
+                /*{text: 'Remito el certificado de pago a ', style:'textTitulo'},
+                { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo'},*/
+                { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
                 ...(this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
                   ?[
                     { text: this.datosAF[0].nombre_da, style: 'textTitulo', alignment: 'center'}
