@@ -15,6 +15,7 @@ import { EstadoObraDesigDto } from '../designacion/dto/estado_obra_designacion.d
 import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
+import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
 
 @Injectable()
 export class ObraService {
@@ -345,5 +346,18 @@ WHERE sol.idusuario= ${data.usuario} `;
       return this.responseService.error(error);
     }
   }
+
+  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+  try {
+    await this.obraRepositorio.update(id_obra, {
+      latitud: dto.latitud,
+      longitud: dto.longitud,
+    });
+
+    return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
 }

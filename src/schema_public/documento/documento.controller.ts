@@ -254,5 +254,11 @@ export class DocumentoController {
     return this.documentoService.listarDocumentosPorSubtipo(id_informe, id_subtipo_documento);
   }
 
+  @Get('imagenes-reporte-fotografico/:id_obra')
+  async obtenerImagenesReporteFotografico(
+    @Param('id_obra') id_obra: number 
+  ) {
+    return await this.documentoService.listaImagenesReporteFotografico(id_obra);
+  }
 
 }
