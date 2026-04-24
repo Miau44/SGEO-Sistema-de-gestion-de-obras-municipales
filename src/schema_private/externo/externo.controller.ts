@@ -57,4 +57,9 @@ export class ExternoController {
   return this.externoService.sgpuItemsVigentesexterno();
 }
 
+  @Get('consulta/:correlativo')
+  async obtenerConsultaExterna(@Param('correlativo') correlativo: number) {
+    return this.externoService.obtenerConsultaExterna(correlativo);
+  }
+
 }
