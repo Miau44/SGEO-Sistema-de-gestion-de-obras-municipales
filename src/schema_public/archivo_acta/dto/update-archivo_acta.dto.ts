@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsOptional, IsDateString, Min, Max, } from 'class-validator';
+import { IsNumber, IsString, IsOptional, IsDateString, Min, Max, IsBoolean , } from 'class-validator';
 export class UpdateArchivoActaDto {
   // 1 = Ingreso, 2 = Salida supervisor , 3 = salida empresa 
   @IsNumber()
@@ -33,7 +33,7 @@ export class UpdateArchivoActaDto {
 
   @IsNumber()
   @IsOptional()
-  id_documento?: number;
+  id_documento?: number | null;
 
   @IsDateString()
   @IsOptional()
@@ -42,6 +42,11 @@ export class UpdateArchivoActaDto {
   @IsNumber()
   @IsOptional()
   id_usuario?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  aprobado?:boolean | null;
+
 }
 
 
