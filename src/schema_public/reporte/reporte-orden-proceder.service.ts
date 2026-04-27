@@ -905,7 +905,9 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-    const imgPath = 'assets/images/membretado_carta.png';
+    //const imgPath = 'assets/images/membretado_carta.png';
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
