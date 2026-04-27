@@ -84,6 +84,13 @@ export class Obra {
   // @Column({type: 'date',  nullable: true })
    fecha_instruccion_op: Date | null;
 
+    //maps
+    @Column('decimal', { precision: 10, scale: 7, nullable: true })
+    latitud: number | null;
+
+    @Column('decimal', { precision: 10, scale: 7, nullable: true })
+    longitud: number | null;
+
     ///---------campos genericos-----//////
 
     @Column({nullable:true})

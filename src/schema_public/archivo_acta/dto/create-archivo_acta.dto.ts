@@ -6,6 +6,7 @@ import {
   IsDateString,
   Min,
   Max,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -85,4 +86,8 @@ export class CreateArchivoActaDto {
   @IsNumber()
   @IsNotEmpty()
   id_usuario: number;
+
+  @IsBoolean()
+  @IsOptional()
+  aprobado?:boolean | null;
 }
