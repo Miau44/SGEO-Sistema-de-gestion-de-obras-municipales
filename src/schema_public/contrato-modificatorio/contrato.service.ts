@@ -394,17 +394,8 @@ async resolucionContrato(correlativo: number) {
   // actualizar contrato
   contrato.id_estado = 2;
   await this.contratoRepo.save(contrato);
-  // buscar obra
-  /*const obra = await this.obraRepo.findOne({
-    where: { id_obra: contrato.id_obra }
-  });
-  if (!obra) {
-    throw new Error('Obra no encontrada');
-  }
   // actualizar obra
-  obra.id_estado_general = 35;
-  await this.obraRepo.save(obra);*/
-  await this.obraService.cambiarEstado(
+  await this.obraService.cambiarEstadoGeneral(
     contrato.id_obra,
     35
   );
