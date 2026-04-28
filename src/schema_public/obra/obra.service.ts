@@ -347,17 +347,65 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
-  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
-  try {
-    await this.obraRepositorio.update(id_obra, {
-      latitud: dto.latitud,
-      longitud: dto.longitud,
-    });
+//   async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+//   try {
+//     await this.obraRepositorio.update(id_obra, {
+//       latitud: dto.latitud,
+//       longitud: dto.longitud,
+//     });
 
-    return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
-  } catch (error) {
-    return this.responseService.error(error);
+//     return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
+//   } catch (error) {
+//     return this.responseService.error(error);
+//   }
+// }
+
+  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+    try {
+      const obra = await this.obraRepositorio.findOne({
+        where: { id_obra },
+        select: ['id_obra', 'latitud', 'longitud']
+      });
+
+      if (!obra) {
+        return this.responseService.error({
+          message: 'La obra no existe.'
+        });
+      }
+
+      const esAdministrador = dto.id_permiso === 1;
+      const esSupervisor = dto.id_permiso === 14;
+
+      if (!esAdministrador && !esSupervisor) {
+        return this.responseService.error({
+          message: 'No tienes permisos para registrar o editar la ubicación.'
+        });
+      }
+
+      const yaTieneCoordenadas =
+        obra.latitud !== null &&
+        obra.longitud !== null;
+
+      // Si ya existe ubicación, el supervisor no puede editar
+      if (yaTieneCoordenadas && esSupervisor) {
+        return this.responseService.error({
+          message: 'La ubicación ya fue registrada. Solo el administrador puede editarla.'
+        });
+      }
+
+      await this.obraRepositorio.update(id_obra, {
+        latitud: dto.latitud,
+        longitud: dto.longitud,
+      });
+
+      const mensaje = yaTieneCoordenadas
+        ? 'Coordenadas actualizadas correctamente.'
+        : 'Coordenadas registradas correctamente.';
+
+      return this.responseService.success(id_obra, mensaje);
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-}
 
 }
