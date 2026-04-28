@@ -381,7 +381,38 @@ async llenarContratosDesdeServicioPorCodCarpeta(
   }
 }
 
+async resolucionContrato(correlativo: number) {
+  // buscar contrato
+  const contrato = await this.contratoRepo.findOne({
+    where: { correlativo_carpeta: correlativo }
+  });
 
+  if (!contrato) {
+    throw new Error('Contrato no encontrado');
+  }
+
+  // actualizar contrato
+  contrato.id_estado = 2;
+  await this.contratoRepo.save(contrato);
+  // buscar obra
+  /*const obra = await this.obraRepo.findOne({
+    where: { id_obra: contrato.id_obra }
+  });
+  if (!obra) {
+    throw new Error('Obra no encontrada');
+  }
+  // actualizar obra
+  obra.id_estado_general = 35;
+  await this.obraRepo.save(obra);*/
+  await this.obraService.cambiarEstado(
+    contrato.id_obra,
+    35
+  );
+
+  return {
+    message: 'Estados actualizados correctamente'
+  };
+}
 
 
   async actualizarUrlContratosDesdeServicio(gestion: number): Promise<any> {

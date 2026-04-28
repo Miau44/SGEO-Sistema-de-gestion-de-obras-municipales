@@ -192,9 +192,19 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
    //console.log('DATOS MODIFICACION',this.datosUM);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
+   //console.log('DATOS PAGO', this.datosEnvio);
+
    // CALCULOS COLUMNA DERECHA
    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+
+    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    const gestionObra = parseInt(codigoCarpeta.split('-').pop());
+
+    const mostrarEncabezadosFirma = gestionObra >= 2026;
+
+  //console.log('GESTION OBRA:', gestionObra);
+  //console.log('MOSTRAR ENCABEZADOS:', mostrarEncabezadosFirma);
            
    const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -597,7 +607,13 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [ 
-                {text: 'Firma en conformidad del presente certificado:', style: 'textTitulo'},
+                //{text: 'Firma en conformidad del presente certificado:', style: 'textTitulo'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      { text: 'Firma en conformidad del presente certificado:', style: 'textTitulo' }
+                    ]
+                  : []
+                ),
                 { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
                 { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
               ],
@@ -623,7 +639,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           ).map((nombre: string) => [
             {
               stack: [
-                {text: 'Se aprueba el presente pago:', style:'textTitulo', alignment: 'left'},
+                //{text: 'Se aprueba el presente pago:', style:'textTitulo', alignment: 'left'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: 'Se aprueba el presente pago:',style:'textTitulo',alignment: 'left'
+                      }
+                    ]
+                  : []
+                ),
                 { text: nombre + '\n', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
                 { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
@@ -651,7 +675,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           ).map((nombre: string) => [
             {
               stack: [
-                {text: 'Se considera procedente el pago:', style: 'textTitulo', alignment: 'left'},
+                //{text: 'Se considera procedente el pago:', style: 'textTitulo', alignment: 'left'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: 'Se considera procedente el pago:',style: 'textTitulo',alignment: 'left'
+                      }
+                    ]
+                  : []
+                ),
                 { text: nombre + '\n', style: 'textDato' , alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
                 { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
@@ -675,12 +707,23 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [
-                {
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: [
+                          { text: 'Remito el certificado de pago a ', style: 'textTitulo' },
+                          { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo' }
+                        ]
+                      }
+                    ]
+                  : []
+                ),
+                /*{
                 text: [
                   { text: 'Remito el certificado de pago a ', style: 'textTitulo' },
                   { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo' }
                 ]
-                },
+                },*/
                 /*{text: 'Remito el certificado de pago a ', style:'textTitulo'},
                 { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo'},*/
                 { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },

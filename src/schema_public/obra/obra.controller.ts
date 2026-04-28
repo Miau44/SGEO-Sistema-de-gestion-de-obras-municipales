@@ -113,11 +113,11 @@ export class ObraController {
 
   @Public()
   @Patch('cambiar-estado/:id_obra')
-  cambiarEstado(
+  cambiarEstadoGeneral(
     @Param('id_obra') id_obra: string,
     @Body() body: { id_estado_general: number }
   ) {
-    return this.obraService.cambiarEstado(+id_obra, body.id_estado_general);
+    return this.obraService.cambiarEstadoGeneral(+id_obra, body.id_estado_general);
   }
 
   @Public()
