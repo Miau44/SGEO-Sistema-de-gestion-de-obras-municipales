@@ -1,16 +1,24 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, Max, Min } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsNumber, Max, Min } from 'class-validator';
 
 export class UpdateCoordenadasObraDto {
-  @ApiProperty({ example: -16.5001234 })
+  @ApiProperty()
   @IsNumber()
   @Min(-90)
   @Max(90)
   latitud: number;
 
-  @ApiProperty({ example: -68.1505678 })
+  @ApiProperty()
   @IsNumber()
   @Min(-180)
   @Max(180)
   longitud: number;
+
+  @ApiProperty()
+  @IsInt()
+  id_usuario: number;
+
+  @ApiProperty()
+  @IsInt()
+  id_permiso: number;
 }

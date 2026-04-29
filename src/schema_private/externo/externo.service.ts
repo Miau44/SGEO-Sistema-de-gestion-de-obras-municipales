@@ -314,61 +314,14 @@ async sgpuItemsVigentesexterno() {
   }
 }
 
-  // async obtenerConsultaExterna(correlativo: number) {
-  //   const query = `
-  //     SELECT * 
-  //     FROM public.sp_consulta_externa_obra($1, NULL)
-  //   `;
-  //   const result = await this.dataSource.query(query, [correlativo]);
-  //   return result?.[0] || null;
-  // }
-  async obtenerConsultaExterna(correlativo: number) {
+  async obtenerConsultaExterna(idContratoDlc: number, nroModificacion: number) {
   // 1. Obtener datos de obra
   const obraQuery = `
     SELECT * 
-    FROM public.sp_consulta_externa_obra($1, NULL)
+    FROM public.sp_consulta_externa_obra(NULL, $1)
   `;
 
-//   CREATE OR REPLACE FUNCTION "public"."sp_consulta_externa_obra"("p_correlativo_carpeta" int4=NULL::integer, "p_id_contrato_dlc" int4=NULL::integer)
-//   RETURNS TABLE("id_obra" int4, "correlativo_carpeta" int4, "id_contrato_dlc" int4, "cod_carpeta" text, "desc_carpeta" text, "desc_zona_carpeta" text, "total_carpeta" text, "estado_carpeta" text, "cod_sisin" text, "fecha_validacion_carpeta" date, "estado_contrato" text, "cuse" text, "contrato_fecha" date) AS $BODY$
-// BEGIN
-//   RETURN QUERY
-//   SELECT
-//     d.id_obra::int4,
-//     d.correlativo_carpeta::int4,
-//     c.id_contrato_dlc::int4,
-//     d.cod_carpeta::text,
-//     d.desc_carpeta::text,
-//     d.desc_zona_carpeta::text,
-//     d.total_carpeta::text,
-//     d.estado_carpeta::text,
-//     d.cod_sisin::text,
-//     d.fecha_validacion_carpeta::date,
-//     d.estado_contrato::text,
-//     d.cuse::text,
-//     d.contrato_fecha::date
-//   FROM public.datos_generales_x_obra d
-//   LEFT JOIN public.contrato c 
-//     ON c.id_obra = d.id_obra
-//    AND c.id_estado = 1
-//   WHERE 
-//     (
-//       p_correlativo_carpeta IS NOT NULL
-//       AND d.correlativo_carpeta = p_correlativo_carpeta
-//     )
-//     OR
-//     (
-//       p_id_contrato_dlc IS NOT NULL
-//       AND c.id_contrato_dlc = p_id_contrato_dlc
-//     )
-//   LIMIT 1;
-// END;
-// $BODY$
-//   LANGUAGE plpgsql VOLATILE
-//   COST 100
-//   ROWS 1000
-
-  const obraResult = await this.dataSource.query(obraQuery, [correlativo]);
+  const obraResult = await this.dataSource.query(obraQuery, [idContratoDlc]);
 
   if (!obraResult.length) {
     return {
@@ -381,28 +334,32 @@ async sgpuItemsVigentesexterno() {
 
   // 2. Buscar modificación asociada a la obra
   const contextoQuery = `
-    SELECT 
-      mp.id_solicitud,
-      m.id_modificacion,
-      mp.id_modificacion_pago,
-      mp.id_tipo_mod_pago,
-      CASE 
-        WHEN mp.id_tipo_mod_pago = 1 THEN 266
-        WHEN mp.id_tipo_mod_pago = 2 THEN 268
-        WHEN mp.id_tipo_mod_pago = 3 THEN 268
-        ELSE NULL
-      END AS id_tipo_informe
-    FROM public.modificacion_pago mp
-    INNER JOIN public.modificacion m 
-      ON m.id_modificacion_pago = mp.id_modificacion_pago
-    WHERE mp.id_obra = $1
-      AND mp.id_estado = 1
-      AND m.id_estado = 1
-    ORDER BY m.fecha_registro DESC
+    SELECT *
+    FROM (
+      SELECT 
+        mp.id_solicitud,
+        m.id_modificacion,
+        mp.id_modificacion_pago,
+        mp.id_tipo_mod_pago,
+        ROW_NUMBER() OVER (ORDER BY m.fecha_registro ASC) AS nro_modificacion,
+        CASE 
+          WHEN mp.id_tipo_mod_pago = 1 THEN 266
+          WHEN mp.id_tipo_mod_pago = 2 THEN 268
+          WHEN mp.id_tipo_mod_pago = 3 THEN 268
+          ELSE NULL
+        END AS id_tipo_informe
+      FROM public.modificacion_pago mp
+      INNER JOIN public.modificacion m 
+        ON m.id_modificacion_pago = mp.id_modificacion_pago
+      WHERE mp.id_obra = $1
+        AND mp.id_estado = 1
+        AND m.id_estado = 1
+    ) x
+    WHERE x.nro_modificacion = $2
     LIMIT 1
   `;
 
-  const contextoResult = await this.dataSource.query(contextoQuery, [obra.id_obra]);
+  const contextoResult = await this.dataSource.query(contextoQuery, [obra.id_obra, nroModificacion]);
 
   if (!contextoResult.length) {
     return {
