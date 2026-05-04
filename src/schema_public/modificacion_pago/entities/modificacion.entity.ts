@@ -28,8 +28,8 @@ export class Modificacion {
     porcentaje_total: number;
 
     
-    @Column({ nullable:true })
-    numero_contrato_modificatorio: string;
+    @Column({ type: 'varchar', nullable: true })
+    numero_contrato_modificatorio: string | null;
 
     @Column({ type: 'timestamp without time zone', nullable: true })
     fecha_registro_contrato: Date|null;
