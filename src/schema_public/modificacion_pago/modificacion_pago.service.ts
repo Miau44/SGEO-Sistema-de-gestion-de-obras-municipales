@@ -262,7 +262,7 @@ export class ModificacionPagoService {
           "monto_total": 0,
           "porcentaje_modificacion": 0,
           "porcentaje_total": 0,
-          "numero_contrato_modificatorio": "",
+          "numero_contrato_modificatorio": null,
           "fecha_registro_contrato": null,         
           "fecha_supervisor": null,
           "fecha_fiscal": null,
@@ -271,7 +271,7 @@ export class ModificacionPagoService {
           "finalizado": false,                      
           "id_usuario_registro": dto.id_usuario,
           "monto_variacion_ultima_mod": 0,      
-          "tipo_edicion": "0",      
+          //"tipo_edicion": "0",      
           "id_estado": 1
 
         }
