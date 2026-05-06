@@ -12,6 +12,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreateArchivoActaDto {
 
   @ApiProperty({
+  example: 21,
+  description: 'ID de la obra asociada',})
+  @IsNumber()
+  @IsNotEmpty()
+  id_obra: number;
+
+  @ApiProperty({
     example: 10,
     description: 'ID del informe asociado',
   })
@@ -61,7 +68,7 @@ export class CreateArchivoActaDto {
   nombre_responsable?: string;
 
   @ApiPropertyOptional({ example: 'CC467 '})
-  @IsNumber()
+  @IsString()
   @IsOptional()
   hoja_ruta?: string;
 
