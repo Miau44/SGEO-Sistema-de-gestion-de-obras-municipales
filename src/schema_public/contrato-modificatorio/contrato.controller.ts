@@ -151,6 +151,12 @@ async cargarContratosDlcNuevo(
     }
   }
 
+
+  @Post('resolver/:correlativo')
+  resolverContrato(@Param('correlativo') correlativo: number) {
+    return this.contratoService.resolucionContrato(correlativo);
+  }
+
   @Post('consultarContrato')
   @Public()
   @ApiBody({

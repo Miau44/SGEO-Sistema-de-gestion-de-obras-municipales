@@ -9,6 +9,7 @@ import { ObraService } from 'src/schema_public/obra/obra.service';
 import { ObraExternoDto } from './dto/obra.dto';
 import { log } from 'node:console';
 import { ParametricaService } from 'src/schema_public/parametrica/services/parametrica.service';
+import { DataSource } from 'typeorm';
 
 
 @Injectable()
@@ -18,7 +19,9 @@ export class ExternoService {
     private readonly responseService: ResponseService,
     private readonly logService: LogService,
     private readonly obraService: ObraService,
-    private readonly parametricaService: ParametricaService
+    private readonly parametricaService: ParametricaService,
+    private readonly dataSource: DataSource
+
   ) {
 
   
@@ -309,6 +312,92 @@ async sgpuItemsVigentesexterno() {
     console.error("ERROR SGPU:", error);
     throw new InternalServerErrorException(error.message);
   }
+}
+
+  async obtenerConsultaExterna(idContratoDlc: number, nroModificacion: number) {
+  // 1. Obtener datos de obra
+  const obraQuery = `
+    SELECT * 
+    FROM public.sp_consulta_externa_obra(NULL, $1)
+  `;
+
+  const obraResult = await this.dataSource.query(obraQuery, [idContratoDlc]);
+
+  if (!obraResult.length) {
+    return {
+      obra: null,
+      documentos: []
+    };
+  }
+
+  const obra = obraResult[0];
+
+  // 2. Buscar modificación asociada a la obra
+  const contextoQuery = `
+    SELECT *
+    FROM (
+      SELECT 
+        mp.id_solicitud,
+        m.id_modificacion,
+        mp.id_modificacion_pago,
+        mp.id_tipo_mod_pago,
+        ROW_NUMBER() OVER (ORDER BY m.fecha_registro ASC) AS nro_modificacion,
+        CASE 
+          WHEN mp.id_tipo_mod_pago = 1 THEN 266
+          WHEN mp.id_tipo_mod_pago = 2 THEN 268
+          WHEN mp.id_tipo_mod_pago = 3 THEN 268
+          ELSE NULL
+        END AS id_tipo_informe
+      FROM public.modificacion_pago mp
+      INNER JOIN public.modificacion m 
+        ON m.id_modificacion_pago = mp.id_modificacion_pago
+      WHERE mp.id_obra = $1
+        AND mp.id_estado = 1
+        AND m.id_estado = 1
+    ) x
+    WHERE x.nro_modificacion = $2
+    LIMIT 1
+  `;
+
+  const contextoResult = await this.dataSource.query(contextoQuery, [obra.id_obra, nroModificacion]);
+
+  if (!contextoResult.length) {
+    return {
+      obra,
+      contexto: null,
+      documentos: []
+    };
+  }
+
+  const contexto = contextoResult[0];
+
+  if (!contexto.id_tipo_informe) {
+    return {
+      obra,
+      contexto,
+      documentos: []
+    };
+  }
+
+  // 3. Obtener documentos del informe
+  const documentosQuery = `
+    SELECT *
+    FROM public.sp_obtener_datos_formulario($1, $2, $3)
+  `;
+
+  const formularioResult = await this.dataSource.query(documentosQuery, [
+    contexto.id_solicitud,
+    contexto.id_modificacion,
+    contexto.id_tipo_informe
+  ]);
+
+  const documentos = formularioResult?.[0]?.documentos || [];
+
+  return {
+    obra,
+    contexto,
+    documentos
+  };
 }
 
 

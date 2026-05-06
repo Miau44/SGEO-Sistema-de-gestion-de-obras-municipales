@@ -117,6 +117,7 @@ export class ArchivoActaService {
     id_estado: 1,
     fecha_registro: new Date(),   // siempre asignar fecha de registro
     fecha_modificacion: null, 
+    aprobado: dto.aprobado ?? undefined
   });
 
   const saved = await this.archivoActaRepo.save(archivoActa);
@@ -206,11 +207,32 @@ export class ArchivoActaService {
     const idDocumentoFinal =
       dto.id_documento ?? archivoActa.id_documento;
 
-    if (tipoRecepcion === 2 && !idDocumentoFinal || tipoRecepcion === 4 && !idDocumentoFinal || tipoRecepcion === 7 && !idDocumentoFinal) {
-      throw new BadRequestException(
-        'id_documento es obligatorio para salida',
-      );
-    }
+// TIPO 4 (CASO ESPECIAL)
+if (tipoRecepcion === 4) {
+
+  //  RECHAZADO
+  if (dto.aprobado === false) {
+    dto.id_documento = null;
+  }
+
+  //  APROBADO → DOCUMENTO OBLIGATORIO
+  if (dto.aprobado === true && !idDocumentoFinal) {
+    throw new BadRequestException(
+      'Debe adjuntar documento si está aprobado'
+    );
+  }
+
+}
+
+// OTROS TIPOS QUE REQUIEREN DOCUMENTO
+if (
+  (tipoRecepcion === 2 || tipoRecepcion === 7) &&
+  !idDocumentoFinal
+) {
+  throw new BadRequestException(
+    'id_documento es obligatorio para salida',
+  );
+}
 
     // 🔹 limpiar documento si no aplica
     if (tipoRecepcion === 1 || tipoRecepcion === 3 || tipoRecepcion === 6) {
