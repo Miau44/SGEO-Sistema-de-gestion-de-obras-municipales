@@ -32,7 +32,7 @@ export class CreateArchivoActaDto {
   })
   @IsNumber()
   @Min(1)
-  @Max(3)
+  @Max(7)
   @IsOptional()
   id_tipo_recepcion?: number;
 
@@ -92,4 +92,10 @@ export class CreateArchivoActaDto {
   @IsNumber()
   @IsNotEmpty()
   id_usuario: number;
+  
+  @ApiPropertyOptional({example: 3496,
+    description: 'ID de solicitud asociada, usado para legajos de modificación/pago',})
+  @IsNumber()
+  @IsOptional()
+  id_solicitud?: number;
 }
