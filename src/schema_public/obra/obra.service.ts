@@ -309,7 +309,8 @@ WHERE sol.idusuario= ${data.usuario} `;
   async listaMisProyectos(misproyectos: MisProyectoDto) {
     try {
       let resultado = [];
-      const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
+      //const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
+      const values = [Number(misproyectos.gestion),Number(misproyectos.id_usuario),Number(misproyectos.permiso),];
       const query = `select * from sp_obra($1,$2,$3)`;
       resultado = await this.obraRepositorio.query(query, values);
       return this.responseService.success(resultado || [], "Listado Correctamente.");
