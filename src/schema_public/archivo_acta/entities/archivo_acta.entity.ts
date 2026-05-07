@@ -36,6 +36,9 @@ export class ArchivoActa {
   @Column()
   nombre_responsable: string;
 
+  @Column({type: 'boolean', nullable: true})
+  aprobado:boolean;
+  
   @Column()
   id_usuario: number;
 

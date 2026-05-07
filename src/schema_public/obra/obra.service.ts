@@ -319,7 +319,7 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
-  async cambiarEstado(idObra: number, id_estado_general: number) {
+  async cambiarEstadoGeneral(idObra: number, id_estado_general: number) {
     try {
       const query = `
       UPDATE obra

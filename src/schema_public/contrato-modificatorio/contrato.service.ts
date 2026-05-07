@@ -381,7 +381,29 @@ async llenarContratosDesdeServicioPorCodCarpeta(
   }
 }
 
+async resolucionContrato(correlativo: number) {
+  // buscar contrato
+  const contrato = await this.contratoRepo.findOne({
+    where: { correlativo_carpeta: correlativo }
+  });
 
+  if (!contrato) {
+    throw new Error('Contrato no encontrado');
+  }
+
+  // actualizar contrato
+  contrato.id_estado = 2;
+  await this.contratoRepo.save(contrato);
+  // actualizar obra
+  await this.obraService.cambiarEstadoGeneral(
+    contrato.id_obra,
+    35
+  );
+
+  return {
+    message: 'Estados actualizados correctamente'
+  };
+}
 
 
   async actualizarUrlContratosDesdeServicio(gestion: number): Promise<any> {
