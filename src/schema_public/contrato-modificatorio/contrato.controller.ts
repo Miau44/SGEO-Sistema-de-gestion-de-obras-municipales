@@ -151,10 +151,10 @@ async cargarContratosDlcNuevo(
     }
   }
 
-
-  @Post('resolver/:correlativo')
-  resolverContrato(@Param('correlativo') correlativo: number) {
-    return this.contratoService.resolucionContrato(correlativo);
+  //controlador para resolucion de contrato
+  @Post('resolver/:idContratoDlc')
+  resolverContrato(@Param('idContratoDlc') idContratoDlc: string) {
+    return this.contratoService.resolucionContrato(Number(idContratoDlc));
   }
 
   @Post('consultarContrato')
