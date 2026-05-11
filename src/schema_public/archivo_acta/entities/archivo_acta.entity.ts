@@ -50,5 +50,8 @@ export class ArchivoActa {
 
   @Column({ type: 'timestamp without time zone', nullable: true })
   fecha_modificacion: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  id_solicitud?: number | null;
 }
 

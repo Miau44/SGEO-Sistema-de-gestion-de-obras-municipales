@@ -13,6 +13,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreateArchivoActaDto {
 
   @ApiProperty({
+  example: 21,
+  description: 'ID de la obra asociada',})
+  @IsNumber()
+  @IsNotEmpty()
+  id_obra: number;
+
+  @ApiProperty({
     example: 10,
     description: 'ID del informe asociado',
   })
@@ -26,7 +33,7 @@ export class CreateArchivoActaDto {
   })
   @IsNumber()
   @Min(1)
-  @Max(3)
+  @Max(7)
   @IsOptional()
   id_tipo_recepcion?: number;
 
@@ -62,7 +69,7 @@ export class CreateArchivoActaDto {
   nombre_responsable?: string;
 
   @ApiPropertyOptional({ example: 'CC467 '})
-  @IsNumber()
+  @IsString()
   @IsOptional()
   hoja_ruta?: string;
 
@@ -86,6 +93,12 @@ export class CreateArchivoActaDto {
   @IsNumber()
   @IsNotEmpty()
   id_usuario: number;
+  
+  @ApiPropertyOptional({example: 3496,
+    description: 'ID de solicitud asociada, usado para legajos de modificación/pago',})
+  @IsNumber()
+  @IsOptional()
+  id_solicitud?: number;
 
   @IsBoolean()
   @IsOptional()

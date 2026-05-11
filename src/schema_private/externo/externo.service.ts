@@ -326,7 +326,9 @@ async sgpuItemsVigentesexterno() {
   if (!obraResult.length) {
     return {
       obra: null,
-      documentos: []
+      contexto: null,
+      documentos: [],
+      actas: []
     };
   }
 
@@ -365,7 +367,8 @@ async sgpuItemsVigentesexterno() {
     return {
       obra,
       contexto: null,
-      documentos: []
+      documentos: [],
+      actas: []
     };
   }
 
@@ -375,7 +378,8 @@ async sgpuItemsVigentesexterno() {
     return {
       obra,
       contexto,
-      documentos: []
+      documentos: [],
+      actas: []
     };
   }
 
@@ -393,11 +397,37 @@ async sgpuItemsVigentesexterno() {
 
   const documentos = formularioResult?.[0]?.documentos || [];
 
+  // 4. Obtener documentos de archivo_acta
+  const actasQuery = `
+    SELECT 
+      doc.id_documento,
+      doc.ruta_documento,
+      doc.nombre_documento,
+      TO_CHAR(doc.fecha_registro, 'DD/MM/YYYY HH24:MI:SS') AS fecha_registro,
+      aa.id_archivo_acta,
+      aa.id_tipo_recepcion,
+      aa.id_solicitud
+    FROM public.archivo_acta aa
+    INNER JOIN public.documento doc 
+      ON doc.id_documento = aa.id_documento
+    WHERE aa.id_obra = $1
+      AND aa.id_solicitud = $2
+      AND aa.id_estado = 1
+      AND aa.id_documento IS NOT NULL
+    ORDER BY aa.fecha_registro DESC
+  `;
+
+  const actas = await this.dataSource.query(actasQuery, [
+    obra.id_obra,
+    contexto.id_solicitud
+  ]);
+
   return {
     obra,
     contexto,
-    documentos
-  };
+    documentos,
+    actas
+  };  
 }
 
 
