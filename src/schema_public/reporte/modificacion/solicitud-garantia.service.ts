@@ -8,6 +8,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -39,6 +40,7 @@ export class SolicitudGarantia {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -106,9 +108,20 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
   //console.log('DATOS NULOS', 'HOLA');
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = 'assets/images/membretado_carta.png';
+  //const imgPath = 'assets/images/membretado_carta.png';
+  const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+  const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
- 
+
+  let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+  let margenesDinamicos;
+
+  if (gestionObra >= 2026) {
+    margenesDinamicos = [70, 130, 50, 40]; 
+  } else {
+    margenesDinamicos = [70, 170, 50, 40]; 
+  }
+
     const documentDefinition = {
     pageSize: 'LETTER' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -260,7 +273,8 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
   // Generar el PDF en memoria
