@@ -403,7 +403,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
       eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
     INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
-	 AS dp ON 	sd.id_persona = dp.idpersona
+	 AS dp ON 	sd.id_persona = dp.idpersona AND dp.desccodue = f.desc_cod_ue
    WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
       AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
       AND sd.id_estado =1

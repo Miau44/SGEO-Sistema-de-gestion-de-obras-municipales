@@ -193,14 +193,15 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
    //console.log('DATOS PAGO', this.datosEnvio);
+   //console.log('informe',this.datosInfSup[0]);
 
    // CALCULOS COLUMNA DERECHA
    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
 
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const gestionObra = parseInt(codigoCarpeta.split('-').pop());
-
+    //informe  resumen certificado por gestion ultima modificacion cambio de cod_carpeta a fecha_registro 29/4/26
+    const fechaRegistro = this.datosInfSup[0].fecha_registro;
+    const gestionObra = new Date(fechaRegistro).getFullYear();
     const mostrarEncabezadosFirma = gestionObra >= 2026;
 
   //console.log('GESTION OBRA:', gestionObra);
@@ -607,6 +608,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [ 
+                //encabezado para la gestion 2026
                 //{text: 'Firma en conformidad del presente certificado:', style: 'textTitulo'},
                 ...(mostrarEncabezadosFirma
                   ? [
@@ -639,6 +641,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           ).map((nombre: string) => [
             {
               stack: [
+                //encabezado para la gestion 2026
                 //{text: 'Se aprueba el presente pago:', style:'textTitulo', alignment: 'left'},
                 ...(mostrarEncabezadosFirma
                   ? [
@@ -675,6 +678,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           ).map((nombre: string) => [
             {
               stack: [
+                //encabezado para la gestion 2026
                 //{text: 'Se considera procedente el pago:', style: 'textTitulo', alignment: 'left'},
                 ...(mostrarEncabezadosFirma
                   ? [
@@ -707,6 +711,7 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           body: [
             [
               [
+                //encabezado para la gestion 2026
                 ...(mostrarEncabezadosFirma
                   ? [
                       {

@@ -258,7 +258,7 @@ export class ReinicioObra {
         {          
           text:
             [
-            { text:this.datosInf[0].de_nombre_sup + '\n', style: 'textDato', alignment: 'center' },
+            { text:this.datosRe[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
             { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
             ]
         },
@@ -366,32 +366,26 @@ export class ReinicioObra {
   //// FUNCIONES VARIOS
   
       //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
+ fechaString(iso: string): string {
+  if (!iso) return '';
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+  let fecha: Date;
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
-
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
+  if (iso === 'hoy') {
+    fecha = new Date();
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [year, month, day] = iso.split('-').map(Number);
+    fecha = new Date(year, month - 1, day);
+  } else {
+    fecha = new Date(iso);
   }
+
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [

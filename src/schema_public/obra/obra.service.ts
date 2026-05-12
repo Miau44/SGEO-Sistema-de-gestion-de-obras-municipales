@@ -319,6 +319,7 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
+  //servicio para cambiar de estado general
   async cambiarEstadoGeneral(idObra: number, id_estado_general: number) {
     try {
       const query = `
@@ -333,7 +334,7 @@ WHERE sol.idusuario= ${data.usuario} `;
         'Estado actualizado correctamente.'
       );
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al actualizar el estado.');
     }
   }
 
