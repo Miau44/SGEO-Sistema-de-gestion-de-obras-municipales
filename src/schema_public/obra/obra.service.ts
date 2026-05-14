@@ -317,7 +317,7 @@ WHERE sol.idusuario= ${data.usuario} `;
         misproyectos.permiso === 0
       ){
         return this.responseService.error(
-          'Parámetros inválidos.'
+          'Error, no se admiten valores nulos o 0 en los parámetros de entrada.'
         );
       }
       let resultado = [];
