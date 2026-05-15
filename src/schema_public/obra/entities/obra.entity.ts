@@ -18,7 +18,7 @@ export class Obra {
     @Column()
     id_ficha:number;    
 
-    @Column({nullable:true})
+    @Column({nullable:false,default:1})
     id_tipo_obra:number;
 
     @Column({nullable:true})
