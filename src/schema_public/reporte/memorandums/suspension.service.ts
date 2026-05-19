@@ -60,10 +60,17 @@ export class SuspensionObra {
   }
 
   // Datos informes de Supervisor y Fiscal
-  async datosInformesSF(id_modif_pago: number) {
+  // async datosInformesSF(id_modif_pago: number) {
+  //   const query2 = `
+  //       SELECT * 
+  //       FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+  //   const resultado2 = await this.sequelize.query(query2);
+  //   return resultado2[0];
+  // }
+  async datosInformesSF(id_obra: number) {
     const query2 = `
         SELECT * 
-        FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+        FROM public."vista_reporte_memoOC" WHERE id_obra = ${id_obra}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
