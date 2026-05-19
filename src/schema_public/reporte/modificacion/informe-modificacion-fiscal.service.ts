@@ -87,22 +87,24 @@ export class InformeModificacionFiscal {
     return resultado2[0];
   }
 
-  //margen para membrete por fecha 
+  //margen para membrete por fecha a apartir del 13 de  mayo de  2026
   private obtenerMargenesporfecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
     const fechaDocumento = new Date(fecha);
 
+    //margen por fecha del 13 de mayo de 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
       return [70, 140, 50, 70];
     }
 
+    //antiguo membrete del logo 200
     if (fechaDocumento >= new Date('2026-01-01')) {
       return [70, 130, 50, 140];
     }
 
-    return [70, 170, 50, 140];  // Márgenes: izquierda, arriba, derecha, abajo
+    return [70, 170, 50, 140];  // Márgenes:izquierda, arriba, derecha,abajo
   }
 
 // REPORTE - INFORME MODIFICACION FISCAL
@@ -140,10 +142,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
   //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
-  // membretado por fecha
+  // membretado por fecha del 13 de mayo de  2026
   const fechaDocumento = this.datosEnvio[0].fecha_fiscal;
   const imgPath =this.reportService.obtenerMembretePorFecha(fechaDocumento);
 
+  
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
   //margenes por fecha
@@ -155,6 +158,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       margenesDinamicos = [70, 170, 50, 140]; 
     }*/
 
+  //margenes por fecha desde el 13 de mayo de  2026
   const margenesDinamicos = this.obtenerMargenesporfecha(fechaDocumento);
 
   //console.log('DATOS MODIFICACION',this.datosEnvio);
@@ -487,6 +491,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         opacity: 0.8,
       },
     },
+    //margenes dinamicos
     pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };

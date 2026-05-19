@@ -78,40 +78,40 @@ export class SolicitudGarantia {
     return resultado[0];
   }
 
-  //MEMBRETADO SOLICITUD DE GARANTIA CARTA
+  //MEMBRETADO SOLICITUD DE GARANTIA CARTA POR FECHA 13 DE MAYO DE 2026
 
   obtenerMembretePorFecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
-    // tercer membretado
+    // tercer membretado nuevo por fecha del 13 de mayo 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return 'assets/images/CARTA.png';
+      return 'assets/images/carta.png';
     }
-    // segundo membretado
+    // segundo membretado por fecha 
     if (fechaDocumento >= new Date('2026-01-01')) {
       return 'assets/images/membretado_carta_nuevo.png';
     }
-    // primer membretado
+    // primer membretado con el logo 200
     return 'assets/images/membretado_carta.png';
   }
 
-  //margenes por fecha 
+  //margenes por fecha para el nuevo membrete 
   private obtenerMargenesPorFecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
     const fechaDocumento = new Date(fecha);
 
-    // tercer membretado
+    // margenes por fecha para el tercer membretado 
     if (fechaDocumento >= new Date('2026-05-13')) {
       return [50, 140, 50, 70];
     }
 
-    // segundo membretado
+    // margenes por fecha para el segundo membretado
     if (fechaDocumento >= new Date('2025-01-01')) {
       return [70, 130, 50, 40];
     }
 
-    // primer membretado
+    // margenes por fecha para el primer membretado con logo200
     return [70, 170, 50, 40];
   }
     
@@ -150,7 +150,7 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
   //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
   //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
-  //membretado por gestion
+  //membretado por fecha  del 13 de mayo 2023
   const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
   const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
 
@@ -166,7 +166,7 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
     margenesDinamicos = [70, 170, 50, 40]; 
   }*/
 
-  //margenes por fecha
+  //margenes por fecha para el membretado nuevo 
   const margenesDinamicos = this.obtenerMargenesPorFecha(fechaDocumento);
 
     const documentDefinition = {
@@ -321,7 +321,7 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
       },
     },
     //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
-    pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: margenesDinamicos as any, // Márgenes:izquierda, arriba, derecha,abajo margenes dinamico  
 
   };
   // Generar el PDF en memoria

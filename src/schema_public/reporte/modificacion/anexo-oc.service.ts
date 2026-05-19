@@ -58,30 +58,32 @@ export class AnexoOC {
     return resultado[0];
   }
 
-  //membrete nuevo
+  //membrete nuevo por fecha 
   private obtenerMembretadoPorfecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
 
-    // nuevo membretado desde MAYO 2026
+    // nuevo membretado desde 13 de MAYO 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return 'assets/images/CARTA.png';
+      return 'assets/images/carta.png';
     }
 
+    //membrete antiguo tamaño carta
     return 'assets/images/membretado_carta.png';
   }
 
+  //margenes por fecha 13 de mayo de 2026 
   private obtenerMargenesporfecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
     const fechaDocumento = new Date(fecha);
 
-    // Márgenes del nuevo membretado desde mayo 2026
+    // Márgenes del nuevo membretado desde 13 de mayo 2026 
     if (fechaDocumento >= new Date('2026-05-13')) {
       return [60, 140, 50, 70];
     }
 
-    // Márgenes del membretado anterior
+    // Márgenes del membretado anterior con el logo 200
     return [70, 140, 50, 110];
   }
 

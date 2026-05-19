@@ -364,9 +364,9 @@ export class ReporteOrdenProcederService {
   //membrete por fecha tamaño carta
   obtenerMembretadocarta(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
-    // tercer membretado
+    // tercer membretado 
     if (fechaDocumento >= new Date('2026-03-13')) {
-      return 'assets/images/CARTA.png';
+      return 'assets/images/carta.png';
     }
     // segundo membretado
     if (fechaDocumento >= new Date('2026-01-01')) {
@@ -376,24 +376,24 @@ export class ReporteOrdenProcederService {
     return 'assets/images/membretado_carta.png';
   }
 
-//margenes por fecha orden proceder
+//margenes por fecha orden proceder para el membretado nuevo
 private obtenerMargenesordenproceder(
     fecha: string | Date,
   ): [number, number, number, number] {
 
     const fechaDocumento = new Date(fecha);
 
-    // tercer membretado
+    // tercer membretado nuevo
     if (fechaDocumento >= new Date('2026-03-13')) {
       return [70, 140, 50, 50]; // Márgenes: izquierda, arriba, derecha, abajo
     }
 
-    // segundo membretado
+    // segundo membretado del 
     if (fechaDocumento >= new Date('2025-01-01')) {
       return [70, 130, 50, 40];
     }
 
-    // primer membretado
+    // primer membretado logo antiguo 200
     return [70, 130, 50, 40]; 
 }
 
@@ -423,9 +423,10 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
   //const imgPath = this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta);
   //console.log('imgPath:',this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta));
 
-  //membretado por  fecha  
+  //membretado por  fecha  de l 13 de mayo de  2026
   const fechaDocumento = this.datosEnvio[0].fecha_instruccion_op;
   const imgPath = this.obtenerMembretadocarta(fechaDocumento);
+   //margen por  fecha  del 13 de mayo 
   const margenesDinamicos = this.obtenerMargenesordenproceder(fechaDocumento);
  
     const documentDefinition = {
@@ -581,6 +582,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       },
     },
     //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //margen dinamico
     pageMargins: margenesDinamicos as any
 
   };

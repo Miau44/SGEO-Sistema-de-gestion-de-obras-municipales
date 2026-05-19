@@ -75,17 +75,19 @@ datosJU: any = [];
     return resultado4[0];
    }
 
-   //// membrete por fecha 13 de  mayo de  2026
+   //// membrete por fecha desde 13 de  mayo  2026
    private obtenerMembretadoOficioPorFecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
 
     // nuevo membretado desde MAYO 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return 'assets/images/OFICIO.png';
+      return 'assets/images/oficio.png';
     }
 
     return 'assets/images/membretado_oficio.png';
   }
+  
+  ///margenes por fecha  para obra  supervison
 
   private obtenerMargenesOficioPorFecha(
     fecha: string | Date,
@@ -101,7 +103,6 @@ datosJU: any = [];
     // Márgenes del membretado anterior
     return [70, 170, 50, 140];
   }
-
  
 // REPORTE - INFORME DE OBRA - SUPERVISOR
 

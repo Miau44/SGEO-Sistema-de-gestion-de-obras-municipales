@@ -146,14 +146,14 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
   }
 
-  ////membretado por fecha 15/05/26
+  ////membretado por fecha 13 de mayo de  2026 
   private obtenerMembretadoOficioPorFecha(fecha: string | Date): string {
 
     const fechaDocumento = new Date(fecha);
 
     // NUEVO membretado desde mayo 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return 'assets/images/OFICIO.png';
+      return 'assets/images/oficio.png';
     }
 
     // Membretado 2025 - abril 2026
@@ -161,10 +161,11 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
       return 'assets/images/membretado_oficio_nuevo.png';
     }
 
-    // Membretado antiguo
+    // Membretado antiguo con logo de  200
     return 'assets/images/membretado_oficio.png';
   }
 
+  //margenes por fecha 13 de  mayo de  2026
   private obtenerMargenesOficioPorFecha(
     fecha: string | Date,
   ): [number, number, number, number] {
@@ -176,12 +177,12 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
       return [70, 140, 50, 95];
     }
 
-    // Márgenes membretado intermedio
+    // Márgenes membretado intermedio segundo
     if (fechaDocumento >= new Date('2026-01-01')) {
       return [70, 115, 70, 125];
     }
 
-    // Márgenes antiguos
+    // Márgenes antiguos con logo de  200
     return [70, 180, 70, 180];
   }
 

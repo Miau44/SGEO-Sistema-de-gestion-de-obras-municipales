@@ -78,19 +78,19 @@ export class MemoOrdenCambio {
     return resultado4[0];
    }
 
-   //MARGENES  PARA  MEMBRATADO POR FECHAS
+   //MARGENES  PARA  MEMBRATADO POR FECHAS DEL  13 DE MAYO DE  2026 
    private obtenerMargenesOficioPorFecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
     const fechaDocumento = new Date(fecha);
 
-    // Márgenes del nuevo membretado desde abril 2026
+    // Márgenes del nuevo membretado desde 13 DE  MAYO DE  2026 
     if (fechaDocumento >= new Date('2026-05-13')) {
       return [60, 140, 50, 70];
     }
 
-    // Márgenes del membretado anterior
+    // Márgenes del membretado anterior DEL LOGO 200
     return [70, 170, 50, 30]; 
   }
   
@@ -124,12 +124,13 @@ export class MemoOrdenCambio {
     //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
     //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
-    //membretado por fecha
+    //membretado por fecha del 13 de  mayo del 2026
     const fechaDocumento = this.datosEnvio[0].fecha_memo_minuta;
     const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
 
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
+    //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.obtenerMargenesOficioPorFecha(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
@@ -390,6 +391,7 @@ export class MemoOrdenCambio {
       },
       //pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
+      //margenes dinamicos
       pageMargins: margenesDinamicos as any,
 
 

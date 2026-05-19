@@ -71,17 +71,18 @@ export class ReportService {
     }
   }
 
+  //membrete  por  fecha  de l 13 de mayode  2026
   obtenerMembretePorFecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
     // tercer membretado
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return 'assets/images/OFICIO.png';
+      return 'assets/images/oficio.png';
     }
     // segundo membretado
     if (fechaDocumento >= new Date('2026-01-01')) {
       return 'assets/images/membretado_oficio_nuevo.png';
     }
-    // primer membretado
+    // primer membretado del logo 200
     return 'assets/images/membretado_oficio.png';
   }
 
