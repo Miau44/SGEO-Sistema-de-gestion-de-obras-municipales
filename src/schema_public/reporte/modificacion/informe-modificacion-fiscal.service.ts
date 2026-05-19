@@ -87,6 +87,24 @@ export class InformeModificacionFiscal {
     return resultado2[0];
   }
 
+  //margen para membrete por fecha 
+  private obtenerMargenesporfecha(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [70, 140, 50, 70];
+    }
+
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return [70, 130, 50, 140];
+    }
+
+    return [70, 170, 50, 140];  // Márgenes: izquierda, arriba, derecha, abajo
+  }
+
 // REPORTE - INFORME MODIFICACION FISCAL
 
 async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> {
@@ -118,16 +136,26 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
-  const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-  const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+  /// membrete por gestion
+  //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+  //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+
+  // membretado por fecha
+  const fechaDocumento = this.datosEnvio[0].fecha_fiscal;
+  const imgPath =this.reportService.obtenerMembretePorFecha(fechaDocumento);
+
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
-  let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+
+  //margenes por fecha
+  /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
     let margenesDinamicos;
     if (gestionObra >= 2026) {
       margenesDinamicos = [70, 130, 50, 140]; 
     } else {
       margenesDinamicos = [70, 170, 50, 140]; 
-    }
+    }*/
+
+  const margenesDinamicos = this.obtenerMargenesporfecha(fechaDocumento);
 
   //console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales

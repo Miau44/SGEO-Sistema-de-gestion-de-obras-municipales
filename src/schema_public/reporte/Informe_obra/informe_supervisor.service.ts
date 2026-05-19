@@ -75,6 +75,33 @@ datosJU: any = [];
     return resultado4[0];
    }
 
+   //// membrete por fecha 13 de  mayo de  2026
+   private obtenerMembretadoOficioPorFecha(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+
+    // nuevo membretado desde MAYO 2026
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/OFICIO.png';
+    }
+
+    return 'assets/images/membretado_oficio.png';
+  }
+
+  private obtenerMargenesOficioPorFecha(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // Márgenes del nuevo membretado desde abril 2026
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [60, 140, 50, 70];
+    }
+
+    // Márgenes del membretado anterior
+    return [70, 170, 50, 140];
+  }
+
  
 // REPORTE - INFORME DE OBRA - SUPERVISOR
 
@@ -100,7 +127,19 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = 'assets/images/membretado_oficio.png';
+  //const imgPath = 'assets/images/membretado_oficio.png';
+
+  //let imgPath = 'assets/images/membretado_oficio.png';
+
+  const imgPath = this.obtenerMembretadoOficioPorFecha(this.datosInf[0].fecha_aprobacion);
+  
+  const fechaInforme = new Date(this.datosInf[0].fecha_aprobacion);
+
+  // Nuevo membretado desde abril 2026
+  /*if (fechaInforme >= new Date('2026-05-13')) {
+    imgPath = 'assets/images/OFICIO.png';
+  }*/
+
   const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
@@ -404,7 +443,9 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: this.obtenerMargenesOficioPorFecha(
+      this.datosInf[0].fecha_aprobacion) as any,
 
   };
   // Generar el PDF en memoria

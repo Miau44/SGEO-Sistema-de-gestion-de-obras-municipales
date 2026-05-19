@@ -59,6 +59,7 @@ export class ReportService {
     return image.toString('base64');
   }
 
+  //
   //funcion para poner membretado de la gestion que correspende a la obra y al pdf
   obtenerMembretePorGestion(codigoCarpeta: string): string {
     console.log("codigoCarpeta_f",codigoCarpeta)
@@ -70,6 +71,19 @@ export class ReportService {
     }
   }
 
+  obtenerMembretePorFecha(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/OFICIO.png';
+    }
+    // segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_oficio_nuevo.png';
+    }
+    // primer membretado
+    return 'assets/images/membretado_oficio.png';
+  }
 
   async datosGeneralesReporte(id: number) {
     //const query1 = ` SELECT * FROM sp_reporte_memorandum2(${gestion},${id})`;
