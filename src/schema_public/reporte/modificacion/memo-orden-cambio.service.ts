@@ -77,6 +77,22 @@ export class MemoOrdenCambio {
     const resultado4 = await this.sequelize.query(query4);
     return resultado4[0];
    }
+
+   //MARGENES  PARA  MEMBRATADO POR FECHAS DEL  13 DE MAYO DE  2026 
+   private obtenerMargenesOficioPorFecha(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // Márgenes del nuevo membretado desde 13 DE  MAYO DE  2026 
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [60, 140, 50, 70];
+    }
+
+    // Márgenes del membretado anterior DEL LOGO 200
+    return [70, 170, 50, 30]; 
+  }
   
 // REPORTE - MEMORANDUM ORDEN DE CAMBIO
   async generateOrdenCambio(id_modif_pago: number): Promise<Buffer> {
@@ -104,9 +120,18 @@ export class MemoOrdenCambio {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membretado por gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+
+    //membretado por fecha del 13 de  mayo del 2026
+    const fechaDocumento = this.datosEnvio[0].fecha_memo_minuta;
+    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+
+    //margenes dinamicos  para el nuevio membretado 
+    const margenesDinamicos = this.obtenerMargenesOficioPorFecha(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -364,7 +389,10 @@ export class MemoOrdenCambio {
           bold: false,
         },
       },
-      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+
+      //margenes dinamicos
+      pageMargins: margenesDinamicos as any,
 
 
     };

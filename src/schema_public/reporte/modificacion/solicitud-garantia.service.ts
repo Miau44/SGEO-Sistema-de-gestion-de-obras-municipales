@@ -77,6 +77,43 @@ export class SolicitudGarantia {
     const resultado = await this.sequelize.query(query);
     return resultado[0];
   }
+
+  //MEMBRETADO SOLICITUD DE GARANTIA CARTA POR FECHA 13 DE MAYO DE 2026
+
+  obtenerMembretePorFecha(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado nuevo por fecha del 13 de mayo 2026
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/carta.png';
+    }
+    // segundo membretado por fecha 
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    // primer membretado con el logo 200
+    return 'assets/images/membretado_carta.png';
+  }
+
+  //margenes por fecha para el nuevo membrete 
+  private obtenerMargenesPorFecha(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // margenes por fecha para el tercer membretado 
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [50, 140, 50, 70];
+    }
+
+    // margenes por fecha para el segundo membretado
+    if (fechaDocumento >= new Date('2025-01-01')) {
+      return [70, 130, 50, 40];
+    }
+
+    // margenes por fecha para el primer membretado con logo200
+    return [70, 170, 50, 40];
+  }
     
 
 // REPORTE - SOLICITUD DE GARANTIA
@@ -109,18 +146,28 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_carta.png';
-  const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-  const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+  //memebretado por  gestion
+  //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+  //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+
+  //membretado por fecha  del 13 de mayo 2023
+  const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+  const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
+
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
-  let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+  //margenes por  gestion
+  /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
   let margenesDinamicos;
 
   if (gestionObra >= 2026) {
     margenesDinamicos = [70, 130, 50, 40]; 
   } else {
     margenesDinamicos = [70, 170, 50, 40]; 
-  }
+  }*/
+
+  //margenes por fecha para el membretado nuevo 
+  const margenesDinamicos = this.obtenerMargenesPorFecha(fechaDocumento);
 
     const documentDefinition = {
     pageSize: 'LETTER' as any,
@@ -274,7 +321,7 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
       },
     },
     //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
-    pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
+    pageMargins: margenesDinamicos as any, // Márgenes:izquierda, arriba, derecha,abajo margenes dinamico  
 
   };
   // Generar el PDF en memoria
