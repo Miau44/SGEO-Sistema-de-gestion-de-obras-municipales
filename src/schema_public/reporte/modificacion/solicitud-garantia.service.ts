@@ -107,7 +107,7 @@ export class SolicitudGarantia {
     }
 
     // margenes por fecha para el segundo membretado
-    if (fechaDocumento >= new Date('2025-01-01')) {
+    if (fechaDocumento >= new Date('2026-01-01')) {
       return [70, 130, 50, 40];
     }
 

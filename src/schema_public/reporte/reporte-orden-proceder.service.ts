@@ -384,12 +384,12 @@ private obtenerMargenesordenproceder(
     const fechaDocumento = new Date(fecha);
 
     // tercer membretado nuevo
-    if (fechaDocumento >= new Date('2026-03-13')) {
+    if (fechaDocumento >= new Date('2026-05-13')) {
       return [70, 140, 50, 50]; // Márgenes: izquierda, arriba, derecha, abajo
     }
 
     // segundo membretado del 
-    if (fechaDocumento >= new Date('2025-01-01')) {
+    if (fechaDocumento >= new Date('2026-01-01')) {
       return [70, 130, 50, 40];
     }
 
