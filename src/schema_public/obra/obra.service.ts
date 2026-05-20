@@ -308,8 +308,22 @@ WHERE sol.idusuario= ${data.usuario} `;
 
   async listaMisProyectos(misproyectos: MisProyectoDto) {
     try {
+      if(
+        misproyectos.gestion == null ||
+        misproyectos.gestion === 0 ||
+        misproyectos.id_usuario == null ||
+        misproyectos.id_usuario === 0 ||
+        misproyectos.permiso == null ||
+        misproyectos.permiso === 0
+      ){
+        return this.responseService.error(
+          'Error, no se admiten valores nulos o 0 en los parámetros de entrada.'
+        );
+      }
       let resultado = [];
       const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
+      console.log('VALUES:', values);
+      console.log('TIPOS:', values.map(v => typeof v));
       const query = `select * from sp_obra($1,$2,$3)`;
       resultado = await this.obraRepositorio.query(query, values);
       return this.responseService.success(resultado || [], "Listado Correctamente.");
@@ -319,6 +333,7 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
+  //servicio para cambiar de estado general
   async cambiarEstadoGeneral(idObra: number, id_estado_general: number) {
     try {
       const query = `
@@ -333,7 +348,7 @@ WHERE sol.idusuario= ${data.usuario} `;
         'Estado actualizado correctamente.'
       );
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al actualizar el estado.');
     }
   }
 

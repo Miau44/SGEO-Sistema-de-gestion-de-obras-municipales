@@ -8,6 +8,7 @@ import { log } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 import { text } from 'stream/consumers';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 
 
@@ -51,6 +52,7 @@ export class ReporteActPreviasService {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -455,6 +457,39 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   });
 }
 
+obtenerMembretePorFecha(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-03-13')) {
+      return 'assets/images/oficio.png';
+    }
+    // segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_oficio_nuevo.png';
+    }
+    // primer membretado
+    return 'assets/images/membretado_oficio.png';
+  }
+
+private obtenerMargenesInformeFiscal(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-03-13')) {
+      return [50, 140, 50, 70];
+    }
+
+    // segundo membretado
+    if (fechaDocumento >= new Date('2025-01-01')) {
+      return [70, 115, 70, 125];
+    }
+
+    // primer membretado
+    return [70, 170, 50, 140]; 
+  }
 
 
 // INFORME ACTIVIDADES PREVIAS FISCAL
@@ -517,9 +552,17 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const gestion = this.datosEnvio[0].gestion_carpeta;
-    const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
-    const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
+    //membretado por gestion
+    //const gestion = this.datosEnvio[0].gestion_carpeta;
+    //const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
+    //const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
+
+    //membretado por fecha 
+    const fechaDocumento = this.datosIAP[0].fecha_aprobacion;
+    const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
+
+    //margenes por fecha
+    const margenesDinamicos = this.obtenerMargenesInformeFiscal(fechaDocumento);
 
     //console.log('DATOS IAP',this.datosEnvio);
     //console.log('DATOS:',this.datosIAP);
@@ -913,7 +956,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
       },
       //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
-      pageMargins: pageMargins as any,
+      //pageMargins: pageMargins as any,
+      pageMargins: margenesDinamicos as any,
 
     };
     // Generar el PDF en memoria

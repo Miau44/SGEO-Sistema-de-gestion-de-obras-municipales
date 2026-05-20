@@ -1,8 +1,11 @@
+import { ficha_itemService } from 'src/schema_sim/ficha_item/ficha_item.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Any, Not, Repository } from 'typeorm';
+import { Connection } from 'typeorm';
+import { Obra } from 'src/schema_public/obra/entities/obra.entity';
 
 import { ResponseService } from 'src/response.service';
 import { Ficha } from './entities/ficha.entity';
@@ -12,11 +15,17 @@ import { EstructuraFichaDto } from './dto/estructura-fichaDto';
 @Injectable()
 export class FichaService {
 
-  constructor(@InjectRepository(Ficha) private obraRepositorio: Repository<Ficha>,
-    private responseService: ResponseService,
-  ) { }
+ constructor(
+  @InjectRepository(Ficha)
+  private obraRepositorio: Repository<Ficha>,
 
+  @InjectRepository(Obra)
+  private obraRepository: Repository<Obra>,
 
+  private responseService: ResponseService,
+
+  private connection: Connection,
+) {}
 
   async create(createFichaDto: CreateFichaDto) {
     try {
@@ -26,6 +35,39 @@ export class FichaService {
       return this.responseService.error(error);
     }
   }
+
+  async createFichaConObra(createFichaDto: CreateFichaDto) {
+  try {
+    return await this.connection.transaction(async (manager) => {
+
+      //  Crear Ficha
+      const ficha = manager.create(Ficha, createFichaDto);
+      const fichaGuardada = await manager.save(ficha);
+
+      // Crear Obra 
+      const obra = manager.create(Obra, {
+      id_ficha: fichaGuardada.id_ficha,
+      id_estado_general: 1,
+      usuario_registro: createFichaDto.usuario_registro,
+      id_estado: 1,
+      id_tipo_obra:2
+      });
+
+      const obraGuardada = await manager.save(obra);
+
+      return this.responseService.success(
+        {
+          ficha: fichaGuardada,
+          obra: obraGuardada,
+        },
+        "Ficha y Obra registradas correctamente."
+      );
+    });
+
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 
   findAll() {
     return `This action returns all ficha`;

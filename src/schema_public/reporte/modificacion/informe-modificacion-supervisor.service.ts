@@ -132,6 +132,27 @@ export class InformeModificacionSupervisor {
       return resultado7[0];
     }
 
+    //margenes para  el membretado por fecha del 13 de mayo 
+    private obtenerMargenesporfecha(
+      fecha: string | Date,
+    ): [number, number, number, number] {
+
+      const fechaDocumento = new Date(fecha);
+
+      //margen para la  fecha desde 13 de mayo de 2026
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 145, 50, 70];
+      }
+
+      //segundo margen 
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 130, 50, 140];
+      }
+
+      //antiguo margen del logo de  200
+      return [70, 170, 50, 140];
+    }
+
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
 async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
@@ -181,17 +202,26 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membrete por gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+
+    //membrete por fecha de 13 de  mayo de  2026
+    const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+    const imgPath =this.reportService.obtenerMembretePorFecha(fechaDocumento);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
-    let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    //margenes por gestion
+    /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
     let margenesDinamicos;
     if (gestionObra >= 2026) {
       margenesDinamicos = [70, 130, 50, 140]; 
     } else {
       margenesDinamicos = [70, 170, 50, 140]; 
-    }
+    }*/
+
+    //margenes  por  fecha del 13 de mayo de  2026
+    const margenesDinamicos =this.obtenerMargenesporfecha(fechaDocumento);
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
@@ -761,6 +791,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         opacity: 0.8,
       },
     },
+    //margenes dinamicos para membrete nuevo 
     pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };

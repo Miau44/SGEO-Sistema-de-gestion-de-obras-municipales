@@ -120,7 +120,7 @@ async cargarContratosDlcNuevo(
 }
 
 
-
+///token
   @Public()
   @Post('cargarUrlContratosDlc/:gestion')
   @ApiParam({ name: 'gestion', description: 'gestión requerida' })
@@ -151,10 +151,27 @@ async cargarContratosDlcNuevo(
     }
   }
 
+  //controlador para resolucion de contrato se  añadio token 13/05
+  @Post('resolver/:idContratoDlc')
+  @UseGuards(AuthGuard('jwt'))
+  async resolverContrato(@Param('idContratoDlc') idContratoDlc: string) {
 
-  @Post('resolver/:correlativo')
-  resolverContrato(@Param('correlativo') correlativo: number) {
-    return this.contratoService.resolucionContrato(correlativo);
+    console.log('Entró resolverContrato');
+
+    try{
+
+      console.log ('inicio de  rosolucion contrato', idContratoDlc);
+      const respuesta = await this.contratoService.resolucionContrato(
+        Number(idContratoDlc),
+      );
+      console.log('OK resolución contrato:', respuesta);
+
+      return respuesta;
+    }catch (error){
+      console.log('error resolucion contrato', error)
+      throw error;
+    }
+    //return this.contratoService.resolucionContrato(Number(idContratoDlc));
   }
 
   @Post('consultarContrato')
