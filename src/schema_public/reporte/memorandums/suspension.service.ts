@@ -76,6 +76,27 @@ export class SuspensionObra {
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
   }
+  
+  //margenes por fecha
+  private obtenerMargenesPorFechasuspencion(
+      fecha: string | Date,
+    ): [number, number, number, number] {
+
+      const fechaDocumento = new Date(fecha);
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 170, 50, 30];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 170, 50, 30];
+      }
+
+      // primer membretado
+      return [70, 170, 50, 30]; 
+  }
 
   // REPORTE - MEMORANDUM DE SUSPENSION DE OBRA
   async generateSuspensionObra(id_obra: number, id_memo: number): Promise<Buffer> {
@@ -106,8 +127,15 @@ export class SuspensionObra {
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosSusp[0].suspension_finalizada;
 
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membrete por gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membrete por fecha
+    const fechaDocumento = this.datosSusp[0].registro_suspencion;
+    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+
+    //margenes dinamicos  para el nuevio membretado 
+    const margenesDinamicos = this.obtenerMargenesPorFechasuspencion(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -341,7 +369,9 @@ export class SuspensionObra {
           bold: false,
         },
       },
-      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //margenes por fecha
+      pageMargins: margenesDinamicos as any,
 
 
     };
