@@ -12,6 +12,7 @@ import { SuspensionObraDto } from './suspension-obra.dto';
 import { Reinicio } from './entities/reinicio.entity';
 import { CreateReinicioDto } from './dto/dto-reinicio/create-reinicio.dto';
 import { UpdateReinicioDto } from './dto/dto-reinicio/update-reinicio.dto';
+import { CorreoService } from '../correo/correo.service';
 
 
 @Injectable()
@@ -24,6 +25,7 @@ export class SuspensionService {
     private responseService: ResponseService,
     private correlativoService: CorrelativoService,
     private memoService: MemorandumService,
+    private correoService: CorreoService,
   ) { }
 
 
@@ -264,15 +266,58 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
   }
 
 
+  // async update(id_suspension: number, updateSuspensionDto: UpdateSuspensionDto) {
+  //   try {
+  //     const resultado = await this.suspensionRepositorio.update(id_suspension, updateSuspensionDto)
+  //     return this.responseService.success(id_suspension, "Actualizado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }        
+  // }x
+
   async update(id_suspension: number, updateSuspensionDto: UpdateSuspensionDto) {
     try {
-      const resultado = await this.suspensionRepositorio.update(id_suspension, updateSuspensionDto)
-      return this.responseService.success(id_suspension, "Actualizado Correctamente.")
+      const suspensionActual = await this.suspensionRepositorio.findOneBy({
+        id_suspension,
+      });
+
+      if (!suspensionActual) {
+        throw new Error('No se encontró la suspensión.');
+      }
+
+      const resultado = await this.suspensionRepositorio.update(
+        id_suspension,
+        updateSuspensionDto,
+      );
+
+      const seEstaFinalizando =
+        suspensionActual.finalizado === false &&
+        updateSuspensionDto.finalizado === true;
+
+      if (seEstaFinalizando) {
+        await this.enviarCorreoFinalizacionSuspension(
+          updateSuspensionDto.id_obra || suspensionActual.id_obra,
+          updateSuspensionDto.justificacion || suspensionActual.justificacion,
+        );
+      }
+      return this.responseService.success(
+        id_suspension,
+        'Actualizado Correctamente.',
+      );
     } catch (error) {
       return this.responseService.error(error);
-    }        
+    }
   }
 
+  async datosInformesSF(id_obra: number): Promise<any[]> {
+    const query = `
+    SELECT *
+    FROM public."vista_reporte_memoOC"
+    WHERE id_obra = $1
+  `;
+
+    return await this.suspensionRepositorio.query(query, [id_obra]);
+  }
 
   remove(id: number) {
     return `This action removes a #${id} suspension`;
@@ -399,6 +444,37 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
       'Validación realizada.'
     );
   }
+
+
+  async enviarCorreoFinalizacionSuspension(id_obra: number, justificacion: string) {
+    const datosSF: any[] = await this.datosInformesSF(id_obra);
+    const info: any = datosSF?.[0];
+    console.log('=== CORREO SUSPENSIÓN ===');
+    console.log('id_obra:', id_obra);
+    console.log('usuario_fis:', info?.usuario_fis);
+    console.log('usuario_sup:', info?.usuario_sup);
+    console.log('justificacion:', justificacion);
+
+
+  if (!info?.usuario_fis || !info?.usuario_sup) {
+    console.log('No se encontró usuario fiscal o supervisor para enviar correo.');
+    return;
+  }
+
+  const respCorreo = await this.correoService.enviarCorreoProceso({
+    para: [
+      info.usuario_fis,
+    ],
+    autor: [
+      info.usuario_sup,
+    ],
+    codigoObra: String(id_obra),
+    nombreObra: info.referencia || '',
+    actividad: 'SUSPENSIÓN DE OBRA FINALIZADA',
+    proveido: justificacion || 'Se finalizó la suspensión de obra.', // aca debe ir la justificacion de la suspencion
+  });
+  console.log('Respuesta envío de correo:', respCorreo);
+}
 
    /////////////////////////////////////////////////////////////////////////////////////////////
 

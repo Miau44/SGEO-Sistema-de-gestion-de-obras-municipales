@@ -81,7 +81,7 @@ export class CorreoService {
 
     // CC obligatorio SOLO en producción
     if (dbName === 'SGEO_PROD') {
-      const CC_OBLIGATORIO = 'josue.torrez@lapaz.bo';
+      const CC_OBLIGATORIO = 'josue.torrez@lapaz.bo | cesar.peraltav@lapaz.bo';
       //const CC_OBLIGATORIO = 'jorge.torrez@lapaz.bo';
       if (!autor.includes(CC_OBLIGATORIO)) autor.push(CC_OBLIGATORIO);
     }
