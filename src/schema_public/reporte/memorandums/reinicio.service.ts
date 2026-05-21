@@ -87,19 +87,12 @@ export class ReinicioObra {
     }
     this.datosEnvio = res;
 
-    const res1 = await this.datosInformesSF(id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos de los informes de Sup/Fis');
-    }
-    this.datosInf = res1;
-
     const res2 = await this.datosReinicio(id_memo);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
       throw new Error('No se encontraron datos para el reinicio');
     }
     this.datosRe = res2;
 
-       
     console.log("DATOS, ", res2);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
