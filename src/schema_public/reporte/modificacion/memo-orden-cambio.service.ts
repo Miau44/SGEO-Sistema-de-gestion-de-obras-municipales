@@ -79,7 +79,7 @@ export class MemoOrdenCambio {
    }
 
    //MARGENES  PARA  MEMBRATADO POR FECHAS DEL  13 DE MAYO DE  2026 
-   private obtenerMargenesOficioPorFecha(
+   /*private obtenerMargenesOficioPorFecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -92,7 +92,7 @@ export class MemoOrdenCambio {
 
     // Márgenes del membretado anterior DEL LOGO 200
     return [70, 170, 50, 30]; 
-  }
+  }*/
   
 // REPORTE - MEMORANDUM ORDEN DE CAMBIO
   async generateOrdenCambio(id_modif_pago: number): Promise<Buffer> {
@@ -126,12 +126,12 @@ export class MemoOrdenCambio {
 
     //membretado por fecha del 13 de  mayo del 2026
     const fechaDocumento = this.datosEnvio[0].fecha_memo_minuta;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.obtenerMargenesOficioPorFecha(fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,

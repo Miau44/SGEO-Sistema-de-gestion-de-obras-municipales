@@ -378,14 +378,18 @@ export class ReporteOrdenProcederService {
 
 //margenes por fecha orden proceder para el membretado nuevo
 private obtenerMargenesordenproceder(
-    fecha: string | Date,
+    fecha?: string | Date | null,
   ): [number, number, number, number] {
 
-    const fechaDocumento = new Date(fecha);
+    //const fechaDocumento = new Date(fecha);
+    // Si fecha es null usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
 
     // tercer membretado nuevo
     if (fechaDocumento >= new Date('2026-05-13')) {
-      return [70, 140, 50, 50]; // Márgenes: izquierda, arriba, derecha, abajo
+      return [70, 145, 50, 50]; // Márgenes: izquierda, arriba, derecha, abajo
     }
 
     // segundo membretado del 
@@ -394,7 +398,7 @@ private obtenerMargenesordenproceder(
     }
 
     // primer membretado logo antiguo 200
-    return [70, 130, 50, 40]; 
+    return [70, 145, 50, 40]; 
 }
 
 // NOTA INSTRUCCION ORDEN DE PROCEDER
@@ -423,10 +427,10 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
   //const imgPath = this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta);
   //console.log('imgPath:',this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta));
 
-  //membretado por  fecha  de l 13 de mayo de  2026
+  //membretado por  fecha  de l 13 de mayo de  2026 general
   const fechaDocumento = this.datosEnvio[0].fecha_instruccion_op;
-  const imgPath = this.obtenerMembretadocarta(fechaDocumento);
-   //margen por  fecha  del 13 de mayo 
+  const imgPath = this.reportService.obtenerMembretePorFechaCarta(fechaDocumento);
+   //margen por  fecha  del 13 de mayo general
   const margenesDinamicos = this.obtenerMargenesordenproceder(fechaDocumento);
  
     const documentDefinition = {
@@ -583,7 +587,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     },
     //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
     //margen dinamico
-    pageMargins: margenesDinamicos as any
+    pageMargins: margenesDinamicos as any,
 
   };
   // Generar el PDF en memoria
@@ -926,7 +930,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     });
   }
 
-  private obtenerMargenesMemoOrdenproceder(
+  /*private obtenerMargenesMemoOrdenproceder(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -944,7 +948,7 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     // primer membretado
     return [60, 30, 40, 30]; 
-  }
+  }*/
 
 // MEMORANDUM ORDEN DE PROCEDER
   async generateOrdenProceder(obra: number): Promise<Buffer> {
@@ -971,9 +975,9 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     // membretado por  fecha  
     const fechaDocumento = this.datosEnvio[0].fecha_memo;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento );
+    const imgPath = this.reportService.obtenerMembretePorFechaCarta(fechaDocumento );
    //margen por  fechas
-    const margenesDinamicos =this.obtenerMargenesMemoOrdenproceder(fechaDocumento);
+    const margenesDinamicos =this.reportService.obtenerMargenesporfechacarta(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
@@ -1290,8 +1294,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
     //membrete por  fecha  
     const fechaDocumento = this.datosEnvio[0].fecha_memo;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
-    const margenesDinamicos = this.obtenerMargenesInformePrevPagos(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,

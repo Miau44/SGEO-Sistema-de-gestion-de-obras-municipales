@@ -68,7 +68,7 @@ export class LlamadaAtencion {
   }
 
   //margenes por fecha 13 de mayo
-  private obtenerMargenesporfecha(
+  /*private obtenerMargenesporfecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -83,7 +83,7 @@ export class LlamadaAtencion {
     }
 
     return [70, 170, 50, 30]; 
-  }
+  }*/
 
      
 // REPORTE - MEMORANDUM DE LLAMADA DE ATENCION
@@ -113,10 +113,10 @@ export class LlamadaAtencion {
     //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     // membrete por fecha 
     const fechaDocumento = this.datosEnvio[0].registro_llamada_atencion;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margen por fecha
-    const margenesDinamicos = this.obtenerMargenesporfecha(fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,

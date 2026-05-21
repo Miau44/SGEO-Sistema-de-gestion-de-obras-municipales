@@ -78,7 +78,7 @@ datosVariacion: any = [];
   }
  
   //margenes por fecha 13 de mayo
-  private obtenerMargenesprovisional(
+  /*private obtenerMargenesprovisional(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -93,7 +93,7 @@ datosVariacion: any = [];
     }
 
     return [70, 170, 50, 140]; 
-  }
+  }*/
 
 // REPORTE - RECEPCION PROVISIONAL
 
@@ -123,13 +123,15 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
  // const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
   //membrete por fecha 13 de mayo 2026
-  const fechaDocumento = this.datosEnvio[0].fecha_recep_provisional;
-  const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+  const fechaDocumento = this.datosInf[0].fecha_acta;
+  const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
   const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
   //margenes por fecha 
-  const margenesDinamicos = this.obtenerMargenesprovisional(fechaDocumento);
+  //const margenesDinamicos = this.obtenerMargenesprovisional(fechaDocumento);
+  //margenes generales
+  const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);

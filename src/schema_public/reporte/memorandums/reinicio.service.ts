@@ -79,10 +79,14 @@ export class ReinicioObra {
 
   //margenes por  fecha 
   private obtenerMargenesPorFechareinicio(
-      fecha: string | Date,
+      fecha: string | Date | null,
     ): [number, number, number, number] {
 
-      const fechaDocumento = new Date(fecha);
+      //const fechaDocumento = new Date(fecha);
+      // Si fecha es null usar fecha actual
+      const fechaDocumento = fecha
+        ? new Date(fecha)
+        : new Date();
 
       // tercer membretado
       if (fechaDocumento >= new Date('2026-05-13')) {
@@ -132,7 +136,7 @@ export class ReinicioObra {
     //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     //membretadi por fecha
     const fechaDocumento = this.datosRe[0].registro_reinicio;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.obtenerMargenesPorFechareinicio(fechaDocumento);

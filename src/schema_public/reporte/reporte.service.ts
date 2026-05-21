@@ -14,6 +14,41 @@ import { Any } from 'typeorm';
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
 
+// FECHAS MEMBRETADOS
+const FECHA_MEMBRETADO_NUEVO = '2026-01-01';
+const FECHA_MEMBRETADO_TERCERO = '2026-05-13';
+
+//FECHAS MEMBRETADOS TAMAÑO CARTA 
+const FECHA_MEMBRETADO_NUEVO_CARTA = '2026-01-01';
+const FECHA_MEMBRETADO_TERCERO_CARTA = '2026-05-13';
+
+// MÁRGENES oficio
+//PRIMETO OFICIO
+const MARGEN_MEMBRETE_ANTIGUO: [number, number, number, number] =
+  [70, 185, 70, 155];
+
+  //SEGUNDO  OFICIO
+const MARGEN_MEMBRETE_NUEVO: [number, number, number, number] =
+  [65, 140, 65, 120];
+
+  //TERCERO OFICIO
+const MARGEN_MEMBRETE_TERCERO: [number, number, number, number] =
+  [65, 145, 50, 75];
+
+
+// MÁRGENES carta
+//PRIMERO 
+const MARGEN_MEMBRETE_ANTIGUO_CARTA: [number, number, number, number] =
+  [65, 50, 45, 45];
+
+  // SEGUNDO
+const MARGEN_MEMBRETE_NUEVO_CARTA: [number, number, number, number] =
+  [65, 40, 55, 45]; //70, 130, 50, 40
+
+  //TERCERO
+const MARGEN_MEMBRETE_TERCERO_CARTA: [number, number, number, number] =
+  [65, 40, 45, 50];  // Márgenes: izquierda, arriba, derecha, abajo
+
 const fonts = {
   Roboto: {
     normal: join(fontsPath, 'Roboto-Regular.ttf'),
@@ -72,18 +107,84 @@ export class ReportService {
   }
 
   //membrete  por  fecha  de l 13 de mayode  2026
-  obtenerMembretePorFecha(fecha: string | Date): string {
-    const fechaDocumento = new Date(fecha);
+  obtenerMembretePorFechaOficio(fecha?: string | Date | null): string {
+    //const fechaDocumento = new Date(fecha);
+     // Si no existe fecha, usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+
     // tercer membretado
-    if (fechaDocumento >= new Date('2026-05-13')) {
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_TERCERO)) {
       return 'assets/images/oficio.png';
     }
+
     // segundo membretado
-    if (fechaDocumento >= new Date('2026-01-01')) {
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_NUEVO)) {
       return 'assets/images/membretado_oficio_nuevo.png';
     }
+
     // primer membretado del logo 200
     return 'assets/images/membretado_oficio.png';
+  }
+
+  obtenerMargenesporfechaoficio(
+    fecha?: string | Date | null,
+  ): [number, number, number, number] {
+
+    //const fechaDocumento = new Date(fecha);
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_TERCERO)) {
+      return MARGEN_MEMBRETE_TERCERO;
+    }
+
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_NUEVO)) {
+      return MARGEN_MEMBRETE_NUEVO;
+    }
+
+    return MARGEN_MEMBRETE_ANTIGUO;
+  }
+
+obtenerMembretePorFechaCarta(fecha?: string | Date | null): string {
+    //const fechaDocumento = new Date(fecha);
+    // Si no existe fecha, usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+    // tercer membretado
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_TERCERO_CARTA)) {
+      return 'assets/images/carta.png';
+    }
+    // segundo membretado
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_NUEVO_CARTA)) {
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    // primer membretado del logo 200
+    return 'assets/images/membretado_carta.png';
+}
+
+  obtenerMargenesporfechacarta(
+    fecha?: string | Date | null,
+  ): [number, number, number, number] {
+
+    //const fechaDocumento = new Date(fecha);
+    // Si fecha es null usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_TERCERO_CARTA)) {
+      return MARGEN_MEMBRETE_TERCERO_CARTA;
+    }
+
+    if (fechaDocumento >= new Date(FECHA_MEMBRETADO_NUEVO_CARTA)) {
+      return MARGEN_MEMBRETE_NUEVO_CARTA;
+    }
+
+    return MARGEN_MEMBRETE_ANTIGUO_CARTA;
   }
 
   async datosGeneralesReporte(id: number) {
@@ -94,7 +195,7 @@ export class ReportService {
     return resultado[0];
   }
 
-  obtenerMembretePorFechacarta(fecha: string | Date): string {
+  /*obtenerMembretePorFechacarta(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
     // tercer membretado nuevo por fecha del 13 de mayo 2026
     if (fechaDocumento >= new Date('2026-05-13')) {
@@ -106,9 +207,9 @@ export class ReportService {
     }
     // primer membretado con el logo 200
     return 'assets/images/membretado_carta.png';
-  }
+  }*/
 
-  private obtenerMargenesPorFechapdf(
+  /*private obtenerMargenesPorFechapdf(
       fecha: string | Date,
     ): [number, number, number, number] {
 
@@ -126,7 +227,7 @@ export class ReportService {
 
       // primer membretado
       return [60, 30, 40, 30];  // Márgenes: izquierda, arriba, derecha, abajo
-  }
+  }*/
 
   //SOLICITUD DE DESIGNACION
   async generatePdf(id: number): Promise<Buffer> {
@@ -162,10 +263,10 @@ export class ReportService {
 
     //membretado por fecha del 13 de  mayo del 2026
     const fechaDocumento = this.datos[0].fecha_validacion_carpeta;
-    const imgPath = this.obtenerMembretePorFechacarta(fechaDocumento);
+    const imgPath = this.obtenerMembretePorFechaCarta(fechaDocumento);
 
     //margenes dinamicos  para el nuevo membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechapdf(fechaDocumento);
+    const margenesDinamicos = this.obtenerMargenesporfechacarta(fechaDocumento);
    
     try {
       const documentDefinition = {
@@ -409,7 +510,7 @@ export class ReportService {
     }
   }
 
-  private obtenerMargenesPorFechaMemo(
+  /*private obtenerMargenesPorFechaMemo(
       fecha: string | Date,
     ): [number, number, number, number] {
 
@@ -427,7 +528,7 @@ export class ReportService {
 
       // primer membretado
       return [60, 30, 40, 30]; 
-  }
+  }*/
 
   //GENERAR MEMORANDUM SOLICITUD
   async generateMemo(id: number): Promise<Buffer> {
@@ -464,12 +565,12 @@ export class ReportService {
     //const imgPath = this.obtenerMembretePorGestion(codigoCarpeta);
     //console.log('imgPath seleccionado:', imgPath);
     //membrete por  fecha  
-     //membretado por fecha del 13 de  mayo del 2026
+     //membretado por fecha del 13 de  mayo del 2026 general
     const fechaDocumento = this.datos[0].fecha_aprobacion;
-    const imgPath = this.obtenerMembretePorFechacarta(fechaDocumento);
+    const imgPath = this.obtenerMembretePorFechaCarta(fechaDocumento);
 
-    //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechaMemo(fechaDocumento);
+    //margenes dinamicos  para el nuevio membretado general
+    const margenesDinamicos = this.obtenerMargenesporfechacarta(fechaDocumento);
     
 
     const documentDefinition = {
@@ -724,7 +825,7 @@ export class ReportService {
     });
   }
 
-  //margenes por fecha 
+  //margenes por fecha cambiar a contantes
   private obtenerMargenesPorFechasolrem(
       fecha: string | Date,
     ): [number, number, number, number] {
@@ -768,10 +869,10 @@ export class ReportService {
 
     //membrete por fecha 13 de mayo 
     const fechaDocumento = this.datos[0].fecha_validacion_carpeta;
-    const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevo membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechaMemo(fechaDocumento);
+    const margenesDinamicos = this.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
@@ -1053,10 +1154,10 @@ export class ReportService {
     //console.log('imgPath seleccionado:', imgPath);
     //membrete por fecha
     const fechaDocumento = this.datos[0].fecha_aprobacion;
-    const imgPath = this.obtenerMembretePorFechacarta(fechaDocumento);
+    const imgPath = this.obtenerMembretePorFechaCarta(fechaDocumento);
 
-    //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechaMemorem(fechaDocumento);
+    //margenes dinamicos  para el nuevio membretado GENERAL
+    const margenesDinamicos = this.obtenerMargenesporfechacarta(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
@@ -1366,10 +1467,10 @@ export class ReportService {
     //console.log('imgPath seleccionado:', imgPath);
     //membrete por fecha 
     const fechaDocumento = this.datos[0].fecha_validacion_carpeta;
-    const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechasolibaja(fechaDocumento);
+    const margenesDinamicos = this.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,

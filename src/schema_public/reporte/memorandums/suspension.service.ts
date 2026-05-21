@@ -79,10 +79,14 @@ export class SuspensionObra {
   
   //margenes por fecha
   private obtenerMargenesPorFechasuspencion(
-      fecha: string | Date,
+      fecha: string | Date |null,
     ): [number, number, number, number] {
 
-      const fechaDocumento = new Date(fecha);
+      //const fechaDocumento = new Date(fecha);
+      // Si fecha es null usar fecha actual
+      const fechaDocumento = fecha
+        ? new Date(fecha)
+        : new Date();
 
       // tercer membretado
       if (fechaDocumento >= new Date('2026-05-13')) {
@@ -132,7 +136,7 @@ export class SuspensionObra {
     //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     //membrete por fecha
     const fechaDocumento = this.datosSusp[0].registro_suspencion;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.obtenerMargenesPorFechasuspencion(fechaDocumento);

@@ -108,7 +108,7 @@ export class InformePagoSupervisor {
    }
 
   //margen por  fecha  
-  private obtenerMargenesPorFechaInformePagoSupervisor(
+  /*private obtenerMargenesPorFechaInformePagoSupervisor(
       fecha: string | Date,
     ): [number, number, number, number] {
 
@@ -126,7 +126,7 @@ export class InformePagoSupervisor {
 
       // primer membretado
       return [70, 170, 50, 140]; 
-  }
+  }*/
 
   // REPORTE - INFORME PAGO SUPERVISOR
 
@@ -180,10 +180,10 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
 
     //membrete  por  fecha 
     const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
-    const imgPath = this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.obtenerMargenesPorFechaInformePagoSupervisor                                                 (fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);                                                (fechaDocumento);
 
     
     let porc_presente = 0;
