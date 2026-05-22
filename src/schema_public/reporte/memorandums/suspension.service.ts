@@ -364,34 +364,6 @@ export class SuspensionObra {
   }
 
   //// FUNCIONES VARIOS
-  
-      //funcion para generar la fecha de manera escrita
-// fechaString(iso: string | Date): string {
-//   if (!iso) return '';
-
-//   let fecha: Date;
-
-//   if (iso === 'hoy') {
-//     fecha = new Date();
-//   } else if (typeof iso === 'string') {
-//     const soloFecha = iso.substring(0, 10);
-
-//     if (/^\d{4}-\d{2}-\d{2}$/.test(soloFecha)) {
-//       const [year, month, day] = soloFecha.split('-').map(Number);
-//       fecha = new Date(year, month - 1, day);
-//     } else {
-//       fecha = new Date(iso);
-//     }
-//   } else {
-//     fecha = iso;
-//   }
-
-//   return fecha.toLocaleDateString('es-ES', {
-//     year: 'numeric',
-//     month: 'long',
-//     day: 'numeric',
-//   });
-// }
 
 fechaString(iso: string | Date): string {
   if (!iso) return '';
