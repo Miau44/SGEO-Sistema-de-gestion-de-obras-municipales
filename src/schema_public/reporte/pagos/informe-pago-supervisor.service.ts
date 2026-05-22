@@ -107,6 +107,27 @@ export class InformePagoSupervisor {
     return resultado6[0];
    }
 
+  //margen por  fecha  
+  /*private obtenerMargenesPorFechaInformePagoSupervisor(
+      fecha: string | Date,
+    ): [number, number, number, number] {
+
+      const fechaDocumento = new Date(fecha);
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 160, 50, 140];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 130, 50, 140];
+      }
+
+      // primer membretado
+      return [70, 170, 50, 140]; 
+  }*/
+
   // REPORTE - INFORME PAGO SUPERVISOR
 
 async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
@@ -144,7 +165,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    /*const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
     const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
     let gestionObra = parseInt(codigoCarpeta.split('-').pop());
@@ -153,7 +174,16 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       margenesDinamicos = [70, 130, 50, 140]; 
     } else {
       margenesDinamicos = [70, 170, 50, 140]; 
-    }
+    }*/
+
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+
+    //membrete  por  fecha 
+    const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+
+    //margenes dinamicos  para el nuevio membretado 
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);                                                (fechaDocumento);
 
     
     let porc_presente = 0;
@@ -769,6 +799,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         opacity: 0.8,
       },
     },
+    //para margen dinamico
     pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };

@@ -77,6 +77,24 @@ datosVariacion: any = [];
     return resultado5[0];
   }
  
+  //margenes por fecha 13 de mayo
+  /*private obtenerMargenesprovisional(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [50, 140, 50, 70];
+    }
+
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return [70, 170, 50, 140];
+    }
+
+    return [70, 170, 50, 140]; 
+  }*/
+
 // REPORTE - RECEPCION PROVISIONAL
 
 async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buffer> {
@@ -102,9 +120,18 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
-  const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-  const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+  //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+ // const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+  //membrete por fecha 13 de mayo 2026
+  const fechaDocumento = this.datosInf[0].fecha_acta;
+  const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+
   const marcaAgua = this.datosInf[0].fecha_aprobacion;
+
+  //margenes por fecha 
+  //const margenesDinamicos = this.obtenerMargenesprovisional(fechaDocumento);
+  //margenes generales
+  const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
   //Cálculo del plazo real
   const fechaInicio = new Date(this.datosEnvio[0].fecha_inicio_ejecucion);
@@ -494,7 +521,10 @@ async generateActaProvisional(id_obra: number, id_informe: number): Promise<Buff
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //margen por fecha
+    pageMargins: margenesDinamicos as any
+
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);

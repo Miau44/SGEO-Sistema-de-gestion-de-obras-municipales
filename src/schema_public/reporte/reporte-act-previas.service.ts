@@ -61,8 +61,8 @@ export class ReporteActPreviasService {
       return image.toString('base64');
     }
 
-    // funcion de membretados y margenes por gestion
-    private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
+    // funcion de membretados y margenes por gestion   
+    /*private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
       const gestionNum = Number(gestion);
 
       if (gestionNum === 2025) {
@@ -80,7 +80,7 @@ export class ReporteActPreviasService {
         return [60, 30, 40, 30];
       }
       return [60, 30, 40, 30];
-    }
+    }*/
 
     private obtenerMembretadoOficioPorGestion(gestion: number | string): string {
       const gestionNum = Number(gestion);
@@ -243,6 +243,44 @@ export class ReporteActPreviasService {
       return arrayData;
     }
 
+    //membretado nuevo
+    //MEMBRETADO SOLICITUD DE GARANTIA CARTA POR FECHA 13 DE MAYO DE 2026
+
+  obtenerMembretePorFechacarta(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado nuevo por fecha del 13 de mayo 2026
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/carta.png';
+    }
+    // segundo membretado por fecha 
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    // primer membretado con el logo 200
+    return 'assets/images/membretado_carta.png';
+  }
+
+  //margenes por fecha para el nuevo membrete 
+  private obtenerMargenesPorFechaenvio(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // margenes por fecha para el tercer membretado 
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [60, 30, 40, 30];
+    }
+
+    // margenes por fecha para el segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return [60, 30, 40, 30];
+    }
+
+    // margenes por fecha para el primer membretado con logo200
+    return [60, 30, 40, 30];
+  }
+
 // FORMULARIO DE ENVIO DE DOCUMENTOS
 
 async generateEnvioDoc(obra: number): Promise<Buffer> {
@@ -263,9 +301,17 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   //ME const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   //ME const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_carta.png';
-  const gestion = this.datosEnvio[0].gestion_carpeta;
-  const imgPath = this.obtenerMembretadoCartaPorGestion(gestion);
-  const pageMargins = this.obtenerMargenesCartaPorGestion(gestion);
+  ///membretado por gestion 
+  //const gestion = this.datosEnvio[0].gestion_carpeta;
+  //const imgPath = this.obtenerMembretadoCartaPorGestion(gestion);
+  //margen por  gestion
+  //const pageMargins = this.obtenerMargenesCartaPorGestion(gestion);
+
+  ///membretado por fecha
+  const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+  const imgPath = this.obtenerMembretePorFechacarta(fechaDocumento);
+  //margenes por  fecha
+  const margenesDinamicos = this.obtenerMargenesPorFechaenvio(fechaDocumento);
 
   const documentDefinition = {
     pageSize: 'LETTER' as any,
@@ -438,7 +484,9 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
     },
     //pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-    pageMargins: pageMargins as any,
+    //pageMargins: pageMargins as any,
+    //margen dinamico por fechas 13 de  mayo de 2026
+    pageMargins: margenesDinamicos as any,
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);

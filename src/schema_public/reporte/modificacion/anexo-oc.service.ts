@@ -8,6 +8,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -39,6 +40,7 @@ export class AnexoOC {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -59,7 +61,7 @@ export class AnexoOC {
   }
 
   //membrete nuevo por fecha 
-  private obtenerMembretadoPorfecha(fecha: string | Date): string {
+  /*private obtenerMembretadoPorfecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
 
     // nuevo membretado desde 13 de MAYO 2026
@@ -69,10 +71,10 @@ export class AnexoOC {
 
     //membrete antiguo tamaño carta
     return 'assets/images/membretado_carta.png';
-  }
+  }*/
 
   //margenes por fecha 13 de mayo de 2026 
-  private obtenerMargenesporfecha(
+  /*private obtenerMargenesporfecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -85,6 +87,31 @@ export class AnexoOC {
 
     // Márgenes del membretado anterior con el logo 200
     return [70, 140, 50, 110];
+  }*/
+
+  //margenes por  fecha 
+  private obtenerMargenesPorFechareanexo(
+      fecha?: string | Date | null,
+    ): [number, number, number, number] {
+
+      //const fechaDocumento = new Date(fecha);
+       // Si fecha es null usar fecha actual
+      const fechaDocumento = fecha
+        ? new Date(fecha)
+        : new Date();
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [60, 140, 50, 70];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [60, 140, 50, 70];
+      }
+
+      // primer membretado
+      return [70, 140, 50, 110];  
   }
 
     // REPORTE - ANEXO ORDEN DE CAMBIO
@@ -102,11 +129,11 @@ export class AnexoOC {
   //const imgPath = 'assets/images/membretado_carta.png';
   //membretado nuevo desde  mayo 13
   const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
-  const imgPath = this.obtenerMembretadoPorfecha(fechaDocumento);
+  const imgPath = this.reportService.obtenerMembretePorFechaCarta(fechaDocumento);
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
   //margenes dinamicos
-  const margenesDinamicos =this.obtenerMargenesporfecha(fechaDocumento);
+  const margenesDinamicos =this.obtenerMargenesPorFechareanexo(fechaDocumento);
    
      //console.log('DATOS ITEMS',this.datosIncremento);
 
