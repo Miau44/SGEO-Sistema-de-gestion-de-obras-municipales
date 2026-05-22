@@ -366,32 +366,47 @@ export class SuspensionObra {
   //// FUNCIONES VARIOS
   
       //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
+// fechaString(iso: string | Date): string {
+//   if (!iso) return '';
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+//   let fecha: Date;
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
+//   if (iso === 'hoy') {
+//     fecha = new Date();
+//   } else if (typeof iso === 'string') {
+//     const soloFecha = iso.substring(0, 10);
 
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
+//     if (/^\d{4}-\d{2}-\d{2}$/.test(soloFecha)) {
+//       const [year, month, day] = soloFecha.split('-').map(Number);
+//       fecha = new Date(year, month - 1, day);
+//     } else {
+//       fecha = new Date(iso);
+//     }
+//   } else {
+//     fecha = iso;
+//   }
 
-    return formattedDate;
-  }
+//   return fecha.toLocaleDateString('es-ES', {
+//     year: 'numeric',
+//     month: 'long',
+//     day: 'numeric',
+//   });
+// }
+
+fechaString(iso: string | Date): string {
+  if (!iso) return '';
+
+  const fecha =
+    typeof iso === 'string'
+      ? new Date(iso.replace(/-/g, '/'))
+      : iso;
+
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [
