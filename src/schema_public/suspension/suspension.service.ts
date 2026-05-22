@@ -471,7 +471,7 @@ async buscarSuspensiones(id_obra: number, finalizado: boolean) {
     codigoObra: String(id_obra),
     nombreObra: info.referencia || '',
     actividad: 'SUSPENSIÓN DE OBRA FINALIZADA',
-    proveido: justificacion || 'Se finalizó la suspensión de obra.', // aca debe ir la justificacion de la suspencion
+    proveido: justificacion || 'Se finalizó la suspensión de obra.', 
   });
   console.log('Respuesta envío de correo:', respCorreo);
 }
@@ -597,13 +597,82 @@ async listaSuspensionParaReinicio(data: { id_obra: number; id_suspension: number
   }
 
 
-  async updateReinicio(id_reinicio: number, updateReinicioDto: UpdateReinicioDto) {
-    try {
-      const resultado = await this.reinicioRepositorio.update(id_reinicio, updateReinicioDto)
-      return this.responseService.success(id_reinicio, "Actualizado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }        
+  // async updateReinicio(id_reinicio: number, updateReinicioDto: UpdateReinicioDto) {
+  //   try {
+  //     const resultado = await this.reinicioRepositorio.update(id_reinicio, updateReinicioDto)
+  //     return this.responseService.success(id_reinicio, "Actualizado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }        
+  // }
+
+  async updateReinicio(id: number, updateReinicioDto: UpdateReinicioDto) {
+  try {
+    const reinicioActual = await this.reinicioRepositorio.findOne({
+      where: { id_reinicio: id },
+    });
+
+    if (!reinicioActual) {
+      throw new Error('No se encontró el reinicio.');
+    }
+
+    await this.reinicioRepositorio.update(id, updateReinicioDto);
+
+    const seEstaFinalizando =
+      reinicioActual.finalizado === false &&
+      updateReinicioDto.finalizado === true;
+
+    if (seEstaFinalizando) {
+      const suspension = await this.suspensionRepositorio.findOne({
+        where: { id_suspension: reinicioActual.id_suspension },
+      });
+
+      if (suspension) {
+        await this.enviarCorreoFinalizacionReinicio(
+          suspension.id_obra,
+          updateReinicioDto.justificacion_reinicio || reinicioActual.justificacion_reinicio,
+        );
+      }
+    }
+    return this.responseService.success(
+      id,
+      'Reinicio actualizado correctamente.',
+    );
+  } catch (error) {
+    return this.responseService.error(error);
   }
+}
+
+async enviarCorreoFinalizacionReinicio(id_obra: number, justificacion: string) {
+  const datosSF: any[] = await this.datosInformesSF(id_obra);
+  const info: any = datosSF?.[0];
+
+  console.log('=== CORREO REINICIO ===');
+  console.log('id_obra:', id_obra);
+  console.log('usuario_fis:', info?.usuario_fis);
+  console.log('usuario_sup:', info?.usuario_sup);
+  console.log('justificacion:', justificacion);
+
+  if (!info?.usuario_fis || !info?.usuario_sup) {
+    console.log('No se encontró usuario fiscal o supervisor para enviar correo de reinicio.');
+    return;
+  }
+
+  const respCorreo = await this.correoService.enviarCorreoProceso({
+    para: [
+      info.usuario_fis,
+    ],
+    autor: [
+      info.usuario_sup,
+    ],
+    codigoObra: String(id_obra),
+    nombreObra: info.referencia || '',
+    actividad: 'REINICIO DE OBRA FINALIZADO',
+    proveido: justificacion || 'Se finalizó el reinicio de obra.',
+  });
+
+  console.log('Respuesta envío correo reinicio:', respCorreo);
+}
+  
 
 }
