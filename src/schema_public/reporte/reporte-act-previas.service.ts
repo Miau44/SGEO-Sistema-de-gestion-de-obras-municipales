@@ -505,7 +505,7 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   });
 }
 
-obtenerMembretePorFecha(fecha: string | Date): string {
+/*obtenerMembretePorFecha(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
     // tercer membretado
     if (fechaDocumento >= new Date('2026-03-13')) {
@@ -517,17 +517,21 @@ obtenerMembretePorFecha(fecha: string | Date): string {
     }
     // primer membretado
     return 'assets/images/membretado_oficio.png';
-  }
+  }*/
 
 private obtenerMargenesInformeFiscal(
-    fecha: string | Date,
+    fecha?: string | Date | null,
   ): [number, number, number, number] {
 
-    const fechaDocumento = new Date(fecha);
+    //const fechaDocumento = new Date(fecha);
+    // Si fecha es null usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
 
     // tercer membretado
-    if (fechaDocumento >= new Date('2026-03-13')) {
-      return [50, 140, 50, 70];
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [70, 140, 50, 70];
     }
 
     // segundo membretado
@@ -607,7 +611,7 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
     //membretado por fecha 
     const fechaDocumento = this.datosIAP[0].fecha_aprobacion;
-    const imgPath = this.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes por fecha
     const margenesDinamicos = this.obtenerMargenesInformeFiscal(fechaDocumento);

@@ -1107,7 +1107,7 @@ obtenerMembretePorFechaCarta(fecha?: string | Date | null): string {
       const fechaDocumento = new Date(fecha);
 
       // tercer membretado
-      if (fechaDocumento >= new Date('2026-01-13')) {
+      if (fechaDocumento >= new Date('2026-05-13')) {
         return [60, 30, 40, 45];
       }
 

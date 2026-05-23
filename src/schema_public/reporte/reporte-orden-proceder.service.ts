@@ -365,7 +365,7 @@ export class ReporteOrdenProcederService {
   obtenerMembretadocarta(fecha: string | Date): string {
     const fechaDocumento = new Date(fecha);
     // tercer membretado 
-    if (fechaDocumento >= new Date('2026-03-13')) {
+    if (fechaDocumento >= new Date('2026-05-13')) {
       return 'assets/images/carta.png';
     }
     // segundo membretado
