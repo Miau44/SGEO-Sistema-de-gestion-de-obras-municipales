@@ -83,6 +83,31 @@ export class SuspensionObra {
     const resultado3 = await this.sequelize.query(query3);
     return resultado3[0];
   }
+  
+  //margenes por fecha
+  private obtenerMargenesPorFechasuspencion(
+      fecha: string | Date |null,
+    ): [number, number, number, number] {
+
+      //const fechaDocumento = new Date(fecha);
+      // Si fecha es null usar fecha actual
+      const fechaDocumento = fecha
+        ? new Date(fecha)
+        : new Date();
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 170, 50, 30];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 170, 50, 30];
+      }
+
+      // primer membretado
+      return [70, 170, 50, 30]; 
+  }
 
   // REPORTE - MEMORANDUM DE SUSPENSION DE OBRA
   async generateSuspensionObra(id_obra: number, id_memo: number): Promise<Buffer> {
@@ -92,12 +117,6 @@ export class SuspensionObra {
       throw new Error('No se encontraron datos para la obra proporcionada');
     }
     this.datosEnvio = res;
-
-    const res1 = await this.datosInformesSF(id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos de los informes de Sup/Fis');
-    }
-    this.datosInf = res1;
 
     const res2 = await this.datosSuspencion(id_memo);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
@@ -113,8 +132,15 @@ export class SuspensionObra {
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosSusp[0].suspension_finalizada;
 
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membrete por gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membrete por fecha
+    const fechaDocumento = this.datosSusp[0].registro_suspencion;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+
+    //margenes dinamicos  para el nuevio membretado 
+    const margenesDinamicos = this.obtenerMargenesPorFechasuspencion(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -348,7 +374,9 @@ export class SuspensionObra {
           bold: false,
         },
       },
-      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //margenes por fecha
+      pageMargins: margenesDinamicos as any,
 
 
     };
@@ -370,34 +398,21 @@ export class SuspensionObra {
   }
 
   //// FUNCIONES VARIOS
-  
-      //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+fechaString(iso: string | Date): string {
+  if (!iso) return '';
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
+  const fecha =
+    typeof iso === 'string'
+      ? new Date(iso.replace(/-/g, '/'))
+      : iso;
 
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
-  }
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [
