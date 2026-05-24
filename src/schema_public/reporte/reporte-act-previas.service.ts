@@ -8,6 +8,7 @@ import { log } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 import { text } from 'stream/consumers';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 
 
@@ -51,6 +52,7 @@ export class ReporteActPreviasService {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -59,8 +61,8 @@ export class ReporteActPreviasService {
       return image.toString('base64');
     }
 
-    // funcion de membretados y margenes por gestion
-    private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
+    // funcion de membretados y margenes por gestion   
+    /*private obtenerMembretadoCartaPorGestion(gestion: number | string): string {
       const gestionNum = Number(gestion);
 
       if (gestionNum === 2025) {
@@ -78,7 +80,7 @@ export class ReporteActPreviasService {
         return [60, 30, 40, 30];
       }
       return [60, 30, 40, 30];
-    }
+    }*/
 
     private obtenerMembretadoOficioPorGestion(gestion: number | string): string {
       const gestionNum = Number(gestion);
@@ -241,6 +243,44 @@ export class ReporteActPreviasService {
       return arrayData;
     }
 
+    //membretado nuevo
+    //MEMBRETADO SOLICITUD DE GARANTIA CARTA POR FECHA 13 DE MAYO DE 2026
+
+  obtenerMembretePorFechacarta(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado nuevo por fecha del 13 de mayo 2026
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/carta.png';
+    }
+    // segundo membretado por fecha 
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    // primer membretado con el logo 200
+    return 'assets/images/membretado_carta.png';
+  }
+
+  //margenes por fecha para el nuevo membrete 
+  private obtenerMargenesPorFechaenvio(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // margenes por fecha para el tercer membretado 
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [60, 30, 40, 30];
+    }
+
+    // margenes por fecha para el segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return [60, 30, 40, 30];
+    }
+
+    // margenes por fecha para el primer membretado con logo200
+    return [60, 30, 40, 30];
+  }
+
 // FORMULARIO DE ENVIO DE DOCUMENTOS
 
 async generateEnvioDoc(obra: number): Promise<Buffer> {
@@ -261,9 +301,17 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   //ME const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   //ME const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_carta.png';
-  const gestion = this.datosEnvio[0].gestion_carpeta;
-  const imgPath = this.obtenerMembretadoCartaPorGestion(gestion);
-  const pageMargins = this.obtenerMargenesCartaPorGestion(gestion);
+  ///membretado por gestion 
+  //const gestion = this.datosEnvio[0].gestion_carpeta;
+  //const imgPath = this.obtenerMembretadoCartaPorGestion(gestion);
+  //margen por  gestion
+  //const pageMargins = this.obtenerMargenesCartaPorGestion(gestion);
+
+  ///membretado por fecha
+  const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+  const imgPath = this.obtenerMembretePorFechacarta(fechaDocumento);
+  //margenes por  fecha
+  const margenesDinamicos = this.obtenerMargenesPorFechaenvio(fechaDocumento);
 
   const documentDefinition = {
     pageSize: 'LETTER' as any,
@@ -436,7 +484,9 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
 
     },
     //pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
-    pageMargins: pageMargins as any,
+    //pageMargins: pageMargins as any,
+    //margen dinamico por fechas 13 de  mayo de 2026
+    pageMargins: margenesDinamicos as any,
   };
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
@@ -455,6 +505,43 @@ async generateEnvioDoc(obra: number): Promise<Buffer> {
   });
 }
 
+/*obtenerMembretePorFecha(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-03-13')) {
+      return 'assets/images/oficio.png';
+    }
+    // segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_oficio_nuevo.png';
+    }
+    // primer membretado
+    return 'assets/images/membretado_oficio.png';
+  }*/
+
+private obtenerMargenesInformeFiscal(
+    fecha?: string | Date | null,
+  ): [number, number, number, number] {
+
+    //const fechaDocumento = new Date(fecha);
+    // Si fecha es null usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [70, 140, 50, 70];
+    }
+
+    // segundo membretado
+    if (fechaDocumento >= new Date('2025-01-01')) {
+      return [70, 115, 70, 125];
+    }
+
+    // primer membretado
+    return [70, 170, 50, 140]; 
+  }
 
 
 // INFORME ACTIVIDADES PREVIAS FISCAL
@@ -517,9 +604,17 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const gestion = this.datosEnvio[0].gestion_carpeta;
-    const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
-    const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
+    //membretado por gestion
+    //const gestion = this.datosEnvio[0].gestion_carpeta;
+    //const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
+    //const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
+
+    //membretado por fecha 
+    const fechaDocumento = this.datosIAP[0].fecha_aprobacion;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+
+    //margenes por fecha
+    const margenesDinamicos = this.obtenerMargenesInformeFiscal(fechaDocumento);
 
     //console.log('DATOS IAP',this.datosEnvio);
     //console.log('DATOS:',this.datosIAP);
@@ -913,7 +1008,8 @@ async generateInformeFISCAL(obra: number): Promise<Buffer> {
 
       },
       //pageMargins: [70, 170, 50, 140] as any, // Márgenes: izquierda, arriba, derecha, abajo
-      pageMargins: pageMargins as any,
+      //pageMargins: pageMargins as any,
+      pageMargins: margenesDinamicos as any,
 
     };
     // Generar el PDF en memoria
