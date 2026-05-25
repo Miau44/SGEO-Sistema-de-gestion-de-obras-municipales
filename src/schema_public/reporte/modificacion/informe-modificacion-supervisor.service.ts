@@ -432,6 +432,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -488,6 +489,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -548,6 +550,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55],
           body: [
             [
