@@ -29,7 +29,7 @@ const MARGEN_MEMBRETE_ANTIGUO: [number, number, number, number] =
 
   //SEGUNDO  OFICIO
 const MARGEN_MEMBRETE_NUEVO: [number, number, number, number] =
-  [65, 140, 65, 120];
+  [65, 130, 65, 120];
 
   //TERCERO OFICIO
 const MARGEN_MEMBRETE_TERCERO: [number, number, number, number] =
