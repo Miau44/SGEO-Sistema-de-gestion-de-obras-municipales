@@ -10,6 +10,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
+import { ReportService } from 'src/schema_public/reporte/reporte.service';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -44,6 +45,7 @@ export class InformeInicialService {
     constructor(
       private readonly responseService: ResponseService,
       @Inject(Sequelize) private sequelize: Sequelize, // Inyecta Sequelize correctamente
+      private readonly reportService: ReportService,
     ) { this.printer = new PdfPrinter(fonts); }
   
     private readonly printer = new PdfPrinter(fonts);
@@ -147,7 +149,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
   }
 
   ////membretado por fecha 13 de mayo de  2026 
-  private obtenerMembretadoOficioPorFecha(fecha: string | Date): string {
+  /*private obtenerMembretadoOficioPorFecha(fecha: string | Date): string {
 
     const fechaDocumento = new Date(fecha);
 
@@ -163,10 +165,10 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     // Membretado antiguo con logo de  200
     return 'assets/images/membretado_oficio.png';
-  }
+  }*/
 
   //margenes por fecha 13 de  mayo de  2026
-  private obtenerMargenesOficioPorFecha(
+ /* private obtenerMargenesOficioPorFecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -184,7 +186,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
     // Márgenes antiguos con logo de  200
     return [70, 180, 70, 180];
-  }
+  }*/
 
     
 
@@ -237,9 +239,17 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
     //const imgPath = this.obtenerMembretadoOficioPorGestion(gestion);
     //const pageMargins = this.obtenerMargenesOficioPorGestion(gestion);
     //membretado por  fecha 
-    const fechaInforme = this.datosEnvio[0].fecha_informe;
-    const imgPath = this.obtenerMembretadoOficioPorFecha(fechaInforme);
-    const pageMargins = this.obtenerMargenesOficioPorFecha(fechaInforme);
+    //const fechaInforme = this.datosEnvio[0].fecha_informe;
+    //const imgPath = this.obtenerMembretadoOficioPorFecha(fechaInforme);
+    //const pageMargins = this.obtenerMargenesOficioPorFecha(fechaInforme);
+
+    //membrete por fecha  general
+    // membretado por  fecha  
+    const fechaDocumento = this.datosEnvio[0].fecha_informe;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento );
+   //margen por  fechas
+    const margenesDinamicos =this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
+
     const mostrarMarcaAgua = this.datosEnvio[0].informe_aprobado;
 
     const documentDefinition = {
@@ -601,7 +611,7 @@ WHERE  id_subtipo_documento =107 ORDER BY td.id_tipo_documento ASC;	`;
 
       },
       //pageMargins: [70, 120, 60, 60] as any, // Márgenes: izquierda, arriba, derecha, abajo  
-      pageMargins: pageMargins as any // Márgenes: izquierda, arriba, derecha, abajo            
+      pageMargins: margenesDinamicos as any // Márgenes: izquierda, arriba, derecha, abajo            
 
     };
     // Generar el PDF en memoria

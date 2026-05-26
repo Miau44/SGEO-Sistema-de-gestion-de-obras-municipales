@@ -133,7 +133,7 @@ export class InformeModificacionSupervisor {
     }
 
     //margenes para  el membretado por fecha del 13 de mayo 
-    private obtenerMargenesporfecha(
+    /*private obtenerMargenesporfecha(
       fecha: string | Date,
     ): [number, number, number, number] {
 
@@ -151,7 +151,7 @@ export class InformeModificacionSupervisor {
 
       //antiguo margen del logo de  200
       return [70, 170, 50, 140];
-    }
+    }*/
 
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
@@ -208,7 +208,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
 
     //membrete por fecha de 13 de  mayo de  2026
     const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
-    const imgPath =this.reportService.obtenerMembretePorFecha(fechaDocumento);
+    const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
     const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
 
     //margenes por gestion
@@ -220,8 +220,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       margenesDinamicos = [70, 170, 50, 140]; 
     }*/
 
-    //margenes  por  fecha del 13 de mayo de  2026
-    const margenesDinamicos =this.obtenerMargenesporfecha(fechaDocumento);
+    //margenes  por  fecha del 13 de mayo de  2026 GENERAL
+    const margenesDinamicos =this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
@@ -432,6 +432,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -488,6 +489,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -548,6 +550,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55],
           body: [
             [

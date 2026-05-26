@@ -88,7 +88,7 @@ export class InformeModificacionFiscal {
   }
 
   //margen para membrete por fecha a apartir del 13 de  mayo de  2026
-  private obtenerMargenesporfecha(
+  /*private obtenerMargenesporfecha(
     fecha: string | Date,
   ): [number, number, number, number] {
 
@@ -105,7 +105,7 @@ export class InformeModificacionFiscal {
     }
 
     return [70, 170, 50, 140];  // Márgenes:izquierda, arriba, derecha,abajo
-  }
+  }*/
 
 // REPORTE - INFORME MODIFICACION FISCAL
 
@@ -144,7 +144,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
   // membretado por fecha del 13 de mayo de  2026
   const fechaDocumento = this.datosEnvio[0].fecha_fiscal;
-  const imgPath =this.reportService.obtenerMembretePorFecha(fechaDocumento);
+  const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
   
   const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
@@ -159,7 +159,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }*/
 
   //margenes por fecha desde el 13 de mayo de  2026
-  const margenesDinamicos = this.obtenerMargenesporfecha(fechaDocumento);
+  const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
   //console.log('DATOS MODIFICACION',this.datosEnvio);
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
