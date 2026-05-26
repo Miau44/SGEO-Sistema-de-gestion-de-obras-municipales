@@ -535,12 +535,12 @@ private obtenerMargenesInformeFiscal(
     }
 
     // segundo membretado
-    if (fechaDocumento >= new Date('2025-01-01')) {
+    if (fechaDocumento >= new Date('2026-01-01')) {
       return [70, 115, 70, 125];
     }
 
     // primer membretado
-    return [70, 170, 50, 140]; 
+    return [70, 175, 50, 140]; 
   }
 
 
