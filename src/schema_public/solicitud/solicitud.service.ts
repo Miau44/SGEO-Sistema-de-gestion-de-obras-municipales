@@ -98,54 +98,99 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
 
   async listarMiBandeja(bandeja: BandejaDto) {
     try {
-    /*  const query = `
-SELECT s.id_solicitud, o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, f.desc_carpeta, 
-eo.gestion, eg.id_estado_general, 
---ts.desc_subtipo  || ' ' ||  eg.desc_estado_gral  AS actividad, 
-COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
-eg.desc_modulo,   s.id_estado_solicitud,
-s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
-s.proveido, s.fecha_envio
-FROM obra AS o   
-INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
-INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion FROM public.estructura_organizacional
-WHERE  gestion =$1 GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue AND f.gestion_carpeta = eo.gestion
-INNER JOIN solicitud AS s ON o.id_obra = s.id_obra
-INNER JOIN estado_solicitud  AS es ON  s.id_estado_solicitud = es.id_estado_solicitud
-INNER JOIN estado_general AS eg ON s.id_estado_general = eg.id_estado_general
-INNER JOIN  persona AS p ON p.id_usuario = s.id_usuario
-LEFT  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =5 )  as ts 
-ON  s.id_tipo_solicitud = ts.id_subtipo	  	 	
-WHERE s.id_usuario =$2 AND s.id_estado_solicitud  =$3 AND p.id_estado IN(1,5);`;*/
+      if (
+        bandeja.gestion == null ||
+        Number(bandeja.gestion) === 0 ||
+        bandeja.usuario == null ||
+        Number(bandeja.usuario) === 0 ||
+        bandeja.permiso == null ||
+        Number(bandeja.permiso) === 0 ||
+        !Array.isArray(bandeja.estado) ||
+        bandeja.estado.length === 0
+      ) {
+        return this.responseService.error(
+          'Error, no se admiten valores nulos o 0 en los parámetros de entrada.'
+        );
+      }
+
+      // console.log('BANDEJA DTO RECIBIDO para cambios:', bandeja);
+      // console.log('GESTION:', bandeja.gestion, typeof bandeja.gestion);
+      // console.log('USUARIO:', bandeja.usuario, typeof bandeja.usuario);
+      // console.log('PERMISO:', bandeja.permiso, typeof bandeja.permiso);
+      // console.log('ESTADO:', bandeja.estado, Array.isArray(bandeja.estado));
 
       const query = `
-      SELECT s.id_usuario,  s.id_solicitud, o.id_obra, f.id_ficha,   f.cod_carpeta,  f.desc_cod_ue, eo.nombre_ue,
-      f.desc_carpeta, 
-      eg.id_estado_general, f.gestion_carpeta,
-      COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
-      eg.desc_modulo,   s.id_estado_solicitud,
-      s.fecha_registro as fecha, eg.url_formulario, ts.desc_subtipo,
-      s.proveido, s.fecha_envio, eg.tooltip, es.desc_estado
-      FROM obra AS o   
-      INNER JOIN ficha f  ON o.id_ficha = f.id_ficha
-      INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion FROM public.estructura_organizacional
-      GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue AND f.gestion_carpeta = eo.gestion
-      INNER JOIN solicitud AS s ON o.id_obra = s.id_obra 
-      INNER JOIN estado_solicitud  AS es ON  s.id_estado_solicitud = es.id_estado_solicitud
+      SELECT DISTINCT
+        s.id_usuario,
+        s.id_solicitud,
+        o.id_obra,
+        f.id_ficha,
+        f.cod_carpeta,
+        f.desc_cod_ue,
+        eo.nombre_ue,
+        f.desc_carpeta,
+        eg.id_estado_general,
+        f.gestion_carpeta,
+        COALESCE(NULLIF(ts.desc_subtipo, ''), '') || ' ' || eg.desc_estado_gral AS actividad,
+        eg.desc_modulo,
+        s.id_estado_solicitud,
+        s.fecha_registro as fecha,
+        eg.url_formulario,
+        ts.desc_subtipo,
+        s.proveido,
+        s.fecha_envio,
+        eg.tooltip,
+        es.desc_estado
+      FROM obra AS o
+      INNER JOIN ficha f ON o.id_ficha = f.id_ficha
+      INNER JOIN (
+        SELECT desc_cod_da, desc_cod_ue, nombre_ue, gestion
+        FROM public.estructura_organizacional
+        GROUP BY desc_cod_da, desc_cod_ue, nombre_ue, gestion
+      ) eo ON f.desc_cod_ue = eo.desc_cod_ue
+          AND f.gestion_carpeta = eo.gestion
+      INNER JOIN solicitud AS s ON o.id_obra = s.id_obra
+      INNER JOIN estado_solicitud AS es ON s.id_estado_solicitud = es.id_estado_solicitud
       INNER JOIN estado_general AS eg ON s.id_estado_general = eg.id_estado_general
-      LEFT  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =5 )  as ts 
-      ON  s.id_tipo_solicitud = ts.id_subtipo	 
-      INNER JOIN  (SELECT id_usuario, id_estado
-      FROM public.persona WHERE id_estado IN(1,5) GROUP BY id_usuario, id_estado) AS p ON p.id_usuario = s.id_usuario 
-      WHERE s.id_usuario =$2 AND s.id_estado_solicitud IN(${bandeja.estado})
-AND f.gestion_carpeta = $1 AND s.id_estado_registro = 1 ORDER BY  s.fecha_registro DESC`;
-      const values = [bandeja.gestion, bandeja.usuario]
+      LEFT JOIN (
+        SELECT id_subtipo, desc_subtipo, detalle
+        FROM parametrica
+        WHERE id_tipo = 5
+      ) as ts ON s.id_tipo_solicitud = ts.id_subtipo
+      INNER JOIN (
+        SELECT id_usuario, id_estado
+        FROM public.persona
+        WHERE id_estado IN (1,5)
+        GROUP BY id_usuario, id_estado
+      ) AS p ON p.id_usuario = s.id_usuario
+      WHERE s.id_estado_solicitud = ANY($4)
+        AND f.gestion_carpeta = $1
+        AND s.id_estado_registro = 1
+        AND (
+          s.id_usuario = $2
+          OR EXISTS (
+            SELECT 1
+            FROM sp_obra($1, $2, $3) spo
+            WHERE spo.id_obra = o.id_obra
+          )
+        )
+      ORDER BY s.fecha_registro DESC
+    `;
+
+      const values = [
+        Number(bandeja.gestion),
+        Number(bandeja.usuario),
+        Number(bandeja.permiso),
+        bandeja.estado
+      ];
+
       const resultado = await this.solicitudRepositorio.query(query, values);
-      return this.responseService.success(resultado, "Listado Correctamente.")
+
+      return this.responseService.success(resultado, "Listado Correctamente.");
     } catch (error) {
       return this.responseService.error(error);
     }
-  } 
+  }
   
   
    async generarSolicitud(data: GenerarSolicitudDto) {
