@@ -198,6 +198,9 @@ async obtenerFiscalesNoDesignados(@Body() body: { asignadosSupervisores: any[], 
     }  
 
 }  */
-
+@Patch('dar-baja/:id')
+darBaja(@Param('id') id: string) {
+  return this.personaService.darBaja(+id);
+}
 
 }

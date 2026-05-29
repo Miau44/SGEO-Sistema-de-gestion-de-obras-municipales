@@ -607,4 +607,30 @@ ppue.id_estado=1;`;
       return this.responseService.error(error);
     }
   }  */
+
+    async darBaja(id_persona: number) {
+  try {
+
+    const resultado = await this.personaRepo.update(
+      id_persona,
+      {
+        id_estado: 0
+      }
+    );
+
+    if (resultado.affected === 0) {
+      return this.responseService.error(
+        "No se encontró la persona"
+      );
+    }
+
+    return this.responseService.success(
+      resultado,
+      "Persona dada de baja correctamente."
+    );
+
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 }
