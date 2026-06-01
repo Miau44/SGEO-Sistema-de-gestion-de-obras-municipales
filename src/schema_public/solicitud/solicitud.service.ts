@@ -104,8 +104,8 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
         bandeja.usuario == null ||
         Number(bandeja.usuario) === 0 ||
         bandeja.permiso == null ||
-        Number(bandeja.permiso) === 0 ||
-        !Array.isArray(bandeja.estado) ||
+        // Number(bandeja.permiso) === 0 ||
+        // !Array.isArray(bandeja.estado) ||
         bandeja.estado.length === 0
       ) {
         return this.responseService.error(
@@ -163,24 +163,17 @@ async  create(createSolicitudDto: CreateSolicitudDto) {
         WHERE id_estado IN (1,5)
         GROUP BY id_usuario, id_estado
       ) AS p ON p.id_usuario = s.id_usuario
-      WHERE s.id_estado_solicitud = ANY($4)
-        AND f.gestion_carpeta = $1
-        AND s.id_estado_registro = 1
-        AND (
-          s.id_usuario = $2
-          OR EXISTS (
-            SELECT 1
-            FROM sp_obra($1, $2, $3) spo
-            WHERE spo.id_obra = o.id_obra
-          )
-        )
-      ORDER BY s.fecha_registro DESC
+       WHERE s.id_usuario = $2
+    AND s.id_estado_solicitud = ANY($3)
+    AND f.gestion_carpeta = $1
+    AND s.id_estado_registro = 1
+  ORDER BY s.fecha_registro DESC
     `;
 
       const values = [
         Number(bandeja.gestion),
         Number(bandeja.usuario),
-        Number(bandeja.permiso),
+        // Number(bandeja.permiso),
         bandeja.estado
       ];
 
