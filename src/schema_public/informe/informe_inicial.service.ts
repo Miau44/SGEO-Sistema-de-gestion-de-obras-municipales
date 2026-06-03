@@ -65,7 +65,7 @@ export class InformeService {
       }
     }*/
   
-
+// aqui se  crea 
   async create(createInformeDto: CreateInformeDto) {
     try {
       
@@ -141,7 +141,7 @@ export class InformeService {
     }
   }
 
-
+//esto es el encabezado 
   async encabezadoDocumentos(data: EncabezadoDocumentoDto) {
     try {
 
@@ -235,6 +235,18 @@ export class InformeService {
         }
 
         const resultado = await this.informeRepositorio.update(id, updateData);
+        const informe = await this.informeRepositorio.findOne({
+            where: {id_informe: id,},});
+        if (informe) {
+          await this.crearencabezadoDocumentos({
+            id_tipo_documento: informe.id_tipo_informe,
+            id_obra: informe.id_obra,
+            id_informe: informe.id_informe,
+            id_solicitud: informe.id_solicitud,
+          });
+
+        }
+
         return this.responseService.success(resultado, "Actualizado Correctamente.");
     } catch (error) {
         return this.responseService.error(error);
@@ -779,6 +791,7 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
   }
 /*****************************************************************************************************************************/
   async createActaEntregaProvicional(data: CreateActaEntregaProvicionalDto) {
+    //console.log('POST CREATE ACTA');
     try {
       const {
         id_obra,
