@@ -14,6 +14,7 @@ import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
 import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
+import { CronogramaGestionDto } from './dto/cronograma-gestion.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -134,5 +135,21 @@ export class ObraController {
   ) {
     return this.obraService.updateCoordenadas(+id, dto);
   }
+
+  // VISTACRONORGRAMA
+  @Public()
+  @Post('reporte/general-cronograma-obras') // <-- Cambiado a Post
+  reporteGeneralCronogramaObras(@Body() cronogramaDto: CronogramaGestionDto) {
+      return this.obraService.reporteGeneralCronogramaObras(cronogramaDto);
+  }
+
+
+  //filtros UnidadEjecutora
+  @Public()
+  @Get('reporte/lista-unidades-ejecutoras') // <--- El nuevo prefijo estático para el filtro
+  listarUnidadesEjecutoras() {
+    return this.obraService.listarUnidadesEjecutoras();
+  }
+
   
 }

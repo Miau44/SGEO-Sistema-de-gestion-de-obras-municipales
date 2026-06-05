@@ -9,6 +9,7 @@ import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 import { ReportService } from 'src/schema_public/reporte/reporte.service';
+//import { QueryTypes } from 'sequelize';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -78,7 +79,7 @@ export class InformeModificacionFiscal {
     return resultado3[0];
    }
 
-   // Datos informes de Supervisor y Fiscal
+   // Datos informes de Supervisor y Fiscal revisando 
   async datosInformesSF(id_modif_pago: number) {
     const query2 = `
         SELECT * 
@@ -86,6 +87,129 @@ export class InformeModificacionFiscal {
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
+
+  ///persona vigente
+ async obtenerPersonaVigente(idPersona: number) {
+  const [resultado]: any = await this.sequelize.query(`
+    SELECT
+      idpersona,
+      usuario,
+      puesto,
+      pp_id_estado,
+      desccodue,
+      idpermiso
+    FROM vista_encabezado_documento
+    WHERE idpersona = :idPersona
+    LIMIT 1
+  `, {
+    replacements: { idPersona }
+  });
+
+  if (!resultado.length) {
+    return null;
+  }
+  const persona = resultado[0];
+  // Si sigue vigente
+  if (persona.pp_id_estado === 1) {
+    return {
+      id_persona: persona.idpersona,
+      nombre: persona.usuario,
+      cargo: persona.puesto,
+    };
+  }
+  // Buscar reemplazo
+  const [reemplazo]: any = await this.sequelize.query(`
+     SELECT
+      f.*,
+      v.puesto
+    FROM sp_encabezado_usuario(
+      :desccodue,
+      :idpermiso
+    ) f
+    LEFT JOIN vista_encabezado_documento v
+      ON v.idpersona = f.id_persona_reemplazo    
+  `, {
+    replacements: {
+      desccodue: persona.desccodue,
+      idpermiso: persona.idpermiso,
+    }
+  });
+  if (!reemplazo.length) {
+    return {
+      id_persona: persona.idpersona,
+      nombre: persona.usuario,
+    };
+  }
+
+  return {
+    id_persona: reemplazo[0].id_persona_reemplazo,
+    nombre: reemplazo[0].usuario_reemplazo,
+    cargo: reemplazo[0].puesto,
+  };
+}
+
+///
+async actualizarEncabezadoCompleto(datos: any) {
+  const [resultado]: any = await this.sequelize.query(`
+    SELECT
+      a_nombre,
+      via_nombre,
+      de_nombre
+    FROM informe
+    WHERE id_informe = :idInforme
+  `, {
+    replacements: {
+      idInforme: datos.idinffis,
+    }
+  });
+  if (!resultado.length) {
+    return datos;
+  }
+  const encabezado = resultado[0];
+  console.log('ENCABEZADO', JSON.stringify(encabezado, null, 2)
+  );
+  const actualizar = async (lista: any[]) => {
+    if (!Array.isArray(lista)) {
+      //return '';
+      return {
+        nombres: '',
+        cargo: '',
+      };
+    }
+    const nombres = [];
+    let cargo = '';
+    for (const persona of lista) {
+      const vigente =
+        await this.obtenerPersonaVigente(
+          persona.id_persona,
+        );
+      nombres.push(
+        vigente?.nombre || persona.nombre
+      );
+      if (vigente?.cargo) {
+        cargo = vigente.cargo;
+      }
+    }
+    return {
+      nombres: nombres.join('\n'),
+      cargo,
+    };
+    //return nombres.join('\n');
+  };
+  const a = await actualizar(encabezado.a_nombre);
+  const via = await actualizar(encabezado.via_nombre);
+  const de = await actualizar(encabezado.de_nombre);
+
+  return {
+    ...datos,
+    a_nombre: a?.nombres || datos.a_nombre,
+    a_cargo: a?.cargo || datos.a_cargo,
+    via_nombre: via?.nombres || datos.via_nombre,
+    via_cargo: via?.cargo || datos.via_cargo,
+    de_nombre: de?.nombres || datos.de_nombre,
+    de_cargo: de?.cargo || datos.de_cargo,
+  };
+}
 
   //margen para membrete por fecha a apartir del 13 de  mayo de  2026
   /*private obtenerMargenesporfecha(
@@ -134,6 +258,11 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       throw new Error('No se encontraron datos de los informes de Sup/Fis');
     }
     this.datosInf = res4;
+
+    ///actualizar el flujo 
+    this.datosInf[0] = await this.actualizarEncabezadoCompleto(
+        this.datosInf[0],
+      );
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
