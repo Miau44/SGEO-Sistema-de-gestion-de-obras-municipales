@@ -259,16 +259,6 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
     this.datosInf = res4;
 
-    console.log(
-      'DATOS INFORME',
-      JSON.stringify(res4[0], null, 2)
-    );
-
-    console.log(
-      'DATOS INFORME',
-      JSON.stringify(res4, null, 2)
-    );
-
     ///actualizar el flujo 
     this.datosInf[0] = await this.actualizarEncabezadoCompleto(
         this.datosInf[0],
