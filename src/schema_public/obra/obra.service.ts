@@ -16,6 +16,8 @@ import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
 import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
+import { CronogramaGestionDto } from './dto/cronograma-gestion.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ObraService {
@@ -422,5 +424,71 @@ WHERE sol.idusuario= ${data.usuario} `;
       return this.responseService.error(error);
     }
   }
+  
+
+     //CRONOGRAMA CON AÑO Y UE
+     async reporteGeneralCronogramaObras(cronogramaDto: CronogramaGestionDto): Promise<any> {
+  try {
+    if (cronogramaDto.gestion == null || cronogramaDto.gestion === 0) {
+      return this.responseService.error('Error, no se admiten valores nulos o 0 en gestión.');
+    }
+
+    let q = `
+      SELECT *
+      FROM vista_reporte_general_cronograma_obras
+      WHERE gestion = $1
+    `;
+
+    const params: any[] = [cronogramaDto.gestion];
+
+    // Filtro opcional por unidad ejecutora
+    if (cronogramaDto.unidad_ejecutora) {
+      q += ` AND unidad_ejecutora = $2`;
+      params.push(cronogramaDto.unidad_ejecutora);
+    }
+
+    q += ` ORDER BY codigo`;
+
+    const res = await this.obraRepositorio.query(q, params);
+
+    if (!res || res.length === 0) {
+      return this.responseService.error(null, 'No se encontraron registros.');
+    }
+
+    return this.responseService.success(res, 'Lista obtenida correctamente.');
+
+  } catch (error) {
+    return this.responseService.error(error, 'Error al obtener el reporte.');
+  }
+}
+
+
+  
+  //filtros UnidadEjecutora
+  // VISTA FILTRO UNIDADES EJECUTORAS
+  async listarUnidadesEjecutoras(): Promise<any> {
+    try {
+      // Apuntamos a la nueva vista limpia que creaste en Navicat
+      let q = `
+        SELECT unidad_ejecutora
+        FROM vista_filtro_unidades_ejecutoras
+        ORDER BY unidad_ejecutora
+      `;
+
+      const res = await this.obraRepositorio.query(q);
+
+      if (!res || res.length === 0) {
+        return this.responseService.error(null, 'No se encontraron unidades ejecutoras');
+      }
+
+      // Retorna la lista usando tu mapeador de respuestas exitosas
+      return this.responseService.success(res, 'Lista de unidades ejecutoras obtenida correctamente.');
+
+    } catch (error) {
+      return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
+    }
+  }
+
+ 
 
 }

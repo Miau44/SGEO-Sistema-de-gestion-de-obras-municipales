@@ -261,30 +261,34 @@ export class ProtocoloService {
   async obtenerHistorialProtocolo(id_modificacion_pago: number) {
     const historial = await this.dataSource.query(
       `
-      SELECT 
-        mh.id_historico,
-        mh.id_modificacion,
-        mh.id_modificacion_pago,
-        mh.dias_variacion,
-        mh.monto_variacion,
-        mh.monto_total,
-        mh.tipo_edicion,
-        mh.accion_historia,
-        mh.fecha_historia,
-        mh.usuario_historia,
+        SELECT DISTINCT ON (p.id_protocolo)
+        p.id_protocolo,
+        TO_CHAR(p.fecha_registro, 'DD/MM/YYYY HH24:MI:SS') AS fecha,
+
+        COALESCE(
+          prof.detalle || ' ' || TRIM(per.nombre) || ' ' || TRIM(per.primer_apellido) || ' ' || TRIM(per.segundo_apellido),
+          TRIM(per.nombre) || ' ' || TRIM(per.primer_apellido) || ' ' || TRIM(per.segundo_apellido),
+          'Usuario no identificado'
+        ) AS nodo,
+        'MODIFICACIÓN' AS modulo,
         p.justificacion
-      FROM modificacion_historico mh
-      
-      -- Unimos con la tabla protocolo para traer la justificación
-      LEFT JOIN protocolo p 
-        ON p.id_tabla_historico = mh.id_historico 
-        AND p.referencia_tabla_historico = 'modificacion_historico'
-        
-      WHERE mh.id_modificacion_pago = $1
-        AND mh.tipo_edicion = 'protocolo'
-        
-      ORDER BY mh.fecha_historia DESC;
-      `,
+      FROM protocolo p
+
+      LEFT JOIN persona per ON per.id_usuario = p.id_usuario AND per.id_estado IN (1,5)
+
+      LEFT JOIN ( SELECT id_subtipo, detalle FROM parametrica WHERE id_tipo = 2) 
+      prof ON per.id_profesion = prof.id_subtipo
+
+      WHERE p.referencia_tabla_historico = 'modificacion'
+        AND p.id_estado = 1
+        AND p.id_obra = (
+          SELECT mp.id_obra
+          FROM modificacion_pago mp
+          WHERE mp.id_modificacion_pago = $1
+          LIMIT 1
+        )
+      ORDER BY p.id_protocolo, p.fecha_registro DESC;
+     `,
       [id_modificacion_pago]
     );
 

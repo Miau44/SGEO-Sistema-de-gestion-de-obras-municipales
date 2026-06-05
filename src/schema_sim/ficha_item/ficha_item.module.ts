@@ -14,5 +14,6 @@ import { ResponseService } from 'src/response.service';
   ],
   controllers: [FichaItemController],
   providers: [ficha_itemService,ResponseService],
+  exports : [ficha_itemService],
 })
 export class FichaItemModule {}

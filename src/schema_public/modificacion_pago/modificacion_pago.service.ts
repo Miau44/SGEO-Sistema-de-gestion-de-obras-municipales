@@ -516,10 +516,11 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         }
         const query4 = `
         UPDATE public.informe
-        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5
+        SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5,
+         antecedentes = $6, conclusion = $7, recomendacion = $8
         WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
         const params4 = [
-          AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario
+          AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario, AprobarDto.antecedentes, AprobarDto.conclusion, AprobarDto.recomendacion
         ];
         const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
         if (!resultadoinforme || resultadoinforme.rowCount === 0) {

@@ -18,5 +18,14 @@ export class ValidarModificacionDto {
 
     @ApiProperty()
     id_usuario: number;
+
+    @ApiProperty()
+    antecedentes?: string;
+
+    @ApiProperty()
+    conclusion?: string;
+
+    @ApiProperty()
+    recomendacion?: string;
     
 }

@@ -60,10 +60,17 @@ export class SuspensionObra {
   }
 
   // Datos informes de Supervisor y Fiscal
-  async datosInformesSF(id_modif_pago: number) {
+  // async datosInformesSF(id_modif_pago: number) {
+  //   const query2 = `
+  //       SELECT * 
+  //       FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+  //   const resultado2 = await this.sequelize.query(query2);
+  //   return resultado2[0];
+  // }
+  async datosInformesSF(id_obra: number) {
     const query2 = `
         SELECT * 
-        FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+        FROM public."vista_reporte_memoOC" WHERE id_obra = ${id_obra}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
@@ -110,12 +117,6 @@ export class SuspensionObra {
       throw new Error('No se encontraron datos para la obra proporcionada');
     }
     this.datosEnvio = res;
-
-    const res1 = await this.datosInformesSF(id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos de los informes de Sup/Fis');
-    }
-    this.datosInf = res1;
 
     const res2 = await this.datosSuspencion(id_memo);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
@@ -397,34 +398,21 @@ export class SuspensionObra {
   }
 
   //// FUNCIONES VARIOS
-  
-      //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+fechaString(iso: string | Date): string {
+  if (!iso) return '';
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
+  const fecha =
+    typeof iso === 'string'
+      ? new Date(iso.replace(/-/g, '/'))
+      : iso;
 
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
-  }
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [
