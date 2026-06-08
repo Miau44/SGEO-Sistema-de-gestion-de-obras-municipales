@@ -259,6 +259,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
     this.datosInf = res4;
 
+    console.log('DATOS de informe ENVIO', this.datosInf);
+
     ///actualizar el flujo 
     this.datosInf[0] = await this.actualizarEncabezadoCompleto(
         this.datosInf[0],
@@ -471,7 +473,20 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         //layout: 'noBorders'
       },
       {
-        text: 'MODIFICACIONES',
+        text: '\n2.   ANTECEDENTES',
+        style: 'textTitulo', margin: [0, 0, 0, 5] 
+      },
+      {
+          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
+          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
+          'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
+          style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
+      },
+      {
+        text: '\n'
+      },
+       {
+        text: 'MODIFICACIONES CONTRACTUALES',
         style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
       {
@@ -491,20 +506,45 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         }, margin: [10, 0, 0, 0] 
       },
       {
-        text: '\n2.   ANTECEDENTES',
-        style: 'textTitulo', margin: [0, 0, 0, 5] 
+        text: '\n'
       },
       {
-          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
-          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
-          'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
-          style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
-      }, 
+        text: 'Antecedentes registrado por el Fiscal de Obra:',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
+      },
+      {
+        ul:
+          [
+            {
+              text: [{ text: this.datosInf[0].antecedentes_fis }]
+            }
+          ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+      },
       {
         text: '\n'
       },
       {
-        text: '3.   CONCLUSIONES\n',
+        text: '3.   DESARROLLO\n',
+        style: 'textTitulo', margin: [0, 0, 0, 5]
+      },
+       {
+              text: 'Desarrollo registrado por el Fiscal de Obra:',
+              style: 'textTitulo', margin: [10, 0, 0, 5]
+         },
+            {
+              ul:
+                [
+                  {
+                    text: [{ text: this.datosInf[0].analisis_fis }]
+                  }
+                ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+            },
+
+      {
+        text: ['\n'],
+      },
+      {
+        text: '4.   CONCLUSIONES\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
       {
@@ -530,6 +570,39 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ' por ' + this.datosInf[0].referencia + '. Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra.',}
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       },
+      {
+        text: ['\n'],
+      },
+      {
+        text: 'Conclusiones registradas por el Fiscal de Obra:',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
+      },
+      {
+        ul:
+          [
+            {
+              text: [{ text: this.datosInf[0].conclusion_fis }]
+            }
+          ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+      },
+
+      {
+        text: '5.   RECOMENDACIONES\n',
+        style: 'textTitulo', margin: [0, 0, 0, 5]
+      },
+      //  {
+      //         text: 'Recomendaciones registradas por el Fiscal de Obra:',
+      //         style: 'textTitulo', margin: [10, 0, 0, 5]
+      //    },
+            {
+              ul:
+                [
+                  {
+                    text: [{ text: this.datosInf[0].recomendacion_fis }]
+                  }
+                ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+            },
+
       {
         text: ['\n'],
       }, 
