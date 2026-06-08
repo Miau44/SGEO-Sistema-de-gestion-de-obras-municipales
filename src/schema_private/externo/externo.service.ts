@@ -430,6 +430,31 @@ async sgpuItemsVigentesexterno() {
   };  
 }
 
+  async obtenerReporteGeneral(correlativo_carpeta: number) {
+    try {
+      const [data] = await this.dataSource.query(
+        `
+      SELECT *
+      FROM vista_reporte_general
+      WHERE correlativo_carpeta = $1
+      LIMIT 1
+      `,
+        [correlativo_carpeta],
+      );
+
+      return {
+        ok: true,
+        data: data || null,
+      };
+    } catch (error) {
+      const mensajeError = error instanceof Error ? error.message : String(error);
+      return {
+        ok: false,
+        mensaje: 'Error al consultar reporte general',
+        error: mensajeError,
+      };
+    }
+  }
 
 }
 
