@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateObraDto } from './dto/create-obra.dto';
 import { UpdateObraDto } from './dto/update-obra.dto';
 import { CarpetaDto } from './dto/carpetaDto.dto';
@@ -18,6 +18,8 @@ import { MisProyectoDto } from './dto/mis-proyectos.dto';
 import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
 import { CronogramaGestionDto } from './dto/cronograma-gestion.dto';
 import { NotFoundException } from '@nestjs/common';
+import * as sql from 'mssql';
+import { SQLSERVER_CONNECTION } from '../../sqlserver.module';
 
 @Injectable()
 export class ObraService {
@@ -26,6 +28,7 @@ export class ObraService {
 
   constructor(@InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
     private responseService: ResponseService,
+    @Inject(SQLSERVER_CONNECTION) private readonly mssqlPool: sql.ConnectionPool,
   ) { }
 
 
@@ -489,6 +492,23 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
- 
-
+  async consultarDatosDeSqlServer(correlativo_carpeta:number) {
+    try {
+      const query = 'SELECT TOP (3) idCaso,SupervisorObra,representante,contratoMonto,contratoNumero,certificado,contratoValidado,'+
+      //'TRY_CAST(dbo.fnModificacion_OC_CM(idCaso, fechaCertificado) AS varchar(255)) AS tipoModificacion ' +
+     'tipoPago,montoCertificado,numeroPlanilla,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaCertificado,fechaDevengado, '+
+     'montoCertificado,numeroPlanilla,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaNumeracion,devengado,gestion,sigla,numero,anio,retencionGarantia,provisionalFechaActa,provisionalSigla,provisionalNumero '+
+      ' FROM [SIMSGEO].[dbo].[vistaDSOcar_carpetas_contrato_resumen] where idCarpeta = '+correlativo_carpeta.toString();
+      console.log(query);
+      
+      // Ejecutamos la consulta directa
+      const resultado = await this.mssqlPool.query(query);
+      console.log(resultado);
+            
+      //recordset contiene el array de objetos JSON planos
+      return resultado.recordset; 
+    } catch (error) {
+       return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
+    }
+  }
 }

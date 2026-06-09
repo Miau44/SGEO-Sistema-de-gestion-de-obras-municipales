@@ -151,5 +151,11 @@ export class ObraController {
     return this.obraService.listarUnidadesEjecutoras();
   }
 
-  
+  @Public()
+  @Get('listar-obras-247/:correlativo_carpeta')
+  listarObras247(@Param('correlativo_carpeta') correlativo_carpeta: number) {
+    console.log(correlativo_carpeta);
+    
+    return this.obraService.consultarDatosDeSqlServer(correlativo_carpeta);
+  }
 }
