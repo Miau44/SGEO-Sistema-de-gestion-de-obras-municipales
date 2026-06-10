@@ -203,4 +203,26 @@ darBaja(@Param('id') id: string) {
   return this.personaService.darBaja(+id);
 }
 
+@Post('listarUsuariosPorUE')
+async listarUsuariosPorUE(
+  @Body() estructuraGralDto: EstructuraGralDto,
+) {
+  return this.personaService.listarUsuariosPorUE(
+    estructuraGralDto,
+  );
+}
+
+@Post('listarUsuariosAsignadosPorUE')
+listarUsuariosAsignadosPorUE(
+  @Body() estructuraGralDto: EstructuraGralDto,
+) {
+  try {
+    return this.personaService.listarUsuariosAsignadosPorUE(
+      estructuraGralDto,
+    );
+  } catch (error) {
+    throw error;
+  }
+}
+
 }
