@@ -24,6 +24,7 @@ import { ActualizarModDto } from './dto/modificacion.dto';
 import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto'
 import { IsNumeric } from 'sequelize-typescript';
 import { NOW } from 'sequelize';
+import { FechasModPagoDto } from './dto/fechas.dto';
 
 
 
@@ -842,5 +843,28 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
 
+
+  
+    async AprobarFechas(FechasDto: FechasModPagoDto) {
+      console.log(FechasDto)
+      try {
+        // Validar los datos de entrada
+        if (!FechasDto.p_id_modificacion_pago) {
+          throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+        }
+  
+        const query2 = `
+        SELECT * FROM public.sp_aprobacion_fechas($1, $2, $3);`;
+        const params2 = [FechasDto.p_id_modificacion_pago, FechasDto.p_tipo_operacion, FechasDto.p_tipo_rol];
+
+        const resultado = await this.modPagoRepositorio.query(query2, params2);
+                  
+  
+        return this.responseService.success(resultado, "Ejecutado Correctamente!");
+      } catch (error) {
+        console.error("Error en aprobarDesignacion:", error);
+        return this.responseService.error(error);
+      }
+    }
 
 }
