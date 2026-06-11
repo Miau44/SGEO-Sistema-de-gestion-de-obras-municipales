@@ -418,9 +418,13 @@ async resolucionContrato(idContratoDlc: number) {
       'OK'
     );
 
-    return {
-      message: 'Contrato y obra actualizados correctamente'
-    };
+    return this.responseService.success(
+      {
+        idContratoDlc,
+        id_obra: contrato.id_obra
+      },
+      'Contrato y obra actualizados correctamente'
+    );
 
   } catch (error) {
 
@@ -433,7 +437,7 @@ async resolucionContrato(idContratoDlc: number) {
       'ERROR'
     );
 
-    throw error;
+    return this.responseService.error(error);
   }
 }
 

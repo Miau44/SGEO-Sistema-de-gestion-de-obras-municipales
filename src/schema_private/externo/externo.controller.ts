@@ -6,6 +6,7 @@ import { LoginExternoDto } from './dto/login-externo.dtos';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ObraExternoDto } from './dto/obra.dto';
+import { ReporteGeneralDto } from './dto/reporte-general.dto';
  
 
 @ApiTags('externo')
@@ -63,5 +64,19 @@ async obtenerConsultaExterna(
   @Param('nroModificacion') nroModificacion: number) {
   return this.externoService.obtenerConsultaExterna(Number(idContratoDlc), Number(nroModificacion));
 }
+
+  @Public()
+  @Get('/reporte-general/:correlativo_carpeta')
+  async obtenerReporteGeneral2(
+    @Param('correlativo_carpeta') correlativo_carpeta: string,
+  ) {
+    return this.externoService.obtenerReporteGeneral(Number(correlativo_carpeta));
+  }
+
+  @Public()
+  @Post('/reporte-general')
+  async obtenerReporteGeneral(@Body() datos: ReporteGeneralDto,) {
+    return this.externoService.obtenerReporteGeneral(datos.correlativo_carpeta,);
+  }
 
 }
