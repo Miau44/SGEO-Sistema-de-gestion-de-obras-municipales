@@ -494,19 +494,19 @@ WHERE sol.idusuario= ${data.usuario} `;
 
   async consultarDatosDeSqlServer(correlativo_carpeta:number) {
     try {
-      const query = 'SELECT TOP (3) idCaso,SupervisorObra,representante,contratoMonto,contratoNumero,certificado,contratoValidado,'+
+      const query = 'SELECT TOP (1) idCaso,cpt_sim_nombre,SupervisorObra,representante,contratoMonto,contratoNumero,certificado,contratoValidado,'+
       //'TRY_CAST(dbo.fnModificacion_OC_CM(idCaso, fechaCertificado) AS varchar(255)) AS tipoModificacion ' +
      'tipoPago,montoCertificado,numeroPlanilla,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaCertificado,fechaDevengado, '+
-     'montoCertificado,numeroPlanilla,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaNumeracion,devengado,gestion,sigla,numero,anio,retencionGarantia,provisionalFechaActa,provisionalSigla,provisionalNumero '+
-      ' FROM [SIMSGEO].[dbo].[vistaDSOcar_carpetas_contrato_resumen] where idCarpeta = '+correlativo_carpeta.toString();
+     'montoCertificado,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaNumeracion,devengado,gestion,sigla,numero,anio,retencionGarantia,provisionalFechaActa,provisionalSigla,provisionalNumero '+
+     'definitivaFechaActa,definitivaSigla,definitivaNumero,siglaCertificado,siglaCertificadoInforme,siglaCertificadoInformeFiscal,retencionMorosidad,fecha_validacion,unidad_ejecutora,idCarpeta '+
+     ' FROM [SIMSGEO].[dbo].[vistaDSOcar_carpetas_contrato_resumen] where idCarpeta = '+correlativo_carpeta.toString()+ ' ORDER BY (numeroPlanilla + 0) desc';
       console.log(query);
       
       // Ejecutamos la consulta directa
       const resultado = await this.mssqlPool.query(query);
-      console.log(resultado);
             
       //recordset contiene el array de objetos JSON planos
-      return resultado.recordset; 
+      return resultado.recordset;
     } catch (error) {
        return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
     }

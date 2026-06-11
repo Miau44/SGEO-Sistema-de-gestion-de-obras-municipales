@@ -75,8 +75,8 @@ async obtenerConsultaExterna(
 
   @Public()
   @Post('/reporte-general')
-  async obtenerReporteGeneral(@Body() datos: ReporteGeneralDto,) {
-    return this.externoService.obtenerReporteGeneral(datos.correlativo_carpeta,);
+  async obtenerReporteGeneral(@Body() datos: ReporteGeneralDto) {
+    return this.externoService.obtenerReporteGeneral(datos.correlativo_carpeta);
   }
 
 }
