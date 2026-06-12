@@ -23,6 +23,9 @@ export class ValidarModificacionDto {
     antecedentes?: string;
 
     @ApiProperty()
+    analisis?: string;
+    
+    @ApiProperty()
     conclusion?: string;
 
     @ApiProperty()

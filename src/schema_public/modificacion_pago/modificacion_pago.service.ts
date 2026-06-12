@@ -24,6 +24,7 @@ import { ActualizarModDto } from './dto/modificacion.dto';
 import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto'
 import { IsNumeric } from 'sequelize-typescript';
 import { NOW } from 'sequelize';
+import { FechasModPagoDto } from './dto/fechas.dto';
 
 
 
@@ -517,10 +518,10 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
         const query4 = `
         UPDATE public.informe
         SET id_correlativo = $4, fecha_aprobacion = NOW(), usuario_registro = $5,
-         antecedentes = $6, conclusion = $7, recomendacion = $8
+         antecedentes = $6, analisis = $7, conclusion = $8, recomendacion = $9
         WHERE id_obra = $1 AND id_tipo_informe = $2 AND id_solicitud = $3 AND id_estado = 1`;
         const params4 = [
-          AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario, AprobarDto.antecedentes, AprobarDto.conclusion, AprobarDto.recomendacion
+          AprobarDto.id_obra, tipoCorrelativo, AprobarDto.id_solicitud, idCorrelativoMemo, AprobarDto.id_usuario, AprobarDto.antecedentes, AprobarDto.analisis, AprobarDto.conclusion, AprobarDto.recomendacion
         ];
         const resultadoinforme = await this.modPagoRepositorio.query(query4, params4);
         if (!resultadoinforme || resultadoinforme.rowCount === 0) {
@@ -842,5 +843,28 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
     }
   }
 
+
+  
+    async AprobarFechas(FechasDto: FechasModPagoDto) {
+      console.log(FechasDto)
+      try {
+        // Validar los datos de entrada
+        if (!FechasDto.p_id_modificacion_pago) {
+          throw new BadRequestException('Faltan datos necesarios para aprobar la modificacion.');
+        }
+  
+        const query2 = `
+        SELECT * FROM public.sp_aprobacion_fechas($1, $2, $3);`;
+        const params2 = [FechasDto.p_id_modificacion_pago, FechasDto.p_tipo_operacion, FechasDto.p_tipo_rol];
+
+        const resultado = await this.modPagoRepositorio.query(query2, params2);
+                  
+  
+        return this.responseService.success(resultado, "Ejecutado Correctamente!");
+      } catch (error) {
+        console.error("Error en aprobarDesignacion:", error);
+        return this.responseService.error(error);
+      }
+    }
 
 }
