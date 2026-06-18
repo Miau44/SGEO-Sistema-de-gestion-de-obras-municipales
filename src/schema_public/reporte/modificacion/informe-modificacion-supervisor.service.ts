@@ -209,7 +209,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     //membrete por fecha de 13 de  mayo de  2026
     const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
     const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    //const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosEnvio[0].fecha_supervisor;
 
     //margenes por gestion
     /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
@@ -249,7 +250,19 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
- 
+
+    //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
+
+    const fechaCorte = new Date('2026-05-15');
+
+    // si no existe fecha_aprobacion usar today
+    const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
+      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+      : new Date();
+
+    /*const esNuevoFormato = fechaComparacion >= fechaCorte;
+    const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
+
    //console.log('DATOS MODIFICACION',this.datosEnvio);
    
     const documentDefinition = {
@@ -315,6 +328,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
                       ]
               },
             ],
+
+            //fecha supervisor
             [
               { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
               { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
@@ -751,6 +766,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { //return currentPage.toString() + ' of ' + pageCount; 
             return {
               columns:[
+                  
                   { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
                       ]
               }            
@@ -798,6 +814,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
+  //console.log('fecha_aprobacion:', this.datosEnvio[0].fecha_aprobacion);
+  //console.log('mostrar marca agua:', !this.datosEnvio[0].fecha_aprobacion);
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
   //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR

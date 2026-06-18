@@ -176,7 +176,8 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       margenesDinamicos = [70, 170, 50, 140]; 
     }*/
 
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+    //const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_supervisor;
 
     //membrete  por  fecha 
     const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
