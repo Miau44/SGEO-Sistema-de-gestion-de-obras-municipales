@@ -184,7 +184,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
     //margenes dinamicos  para el nuevio membretado 
-    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);                                                (fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     
     let porc_presente = 0;

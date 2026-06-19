@@ -560,10 +560,10 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         }
       ] : []),
 
-      {
+      /*{
         text: '3.   DESARROLLO\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
+      },*/
        /*{
               text: 'Desarrollo registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
@@ -578,6 +578,10 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             },*/
 
           ...(mostrarTextoFiscal ? [
+          {
+            text: '3.   DESARROLLO\n',
+            style: 'textTitulo', margin: [0, 0, 0, 5]
+          },
           {
             text: 'Desarrollo registrado por el Fiscal de Obra:',
             style: 'textTitulo',
