@@ -602,10 +602,6 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       {
         text: ['\n'],
       },
-      /*{
-        text: '4.   CONCLUSIONES\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },*/
       {
         text: mostrarTextoFiscal
           ? '4.   CONCLUSIONES\n'
