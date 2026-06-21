@@ -207,7 +207,8 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
     try {
       //externo sistema seguridad
      // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
-      const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+     console.log(JSON.stringify(estructuraGralDto, null, 2));
+     const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
 
       const options = {
         method: 'POST',
@@ -257,17 +258,17 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
       const resultado = resultadoSeguridad.map(seguridad => {
-        const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
+      const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
         return { seguridad, sgeo: asignado };
-      });
+});
       return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error: any) {
+} catch (error: any) {
       console.error("Error al actualizar justificación:", error); // Log detallado en consola
-      return this.responseService.error({
-        mensaje: "Ocurrió un error al actualizar la justificación.",
-        detalle: error.message || error,
-      });
-    }
+  return this.responseService.error({
+    mensaje: "Ocurrió un error al actualizar la justificación.",
+    detalle: error.message || error,
+  });
+}
   }
 
   async token() {
@@ -642,4 +643,158 @@ ppue.id_estado=1;`;
       return this.responseService.error(error);
     }
   }  */
+
+    async darBaja(id_persona: number) {
+  try {
+
+    const resultado = await this.personaRepo.update(
+      id_persona,
+      {
+        id_estado: 0
+      }
+    );
+
+    if (resultado.affected === 0) {
+      return this.responseService.error(
+        "No se encontró la persona"
+      );
+    }
+
+    return this.responseService.success(
+      resultado,
+      "Persona dada de baja correctamente."
+    );
+
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+async listarUsuariosPorUE(
+  estructuraGralDto: EstructuraGralDto,
+) {
+  try {
+
+    const urlSeguridad =
+      process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+
+    // Transformar el payload para Seguridad
+   const bodySeguridad = {
+  codigoue: `[${estructuraGralDto.codigoue[0]}]`,
+  gestion: estructuraGralDto.gestion,
+};
+
+console.log('Enviando a Seguridad:');
+console.log(JSON.stringify(bodySeguridad, null, 2));
+
+    console.log('Enviando a Seguridad:', bodySeguridad);
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bodySeguridad),
+    };
+
+    const response = await fetch(urlSeguridad, options);
+    const resultadoUsuarios = await response.json();
+
+    console.log('Respuesta Seguridad:', resultadoUsuarios);
+
+    if (!Array.isArray(resultadoUsuarios?.data)) {
+      return this.responseService.error({
+        mensaje: 'Error al consultar Seguridad',
+        detalle: resultadoUsuarios?.message || 'No se recibieron datos',
+      });
+    }
+
+    return this.responseService.success(
+      resultadoUsuarios.data,
+      'Usuarios obtenidos correctamente.',
+    );
+
+  } catch (error: any) {
+
+    console.error('Error al listar usuarios:', error);
+
+    return this.responseService.error({
+      mensaje: 'Ocurrió un error al listar usuarios.',
+      detalle: error.message || error,
+    });
+
+  }
+}
+async listarUsuariosAsignadosPorUE(
+  estructuraGralDto: EstructuraGralDto,
+) {
+  try {
+
+    const urlSeguridad =
+      process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+
+    const bodySeguridad = {
+      codigoue: `[${estructuraGralDto.codigoue[0]}]`,
+      gestion: estructuraGralDto.gestion,
+    };
+
+    const response = await fetch(urlSeguridad, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bodySeguridad),
+    });
+
+    const resultadoSeguridad = await response.json();
+
+    if (!Array.isArray(resultadoSeguridad?.data)) {
+      return this.responseService.error({
+        mensaje: 'Error al consultar Seguridad',
+        detalle: resultadoSeguridad?.message || 'No se recibieron datos',
+      });
+    }
+
+    const usuariosSeguridad = resultadoSeguridad.data;
+
+    const query = `
+      SELECT *
+      FROM persona
+      WHERE id_estado <> 0
+      AND gestion = ${estructuraGralDto.gestion}
+    `;
+
+    const personasSgeo = await this.personaRepo.query(query);
+
+    const resultado = usuariosSeguridad
+      .map((seguridad: any) => {
+
+        const sgeo = personasSgeo.filter(
+          (p: any) => p.id_usuario === seguridad.idusuario
+        );
+
+        return {
+          seguridad,
+          sgeo
+        };
+
+      })
+      .filter((item: any) => item.sgeo.length > 0);
+
+    return this.responseService.success(
+      resultado,
+      'Usuarios asignados obtenidos correctamente'
+    );
+
+  } catch (error: any) {
+
+    console.error(error);
+
+    return this.responseService.error({
+      mensaje: 'Error al listar usuarios asignados',
+      detalle: error.message || error,
+    });
+
+  }
+}
+
 }
