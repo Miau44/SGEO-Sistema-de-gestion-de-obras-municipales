@@ -131,6 +131,7 @@ export class SuspensionObra {
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosSusp[0].suspension_finalizada;
+    const finalizado = this.datosSusp[0].suspension_finalizada;
 
     //membrete por gestion
     //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
@@ -163,6 +164,7 @@ export class SuspensionObra {
         }
       },
       ...(!marcaAgua && {
+      //...(!finalizado && {
         watermark: { text: 'PRELIMINAR', color: 'red', opacity: 0.2, bold: true },
       }
       ),
@@ -178,10 +180,15 @@ export class SuspensionObra {
           text: 'MEMORANDUM',
           style: 'header', alignment: 'center',
         } as any,
-       {
+       /*{
           text: this.datosEnvio[0].cod_carpeta + '-' + this.datosSusp[0].cite + '-' + this.datosSusp[0].correlativo,
           style: 'subheader', alignment: 'center'
-        },
+        },*/
+        ...(finalizado ? [{
+          text: `${this.datosEnvio[0].cod_carpeta}-${this.datosSusp[0].cite}-${this.datosSusp[0].correlativo}`,
+          style: 'subheader',
+          alignment: 'center'
+        }] : []),
         {
           text: '\n'
         },
@@ -212,10 +219,18 @@ export class SuspensionObra {
                 }
               ],
               [
-                {
+                /*{
                   border: [false, false, true, true],
                   text: 'La Paz, ' + this.fechaString(this.datosSusp[0].registro_suspencion), 
                   style: 'textDato', alignment: 'center'
+                },*/
+                {
+                  border: [false, false, true, true],
+                  text: finalizado
+                    ? 'La Paz, ' + this.fechaString(this.datosSusp[0].registro_suspencion)
+                    : '',
+                  style: 'textDato',
+                  alignment: 'center'
                 },
                 {
                   border: [true, false, false, true],

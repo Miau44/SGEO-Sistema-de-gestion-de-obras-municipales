@@ -231,7 +231,8 @@ export class InformePagoFiscal {
       margenesDinamicos = [70, 170, 50, 140]; 
     }*/
 
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+    //const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_fiscal;
 
     //membrete por fecha
     const fechaDocumento = this.datosEnvio[0].fecha_fiscal;
