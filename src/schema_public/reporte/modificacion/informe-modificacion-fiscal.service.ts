@@ -9,6 +9,7 @@ import { log, table } from 'console';
 import { existsSync } from 'fs'
 import { join } from 'path';
 import { ReportService } from 'src/schema_public/reporte/reporte.service';
+//import { QueryTypes } from 'sequelize';
 
 const rootPath = process.cwd();
 const fontsPath = join(process.cwd(), 'assets', 'fonts');
@@ -78,7 +79,7 @@ export class InformeModificacionFiscal {
     return resultado3[0];
    }
 
-   // Datos informes de Supervisor y Fiscal
+   // Datos informes de Supervisor y Fiscal revisando 
   async datosInformesSF(id_modif_pago: number) {
     const query2 = `
         SELECT * 
@@ -86,6 +87,129 @@ export class InformeModificacionFiscal {
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
+
+  ///persona vigente
+ async obtenerPersonaVigente(idPersona: number) {
+  const [resultado]: any = await this.sequelize.query(`
+    SELECT
+      idpersona,
+      usuario,
+      puesto,
+      pp_id_estado,
+      desccodue,
+      idpermiso
+    FROM vista_encabezado_documento
+    WHERE idpersona = :idPersona
+    LIMIT 1
+  `, {
+    replacements: { idPersona }
+  });
+
+  if (!resultado.length) {
+    return null;
+  }
+  const persona = resultado[0];
+  // Si sigue vigente
+  if (persona.pp_id_estado === 1) {
+    return {
+      id_persona: persona.idpersona,
+      nombre: persona.usuario,
+      cargo: persona.puesto,
+    };
+  }
+  // Buscar reemplazo
+  const [reemplazo]: any = await this.sequelize.query(`
+     SELECT
+      f.*,
+      v.puesto
+    FROM sp_encabezado_usuario(
+      :desccodue,
+      :idpermiso
+    ) f
+    LEFT JOIN vista_encabezado_documento v
+      ON v.idpersona = f.id_persona_reemplazo    
+  `, {
+    replacements: {
+      desccodue: persona.desccodue,
+      idpermiso: persona.idpermiso,
+    }
+  });
+  if (!reemplazo.length) {
+    return {
+      id_persona: persona.idpersona,
+      nombre: persona.usuario,
+    };
+  }
+
+  return {
+    id_persona: reemplazo[0].id_persona_reemplazo,
+    nombre: reemplazo[0].usuario_reemplazo,
+    cargo: reemplazo[0].puesto,
+  };
+}
+
+///
+async actualizarEncabezadoCompleto(datos: any) {
+  const [resultado]: any = await this.sequelize.query(`
+    SELECT
+      a_nombre,
+      via_nombre,
+      de_nombre
+    FROM informe
+    WHERE id_informe = :idInforme
+  `, {
+    replacements: {
+      idInforme: datos.idinffis,
+    }
+  });
+  if (!resultado.length) {
+    return datos;
+  }
+  const encabezado = resultado[0];
+  console.log('ENCABEZADO', JSON.stringify(encabezado, null, 2)
+  );
+  const actualizar = async (lista: any[]) => {
+    if (!Array.isArray(lista)) {
+      //return '';
+      return {
+        nombres: '',
+        cargo: '',
+      };
+    }
+    const nombres = [];
+    let cargo = '';
+    for (const persona of lista) {
+      const vigente =
+        await this.obtenerPersonaVigente(
+          persona.id_persona,
+        );
+      nombres.push(
+        vigente?.nombre || persona.nombre
+      );
+      if (vigente?.cargo) {
+        cargo = vigente.cargo;
+      }
+    }
+    return {
+      nombres: nombres.join('\n'),
+      cargo,
+    };
+    //return nombres.join('\n');
+  };
+  const a = await actualizar(encabezado.a_nombre);
+  const via = await actualizar(encabezado.via_nombre);
+  const de = await actualizar(encabezado.de_nombre);
+
+  return {
+    ...datos,
+    a_nombre: a?.nombres || datos.a_nombre,
+    a_cargo: a?.cargo || datos.a_cargo,
+    via_nombre: via?.nombres || datos.via_nombre,
+    via_cargo: via?.cargo || datos.via_cargo,
+    de_nombre: de?.nombres || datos.de_nombre,
+    de_cargo: de?.cargo || datos.de_cargo,
+  };
+}
 
   //margen para membrete por fecha a apartir del 13 de  mayo de  2026
   /*private obtenerMargenesporfecha(
@@ -135,6 +259,13 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     }
     this.datosInf = res4;
 
+    console.log('DATOS de informe ENVIO', this.datosInf);
+
+    ///actualizar el flujo 
+    this.datosInf[0] = await this.actualizarEncabezadoCompleto(
+        this.datosInf[0],
+      );
+
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
@@ -147,7 +278,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
   
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  //const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosEnvio[0].fecha_fiscal;
 
   //margenes por fecha
   /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
@@ -183,6 +315,19 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         }
     }
 
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones 
+
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_aprobacion
+      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+      : new Date();
+
+    const mostrarTextoFiscal =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
+
+    /*const esNuevoFormato = fechaAprobacion >= fechaCorte;
+
+    const fechaFiscal = this.fechaString(this.datosEnvio[0].fecha_fiscal);*/
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -276,6 +421,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
                 { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
               ],
+
             ],
           },
           layout: {
@@ -342,7 +488,20 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         //layout: 'noBorders'
       },
       {
-        text: 'MODIFICACIONES',
+        text: '\n2.   ANTECEDENTES',
+        style: 'textTitulo', margin: [0, 0, 0, 5] 
+      },
+      {
+          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
+          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
+          'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
+          style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
+      },
+      {
+        text: '\n'
+      },
+       {
+        text: 'MODIFICACIONES CONTRACTUALES',
         style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
       {
@@ -362,21 +521,93 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         }, margin: [10, 0, 0, 0] 
       },
       {
-        text: '\n2.   ANTECEDENTES',
-        style: 'textTitulo', margin: [0, 0, 0, 5] 
-      },
-      {
-          text: 'En atención al informe de la supervisión ' + this.datosEnvio[0].cod_carpeta + '-' + this.datosInf[0].cite_sup + '-' + this.datosInf[0].correlativosup + 
-          ' de fecha ' + this.fechaString(this.datosEnvio[0].fecha_supervisor) + ' emitido por la supervisión de obra, que establece los sustentos necesarios para la presente ' + 
-          'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
-          style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
-      }, 
-      {
         text: '\n'
       },
+      /*{
+        text: 'Antecedentes registrado por el Fiscal de Obra:',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
+      },
       {
-        text: '3.   CONCLUSIONES\n',
+        ul:
+          [
+            {
+              text: [{ text: this.datosInf[0].antecedentes_fis }]
+            }
+          ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+      },
+      {
+        text: '\n'
+      },*/
+
+      ...(mostrarTextoFiscal ? [
+        {
+          text: 'Antecedentes registrado por el Fiscal de Obra:',
+          style: 'textTitulo',
+          margin: [10, 0, 0, 5]
+        },
+        {
+          ul: [
+            {
+              text: [{ text: this.datosInf[0].antecedentes_fis }]
+            }
+          ],
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        },
+        {
+          text: '\n'
+        }
+      ] : []),
+
+      /*{
+        text: '3.   DESARROLLO\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
+      },*/
+       /*{
+              text: 'Desarrollo registrado por el Fiscal de Obra:',
+              style: 'textTitulo', margin: [10, 0, 0, 5]
+         },
+            {
+              ul:
+                [
+                  {
+                    text: [{ text: this.datosInf[0].analisis_fis }]
+                  }
+                ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+            },*/
+
+          ...(mostrarTextoFiscal ? [
+          {
+            text: '3.   DESARROLLO\n',
+            style: 'textTitulo', margin: [0, 0, 0, 5]
+          },
+          {
+            text: 'Desarrollo registrado por el Fiscal de Obra:',
+            style: 'textTitulo',
+            margin: [10, 0, 0, 5]
+          },
+          {
+            ul: [
+              {
+                text: [{ text: this.datosInf[0].analisis_fis }]
+              }
+            ],
+            style: 'textDato',
+            alignment: 'justify',
+            margin: [10, 0, 0, 7]
+          }
+        ] : []),
+
+      {
+        text: ['\n'],
+      },
+      {
+        text: mostrarTextoFiscal
+          ? '4.   CONCLUSIONES\n'
+          : '3.   CONCLUSIONES\n',
+        style: 'textTitulo',
+        margin: [0, 0, 0, 5]
       },
       {
         text: [
@@ -401,6 +632,70 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               ' por ' + this.datosInf[0].referencia + '. Se adjunta toda la documentación enviada al efecto por la Supervisión de Obra.',}
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       },
+      {
+        text: ['\n'],
+      },
+      /*{
+        text: 'Conclusiones registradas por el Fiscal de Obra:',
+        style: 'textTitulo', margin: [10, 0, 0, 5]
+      },
+      {
+        ul:
+          [
+            {
+              text: [{ text: this.datosInf[0].conclusion_fis }]
+            }
+          ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+      },*/
+
+      ...(mostrarTextoFiscal ? [
+        {
+          text: 'Conclusiones registradas por el Fiscal de Obra:',
+          style: 'textTitulo',
+          margin: [10, 0, 0, 5]
+        },
+        {
+          ul: [
+            {
+              text: [{ text: this.datosInf[0].conclusion_fis }]
+            }
+          ],
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        }
+      ] : []),
+
+      //  {
+      //         text: 'Recomendaciones registradas por el Fiscal de Obra:',
+      //         style: 'textTitulo', margin: [10, 0, 0, 5]
+      //    },
+            /*{
+              ul:
+                [
+                  {
+                    text: [{ text: this.datosInf[0].recomendacion_fis }]
+                  }
+                ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+            },*/
+
+            ...(mostrarTextoFiscal ? [
+              {
+                text: '5.   RECOMENDACIONES\n',
+                style: 'textTitulo', margin: [0, 0, 0, 5]
+              },
+              {
+                ul: [
+                  {
+                    text: [{ text: this.datosInf[0].recomendacion_fis }]
+                  }
+                ],
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
       {
         text: ['\n'],
       }, 

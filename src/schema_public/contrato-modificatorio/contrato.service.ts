@@ -386,7 +386,20 @@ async resolucionContrato(idContratoDlc: number) {
   try {
 
     if (!idContratoDlc) {
-      throw new Error('No llegó id_contrato_dlc');
+
+      await this.saveLogs(
+        'No llegó id_contrato_dlc',
+        { idContratoDlc } as any,
+        'ERROR'
+      );
+
+      return {
+        statusCode: 400,
+        message: 'No llegó id_contrato_dlc',
+        data: {
+          estadoIntegracion: 3
+        }
+      };
     }
 
     const contrato = await this.contratoRepo.findOne({
@@ -394,9 +407,21 @@ async resolucionContrato(idContratoDlc: number) {
     });
 
     if (!contrato) {
-      throw new Error(
-        `No existe contrato con id_contrato_dlc ${idContratoDlc}`
+
+      await this.saveLogs(
+        'Contrato no encontrado',
+        { idContratoDlc } as any,
+        'ERROR'
       );
+
+      return {
+        statusCode: 404,
+        message: 'No existe contrato con el id recibido',
+        data: {
+          estadoIntegracion: 2,
+          idContratoDlc
+        }
+      };
     }
 
     //actualizar contrato 
@@ -418,9 +443,14 @@ async resolucionContrato(idContratoDlc: number) {
       'OK'
     );
 
-    return {
-      message: 'Contrato y obra actualizados correctamente'
-    };
+    return this.responseService.success(
+      {
+        estadoIntegracion: 1,
+        idContratoDlc,
+        id_obra: contrato.id_obra
+      },
+      'Contrato y obra actualizados correctamente'
+    );
 
   } catch (error) {
 
@@ -433,7 +463,7 @@ async resolucionContrato(idContratoDlc: number) {
       'ERROR'
     );
 
-    throw error;
+    return this.responseService.error(error);
   }
 }
 

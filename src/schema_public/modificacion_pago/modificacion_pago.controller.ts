@@ -12,6 +12,7 @@ import { ActualizarModPagoDto } from './dto/modificacion-pago.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ActualizarModDto } from './dto/modificacion.dto';
 import { ActualizarCMADto } from './dto/dto-modificacion/update-cma.dto';
+import { FechasModPagoDto } from './dto/fechas.dto';
 
 
 
@@ -247,5 +248,15 @@ obtenerModificacionOne(@Param('id') id: string) {
     }
   }
 
+
+    @Public()
+  @Post('aprobacion-fechas')
+  async aprobacionFechas(@Body() validarfechas: FechasModPagoDto) {
+    try {
+      return this.modificacionPagoService.AprobarFechas(validarfechas);
+
+    } catch (error) {
+    }
+  }
   
 }
