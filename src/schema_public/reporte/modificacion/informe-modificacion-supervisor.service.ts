@@ -272,6 +272,21 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       : new Date();
 
     const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+
+    /*consola para ver de que  tipo es monto_variacion y del porque no me estaba funcionando
+    console.log('fechaSupervisor:', this.datosEnvio[0].fecha_supervisor);
+    console.log('usarNuevoTextoMonto:', usarNuevoTextoMonto);
+    console.log('monto_variacion:', this.datosEnvio[0].monto_variacion);
+    console.log('Number:', Number(this.datosEnvio[0].monto_variacion));
+    console.log('typeof:', typeof this.datosEnvio[0].monto_variacion);
+    console.log(this.datosEnvio[0].monto_variacion);*/
+    
+    //ajuste para  monto variacion en el texto parte 6.
+    const montoVariacion = parseFloat(String(this.datosEnvio[0].monto_variacion).replace(',', '.'));
+    //const montoVariacion = Number(this.datosEnvio[0].monto_variacion);
+
+    const verboMonto = usarNuevoTextoMonto ? (montoVariacion === 0 ? 'mantiene' : 'modifica') : 'modifica';
+    //console.log('verboMonto:', verboMonto);
       
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -659,7 +674,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
             ? 'El '
             : 'La '},
-          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica el monto ' }, 
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' ' + verboMonto +' el monto ' }, 
           { text: this.datosEnvio[0].modificacion_gral == 1 
             ? 'vigente de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
             : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1) + ') de Bs' + this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
