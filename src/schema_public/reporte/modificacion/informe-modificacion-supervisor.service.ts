@@ -252,7 +252,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     });
 
     //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
-
     const fechaCorte = new Date('2026-05-15');
 
     // si no existe fecha_aprobacion usar today
@@ -263,8 +262,17 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     /*const esNuevoFormato = fechaComparacion >= fechaCorte;
     const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
 
-   //console.log('DATOS MODIFICACION',this.datosEnvio);
-   
+    //console.log('DATOS MODIFICACION',this.datosEnvio);
+
+    // Fecha de corte para el cambio de texto "nuevo monto autorizado"
+    const fechaCorteMonto = new Date('2026-06-23');
+
+    const fechaComparacionMonto = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
+      : new Date();
+
+    const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+      
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -659,10 +667,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n' },
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
-      {
+      /*{
         text: 'Por lo que el nuevo monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones ' + 
         '(incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+      },*/
+      {
+        text:
+          (usarNuevoTextoMonto
+            ? 'Por lo que el monto autorizado será de Bs.'
+            : 'Por lo que el nuevo monto autorizado será de Bs.') +
+          this.datosEnvio[0].monto_total +
+          ' (' +
+          this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +
+          ')' +
+          ' totalizando un valor porcentual de modificaciones ' + '(incluyendo la presente) de ' +
+          this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.',
+        style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 5]
       },
 
       {
@@ -695,6 +716,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n'
       },
       {
+        //anexo
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
