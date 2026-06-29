@@ -14,6 +14,9 @@ import { And, Any, Not, Repository } from 'typeorm';
 
 import { ItemEstadoDto } from './dto/item-estado.dto';
 import { ItemFinalizarDto } from './dto/item-finalizar.dto';
+import { CreateItemAvanceDto } from './dto/create-item-avance.dto';
+import { AvanceItemDto } from './dto/item-avance.dto';
+import { ItemEstadoAvanceDto } from './dto/item-estado-avance.dto';
 
 
 
@@ -162,5 +165,47 @@ finalizarOrdenItem(@Body() itemEstadoDto: ItemFinalizarDto) {
     } catch (error) {
     }
   }  
+
+
+
+  //item avance
+
+  @Post('crear-item-avance')
+  async createAvance(@Body() createItemAvanceDto: CreateItemAvanceDto) {
+    try {
+      return await this.itemService.createItenAvance(createItemAvanceDto);
+    } catch (error) { }
+  }
+
+
+
+  @Public()
+  @Post('avance-x-item')
+  listaComputoItem(@Body() avanceItemDto: AvanceItemDto) {
+    try {
+      return this.itemService.listaAvanceXItem(avanceItemDto);
+    } catch (error) {
+    }
+  }
+
+
+  @Public()
+  @Get('avancexitem/:id')
+
+  findOneItenAvance(@Param('id') id: string) {
+    try {
+      return this.itemService.findOneItemAvance(+id);
+    } catch (error) { }
+  }
+
+
+    @Public()
+  @Post('item-actualizar-estado-avance')
+  actualizarEstadoAvance(@Body() itemEstadoDto: ItemEstadoAvanceDto) {
+    try {
+      return this.itemService.actualizarEstadoAvance(itemEstadoDto);
+    } catch (error) {
+    }
+  }
 
 }

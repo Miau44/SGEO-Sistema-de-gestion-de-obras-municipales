@@ -13,6 +13,7 @@ import { Memorandum } from '../memorandum/entities/memorandum.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Obra, GarantiaSeguro, Empresa, Memorandum])],
+  exports: [TypeOrmModule],
 
   controllers: [ObraController],
   providers: [ObraService, ResponseService],
