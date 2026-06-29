@@ -18,6 +18,11 @@ import { PlanillaService } from '../planilla/planilla.service';
 import { ObraService } from '../obra/obra.service';
 import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
 import { ItemObraContratoDto } from './dto/obra-contrato.dto';
+import { CreateItemAvanceDto } from './dto/create-item-avance.dto';
+import { AvanceItemDto } from './dto/item-avance.dto';
+import { ItemAvance } from './entities/avance_item.entity';
+import { log } from 'node:console';
+import { ItemEstadoAvanceDto } from './dto/item-estado-avance.dto';
 
 @Injectable()
 export class ItemService {
@@ -27,6 +32,10 @@ export class ItemService {
   constructor(
     @InjectRepository(Item)
     private readonly itemRepository: Repository<Item>,
+    @InjectRepository(ItemAvance)
+
+    private readonly itemAvanceRepository: Repository<ItemAvance>,
+
     //    @InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
 
     private responseService: ResponseService,
@@ -491,4 +500,72 @@ const resultado = await this.itemRepository.query(query);
     }
     return modalidad.cantidad_decimales ?? 2; // Devuelve number
   }
+
+
+//avance por item paola
+  async createItenAvance(createObraDto: CreateItemAvanceDto) {
+    try {
+
+      const resultado = await this.itemAvanceRepository.save(createObraDto);
+      let query = ` SELECT public.fn_actualizar_total_avance($1);`;
+      const params = [resultado.id_item];
+      const resultado2 = await this.itemAvanceRepository.query(query, params);
+
+      return this.responseService.success(resultado, "Registrado Correctamente.");
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+
+  async listaAvanceXItem(data: AvanceItemDto) {
+    try {
+      const datos = {
+        id_item: data.id_item,
+        id_modificacion_pago: data.id_modificacion_pago
+      }
+      await this.planillaService.actualizarPlanillaXIditem(datos);
+
+      let query = ` SELECT * FROM public.sp_computo_monto($1, $2);`;
+
+      const params = [data.id_item, data.id_modificacion_pago];
+      const resultado = await this.itemRepository.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  
+async findOneItemAvance(id_item: number) {
+  try {
+    // CORRECCIÓN: Agregamos el objeto 'where' para la búsqueda
+    const resultado = await this.itemAvanceRepository.find({
+      where: { id_item: id_item } // O simplemente { where: { id_item } }
+    });
+    
+    return this.responseService.success(resultado, "Listado Correctamente.");
+  } catch (error) {
+    return this.responseService.error(error);
+  }
 }
+
+
+
+  async actualizarEstadoAvance(data: ItemEstadoAvanceDto) {
+    try {
+      let query =
+        ` UPDATE public.item_avance 
+        SET id_estado =0 WHERE id_item_avance = $1 AND id_estado = 1`;
+      const params: any[] = [data.id_item_avance];
+      const resultado: any[] = await this.itemRepository.query(query, params);
+    }
+  catch (error) {
+    return this.responseService.error(error);
+  }
+}
+}
+
+
