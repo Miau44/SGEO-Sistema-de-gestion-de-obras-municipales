@@ -128,7 +128,8 @@ export class MemoOrdenCambio {
     const fechaDocumento = this.datosEnvio[0].fecha_memo_minuta;
     const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    //validacion corregida para el informe memo de fecha_aprobacion a fecha_memo_minuta
+    const marcaAgua = this.datosEnvio[0].fecha_memo_minuta;
 
     //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
@@ -208,6 +209,7 @@ export class MemoOrdenCambio {
                 }
               ],
               [
+                //fecha memorandum 
                 {
                   border: [false, false, true, true],
                   text: 'La Paz, ' + this.fechaString(this.datosEnvio[0].fecha_memo_minuta), 

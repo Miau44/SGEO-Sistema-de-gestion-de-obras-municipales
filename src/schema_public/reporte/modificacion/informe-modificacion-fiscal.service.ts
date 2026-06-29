@@ -278,7 +278,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
   const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
 
   
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  //const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+  const marcaAgua = this.datosEnvio[0].fecha_fiscal;
 
   //margenes por fecha
   /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
@@ -314,6 +315,19 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
         }
     }
 
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones 
+
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_aprobacion
+      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+      : new Date();
+
+    const mostrarTextoFiscal =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
+
+    /*const esNuevoFormato = fechaAprobacion >= fechaCorte;
+
+    const fechaFiscal = this.fechaString(this.datosEnvio[0].fecha_fiscal);*/
 
   const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
@@ -407,6 +421,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
                 { text: this.fechaString(this.datosEnvio[0].fecha_fiscal), style: 'textDato' },
               ],
+
             ],
           },
           layout: {
@@ -508,7 +523,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       {
         text: '\n'
       },
-      {
+      /*{
         text: 'Antecedentes registrado por el Fiscal de Obra:',
         style: 'textTitulo', margin: [10, 0, 0, 5]
       },
@@ -522,12 +537,34 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },
       {
         text: '\n'
-      },
-      {
+      },*/
+
+      ...(mostrarTextoFiscal ? [
+        {
+          text: 'Antecedentes registrado por el Fiscal de Obra:',
+          style: 'textTitulo',
+          margin: [10, 0, 0, 5]
+        },
+        {
+          ul: [
+            {
+              text: [{ text: this.datosInf[0].antecedentes_fis }]
+            }
+          ],
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        },
+        {
+          text: '\n'
+        }
+      ] : []),
+
+      /*{
         text: '3.   DESARROLLO\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
-       {
+      },*/
+       /*{
               text: 'Desarrollo registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
          },
@@ -538,14 +575,39 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                     text: [{ text: this.datosInf[0].analisis_fis }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+          ...(mostrarTextoFiscal ? [
+          {
+            text: '3.   DESARROLLO\n',
+            style: 'textTitulo', margin: [0, 0, 0, 5]
+          },
+          {
+            text: 'Desarrollo registrado por el Fiscal de Obra:',
+            style: 'textTitulo',
+            margin: [10, 0, 0, 5]
+          },
+          {
+            ul: [
+              {
+                text: [{ text: this.datosInf[0].analisis_fis }]
+              }
+            ],
+            style: 'textDato',
+            alignment: 'justify',
+            margin: [10, 0, 0, 7]
+          }
+        ] : []),
 
       {
         text: ['\n'],
       },
       {
-        text: '4.   CONCLUSIONES\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
+        text: mostrarTextoFiscal
+          ? '4.   CONCLUSIONES\n'
+          : '3.   CONCLUSIONES\n',
+        style: 'textTitulo',
+        margin: [0, 0, 0, 5]
       },
       {
         text: [
@@ -573,7 +635,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       {
         text: ['\n'],
       },
-      {
+      /*{
         text: 'Conclusiones registradas por el Fiscal de Obra:',
         style: 'textTitulo', margin: [10, 0, 0, 5]
       },
@@ -584,24 +646,55 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
               text: [{ text: this.datosInf[0].conclusion_fis }]
             }
           ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-      },
+      },*/
 
-      {
-        text: '5.   RECOMENDACIONES\n',
-        style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
+      ...(mostrarTextoFiscal ? [
+        {
+          text: 'Conclusiones registradas por el Fiscal de Obra:',
+          style: 'textTitulo',
+          margin: [10, 0, 0, 5]
+        },
+        {
+          ul: [
+            {
+              text: [{ text: this.datosInf[0].conclusion_fis }]
+            }
+          ],
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        }
+      ] : []),
+
       //  {
       //         text: 'Recomendaciones registradas por el Fiscal de Obra:',
       //         style: 'textTitulo', margin: [10, 0, 0, 5]
       //    },
-            {
+            /*{
               ul:
                 [
                   {
                     text: [{ text: this.datosInf[0].recomendacion_fis }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+            ...(mostrarTextoFiscal ? [
+              {
+                text: '5.   RECOMENDACIONES\n',
+                style: 'textTitulo', margin: [0, 0, 0, 5]
+              },
+              {
+                ul: [
+                  {
+                    text: [{ text: this.datosInf[0].recomendacion_fis }]
+                  }
+                ],
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
 
       {
         text: ['\n'],

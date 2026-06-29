@@ -188,10 +188,10 @@ export class ficha_itemService {
           }
 
           //validar que codigo_ficha tenga el texto 2025
-          if (!fichaJson.codigo_ficha.includes(this.gestion.toString())) {
-            msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion `+this.gestion.toString()+`.\n`;
-            continue;
-          }
+          // if (!fichaJson.codigo_ficha.includes(this.gestion.toString())) {
+          //   msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion `+this.gestion.toString()+`.\n`;
+          //   continue;
+          // }
 
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
