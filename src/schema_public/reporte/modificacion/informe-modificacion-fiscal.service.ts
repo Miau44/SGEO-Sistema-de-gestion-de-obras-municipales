@@ -541,16 +541,8 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
       ...(mostrarTextoFiscal ? [
         {
-          text: 'Antecedentes registrado por el Fiscal de Obra:',
-          style: 'textTitulo',
-          margin: [10, 0, 0, 5]
-        },
-        {
-          ul: [
-            {
-              text: [{ text: this.datosInf[0].antecedentes_fis }]
-            }
-          ],
+        
+          text: this.datosInf[0].antecedentes_fis,
           style: 'textDato',
           alignment: 'justify',
           margin: [10, 0, 0, 7]
@@ -583,16 +575,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             style: 'textTitulo', margin: [0, 0, 0, 5]
           },
           {
-            text: 'Desarrollo registrado por el Fiscal de Obra:',
-            style: 'textTitulo',
-            margin: [10, 0, 0, 5]
-          },
-          {
-            ul: [
-              {
-                text: [{ text: this.datosInf[0].analisis_fis }]
-              }
-            ],
+            text: this.datosInf[0].analisis_fis,
             style: 'textDato',
             alignment: 'justify',
             margin: [10, 0, 0, 7]
@@ -650,16 +633,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
 
       ...(mostrarTextoFiscal ? [
         {
-          text: 'Conclusiones registradas por el Fiscal de Obra:',
-          style: 'textTitulo',
-          margin: [10, 0, 0, 5]
-        },
-        {
-          ul: [
-            {
-              text: [{ text: this.datosInf[0].conclusion_fis }]
-            }
-          ],
+          text: this.datosInf[0].conclusion_fis ,
           style: 'textDato',
           alignment: 'justify',
           margin: [10, 0, 0, 7]
@@ -685,11 +659,7 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
                 style: 'textTitulo', margin: [0, 0, 0, 5]
               },
               {
-                ul: [
-                  {
-                    text: [{ text: this.datosInf[0].recomendacion_fis }]
-                  }
-                ],
+                text: this.datosInf[0].recomendacion_fis,
                 style: 'textDato',
                 alignment: 'justify',
                 margin: [10, 0, 0, 7]
