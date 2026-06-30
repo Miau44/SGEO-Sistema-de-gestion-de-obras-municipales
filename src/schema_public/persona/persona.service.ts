@@ -679,7 +679,7 @@ async listarUsuariosPorUE(
 
     // Transformar el payload para Seguridad
    const bodySeguridad = {
-  codigoue: `[${estructuraGralDto.codigoue[0]}]`,
+  codigoue: `[${estructuraGralDto.codigoue.join(',')}]`,
   gestion: estructuraGralDto.gestion,
 };
 
@@ -728,72 +728,55 @@ async listarUsuariosAsignadosPorUE(
   estructuraGralDto: EstructuraGralDto,
 ) {
   try {
-
-    const urlSeguridad =
-      process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
-
-    const bodySeguridad = {
-      codigoue: `[${estructuraGralDto.codigoue[0]}]`,
-      gestion: estructuraGralDto.gestion,
-    };
-
-    const response = await fetch(urlSeguridad, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bodySeguridad),
-    });
-
-    const resultadoSeguridad = await response.json();
-
-    if (!Array.isArray(resultadoSeguridad?.data)) {
-      return this.responseService.error({
-        mensaje: 'Error al consultar Seguridad',
-        detalle: resultadoSeguridad?.message || 'No se recibieron datos',
-      });
-    }
-
-    const usuariosSeguridad = resultadoSeguridad.data;
-
     const query = `
-      SELECT *
-      FROM persona
-      WHERE id_estado <> 0
-      AND gestion = ${estructuraGralDto.gestion}
+    SELECT
+    p.id_persona,
+    p.id_usuario,
+    p.nombre AS pnombre,
+    p.primer_apellido AS pprimer_apellido,
+    p.segundo_apellido AS psegundo_apellido,
+
+    pro.desc_subtipo AS profesion,
+
+    p.registro_profesional,
+    p.fecha_aprobacion,
+    p.fecha_registro,
+    p.id_estado
+
+FROM persona p
+
+LEFT JOIN parametrica pro
+       ON pro.id_subtipo = p.id_profesion
+      AND pro.id_tipo = 2
+
+WHERE p.id_estado <> 0
+  AND p.gestion = $1
+  AND p.desc_cod_ue = ANY($2)
+
+ORDER BY p.nombre,
+         p.primer_apellido,
+         p.segundo_apellido;
     `;
 
-    const personasSgeo = await this.personaRepo.query(query);
+    const values = [
+      estructuraGralDto.gestion,
+      estructuraGralDto.codigoue,
+    ];
 
-    const resultado = usuariosSeguridad
-      .map((seguridad: any) => {
-
-        const sgeo = personasSgeo.filter(
-          (p: any) => p.id_usuario === seguridad.idusuario
-        );
-
-        return {
-          seguridad,
-          sgeo
-        };
-
-      })
-      .filter((item: any) => item.sgeo.length > 0);
+    const resultado = await this.personaRepo.query(query, values);
 
     return this.responseService.success(
       resultado,
-      'Usuarios asignados obtenidos correctamente'
+      'Usuarios asignados obtenidos correctamente',
     );
 
   } catch (error: any) {
-
     console.error(error);
 
     return this.responseService.error({
       mensaje: 'Error al listar usuarios asignados',
       detalle: error.message || error,
     });
-
   }
 }
 
