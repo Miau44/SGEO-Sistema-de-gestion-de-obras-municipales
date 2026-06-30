@@ -357,16 +357,31 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
-  async getReporteResumenObra(id_obra: number) {
-    try {
-      const query = `SELECT * FROM public.f_reporte_resumen_obra($1);`;
-      const resultado = await this.obraRepositorio.query(query, [id_obra]);
-      return this.responseService.success(resultado, 'Reporte generado correctamente.');
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }
+async getReporteResumenObra(id_obra: number) {
+  try {
+    const query = `
+      SELECT
+        r.*,
+        cro.fecha_conclusion_obra,
+        cro.fecha_provisional AS fecha_provisional_cronograma,
+        cro.fecha_programada_definitiva,
+        cro.fecha_definitiva AS fecha_definitiva_cronograma
+      FROM public.f_reporte_resumen_obra($1) r
+      LEFT JOIN public.vista_reporte_general_cronograma_obras cro
+        ON cro.id_obra = r.id_obra
+      LIMIT 1;
+    `;
 
+    const resultado = await this.obraRepositorio.query(query, [id_obra]);
+
+    return this.responseService.success(
+      resultado,
+      'Reporte generado correctamente.'
+    );
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
 //   async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
 //   try {
 //     await this.obraRepositorio.update(id_obra, {

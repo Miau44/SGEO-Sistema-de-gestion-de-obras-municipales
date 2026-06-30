@@ -607,7 +607,7 @@ if (!documentoQuery.length || Number(documentoQuery[0].total) === 0) {
 				where modificacion.numero_contrato_modificatorio is null AND modificacion.finalizado = true AND mp.id_tipo_mod_pago = ${id_tipo}`;
     var res: any;
     if (id_contrato > 0) {
-      q = q + ` AND contrato.id_contrato_dlc = $1`
+      q = q + ` AND mp.id_estado = 1 AND contrato.id_contrato_dlc = $1 order by modificacion.id_modificacion asc`
       var res = await this.modificacionRepo.query(q, [id_contrato]);
     }
     else {
