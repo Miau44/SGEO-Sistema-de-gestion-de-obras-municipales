@@ -30,6 +30,11 @@ export class ObraController {
     } catch (error) {
     }
   }
+  @Public()
+@Get('alertas-cronograma')
+listarAlertasCronograma() {
+  return this.obraService.listarAlertasCronograma();
+}
 
   @Public()
   @Get()

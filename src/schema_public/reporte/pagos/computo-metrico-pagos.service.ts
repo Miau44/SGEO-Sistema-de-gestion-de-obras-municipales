@@ -100,8 +100,9 @@ async generateComputoMetricoPago(obra: number, id_modificacion_pago: number): Pr
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logoSGEO.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
   //const imgPath = 'assets/images/membretado_oficio.png';
-  const imgLogo = 'assets/images/logoSGEO.png'
-  const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+  const imgLogo = 'assets/images/logo_sgeo.png'
+  //const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
+  const marcaAgua = this.datosEnvio[0].fecha_supervisor;
   let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
     if (this.datosEnvio[0].modalidad === 'CONTRATACION DIRECTA') {

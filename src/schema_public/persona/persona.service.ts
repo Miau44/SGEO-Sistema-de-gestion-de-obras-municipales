@@ -417,7 +417,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   // }
 
   async listaPersonasDesignadas(data: PersonasEstadoDto) {
-    try {
+    try { 
       const query = `
       SELECT * 
       FROM public.sp_lista_personas_designadas($1, $2, $3, $4);
@@ -450,7 +450,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       error?.message ||
       'Ocurrió un error al obtener la lista de personas designadas.'
     );
-  }
+    }
   }
 
   //nuevo servicio Mike
@@ -728,10 +728,11 @@ async listarUsuariosAsignadosPorUE(
   estructuraGralDto: EstructuraGralDto,
 ) {
   try {
-    const query = `
-    SELECT
+  const query = `
+SELECT
     p.id_persona,
     p.id_usuario,
+    p.usuario,
     p.nombre AS pnombre,
     p.primer_apellido AS pprimer_apellido,
     p.segundo_apellido AS psegundo_apellido,
@@ -756,7 +757,7 @@ WHERE p.id_estado <> 0
 ORDER BY p.nombre,
          p.primer_apellido,
          p.segundo_apellido;
-    `;
+`;
 
     const values = [
       estructuraGralDto.gestion,
