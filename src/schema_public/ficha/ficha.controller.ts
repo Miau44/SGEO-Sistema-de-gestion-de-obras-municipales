@@ -22,6 +22,11 @@ export class FichaController {
     }
   }
 
+   @Post('crear-obra-externa')
+  async crearConObra(@Body() createFichaDto: CreateFichaDto) {
+    return await this.fichaService.createFichaConObra(createFichaDto);
+  }
+
   @Get()
   findAll() {
     try {

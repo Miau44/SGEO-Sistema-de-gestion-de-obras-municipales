@@ -48,7 +48,7 @@ import { ProtocoloModule } from './schema_public/protocolo/protocolo.module';
 import { SuspensionModule } from './schema_public/suspension/suspension.module';
 import { LlamadaAtencionModule } from './schema_public/llamada_atencion/llamada_atencion.module';
 import { EstadoGeneralModule } from './schema_public/estado_general/estado_general.module';
-
+import { SqlServerModule } from './sqlserver.module';
 
 
 
@@ -65,7 +65,7 @@ import { EstadoGeneralModule } from './schema_public/estado_general/estado_gener
       synchronize: false
     }),
     ReporteModule,
-
+    SqlServerModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),

@@ -14,6 +14,7 @@ import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
 import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
+import { CronogramaGestionDto } from './dto/cronograma-gestion.dto';
 
 @ApiTags('obra')
 @Controller('obra')
@@ -113,11 +114,11 @@ export class ObraController {
 
   @Public()
   @Patch('cambiar-estado/:id_obra')
-  cambiarEstado(
+  cambiarEstadoGeneral(
     @Param('id_obra') id_obra: string,
     @Body() body: { id_estado_general: number }
   ) {
-    return this.obraService.cambiarEstado(+id_obra, body.id_estado_general);
+    return this.obraService.cambiarEstadoGeneral(+id_obra, body.id_estado_general);
   }
 
   @Public()
@@ -134,5 +135,27 @@ export class ObraController {
   ) {
     return this.obraService.updateCoordenadas(+id, dto);
   }
-  
+
+  // VISTACRONORGRAMA
+  @Public()
+  @Post('reporte/general-cronograma-obras') // <-- Cambiado a Post
+  reporteGeneralCronogramaObras(@Body() cronogramaDto: CronogramaGestionDto) {
+      return this.obraService.reporteGeneralCronogramaObras(cronogramaDto);
+  }
+
+
+  //filtros UnidadEjecutora
+  @Public()
+  @Get('reporte/lista-unidades-ejecutoras') // <--- El nuevo prefijo estático para el filtro
+  listarUnidadesEjecutoras() {
+    return this.obraService.listarUnidadesEjecutoras();
+  }
+
+  @Public()
+  @Get('listar-obras-247/:correlativo_carpeta')
+  listarObras247(@Param('correlativo_carpeta') correlativo_carpeta: number) {
+    console.log(correlativo_carpeta);
+    
+    return this.obraService.consultarDatosDeSqlServer(correlativo_carpeta);
+  }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateObraDto } from './dto/create-obra.dto';
 import { UpdateObraDto } from './dto/update-obra.dto';
 import { CarpetaDto } from './dto/carpetaDto.dto';
@@ -16,6 +16,10 @@ import { ObraIdDto } from './dto/obraDto.dto';
 import { ObraSolicitudesDto } from './dto/obra-solicitudes.dto';
 import { MisProyectoDto } from './dto/mis-proyectos.dto';
 import { UpdateCoordenadasObraDto } from './dto/updateCoordenadasObra.dto';
+import { CronogramaGestionDto } from './dto/cronograma-gestion.dto';
+import { NotFoundException } from '@nestjs/common';
+import * as sql from 'mssql';
+import { SQLSERVER_CONNECTION } from '../../sqlserver.module';
 
 @Injectable()
 export class ObraService {
@@ -24,6 +28,7 @@ export class ObraService {
 
   constructor(@InjectRepository(Obra) private obraRepositorio: Repository<Obra>,
     private responseService: ResponseService,
+    @Inject(SQLSERVER_CONNECTION) private readonly mssqlPool: sql.ConnectionPool,
   ) { }
 
 
@@ -308,8 +313,22 @@ WHERE sol.idusuario= ${data.usuario} `;
 
   async listaMisProyectos(misproyectos: MisProyectoDto) {
     try {
+      if(
+        misproyectos.gestion == null ||
+        misproyectos.gestion === 0 ||
+        misproyectos.id_usuario == null ||
+        misproyectos.id_usuario === 0 ||
+        misproyectos.permiso == null ||
+        misproyectos.permiso === 0
+      ){
+        return this.responseService.error(
+          'Error, no se admiten valores nulos o 0 en los parámetros de entrada.'
+        );
+      }
       let resultado = [];
       const values = [misproyectos.gestion, misproyectos.id_usuario, misproyectos.permiso]; //llamamos una vez
+      console.log('VALUES:', values);
+      console.log('TIPOS:', values.map(v => typeof v));
       const query = `select * from sp_obra($1,$2,$3)`;
       resultado = await this.obraRepositorio.query(query, values);
       return this.responseService.success(resultado || [], "Listado Correctamente.");
@@ -319,7 +338,8 @@ WHERE sol.idusuario= ${data.usuario} `;
     }
   }
 
-  async cambiarEstado(idObra: number, id_estado_general: number) {
+  //servicio para cambiar de estado general
+  async cambiarEstadoGeneral(idObra: number, id_estado_general: number) {
     try {
       const query = `
       UPDATE obra
@@ -333,31 +353,177 @@ WHERE sol.idusuario= ${data.usuario} `;
         'Estado actualizado correctamente.'
       );
     } catch (error) {
-      return this.responseService.error(error);
+      return this.responseService.error(error, 'Error al actualizar el estado.');
     }
   }
 
-  async getReporteResumenObra(id_obra: number) {
-    try {
-      const query = `SELECT * FROM public.f_reporte_resumen_obra($1);`;
-      const resultado = await this.obraRepositorio.query(query, [id_obra]);
-      return this.responseService.success(resultado, 'Reporte generado correctamente.');
-    } catch (error) {
-      return this.responseService.error(error);
-    }
-  }
-
-  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+async getReporteResumenObra(id_obra: number) {
   try {
-    await this.obraRepositorio.update(id_obra, {
-      latitud: dto.latitud,
-      longitud: dto.longitud,
-    });
+    const query = `
+      SELECT
+        r.*,
+        cro.fecha_conclusion_obra,
+        cro.fecha_provisional AS fecha_provisional_cronograma,
+        cro.fecha_programada_definitiva,
+        cro.fecha_definitiva AS fecha_definitiva_cronograma
+      FROM public.f_reporte_resumen_obra($1) r
+      LEFT JOIN public.vista_reporte_general_cronograma_obras cro
+        ON cro.id_obra = r.id_obra
+      LIMIT 1;
+    `;
 
-    return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
+    const resultado = await this.obraRepositorio.query(query, [id_obra]);
+
+    return this.responseService.success(
+      resultado,
+      'Reporte generado correctamente.'
+    );
   } catch (error) {
     return this.responseService.error(error);
   }
 }
+//   async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+//   try {
+//     await this.obraRepositorio.update(id_obra, {
+//       latitud: dto.latitud,
+//       longitud: dto.longitud,
+//     });
 
+//     return this.responseService.success(id_obra, 'Coordenadas actualizadas correctamente.');
+//   } catch (error) {
+//     return this.responseService.error(error);
+//   }
+// }
+
+  async updateCoordenadas(id_obra: number, dto: UpdateCoordenadasObraDto) {
+    try {
+      const obra = await this.obraRepositorio.findOne({
+        where: { id_obra },
+        select: ['id_obra', 'latitud', 'longitud']
+      });
+
+      if (!obra) {
+        return this.responseService.error({
+          message: 'La obra no existe.'
+        });
+      }
+
+      const esAdministrador = dto.id_permiso === 1;
+      const esSupervisor = dto.id_permiso === 14;
+
+      if (!esAdministrador && !esSupervisor) {
+        return this.responseService.error({
+          message: 'No tienes permisos para registrar o editar la ubicación.'
+        });
+      }
+
+      const yaTieneCoordenadas =
+        obra.latitud !== null &&
+        obra.longitud !== null;
+
+      // Si ya existe ubicación, el supervisor no puede editar
+      if (yaTieneCoordenadas && esSupervisor) {
+        return this.responseService.error({
+          message: 'La ubicación ya fue registrada. Solo el administrador puede editarla.'
+        });
+      }
+
+      await this.obraRepositorio.update(id_obra, {
+        latitud: dto.latitud,
+        longitud: dto.longitud,
+      });
+
+      const mensaje = yaTieneCoordenadas
+        ? 'Coordenadas actualizadas correctamente.'
+        : 'Coordenadas registradas correctamente.';
+
+      return this.responseService.success(id_obra, mensaje);
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+  
+
+     //CRONOGRAMA CON AÑO Y UE
+     async reporteGeneralCronogramaObras(cronogramaDto: CronogramaGestionDto): Promise<any> {
+  try {
+    if (cronogramaDto.gestion == null || cronogramaDto.gestion === 0) {
+      return this.responseService.error('Error, no se admiten valores nulos o 0 en gestión.');
+    }
+
+    let q = `
+      SELECT *
+      FROM vista_reporte_general_cronograma_obras
+      WHERE gestion = $1
+    `;
+
+    const params: any[] = [cronogramaDto.gestion];
+
+    // Filtro opcional por unidad ejecutora
+    if (cronogramaDto.unidad_ejecutora) {
+      q += ` AND unidad_ejecutora = $2`;
+      params.push(cronogramaDto.unidad_ejecutora);
+    }
+
+    q += ` ORDER BY codigo`;
+
+    const res = await this.obraRepositorio.query(q, params);
+
+    if (!res || res.length === 0) {
+      return this.responseService.error(null, 'No se encontraron registros.');
+    }
+
+    return this.responseService.success(res, 'Lista obtenida correctamente.');
+
+  } catch (error) {
+    return this.responseService.error(error, 'Error al obtener el reporte.');
+  }
+}
+
+
+  
+  //filtros UnidadEjecutora
+  // VISTA FILTRO UNIDADES EJECUTORAS
+  async listarUnidadesEjecutoras(): Promise<any> {
+    try {
+      // Apuntamos a la nueva vista limpia que creaste en Navicat
+      let q = `
+        SELECT unidad_ejecutora
+        FROM vista_filtro_unidades_ejecutoras
+        ORDER BY unidad_ejecutora
+      `;
+
+      const res = await this.obraRepositorio.query(q);
+
+      if (!res || res.length === 0) {
+        return this.responseService.error(null, 'No se encontraron unidades ejecutoras');
+      }
+
+      // Retorna la lista usando tu mapeador de respuestas exitosas
+      return this.responseService.success(res, 'Lista de unidades ejecutoras obtenida correctamente.');
+
+    } catch (error) {
+      return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
+    }
+  }
+
+  async consultarDatosDeSqlServer(correlativo_carpeta:number) {
+    try {
+      const query = 'SELECT TOP (1) idCaso,cpt_sim_nombre,SupervisorObra,representante,contratoMonto,contratoNumero,certificado,contratoValidado,'+
+      //'TRY_CAST(dbo.fnModificacion_OC_CM(idCaso, fechaCertificado) AS varchar(255)) AS tipoModificacion ' +
+     'tipoPago,montoCertificado,numeroPlanilla,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaCertificado,fechaDevengado, '+
+     'montoCertificado,anticipo,multa,deduccionAnticipo,estadoAnticipo,avanceFisico,avanceFisicoCarpeta,fechaNumeracion,devengado,gestion,sigla,numero,anio,retencionGarantia,provisionalFechaActa,provisionalSigla,provisionalNumero '+
+     'definitivaFechaActa,definitivaSigla,definitivaNumero,siglaCertificado,siglaCertificadoInforme,siglaCertificadoInformeFiscal,retencionMorosidad,fecha_validacion,unidad_ejecutora,idCarpeta '+
+     ' FROM [SIMSGEO].[dbo].[vistaDSOcar_carpetas_contrato_resumen] where idCarpeta = '+correlativo_carpeta.toString()+ ' ORDER BY (numeroPlanilla + 0) desc';
+      console.log(query);
+      
+      // Ejecutamos la consulta directa
+      const resultado = await this.mssqlPool.query(query);
+            
+      //recordset contiene el array de objetos JSON planos
+      return resultado.recordset;
+    } catch (error) {
+       return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
+    }
+  }
 }

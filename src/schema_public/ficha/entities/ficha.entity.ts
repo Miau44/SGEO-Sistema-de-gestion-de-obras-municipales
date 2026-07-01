@@ -37,7 +37,7 @@ export class Ficha {
     gestion_carpeta: number;
 
     @Column()
-    cod_carpeta_anterior: number;    
+    correlativo_carpeta_anterior: number;    
 
     @Column()
     continuidad: number;     
@@ -62,6 +62,9 @@ export class Ficha {
 
     @Column({ })
     id_estado: number;
+
+    @Column({nullable:false,default:1})
+    id_tipo_ficha:number;
   
     @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()', nullable:true})
     fecha_registro: Date

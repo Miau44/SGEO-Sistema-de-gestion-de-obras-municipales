@@ -12,11 +12,14 @@ import { Memorandum } from '../memorandum/entities/memorandum.entity';
 import { Obra } from '../obra/entities/obra.entity';
 import { Informe } from '../informe/entities/informe.entity';
 import { Contrato } from '../contrato-modificatorio/entities/contrato.entity';
+import { CorreoModule } from '../correo/correo.module';
+import { Correo } from '../correo/entities/correo.entity';
+
 
 
 @Module({
 
-  imports: [TypeOrmModule.forFeature([Suspension, Reinicio, Correlativo, Memorandum, Obra, Informe, Contrato])],
+  imports: [TypeOrmModule.forFeature([Suspension, Reinicio, Correlativo, Memorandum, Obra, Informe, Contrato, Correo]),CorreoModule ],
   
   controllers: [SuspensionController],
   providers: [SuspensionService, ResponseService, CorrelativoService, MemorandumService],

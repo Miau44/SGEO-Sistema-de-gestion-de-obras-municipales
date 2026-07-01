@@ -192,9 +192,20 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
    //console.log('DATOS MODIFICACION',this.datosUM);
    //console.log('DATOS 2',this.datosDes[0].deduccion_total);
 
+   //console.log('DATOS PAGO', this.datosEnvio);
+   //console.log('informe',this.datosInfSup[0]);
+
    // CALCULOS COLUMNA DERECHA
    const totalamortizado = Number(this.datosEnvio[0].monto_anticipo) + Number(this.datosDes[0].deduccion_total);
    const totalcertificado = Number(this.datosEnvio[0].monto_presente || 0) + Number(this.datosCA[0].total_certificado_anterior || 0);
+
+    //informe  resumen certificado por gestion ultima modificacion cambio de cod_carpeta a fecha_registro 29/4/26
+    const fechaRegistro = this.datosInfSup[0].fecha_registro;
+    const gestionObra = new Date(fechaRegistro).getFullYear();
+    const mostrarEncabezadosFirma = gestionObra >= 2026;
+
+  //console.log('GESTION OBRA:', gestionObra);
+  //console.log('MOSTRAR ENCABEZADOS:', mostrarEncabezadosFirma);
            
    const documentDefinition = {
     pageSize: 'LEGAL' as any,
@@ -596,7 +607,16 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           widths: ['50%', '50%'],
           body: [
             [
-              [ { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
+              [ 
+                //encabezado para la gestion 2026
+                //{text: 'Firma en conformidad del presente certificado:', style: 'textTitulo'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      { text: 'Firma en conformidad del presente certificado:', style: 'textTitulo' }
+                    ]
+                  : []
+                ),
+                { text: '\n\n\n\n\n' + this.datosEnvio[0].proponente_razon_social, style: 'textDato', alignment: 'center' },
                 { text: 'EMPRESA CONTRATISTA', style: 'textTitulo', alignment: 'center'}
               ],
               { text: '\n\n\n\n\n\n' + 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center' }
@@ -613,17 +633,28 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
       {
         table: {
           widths: ['50%', '50%'],
+          heights: [50],
           body: (
             this.datosInfSup?.[0]?.de_nombre
               ? this.datosInfSup[0].de_nombre.split('\n')
               : ['']
           ).map((nombre: string) => [
             {
-              text: [
-                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
-                { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true }
+              stack: [
+                //encabezado para la gestion 2026
+                //{text: 'Se aprueba el presente pago:', style:'textTitulo', alignment: 'left'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: 'Se aprueba el presente pago:',style:'textTitulo',alignment: 'left'
+                      }
+                    ]
+                  : []
+                ),
+                { text: nombre + '\n', style: 'textDato', alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
+                { text: 'SUPERVISOR DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
-              margin: [0, 35, 0, 0], alignment: 'center'
+              //margin: [0, 35, 0, 0], alignment: 'center'
             },
             {
               text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
@@ -646,11 +677,21 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
               : ['']
           ).map((nombre: string) => [
             {
-              text: [
-                { text: nombre + '\n', style: 'textDato' }, // salto después del nombre
-                { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true }
+              stack: [
+                //encabezado para la gestion 2026
+                //{text: 'Se considera procedente el pago:', style: 'textTitulo', alignment: 'left'},
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: 'Se considera procedente el pago:',style: 'textTitulo',alignment: 'left'
+                      }
+                    ]
+                  : []
+                ),
+                { text: nombre + '\n', style: 'textDato' , alignment: 'center', margin: [0, 35, 0, 0]}, // salto después del nombre
+                { text: 'FISCAL DE OBRA', style: 'textTitulo', bold: true, alignment: 'center' }
               ],
-              margin: [0, 35, 0, 0], alignment: 'center'
+              //margin: [0, 35, 0, 0], alignment: 'center'
             },
             {
               text: 'FIRMA Y SELLO', style: 'textTitulo', alignment: 'center', margin: [0, 45, 0, 0]
@@ -669,7 +710,28 @@ async generateResumenCertificado(id_modif_pago: number): Promise<Buffer> {
           widths: ['50%', '50%'],
           body: [
             [
-              [ { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
+              [
+                //encabezado para la gestion 2026
+                ...(mostrarEncabezadosFirma
+                  ? [
+                      {
+                        text: [
+                          { text: 'Remito el certificado de pago a ', style: 'textTitulo' },
+                          { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo' }
+                        ]
+                      }
+                    ]
+                  : []
+                ),
+                /*{
+                text: [
+                  { text: 'Remito el certificado de pago a ', style: 'textTitulo' },
+                  { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo' }
+                ]
+                },*/
+                /*{text: 'Remito el certificado de pago a ', style:'textTitulo'},
+                { text: this.datosEnvio[0].nombre_ue, style: 'textTitulo'},*/
+                { text: '\n\n\n\n\n\n', style: 'textDato', alignment: 'center' },
                 ...(this.datosAF[0].desc_cod_da >= 37 && this.datosAF[0].desc_cod_da <= 45
                   ?[
                     { text: this.datosAF[0].nombre_da, style: 'textTitulo', alignment: 'center'}

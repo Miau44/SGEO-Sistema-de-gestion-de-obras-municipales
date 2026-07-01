@@ -207,7 +207,8 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
     try {
       //externo sistema seguridad
      // const datosSeguridad = 'http://192.168.8.4:84/api/v1/servicio/listarUsuariosXcodigouo';
-      const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+     console.log(JSON.stringify(estructuraGralDto, null, 2));
+     const datosSeguridad = process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
 
       const options = {
         method: 'POST',
@@ -257,17 +258,17 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       const resultadoSeguridad: any[] = resultadoUsuarios.data
 
       const resultado = resultadoSeguridad.map(seguridad => {
-        const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
+      const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
         return { seguridad, sgeo: asignado };
-      });
+});
       return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error: any) {
+} catch (error: any) {
       console.error("Error al actualizar justificación:", error); // Log detallado en consola
-      return this.responseService.error({
-        mensaje: "Ocurrió un error al actualizar la justificación.",
-        detalle: error.message || error,
-      });
-    }
+  return this.responseService.error({
+    mensaje: "Ocurrió un error al actualizar la justificación.",
+    detalle: error.message || error,
+  });
+}
   }
 
   async token() {
@@ -350,72 +351,107 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   }
 
 
-  //personas SI solicitadas/designadas
-  async listaPersonasDesignadas(data: PersonasEstadoDto) {
-    try { 
+  // //personas SI solicitadas/designadas
+  // async listaPersonasDesignadas(data: PersonasEstadoDto) {
+  //   try { 
   
       
-    /*  const query = ` SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido , 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, cm.correlativo_memo
-      FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
-      INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
-      INNER JOIN obra as o  ON sd.id_obra = o.id_obra
-      INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
-      INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
-      WHERE dp.idpermisod IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
-      AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
-      AND sd.id_estado =1
-      ORDER BY dp.permiso,cm.correlativo_memo ASC; `;*/
+  //   /*  const query = ` SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+  //     p.segundo_apellido , 
+  //     pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+  //     p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
+  //     ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+  //     ,sd.id_reemplazo, cm.correlativo_memo
+  //     FROM persona as  p
+  //     INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+  //     INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+  //     INNER JOIN obra as o  ON sd.id_obra = o.id_obra
+  //     INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+  //     INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+  //     WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
+  //     eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
+  //     INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
+  //     WHERE dp.idpermisod IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
+  //     AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
+  //     AND sd.id_estado =1
+  //     ORDER BY dp.permiso,cm.correlativo_memo ASC; `;*/
 
-      const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido , 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
-      , per_reem.persona_a_reemplazar
-      FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
-      --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+  //     const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+  //     p.segundo_apellido , 
+  //     pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+  //     p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
+  //     ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+  //     ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
+  //     , per_reem.persona_a_reemplazar
+  //     FROM persona as  p
+  //     INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+  //     --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
 
-    LEFT JOIN (SELECT de.id_designacion, pro.detalle || '' ||  pe.nombre || ' ' || pe.primer_apellido || ' ' || pe.segundo_apellido AS persona_a_reemplazar
-		FROM designacion de
-		INNER JOIN (SELECT id_designacion, id_persona  FROM designacion ) as des ON de.id_reemplazo = des.id_designacion 
-		INNER JOIN persona  AS pe ON des.id_persona = pe.id_persona
-		INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM public.parametrica  WHERE id_tipo =2 AND id_estado=1 )  as pro ON  pe.id_profesion = pro.id_subtipo) AS per_reem
-		ON sd.id_designacion = per_reem.id_designacion 
+  //   LEFT JOIN (SELECT de.id_designacion, pro.detalle || '' ||  pe.nombre || ' ' || pe.primer_apellido || ' ' || pe.segundo_apellido AS persona_a_reemplazar
+	// 	FROM designacion de
+	// 	INNER JOIN (SELECT id_designacion, id_persona  FROM designacion ) as des ON de.id_reemplazo = des.id_designacion 
+	// 	INNER JOIN persona  AS pe ON des.id_persona = pe.id_persona
+	// 	INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM public.parametrica  WHERE id_tipo =2 AND id_estado=1 )  as pro ON  pe.id_profesion = pro.id_subtipo) AS per_reem
+	// 	ON sd.id_designacion = per_reem.id_designacion 
 
-      INNER JOIN obra as o  ON sd.id_obra = o.id_obra
-      INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =10 )  as est ON  sd.estado_designacion = est.id_subtipo
+  //     INNER JOIN obra as o  ON sd.id_obra = o.id_obra
+  //     INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =10 )  as est ON  sd.estado_designacion = est.id_subtipo
 	  
-      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
-    INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
-	 AS dp ON 	sd.id_persona = dp.idpersona
-   WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
-      AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
-      AND sd.id_estado =1
-      ORDER BY dp.permisos, sd.correlativo ASC; `;
-      const resultado = await this.personaRepo.query(query);
-      return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
+  //     INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+  //     WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
+  //     eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
+  //   INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
+	//  AS dp ON 	sd.id_persona = dp.idpersona
+  //  WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
+  //     AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
+  //     AND sd.id_estado =1
+  //     ORDER BY dp.permisos, sd.correlativo ASC; `;
+  //     const resultado = await this.personaRepo.query(query);
+  //     return this.responseService.success(resultado, "Listado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
+  async listaPersonasDesignadas(data: PersonasEstadoDto) {
+    try {
+      const query = `
+      SELECT * 
+      FROM public.sp_lista_personas_designadas($1, $2, $3, $4);
+    `;
+
+      const idRol = Array.isArray(data.id_rol)
+        ? data.id_rol.join(',')
+        : String(data.id_rol);
+
+      const idEstadoDesignacion = Array.isArray(data.id_estado_designacion)
+        ? data.id_estado_designacion.join(',')
+        : String(data.id_estado_designacion);
+
+      const resultado = await this.personaRepo.query(query, [
+        data.gestion,
+        data.id_obra,
+        idRol,
+        idEstadoDesignacion,
+      ]);
+
+      return this.responseService.success(resultado, 'Listado Correctamente.');
+    } catch (error:any) {
+
+    console.error(
+      'ERROR sp_lista_personas_designadas:',
+      error
+    );
+
+    return this.responseService.error(
+      error?.message ||
+      'Ocurrió un error al obtener la lista de personas designadas.'
+    );
   }
-
-
+  }
 
   //nuevo servicio Mike
   async filtrarSupervisoresNoDesignados(
@@ -607,4 +643,141 @@ ppue.id_estado=1;`;
       return this.responseService.error(error);
     }
   }  */
+
+    async darBaja(id_persona: number) {
+  try {
+
+    const resultado = await this.personaRepo.update(
+      id_persona,
+      {
+        id_estado: 0
+      }
+    );
+
+    if (resultado.affected === 0) {
+      return this.responseService.error(
+        "No se encontró la persona"
+      );
+    }
+
+    return this.responseService.success(
+      resultado,
+      "Persona dada de baja correctamente."
+    );
+
+  } catch (error) {
+    return this.responseService.error(error);
+  }
+}
+async listarUsuariosPorUE(
+  estructuraGralDto: EstructuraGralDto,
+) {
+  try {
+
+    const urlSeguridad =
+      process.env.URL_SEGURIDAD + 'listarUsuariosXcodigouo';
+
+    // Transformar el payload para Seguridad
+   const bodySeguridad = {
+  codigoue: `[${estructuraGralDto.codigoue.join(',')}]`,
+  gestion: estructuraGralDto.gestion,
+};
+
+console.log('Enviando a Seguridad:');
+console.log(JSON.stringify(bodySeguridad, null, 2));
+
+    console.log('Enviando a Seguridad:', bodySeguridad);
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bodySeguridad),
+    };
+
+    const response = await fetch(urlSeguridad, options);
+    const resultadoUsuarios = await response.json();
+
+    console.log('Respuesta Seguridad:', resultadoUsuarios);
+
+    if (!Array.isArray(resultadoUsuarios?.data)) {
+      return this.responseService.error({
+        mensaje: 'Error al consultar Seguridad',
+        detalle: resultadoUsuarios?.message || 'No se recibieron datos',
+      });
+    }
+
+    return this.responseService.success(
+      resultadoUsuarios.data,
+      'Usuarios obtenidos correctamente.',
+    );
+
+  } catch (error: any) {
+
+    console.error('Error al listar usuarios:', error);
+
+    return this.responseService.error({
+      mensaje: 'Ocurrió un error al listar usuarios.',
+      detalle: error.message || error,
+    });
+
+  }
+}
+async listarUsuariosAsignadosPorUE(
+  estructuraGralDto: EstructuraGralDto,
+) {
+  try {
+    const query = `
+    SELECT
+    p.id_persona,
+    p.id_usuario,
+    p.nombre AS pnombre,
+    p.primer_apellido AS pprimer_apellido,
+    p.segundo_apellido AS psegundo_apellido,
+
+    pro.desc_subtipo AS profesion,
+
+    p.registro_profesional,
+    p.fecha_aprobacion,
+    p.fecha_registro,
+    p.id_estado
+
+FROM persona p
+
+LEFT JOIN parametrica pro
+       ON pro.id_subtipo = p.id_profesion
+      AND pro.id_tipo = 2
+
+WHERE p.id_estado <> 0
+  AND p.gestion = $1
+  AND p.desc_cod_ue = ANY($2)
+
+ORDER BY p.nombre,
+         p.primer_apellido,
+         p.segundo_apellido;
+    `;
+
+    const values = [
+      estructuraGralDto.gestion,
+      estructuraGralDto.codigoue,
+    ];
+
+    const resultado = await this.personaRepo.query(query, values);
+
+    return this.responseService.success(
+      resultado,
+      'Usuarios asignados obtenidos correctamente',
+    );
+
+  } catch (error: any) {
+    console.error(error);
+
+    return this.responseService.error({
+      mensaje: 'Error al listar usuarios asignados',
+      detalle: error.message || error,
+    });
+  }
+}
+
 }

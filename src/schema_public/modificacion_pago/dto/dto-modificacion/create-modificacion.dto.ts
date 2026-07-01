@@ -21,8 +21,8 @@ export class CreateModificacionDto {
     porcentaje_total: number;   
 
     
-    @ApiProperty()
-    numero_contrato_modificatorio: string;      
+    @ApiProperty({ required: false, nullable: true })
+    numero_contrato_modificatorio?: string | null;   
     
     @ApiProperty()
     fecha_aprobacion_contrato: Date;      

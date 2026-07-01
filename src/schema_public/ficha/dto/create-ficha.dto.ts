@@ -1,4 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNumber, Min, Max, IsOptional } from "class-validator";
 
 export class CreateFichaDto {
 
@@ -33,7 +34,7 @@ export class CreateFichaDto {
     gestion_carpeta: number;
     
     @ApiProperty()
-    cod_carpeta_anterior: number;
+    correlativo_carpeta_anterior: number;
     
     @ApiProperty()
     continuidad: number;
@@ -58,4 +59,7 @@ export class CreateFichaDto {
     
     @ApiProperty()
     id_estado: number;
+    
+    @ApiProperty()
+    id_tipo_ficha?: number;
 }
