@@ -252,7 +252,6 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     });
 
     //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
-
     const fechaCorte = new Date('2026-05-15');
 
     // si no existe fecha_aprobacion usar today
@@ -263,8 +262,32 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     /*const esNuevoFormato = fechaComparacion >= fechaCorte;
     const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
 
-   //console.log('DATOS MODIFICACION',this.datosEnvio);
-   
+    //console.log('DATOS MODIFICACION',this.datosEnvio);
+
+    // Fecha de corte para el cambio de texto "nuevo monto autorizado"
+    const fechaCorteMonto = new Date('2026-06-23');
+
+    const fechaComparacionMonto = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
+      : new Date();
+
+    const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+
+    /*consola para ver de que  tipo es monto_variacion y del porque no me estaba funcionando
+    console.log('fechaSupervisor:', this.datosEnvio[0].fecha_supervisor);
+    console.log('usarNuevoTextoMonto:', usarNuevoTextoMonto);
+    console.log('monto_variacion:', this.datosEnvio[0].monto_variacion);
+    console.log('Number:', Number(this.datosEnvio[0].monto_variacion));
+    console.log('typeof:', typeof this.datosEnvio[0].monto_variacion);
+    console.log(this.datosEnvio[0].monto_variacion);*/
+    
+    //ajuste para  monto variacion en el texto parte 6.
+    const montoVariacion = parseFloat(String(this.datosEnvio[0].monto_variacion).replace(',', '.'));
+    //const montoVariacion = Number(this.datosEnvio[0].monto_variacion);
+
+    const verboMonto = usarNuevoTextoMonto ? (montoVariacion === 0 ? 'mantiene' : 'modifica') : 'modifica';
+    //console.log('verboMonto:', verboMonto);
+      
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -651,7 +674,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
             ? 'El '
             : 'La '},
-          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica el monto ' }, 
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' ' + verboMonto +' el monto ' }, 
           { text: this.datosEnvio[0].modificacion_gral == 1 
             ? 'vigente de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
             : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1) + ') de Bs' + this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
@@ -659,10 +682,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n' },
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
-      {
+      /*{
         text: 'Por lo que el nuevo monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones ' + 
         '(incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+      },*/
+      {
+        text:
+          (usarNuevoTextoMonto
+            ? 'Por lo que el monto autorizado será de Bs.'
+            : 'Por lo que el nuevo monto autorizado será de Bs.') +
+          this.datosEnvio[0].monto_total +
+          ' (' +
+          this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +
+          ')' +
+          ' totalizando un valor porcentual de modificaciones ' + '(incluyendo la presente) de ' +
+          this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.',
+        style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 5]
       },
 
       {
@@ -695,6 +731,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n'
       },
       {
+        //anexo
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },

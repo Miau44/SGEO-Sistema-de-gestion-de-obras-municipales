@@ -191,6 +191,7 @@ export class InformePagoFiscal {
     this.datosInfSup = res3;
 
     const res4 = await this.datosInformePagoFiscal(this.datosEnvio[0].id_solicitud);
+    //console.dir(res4, { depth: null });
     if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
       throw new Error('No se encontraron datos del informe de Fiscal');
     }
@@ -231,8 +232,9 @@ export class InformePagoFiscal {
       margenesDinamicos = [70, 170, 50, 140]; 
     }*/
 
+    //marca de agua con fecha fiscal
     //const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_fiscal;
+    const marcaAgua = this.datosEnvio[0].fecha_fiscal;
 
     //membrete por fecha
     const fechaDocumento = this.datosEnvio[0].fecha_fiscal;
@@ -240,6 +242,19 @@ export class InformePagoFiscal {
 
     //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
+
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones en pagos
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_aprobacion
+      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+      : new Date();
+
+    const mostrarTextoFiscal =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
+
+    /*console.log('1 VER',this.datosInfFis);
+    console.log('2 VER',this.datosInfFis[0]);
+    console.log('3 VER',this.datosInfFis[0]?.recomendacion);*/
 
 
     let porc_presente = 0;
@@ -428,7 +443,7 @@ export class InformePagoFiscal {
             ]
             : []
         ),
-         {
+         /*{
               text: 'Antecedentes registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -439,7 +454,20 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].antecedentes }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+            },*/
+
+          ...(mostrarTextoFiscal ? [
+            {
+            
+              text: this.datosInfFis[0].antecedentes,
+              style: 'textDato',
+              alignment: 'justify',
+              margin: [10, 0, 0, 7]
             },
+            {
+              text: '\n'
+            }
+          ] : []),
 
 
         //Fecha de conclusion REAL solo si existe
@@ -504,7 +532,7 @@ export class InformePagoFiscal {
                 ]
               }, margin: [60, 0, 60, 7]
             },
-            {
+            /*
               text: 'Antecedentes registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -515,7 +543,20 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].antecedentes }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+            ...(mostrarTextoFiscal ? [
+              {
+              
+                text: this.datosInfFis[0].antecedentes,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              },
+              {
+                text: '\n'
+              }
+            ] : []),
 
             {
               text: '3.   DESARROLLO\n',  //ANTES ANALISIS
@@ -587,7 +628,7 @@ export class InformePagoFiscal {
               ]
               : []
             ),
-            {
+            /*{
               text: 'Desarrollo registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -598,7 +639,21 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].analisis }] //aqui va el desarrollo del fiscal
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+            ...(mostrarTextoFiscal ? [
+              {
+              
+                text: this.datosInfFis[0].analisis,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              },
+              {
+                text: '\n'
+              }
+            ] : []),
+
             {
               text: '4.   CONCLUSIÓN',
               style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -640,15 +695,32 @@ export class InformePagoFiscal {
                       }
                     ], margin: [0, 0, 0, 5]
                   },
-                  {
+                  /*{
                     text: 'Conclusiones del Fiscal de Obra:',
                     style: 'textTitulo', margin: [10, 0, 0, 5]
-                  },
-                  {
+                  },*/
+                  /*...(mostrarTextoFiscal ? [
+                    {
+                      text: [
+                        { text: this.datosInfFis[0].conclusion }
+                      ]
+                    },
+        
+                  ] : []),*/
+                  ...(mostrarTextoFiscal ? 
+                      this.datosInfFis[0].conclusion
+                        .split('\n')
+                        .filter((linea: string) => linea.trim() !== '')
+                        .map((linea: string) => ({
+                          text: linea,
+                          margin: [0, 0, 0, 5]
+                        }))
+                  : []),
+                  /*{
                     text: [
                       { text: this.datosInfFis[0].conclusion }
                     ]
-                  }
+                  }*/
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
             },
             {
@@ -656,7 +728,17 @@ export class InformePagoFiscal {
               style: 'textTitulo', margin: [0, 0, 0, 5]
             },
 
-            {
+            ...(mostrarTextoFiscal ? [
+              {
+                //text: 'Recomendaciones del Fiscal de Obra:',
+                text: this.datosInfFis[0].recomendacion,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
+            /*{
               text: 'Recomendaciones del Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -667,7 +749,7 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].recomendacion }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
           ]
           : [ //Si es Pago UNICO o es el PRIMERO
             {
@@ -741,7 +823,7 @@ export class InformePagoFiscal {
               : []
             ),
 
-            {
+            /*{
               text: 'Desarrollo registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -752,7 +834,16 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].analisis }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+            ...(mostrarTextoFiscal ? [
+              {
+                text: this.datosInfFis[0].analisis,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
 
             {
               text: '4.   CONCLUSIÓN',
@@ -794,11 +885,34 @@ export class InformePagoFiscal {
                           'de PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ', por lo trabajos ejecutados en la obra de referencia.'
                       }
                     ], margin: [0, 0, 0, 5]
-                  },            
+                  },  
+                  /*{
+                  text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                  },*/
+                  /*...(mostrarTextoFiscal ? [
+                  {
+                    
+                    text: this.datosInfFis[0].conclusion,
+                    
+                    //text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                    style: 'textDato',
+                    alignment: 'justify',
+                    margin: [10, 0, 0, 7]
+                  }
+                ] : []),*/     
+                ...(mostrarTextoFiscal ? 
+                    this.datosInfFis[0].conclusion
+                      .split('\n')
+                      .filter((linea: string) => linea.trim() !== '')
+                      .map((linea: string) => ({
+                        text: linea,
+                        margin: [0, 0, 0, 5]
+                      }))
+                : []),
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
             },
 
-            {
+            /*{
               text: 'Conclusiones del Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
             },
@@ -809,19 +923,31 @@ export class InformePagoFiscal {
                     text: [{ text: this.datosInfFis[0].conclusion }]
                   }
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
-            },
+            },*/
+
+            /*...(mostrarTextoFiscal ? [
+              {
+                
+                //text: this.datosInfFis[0].conclusion,
+                text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),*/
+
             {
               text: '5.   RECOMENDACIONES',
               style: 'textTitulo', margin: [0, 0, 0, 5]
             },
           ]
         ),
-        {
+        /*{
           text: 'De acuerdo a lo expuesto, la fiscalización de obra recomienda la prosecución del presente certificado de pago.',
           style: 'textDato', margin: [10, 0, 0, 5]
-        },
+        },*/
 
-        {
+        /*{
           text: 'Recomendaciones del Fiscal de Obra:',
           style: 'textTitulo', margin: [10, 0, 0, 5]
         },
@@ -832,7 +958,37 @@ export class InformePagoFiscal {
                 text: [{ text: this.datosInfFis[0].recomendacion }]
               }
             ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
+        },*/
+        {
+              ul:
+                [   
+
+                  {
+                    text: 'De acuerdo a lo expuesto, la fiscalización de obra recomienda la prosecución del presente certificado de pago.',
+                    margin: [0, 0, 0, 5]
+                  },
+
+                ...(mostrarTextoFiscal ? 
+                    this.datosInfFis[0].recomendacion
+                      .split('\n')
+                      .filter((linea: string) => linea.trim() !== '')
+                      .map((linea: string) => ({
+                        text: linea,
+                        margin: [0, 0, 0, 5]
+                      }))
+                : []),
+                ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
         },
+
+        /*...(mostrarTextoFiscal ? [
+          {
+            //text: 'Recomendaciones del Fiscal de Obra:',
+            text: this.datosInfFis[0].recomendacion,
+            style: 'textDato',
+            alignment: 'justify',
+            margin: [10, 0, 0, 7]
+          }
+        ] : []),*/
 
         {
           text: ['\n'],
