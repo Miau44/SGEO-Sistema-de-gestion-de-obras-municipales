@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 
-@Entity()
+
+@Entity('estructura_organizacional_2026')
 export class EstructuraOrganizacional { 
 @PrimaryGeneratedColumn()
 id_estructura: number;
