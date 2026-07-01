@@ -37,7 +37,7 @@ export class Ficha {
     gestion_carpeta: number;
 
     @Column()
-    cod_carpeta_anterior: number;    
+    correlativo_carpeta_anterior: number;    
 
     @Column()
     continuidad: number;     
