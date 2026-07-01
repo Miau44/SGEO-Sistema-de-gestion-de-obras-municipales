@@ -502,33 +502,32 @@ const resultado = await this.itemRepository.query(query);
   }
 
 
-  //avance por item paola
+  //avance por item paola 1072026
   async createItenAvance(create: CreateItemAvanceDto) {
     try {
-      console.log(create);
 
-      // 1. Buscar el avance más alto registrado actualmente para este id_item
       const mayorAvance = await this.itemAvanceRepository
         .createQueryBuilder('item_avance')
         .select('MAX(item_avance.porcentaje_avance)', 'max')
         .where('item_avance.id_item = :id_item', { id_item: create.id_item })
         .getRawOne();
-      console.log("mayorAvance", mayorAvance);
-
-      // 2. Si existe un registro previo y el nuevo avance es menor, lanzar un error
       const avanceMaximoActual = mayorAvance?.max ? Number(mayorAvance.max) : 0;
-      console.log("avanceMaximoActual", avanceMaximoActual);
 
-      // 1. La validación se hace ANTES del bloque try que interactúa con la base de datos
       if (create.porcentaje_avance <= avanceMaximoActual) {
         return this.responseService.error(
           `No se puede registrar un avance menor al ya existente. El avance actual es de ${avanceMaximoActual}%.`
         );
       }
-
       try {
-        // 2. Aquí solo dejas la operación de base de datos segura
+   
         const resultado = await this.itemAvanceRepository.save(create);
+
+
+      let query = ` SELECT public.fn_actualizar_total_avance($1);`;
+      const params = [resultado.id_item];
+      const resultado2 = await this.itemAvanceRepository.query(query, params);
+
+      return this.responseService.success(resultado, "Registrado Correctamente.");
         return this.responseService.success(resultado, "Registrado Correctamente.");
       } catch (error: any) {
         // Este catch solo atrapará errores reales de Postgres (caídas de red, llaves foráneas inválidas, etc.)
