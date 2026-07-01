@@ -86,7 +86,8 @@ export class EstructuraOrganizacionalService {
       const currentYear = new Date().getFullYear();
       console.log('Iniciando el proceso de llenado de la base de datos...');
       // Consumir el servicio externo
-      var response = await fetch('http://192.168.7.16:3001/simv2-genera-token/estructura', {
+      const url = process.env.URL_DLC +'simv2-genera-token/estructura';
+      var response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

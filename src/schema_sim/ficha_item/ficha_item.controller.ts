@@ -33,7 +33,7 @@ export class FichaItemController {
       cod_carpeta: body.cod_carpeta,
       cod_prioridad_carpeta: body.cod_prioridad_carpeta,
       gestion_carpeta: body.gestion_carpeta,
-      cod_carpeta_anterior: body.cod_carpeta_anterior,
+      correlativo_carpeta_anterior: body.cod_carpeta_anterior,
       continuidad: body.continuidad,
       desc_zona_carpeta: body.desc_zona_carpeta,
       desc_distrito_carpeta: body.desc_distrito_carpeta,

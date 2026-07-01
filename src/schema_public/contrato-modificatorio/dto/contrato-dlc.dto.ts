@@ -97,4 +97,12 @@ export class ContratoDlcDto {
   @ApiProperty({ example: 'Juan Pérez', description: 'Nombre del representante legal' })
   @IsString()
   elreplegal: string;
+
+  @ApiProperty({ example: 'infracciones graves', description: 'causa de resolucion de contrato' })
+  @IsString()
+  causa_dlc: string;
+
+  @ApiProperty({ example: 'http://ejemplo.com/contrato.pdf', description: 'URL del documento del contrato resolucion' })
+  @IsString()
+  url_resolucion: string;
 }

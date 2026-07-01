@@ -68,10 +68,8 @@ export class Contrato {
   @Column({ type: 'int' })
   id_contrato_dlc: number;
 
-
   @Column({ type: 'varchar', length: 200, nullable: true })
   tipo_rpcrpa: string;
-
 
   @Column()
   id_usuario: number;
@@ -84,5 +82,18 @@ export class Contrato {
 
   @Column()
   id_estado: number;
+
+  @Column({ type: 'date', nullable: true })
+  fecha_suscripción: Date;
+
+  @Column({ type: 'date', nullable: true })
+  fecha_resolucion: Date;
+
+  @Column({type: 'varchar',nullable:true})
+  causa_dlc:string;
+
+  @Column({type: 'varchar',nullable:true})
+  url_resolucion:string;
+
 }
   
