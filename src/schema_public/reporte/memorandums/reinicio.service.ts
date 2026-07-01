@@ -60,10 +60,10 @@ export class ReinicioObra {
   }
 
   // Datos informes de Supervisor y Fiscal
-  async datosInformesSF(id_modif_pago: number) {
+  async datosInformesSF(id_obra: number) {
     const query2 = `
         SELECT * 
-        FROM public."vista_reporte_memoOC" WHERE id_modificacion_pago = ${id_modif_pago}`;
+        FROM public."vista_reporte_memoOC" WHERE id_obra = ${id_obra}`;
     const resultado2 = await this.sequelize.query(query2);
     return resultado2[0];
   }
@@ -77,7 +77,31 @@ export class ReinicioObra {
     return resultado3[0];
   }
 
-     
+  //margenes por  fecha 
+  private obtenerMargenesPorFechareinicio(
+      fecha: string | Date | null,
+    ): [number, number, number, number] {
+
+      //const fechaDocumento = new Date(fecha);
+      // Si fecha es null usar fecha actual
+      const fechaDocumento = fecha
+        ? new Date(fecha)
+        : new Date();
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 170, 50, 30];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 170, 50, 30];
+      }
+
+      // primer membretado
+      return [70, 170, 50, 30];  
+  }
+
 // REPORTE - MEMORANDUM REINICIO DE OBRA
   async generateReinicioObra(id_obra: number, id_memo: number): Promise<Buffer> {
 
@@ -87,19 +111,12 @@ export class ReinicioObra {
     }
     this.datosEnvio = res;
 
-    const res1 = await this.datosInformesSF(id_obra);
-    if (!res1 || (Array.isArray(res1) && res1.length === 0) || (typeof res1 === 'object' && Object.keys(res1).length === 0)) {
-      throw new Error('No se encontraron datos de los informes de Sup/Fis');
-    }
-    this.datosInf = res1;
-
     const res2 = await this.datosReinicio(id_memo);
     if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
       throw new Error('No se encontraron datos para el reinicio');
     }
     this.datosRe = res2;
 
-       
     console.log("DATOS, ", res2);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
@@ -107,8 +124,15 @@ export class ReinicioObra {
     //const imgPath = 'assets/images/membretado_oficio.png';
     const marcaAgua = this.datosRe[0].reinicio_finalizado;
 
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membretado por  gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //membretadi por fecha
+    const fechaDocumento = this.datosRe[0].registro_reinicio;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+
+    //margenes dinamicos  para el nuevio membretado 
+    const margenesDinamicos = this.obtenerMargenesPorFechareinicio(fechaDocumento);
 
     const formatoNumerico5 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 5,
@@ -258,7 +282,7 @@ export class ReinicioObra {
         {          
           text:
             [
-            { text:this.datosInf[0].de_nombre_sup + '\n', style: 'textDato', alignment: 'center' },
+            { text:this.datosRe[0].de_nombre + '\n', style: 'textDato', alignment: 'center' },
             { text: 'SUPERVISOR(ES) DE OBRA', style: 'textTitulo', alignment: 'center' }
             ]
         },
@@ -342,7 +366,9 @@ export class ReinicioObra {
           bold: false,
         },
       },
-      pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [70, 170, 50, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //margen por fecha
+      pageMargins: margenesDinamicos as any,
 
 
     };
@@ -366,32 +392,26 @@ export class ReinicioObra {
   //// FUNCIONES VARIOS
   
       //funcion para generar la fecha de manera escrita
-  fechaString(iso: string): string {
-    let formattedDate = '';
-    let fecha: Date;
+ fechaString(iso: string): string {
+  if (!iso) return '';
 
-    if (iso === 'hoy') {
-      fecha = new Date();
-    } else {
-      fecha = new Date(iso);
-    }
+  let fecha: Date;
 
-    if (iso) {
-      const h = fecha.getHours();
-      const m = fecha.getMinutes();
-      const horas = h < 10 ? `0${h}` : `${h}`;
-      const minutos = m < 10 ? `0${m}` : `${m}`;
-
-      // Formatea la fecha
-      formattedDate = fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-     }
-
-    return formattedDate;
+  if (iso === 'hoy') {
+    fecha = new Date();
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [year, month, day] = iso.split('-').map(Number);
+    fecha = new Date(year, month - 1, day);
+  } else {
+    fecha = new Date(iso);
   }
+
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 //Función para generar de manera escrita el monto del dinero
 private unidades = [

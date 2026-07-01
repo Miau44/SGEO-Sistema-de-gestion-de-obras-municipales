@@ -304,12 +304,8 @@ export class PagoService {
       }
 
       if (informeExistente.id_correlativo) {
-        console.warn('No se encontró el informe para actualizar ya existe');
-        return {
-          statusCode: 200,
-          message: 'El informe ya tiene un correlativo asignado.',
-          data: [null, 0]
-        };
+        console.warn('No se encontró el informe para actualizar porque ya existe');
+     
       }
 
       // Generar el nuevo correlativo
@@ -343,22 +339,45 @@ export class PagoService {
       const [respuestaid_pago] = await this.pagoRepositorio.query(query5, params5);
       console.log('respuestaid_pago', respuestaid_pago);
       const pago = respuestaid_pago.id_pago;
-
-      if (pago) {
+//comentado por recorte de flujo se aprueba directamente con el fical
+   /*   if (pago) {
         console.log('pagooo', pago);
 
-        if (tipoCorrelativo === 356) {
+        if (tipoCorrelativo === 356) { //supervisor
           const datapago = { fecha_supervisor: await this.date() };
           await this.update(pago, datapago)
         }
-        else {
+        else { // fiscal
           const query2 = `
         SELECT public.sp_certificado_aprobacion($1)	`;
           const params2 = [AprobarDto.id_modificacion_pago];
           const resultado = await this.pagoRepositorio.query(query2, params2);
         }
-      }
-      return this.responseService.success(resultadoinforme, "pre aprobada correctamente.");
+      }*/
+     let resultado:any;
+      if (pago) {
+        console.log('pagooo', pago);
+
+          const datapago = { fecha_supervisor: await this.date() };
+          await this.update(pago, datapago)
+
+          
+          const query2 = `
+        SELECT public.sp_certificado_aprobacion($1)	`;
+          const params2 = [AprobarDto.id_modificacion_pago];
+          const resultado = await this.pagoRepositorio.query(query2, params2);
+
+
+          
+        
+      }        
+
+      return this.responseService.success( {
+          statusCode: 200,
+          message: 'El Pago fue aprobado correctamente.',
+          data: pago
+          
+        }, "Aprobado Correctamente.");
     } catch (error) {
       console.error("Error en aprobarDesignacion:", error);
       return this.responseService.error(error);

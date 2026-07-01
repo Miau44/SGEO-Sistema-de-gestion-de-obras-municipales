@@ -381,30 +381,91 @@ async llenarContratosDesdeServicioPorCodCarpeta(
   }
 }
 
-async resolucionContrato(correlativo: number) {
-  // buscar contrato
-  const contrato = await this.contratoRepo.findOne({
-    where: { correlativo_carpeta: correlativo }
-  });
+//servicio cambio de estado para  resolucion de  contrato y cambio de  estado de  obra con advertencias para log 29/4/26
+async resolucionContrato(idContratoDlc: number) {
+  try {
 
-  if (!contrato) {
-    throw new Error('Contrato no encontrado');
+    if (!idContratoDlc) {
+
+      await this.saveLogs(
+        'No llegó id_contrato_dlc',
+        { idContratoDlc } as any,
+        'ERROR'
+      );
+
+      return {
+        statusCode: 400,
+        message: 'No llegó id_contrato_dlc',
+        data: {
+          estadoIntegracion: 3
+        }
+      };
+    }
+
+    const contrato = await this.contratoRepo.findOne({
+      where: { id_contrato_dlc: idContratoDlc }
+    });
+
+    if (!contrato) {
+
+      await this.saveLogs(
+        'Contrato no encontrado',
+        { idContratoDlc } as any,
+        'ERROR'
+      );
+
+      return {
+        statusCode: 404,
+        message: 'No existe contrato con el id recibido',
+        data: {
+          estadoIntegracion: 2,
+          idContratoDlc
+        }
+      };
+    }
+
+    //actualizar contrato 
+    contrato.id_estado = 2;
+    await this.contratoRepo.save(contrato);
+
+    //actualizar  obra
+    await this.obraService.cambiarEstadoGeneral(
+      contrato.id_obra,
+      35
+    );
+
+    await this.saveLogs(
+      'Contrato resuelto correctamente',
+      {
+        idContratoDlc,
+        id_obra: contrato.id_obra
+      } as any,
+      'OK'
+    );
+
+    return this.responseService.success(
+      {
+        estadoIntegracion: 1,
+        idContratoDlc,
+        id_obra: contrato.id_obra
+      },
+      'Contrato y obra actualizados correctamente'
+    );
+
+  } catch (error) {
+
+    await this.saveLogs(
+      'Error en resolución de contrato',
+      {
+        idContratoDlc,
+        error: (error as any).message
+      } as any,
+      'ERROR'
+    );
+
+    return this.responseService.error(error);
   }
-
-  // actualizar contrato
-  contrato.id_estado = 2;
-  await this.contratoRepo.save(contrato);
-  // actualizar obra
-  await this.obraService.cambiarEstadoGeneral(
-    contrato.id_obra,
-    35
-  );
-
-  return {
-    message: 'Estados actualizados correctamente'
-  };
 }
-
 
   async actualizarUrlContratosDesdeServicio(gestion: number): Promise<any> {
     try {

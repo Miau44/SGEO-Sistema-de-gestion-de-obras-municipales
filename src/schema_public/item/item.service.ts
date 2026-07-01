@@ -1,4 +1,4 @@
-import { Controller, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Controller, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Any, Repository } from 'typeorm';
 import { CreateItemDto } from './dto/create-item.dto';
@@ -18,6 +18,11 @@ import { PlanillaService } from '../planilla/planilla.service';
 import { ObraService } from '../obra/obra.service';
 import { DecimalUtil } from 'src/common/utils/numero-decimales.utils';
 import { ItemObraContratoDto } from './dto/obra-contrato.dto';
+import { CreateItemAvanceDto } from './dto/create-item-avance.dto';
+import { AvanceItemDto } from './dto/item-avance.dto';
+import { ItemAvance } from './entities/avance_item.entity';
+import { log } from 'node:console';
+import { ItemEstadoAvanceDto } from './dto/item-estado-avance.dto';
 
 @Injectable()
 export class ItemService {
@@ -27,6 +32,10 @@ export class ItemService {
   constructor(
     @InjectRepository(Item)
     private readonly itemRepository: Repository<Item>,
+    @InjectRepository(ItemAvance)
+
+    private readonly itemAvanceRepository: Repository<ItemAvance>,
+
     //    @InjectRepository(Modificacion) private modificacionRepo: Repository<Modificacion>,
 
     private responseService: ResponseService,
@@ -491,4 +500,96 @@ const resultado = await this.itemRepository.query(query);
     }
     return modalidad.cantidad_decimales ?? 2; // Devuelve number
   }
+
+
+  //avance por item paola
+  async createItenAvance(create: CreateItemAvanceDto) {
+    try {
+      console.log(create);
+
+      // 1. Buscar el avance más alto registrado actualmente para este id_item
+      const mayorAvance = await this.itemAvanceRepository
+        .createQueryBuilder('item_avance')
+        .select('MAX(item_avance.porcentaje_avance)', 'max')
+        .where('item_avance.id_item = :id_item', { id_item: create.id_item })
+        .getRawOne();
+      console.log("mayorAvance", mayorAvance);
+
+      // 2. Si existe un registro previo y el nuevo avance es menor, lanzar un error
+      const avanceMaximoActual = mayorAvance?.max ? Number(mayorAvance.max) : 0;
+      console.log("avanceMaximoActual", avanceMaximoActual);
+
+      // 1. La validación se hace ANTES del bloque try que interactúa con la base de datos
+      if (create.porcentaje_avance <= avanceMaximoActual) {
+        return this.responseService.error(
+          `No se puede registrar un avance menor al ya existente. El avance actual es de ${avanceMaximoActual}%.`
+        );
+      }
+
+      try {
+        // 2. Aquí solo dejas la operación de base de datos segura
+        const resultado = await this.itemAvanceRepository.save(create);
+        return this.responseService.success(resultado, "Registrado Correctamente.");
+      } catch (error: any) {
+        // Este catch solo atrapará errores reales de Postgres (caídas de red, llaves foráneas inválidas, etc.)
+        return this.responseService.error(error.message || "Error en la base de datos");
+      }
+
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+
+  async listaAvanceXItem(data: AvanceItemDto) {
+    try {
+      const datos = {
+        id_item: data.id_item,
+        id_modificacion_pago: data.id_modificacion_pago
+      }
+      await this.planillaService.actualizarPlanillaXIditem(datos);
+
+      let query = ` SELECT * FROM public.sp_computo_monto($1, $2);`;
+
+      const params = [data.id_item, data.id_modificacion_pago];
+      const resultado = await this.itemRepository.query(query, params);
+      return this.responseService.success(resultado, "Listado Correctamente.")
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
+
+  
+async findOneItemAvance(id_item: number) {
+  try {
+    // CORRECCIÓN: Agregamos el objeto 'where' para la búsqueda
+    const resultado = await this.itemAvanceRepository.find({
+      where: { id_item: id_item } // O simplemente { where: { id_item } }
+    });
+    
+    return this.responseService.success(resultado, "Listado Correctamente.");
+  } catch (error) {
+    return this.responseService.error(error);
+  }
 }
+
+
+
+  async actualizarEstadoAvance(data: ItemEstadoAvanceDto) {
+    try {
+      let query =
+        ` UPDATE public.item_avance 
+        SET id_estado =0 WHERE id_item_avance = $1 AND id_estado = 1`;
+      const params: any[] = [data.id_item_avance];
+      const resultado: any[] = await this.itemRepository.query(query, params);
+    }
+  catch (error) {
+    return this.responseService.error(error);
+  }
+}
+}
+
+

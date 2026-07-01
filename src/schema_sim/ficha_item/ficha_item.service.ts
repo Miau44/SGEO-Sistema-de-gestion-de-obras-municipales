@@ -188,16 +188,16 @@ export class ficha_itemService {
           }
 
           //validar que codigo_ficha tenga el texto 2025
-          if (!fichaJson.codigo_ficha.includes(this.gestion.toString())) {
-            msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion `+this.gestion.toString()+`.\n`;
-            continue;
-          }
+          // if (!fichaJson.codigo_ficha.includes(this.gestion.toString())) {
+          //   msg += `${fichaJson.cod_carpeta}: no corresponde a la gestion `+this.gestion.toString()+`.\n`;
+          //   continue;
+          // }
 
           //verificar si existe la ficha en la base de datos, si existe no guardar
           const fichaExistente = await this.fichaRepository.findOne({ where: { correlativo_carpeta: fichaJson.cod_carpeta } });
           //console.log("ficha existente", fichaExistente);
           if (fichaExistente) {
-            console.log(`Ficha  ${fichaJson.cod_carpeta}: ya existe en la base de datos.`);
+            //console.log(`Ficha ${fichaJson.cod_carpeta}: ya existe en la base de datos.`);
             msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
             // //revisar y actualizar si el campo "estado" es igual a "ANULADA"
             if(fichaJson.estado === "ANULADA" && fichaExistente.estado_carpeta !== "ANULADA"){
@@ -213,11 +213,26 @@ export class ficha_itemService {
               
 
               console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} se actualiza a estado ANULADA.`);
-              msg += `${fichaJson.cod_carpeta}: se actualiza a estado ANULADA.********************\n`;
+              msg += `${fichaJson.cod_carpeta}: se actualiza a estado ANULADA.\n`;
             }
             continue; // Si ya existe, continuar con la siguiente ficha
           }
           
+
+          //actualización de las fichas revalidadas
+          /*const codCarpetaExistente = await this.fichaRepository.findOne({ where: { cod_carpeta: fichaJson.codigo_ficha } });
+          if (codCarpetaExistente && codCarpetaExistente.gestion_carpeta!=fichaJson.gestion) {//validamos que tengan el mismo codigo ficha pero distinta gestion
+            //actualizamos los campos
+            codCarpetaExistente.gestion_carpeta = fichaJson.gestion // revisar ** al pasar a una gestion anterior ya no ingresara por segunda vez
+            codCarpetaExistente.desc_cod_ue = desc_cod_ue_;
+            codCarpetaExistente.correlativo_carpeta_anterior = codCarpetaExistente.correlativo_carpeta;
+            codCarpetaExistente.correlativo_carpeta = fichaJson.cod_carpeta; //verificar el cod_carpeta
+            codCarpetaExistente.continuidad = 1;
+            codCarpetaExistente.url_adjuntos = fichaJson.url;
+            let actFicha = await this.fichaRepository.save(codCarpetaExistente);
+            msg += `${fichaJson.cod_carpeta}: actualizada por ser multigestion.\n`;
+            continue;
+          }*/
           
           try {
             let nueva_ficha = await this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
@@ -700,7 +715,7 @@ export class ficha_itemService {
       gestion_carpeta: gestion,
       cod_estado_carpeta: 1, //validado
       cod_prioridad_carpeta: 0,
-      cod_carpeta_anterior: 0,
+      correlativo_carpeta_anterior: 0,
       continuidad: 0,
       desc_distrito_carpeta: fichaJson.distrito || '',
       desc_macrodistrito_carpeta: fichaJson.macrodistrito || '',
@@ -731,7 +746,7 @@ export class ficha_itemService {
       gestion_carpeta: fichaJson.gestion,
       cod_estado_carpeta: 1, //validado
       cod_prioridad_carpeta: 0,
-      cod_carpeta_anterior: 0,
+      correlativo_carpeta_anterior: 0,
       continuidad: 0,
       desc_distrito_carpeta: fichaJson.distrito || '',
       desc_macrodistrito_carpeta: fichaJson.macrodistrito || '',
@@ -824,16 +839,22 @@ export class ficha_itemService {
     }
   }
 
-  private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<number> {
-    if (!itemsJson || itemsJson.length === 0) return 0; // No hay items que guardar
+  private async guardarItemsIndividual(itemsJson: any[], obra: Obra, id_usuario_: number): Promise<string> {
+    if (!itemsJson || itemsJson.length === 0) return "No hay items para esta obra."; // No hay items que guardar
 
     const id_tipo_item: number = Number(process.env.ID_TIPO_ITEM); // Ajustar para el servicio
 
     // Filtrar solo las partidas permitidas (42310 y 42230)
     const partidasPermitidas = ["42310", "42230", "24300"];
     const registrosUnicos = new Map<string, any>();
-
+    var msgTemp = "";
     itemsJson.forEach(itemJson => {
+
+      if(itemJson.orden == null){
+        //console.log(`Item ${itemJson.codigo_item} ignorado: sin campo orden.`);
+        msgTemp += ` Item ${itemJson.codigo_item} ignorado: sin campo orden.`;
+        return ; // Saltar este item
+      }
       // Validar si la partida está permitida
       if (!partidasPermitidas.includes(itemJson.partida)) {
         console.log(`Item ignorado: Partida no permitida. Partida=${itemJson.partida}, Orden=${itemJson.orden}, Código_Item=${itemJson.codigo_item}`);
@@ -877,11 +898,11 @@ export class ficha_itemService {
             })
           )
         );
-        //console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
-        return itemsFiltrados.length;
+        console.log(`Se guardaron ${itemsFiltrados.length} items en la base de datos.`);
+        return itemsFiltrados.length.toString() + msgTemp;
       } else {
         //console.log(`No se guardaron nuevos items porque todos fueron ignorados.`);
-        return 0;
+        return "No se guardaron nuevos items porque todos fueron ignorados";
       }
     } catch (error) {
       console.error(`Error al guardar items: ${error}`);

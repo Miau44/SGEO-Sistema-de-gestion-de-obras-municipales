@@ -361,7 +361,45 @@ export class ReporteOrdenProcederService {
     });
   }
 
+  //membrete por fecha tamaño carta
+  obtenerMembretadocarta(fecha: string | Date): string {
+    const fechaDocumento = new Date(fecha);
+    // tercer membretado 
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return 'assets/images/carta.png';
+    }
+    // segundo membretado
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return 'assets/images/membretado_carta_nuevo.png';
+    }
+    // primer membretado
+    return 'assets/images/membretado_carta.png';
+  }
 
+//margenes por fecha orden proceder para el membretado nuevo
+private obtenerMargenesordenproceder(
+    fecha?: string | Date | null,
+  ): [number, number, number, number] {
+
+    //const fechaDocumento = new Date(fecha);
+    // Si fecha es null usar fecha actual
+    const fechaDocumento = fecha
+      ? new Date(fecha)
+      : new Date();
+
+    // tercer membretado nuevo
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [70, 145, 50, 50]; // Márgenes: izquierda, arriba, derecha, abajo
+    }
+
+    // segundo membretado del 
+    if (fechaDocumento >= new Date('2026-01-01')) {
+      return [70, 130, 50, 40];
+    }
+
+    // primer membretado logo antiguo 200
+    return [70, 145, 50, 40]; 
+}
 
 // NOTA INSTRUCCION ORDEN DE PROCEDER
 async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
@@ -386,8 +424,14 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
 
   const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
   const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-  const imgPath = this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta);
-  console.log('imgPath:',this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta));
+  //const imgPath = this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta);
+  //console.log('imgPath:',this.obtenerMembretadoCartaPorGestion(this.datosEnvio[0].gestion_carpeta));
+
+  //membretado por  fecha  de l 13 de mayo de  2026 general
+  const fechaDocumento = this.datosEnvio[0].fecha_instruccion_op;
+  const imgPath = this.reportService.obtenerMembretePorFechaCarta(fechaDocumento);
+   //margen por  fecha  del 13 de mayo general
+  const margenesDinamicos = this.obtenerMargenesordenproceder(fechaDocumento);
  
     const documentDefinition = {
     pageSize: 'LETTER' as any,
@@ -541,7 +585,9 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
         opacity: 0.8,
       },
     },
-    pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //pageMargins: [70, 130, 50, 40] as any, // Márgenes: izquierda, arriba, derecha, abajo
+    //margen dinamico
+    pageMargins: margenesDinamicos as any,
 
   };
   // Generar el PDF en memoria
@@ -884,7 +930,25 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     });
   }
 
-  
+  /*private obtenerMargenesMemoOrdenproceder(
+    fecha: string | Date,
+  ): [number, number, number, number] {
+
+    const fechaDocumento = new Date(fecha);
+
+    // tercer membretado
+    if (fechaDocumento >= new Date('2026-05-13')) {
+      return [60, 25, 40, 40];
+    }
+
+    // segundo membretado
+    if (fechaDocumento >= new Date('2025-01-01')) {
+      return [60, 30, 40, 30];
+    }
+
+    // primer membretado
+    return [60, 30, 40, 30]; 
+  }*/
 
 // MEMORANDUM ORDEN DE PROCEDER
   async generateOrdenProceder(obra: number): Promise<Buffer> {
@@ -906,8 +970,14 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_carta.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
+
+    // membretado por  fecha  
+    const fechaDocumento = this.datosEnvio[0].fecha_memo;
+    const imgPath = this.reportService.obtenerMembretePorFechaCarta(fechaDocumento );
+   //margen por  fechas
+    const margenesDinamicos =this.reportService.obtenerMargenesporfechacarta(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LETTER' as any,
@@ -1135,7 +1205,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
           bold: false,
         },
       },
-      pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      //pageMargins: [60, 30, 40, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
+      pageMargins: margenesDinamicos as any,
 
 
     };
@@ -1156,6 +1227,26 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     });
   }
 
+  //margenesDinamicos por fecha 
+  private obtenerMargenesInformePrevPagos(
+      fecha: string | Date,
+    ): [number, number, number, number] {
+
+      const fechaDocumento = new Date(fecha);
+
+      // tercer membretado
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 140, 50, 70];
+      }
+
+      // segundo membretado
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 130, 50, 140];
+      }
+
+      // primer membretado
+      return [70, 170, 50, 140];
+  }
 
 
 // INFORME DE PREVISION DE PAGOS
@@ -1190,7 +1281,8 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //membrete  anterior por grstion
+    /*const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
     const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
     let gestionObra = parseInt(codigoCarpeta.split('-').pop());
     let margenesDinamicos;
@@ -1198,7 +1290,12 @@ async generateInstruccionOrdenProceder(obra: number): Promise<Buffer> {
       margenesDinamicos = [70, 130, 50, 140]; 
     } else {
       margenesDinamicos = [70, 170, 50, 140]; 
-    }
+    }*/
+
+    //membrete por  fecha  
+    const fechaDocumento = this.datosEnvio[0].fecha_memo;
+    const imgPath = this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+    const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     const documentDefinition = {
       pageSize: 'LEGAL' as any,

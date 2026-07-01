@@ -30,14 +30,15 @@ import { InformeService } from '../informe/informe_inicial.service';
 import { Informe } from '../informe/entities/informe.entity';
 import { InformeInicial } from '../informe/entities/informe_inicial.entity';
 import { Documento } from '../documento/entities/documento.entity';
+import { ItemAvance } from '../item/entities/avance_item.entity';
+import { ObraModule } from '../obra/obra.module';
 
 
 @Module({
 
   imports: [ 
     TypeOrmModule.forFeature([Computo,  ComputoCriterio, Planilla, Obra, ModificacionPago, Correlativo, Pago, Solicitud, 
-      SolicitudHistorial, Modificacion, ComputoObservacion, Item, Log, InformeInicial, Informe, Documento])],  
-
+      SolicitudHistorial, Modificacion, ComputoObservacion, Item, Log, InformeInicial, Informe, Documento, ItemAvance])],  
   controllers: [ComputoController],
   providers: [ComputoService, ResponseService, PlanillaService, ObraService, ModificacionPagoService, SolicitudService, 
     CorrelativoService, ItemService, LogService, InformeService],

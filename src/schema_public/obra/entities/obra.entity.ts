@@ -91,6 +91,10 @@ export class Obra {
     @Column('decimal', { precision: 10, scale: 7, nullable: true })
     longitud: number | null;
 
+    @Column("decimal", { precision: 5, scale: 2, nullable: true })
+    porcentaje_avance: number;
+
+
     ///---------campos genericos-----//////
 
     @Column({nullable:true})

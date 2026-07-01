@@ -34,7 +34,7 @@ export class CreateFichaDto {
     gestion_carpeta: number;
     
     @ApiProperty()
-    cod_carpeta_anterior: number;
+    correlativo_carpeta_anterior: number;
     
     @ApiProperty()
     continuidad: number;

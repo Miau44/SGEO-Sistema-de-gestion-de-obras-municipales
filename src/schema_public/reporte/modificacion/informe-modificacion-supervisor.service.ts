@@ -132,6 +132,27 @@ export class InformeModificacionSupervisor {
       return resultado7[0];
     }
 
+    //margenes para  el membretado por fecha del 13 de mayo 
+    /*private obtenerMargenesporfecha(
+      fecha: string | Date,
+    ): [number, number, number, number] {
+
+      const fechaDocumento = new Date(fecha);
+
+      //margen para la  fecha desde 13 de mayo de 2026
+      if (fechaDocumento >= new Date('2026-05-13')) {
+        return [70, 145, 50, 70];
+      }
+
+      //segundo margen 
+      if (fechaDocumento >= new Date('2026-01-01')) {
+        return [70, 130, 50, 140];
+      }
+
+      //antiguo margen del logo de  200
+      return [70, 170, 50, 140];
+    }*/
+
 // REPORTE - INFORME MODIFICACION SUPERVISOR
 
 async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buffer> {
@@ -181,17 +202,27 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
     //const imgPath = 'assets/images/membretado_oficio.png';
-    const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
-    const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    //membrete por gestion
+    //const codigoCarpeta = this.datosEnvio[0].cod_carpeta;
+    //const imgPath = this.reportService.obtenerMembretePorGestion(codigoCarpeta);
 
-    let gestionObra = parseInt(codigoCarpeta.split('-').pop());
+    //membrete por fecha de 13 de  mayo de  2026
+    const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
+    const imgPath =this.reportService.obtenerMembretePorFechaOficio(fechaDocumento);
+    //const marcaAgua = this.datosEnvio[0].fecha_aprobacion;
+    const marcaAgua = this.datosEnvio[0].fecha_supervisor;
+
+    //margenes por gestion
+    /*let gestionObra = parseInt(codigoCarpeta.split('-').pop());
     let margenesDinamicos;
     if (gestionObra >= 2026) {
       margenesDinamicos = [70, 130, 50, 140]; 
     } else {
       margenesDinamicos = [70, 170, 50, 140]; 
-    }
+    }*/
+
+    //margenes  por  fecha del 13 de mayo de  2026 GENERAL
+    const margenesDinamicos =this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
     let formatoNumerico: Intl.NumberFormat; //variable para controlar el número de decimales
 
@@ -219,9 +250,44 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
     });
- 
-   //console.log('DATOS MODIFICACION',this.datosEnvio);
-   
+
+    //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
+    const fechaCorte = new Date('2026-05-15');
+
+    // si no existe fecha_aprobacion usar today
+    const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
+      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+      : new Date();
+
+    /*const esNuevoFormato = fechaComparacion >= fechaCorte;
+    const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
+
+    //console.log('DATOS MODIFICACION',this.datosEnvio);
+
+    // Fecha de corte para el cambio de texto "nuevo monto autorizado"
+    const fechaCorteMonto = new Date('2026-06-23');
+
+    const fechaComparacionMonto = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
+      : new Date();
+
+    const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+
+    /*consola para ver de que  tipo es monto_variacion y del porque no me estaba funcionando
+    console.log('fechaSupervisor:', this.datosEnvio[0].fecha_supervisor);
+    console.log('usarNuevoTextoMonto:', usarNuevoTextoMonto);
+    console.log('monto_variacion:', this.datosEnvio[0].monto_variacion);
+    console.log('Number:', Number(this.datosEnvio[0].monto_variacion));
+    console.log('typeof:', typeof this.datosEnvio[0].monto_variacion);
+    console.log(this.datosEnvio[0].monto_variacion);*/
+    
+    //ajuste para  monto variacion en el texto parte 6.
+    const montoVariacion = parseFloat(String(this.datosEnvio[0].monto_variacion).replace(',', '.'));
+    //const montoVariacion = Number(this.datosEnvio[0].monto_variacion);
+
+    const verboMonto = usarNuevoTextoMonto ? (montoVariacion === 0 ? 'mantiene' : 'modifica') : 'modifica';
+    //console.log('verboMonto:', verboMonto);
+      
     const documentDefinition = {
     pageSize: 'LEGAL' as any,
     background: function(currentPage: any, pageSize: any) { 
@@ -285,6 +351,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
                       ]
               },
             ],
+
+            //fecha supervisor
             [
               { text: 'FECHA:', style: 'textTitulo', alignment:'right' },
               { text: this.fechaString(this.datosEnvio[0].fecha_supervisor), style: 'textDato' },
@@ -402,6 +470,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -458,6 +527,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55], // 8 columnas
           body: [
             [
@@ -518,6 +588,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       },
       {
         table: {
+          headerRows: 2, //REPITAN LAS CABECERAS 
           widths: [18, '*', 28, 45, 45, 45, 45, 55],
           body: [
             [
@@ -603,7 +674,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: this.datosEnvio[0].id_tipo_mod_pago == 1 
             ? 'El '
             : 'La '},
-          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' modifica el monto ' }, 
+          { text: 'presente ' + this.datosEnvio[0].desc_subtipo + ' Nro.' + this.datosEnvio[0].numero_modificacion + ' ' + verboMonto +' el monto ' }, 
           { text: this.datosEnvio[0].modificacion_gral == 1 
             ? 'vigente de Bs' + this.formatIfNumber(this.datosEnvio[0].monto_contrato,formatoNumerico2)
             : 'de la última modificación autorizada (' + (this.datosEnvio[0].modificacion_gral - 1) + ') de Bs' + this.formatIfNumber(this.datosMA[0].monto_total,formatoNumerico2)
@@ -611,10 +682,23 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { text: ', en ' + this.datosEnvio[0].monto_variacion + ' (' + this.convertToWords(this.datosEnvio[0].monto_variacion, 'Bs.') + ').\n' },
         ], style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
       },
-      {
+      /*{
         text: 'Por lo que el nuevo monto autorizado será de Bs.' + this.datosEnvio[0].monto_total + ' (' + this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') + ')'  + ' totalizando un valor porcentual de modificaciones ' + 
         '(incluyendo la presente) de ' + this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.', 
         style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5]
+      },*/
+      {
+        text:
+          (usarNuevoTextoMonto
+            ? 'Por lo que el monto autorizado será de Bs.'
+            : 'Por lo que el nuevo monto autorizado será de Bs.') +
+          this.datosEnvio[0].monto_total +
+          ' (' +
+          this.convertToWords(this.datosEnvio[0].monto_total, 'Bs') +
+          ')' +
+          ' totalizando un valor porcentual de modificaciones ' + '(incluyendo la presente) de ' +
+          this.datosEnvio[0].porcentaje_total + '% respecto al contrato inicial.',
+        style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 5]
       },
 
       {
@@ -647,6 +731,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         text: '\n'
       },
       {
+        //anexo
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
       },
@@ -718,6 +803,7 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
           { //return currentPage.toString() + ' of ' + pageCount; 
             return {
               columns:[
+                  
                   { text: currentPage.toString() + ' de ' + pageCount , alignment: 'right', style: 'footerText', margin: [0,0,30,0]} 
                       ]
               }            
@@ -761,9 +847,12 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         opacity: 0.8,
       },
     },
+    //margenes dinamicos para membrete nuevo 
     pageMargins: margenesDinamicos as any, // Márgenes: izquierda, arriba, derecha, abajo
 
   };
+  //console.log('fecha_aprobacion:', this.datosEnvio[0].fecha_aprobacion);
+  //console.log('mostrar marca agua:', !this.datosEnvio[0].fecha_aprobacion);
   // Generar el PDF en memoria
   const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
   //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR

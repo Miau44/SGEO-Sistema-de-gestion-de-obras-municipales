@@ -351,72 +351,107 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   }
 
 
-  //personas SI solicitadas/designadas
-  async listaPersonasDesignadas(data: PersonasEstadoDto) {
-    try { 
+  // //personas SI solicitadas/designadas
+  // async listaPersonasDesignadas(data: PersonasEstadoDto) {
+  //   try { 
   
       
-    /*  const query = ` SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido , 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, cm.correlativo_memo
-      FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
-      INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
-      INNER JOIN obra as o  ON sd.id_obra = o.id_obra
-      INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
-      INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
-      WHERE dp.idpermisod IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
-      AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
-      AND sd.id_estado =1
-      ORDER BY dp.permiso,cm.correlativo_memo ASC; `;*/
+  //   /*  const query = ` SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+  //     p.segundo_apellido , 
+  //     pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+  //     p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
+  //     ,sd.id_designacion, sd.id_obra, dp.permiso,  dp.permisodetalle, f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+  //     ,sd.id_reemplazo, cm.correlativo_memo
+  //     FROM persona as  p
+  //     INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+  //     INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+  //     INNER JOIN obra as o  ON sd.id_obra = o.id_obra
+  //     INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+  //     INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+  //     WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
+  //     eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
+  //     INNER JOIN LATERAL (SELECT * FROM public.sp_descripcion_permiso(p.id_persona)) AS dp ON 	sd.id_persona = dp.idpersona		
+  //     WHERE dp.idpermisod IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
+  //     AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
+  //     AND sd.id_estado =1
+  //     ORDER BY dp.permiso,cm.correlativo_memo ASC; `;*/
 
-      const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
-      p.segundo_apellido , 
-      pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
-      p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
-      ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
-      ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
-      , per_reem.persona_a_reemplazar
-      FROM persona as  p
-      INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
-      --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
+  //     const query = `SELECT p.id_usuario, p.id_persona, p.nombre , p.primer_apellido ,
+  //     p.segundo_apellido , 
+  //     pro.id_subtipo as id_profesion, pro.desc_subtipo as profesion, p.registro_profesional,
+  //     p.fecha_aprobacion, p.fecha_registro, eo.nombre_da , p.desc_cod_da_comision, sd.id_persona
+  //     ,sd.id_designacion, sd.id_obra, dp.permisos, dp.detalles AS permisodetalle,  f.cod_carpeta , pro.detalle as cargodetalle, sd.estado_designacion
+  //     ,sd.id_reemplazo, sd.correlativo, sd.fecha_registro as fecha_solicitud_designacion, est.desc_subtipo as estado_solicitud
+  //     , per_reem.persona_a_reemplazar
+  //     FROM persona as  p
+  //     INNER JOIN public.designacion AS sd ON p.id_persona = sd.id_persona
+  //     --INNER JOIN public.correlativo_memo AS cm ON sd.id_correlativo_memo= cm.id_correlativo_memo	
 
-    LEFT JOIN (SELECT de.id_designacion, pro.detalle || '' ||  pe.nombre || ' ' || pe.primer_apellido || ' ' || pe.segundo_apellido AS persona_a_reemplazar
-		FROM designacion de
-		INNER JOIN (SELECT id_designacion, id_persona  FROM designacion ) as des ON de.id_reemplazo = des.id_designacion 
-		INNER JOIN persona  AS pe ON des.id_persona = pe.id_persona
-		INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM public.parametrica  WHERE id_tipo =2 AND id_estado=1 )  as pro ON  pe.id_profesion = pro.id_subtipo) AS per_reem
-		ON sd.id_designacion = per_reem.id_designacion 
+  //   LEFT JOIN (SELECT de.id_designacion, pro.detalle || '' ||  pe.nombre || ' ' || pe.primer_apellido || ' ' || pe.segundo_apellido AS persona_a_reemplazar
+	// 	FROM designacion de
+	// 	INNER JOIN (SELECT id_designacion, id_persona  FROM designacion ) as des ON de.id_reemplazo = des.id_designacion 
+	// 	INNER JOIN persona  AS pe ON des.id_persona = pe.id_persona
+	// 	INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM public.parametrica  WHERE id_tipo =2 AND id_estado=1 )  as pro ON  pe.id_profesion = pro.id_subtipo) AS per_reem
+	// 	ON sd.id_designacion = per_reem.id_designacion 
 
-      INNER JOIN obra as o  ON sd.id_obra = o.id_obra
-      INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
-      INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =10 )  as est ON  sd.estado_designacion = est.id_subtipo
+  //     INNER JOIN obra as o  ON sd.id_obra = o.id_obra
+  //     INNER JOIN ficha as f  ON o.id_ficha = f.id_ficha	
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =2 )  as pro ON  p.id_profesion = pro.id_subtipo
+  //     INNER  JOIN (SELECT id_subtipo, desc_subtipo, detalle FROM parametrica  WHERE id_tipo =10 )  as est ON  sd.estado_designacion = est.id_subtipo
 	  
-      INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
-      WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
-      eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
-    INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
-	 AS dp ON 	sd.id_persona = dp.idpersona
-   WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
-      AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
-      AND sd.id_estado =1
-      ORDER BY dp.permisos, sd.correlativo ASC; `;
-      const resultado = await this.personaRepo.query(query);
-      return this.responseService.success(resultado, "Listado Correctamente.")
-    } catch (error) {
-      return this.responseService.error(error);
-    }
+  //     INNER  JOIN (SELECT  desc_cod_da, nombre_da, gestion from estructura_organizacional		
+  //     WHERE  gestion =${data.gestion} GROUP BY desc_cod_da,nombre_da, gestion)  
+  //     eo ON p.desc_cod_da_comision= eo.desc_cod_da	 	
+  //   INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas())	 
+	//  AS dp ON 	sd.id_persona = dp.idpersona
+  //  WHERE dp.idpermiso IN(${data.id_rol} )AND p.gestion =${data.gestion} AND sd.id_obra= ${data.id_obra}  
+  //     AND   sd.estado_designacion IN(${data.id_estado_designacion}) 
+  //     AND sd.id_estado =1
+  //     ORDER BY dp.permisos, sd.correlativo ASC; `;
+  //     const resultado = await this.personaRepo.query(query);
+  //     return this.responseService.success(resultado, "Listado Correctamente.")
+  //   } catch (error) {
+  //     return this.responseService.error(error);
+  //   }
+  // }
+
+  async listaPersonasDesignadas(data: PersonasEstadoDto) {
+    try {
+      const query = `
+      SELECT * 
+      FROM public.sp_lista_personas_designadas($1, $2, $3, $4);
+    `;
+
+      const idRol = Array.isArray(data.id_rol)
+        ? data.id_rol.join(',')
+        : String(data.id_rol);
+
+      const idEstadoDesignacion = Array.isArray(data.id_estado_designacion)
+        ? data.id_estado_designacion.join(',')
+        : String(data.id_estado_designacion);
+
+      const resultado = await this.personaRepo.query(query, [
+        data.gestion,
+        data.id_obra,
+        idRol,
+        idEstadoDesignacion,
+      ]);
+
+      return this.responseService.success(resultado, 'Listado Correctamente.');
+    } catch (error:any) {
+
+    console.error(
+      'ERROR sp_lista_personas_designadas:',
+      error
+    );
+
+    return this.responseService.error(
+      error?.message ||
+      'Ocurrió un error al obtener la lista de personas designadas.'
+    );
   }
-
-
+  }
 
   //nuevo servicio Mike
   async filtrarSupervisoresNoDesignados(

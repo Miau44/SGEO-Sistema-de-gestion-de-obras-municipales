@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column,JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Obra } from './../../obra/entities/obra.entity'; // Relación con Obra
 import { Computo } from 'src/schema_public/computo/entities/computo.entity';
+import { ItemAvance } from './avance_item.entity';
 @Entity('item')
 export class Item {
   @PrimaryGeneratedColumn()
@@ -98,5 +99,9 @@ export class Item {
 //relacion de uno a muchos con computo
   @OneToMany(() => Computo, (computo) => computo.item, { cascade: true })
   computo: Computo[];
+
+  // En tu archivo item.entity.ts
+@OneToMany(() => ItemAvance, (itemAvance) => itemAvance.item)
+avances: ItemAvance[];
 
 }
