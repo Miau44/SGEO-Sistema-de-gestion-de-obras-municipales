@@ -356,10 +356,9 @@ export class PagoService {
       }*/
      let resultado:any;
       if (pago) {
-        console.log('pagooo', pago);
 
-          const datapago = { fecha_supervisor: await this.date() };
-          await this.update(pago, datapago)
+      /*  const datapago = { fecha_supervisor: await this.date() };
+        await this.update(pago, datapago)*/
 
           
           const query2 = `
