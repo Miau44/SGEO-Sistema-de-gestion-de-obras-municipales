@@ -110,127 +110,127 @@ export class FichaItemController {
     return await this.ficha_itemService.obtenerUes(gestion, id_usuario);
   }
 
-@Post('cargadoFichaItemPorCorrelativo')
-@Public()
-@ApiOperation({ summary: 'Cargado de fichas e ítems por correlativo' })
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      correlativo_carpeta: { type: 'number', example: 337777 },
-      id_usuario: { type: 'number', example: 3984 },
+  @Post('cargadoFichaItemPorCorrelativo')
+  @Public()
+  @ApiOperation({ summary: 'Cargado de fichas e ítems por correlativo' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 337777 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+      required: ['correlativo_carpeta', 'id_usuario'],
     },
-    required: ['correlativo_carpeta', 'id_usuario'],
-  },
-})
-async cargadoFichaItemPorCorrelativo(
-  @Body() body: { correlativo_carpeta: number; id_usuario: number }
-) {
-  const { correlativo_carpeta, id_usuario } = body;
-  //  Validaciones básicas
-  if (!id_usuario) {
-    console.error('Error: id_usuario es nulo');
-    return { message: 'error', error: 'id_usuario es nulo' };
-  }
-
-  if (!correlativo_carpeta) {
-    console.error('Error: correlativo_carpeta es nulo');
-    return { message: 'error', error: 'correlativo_carpeta es nulo' };
-  }
-
-  try {
-    // 1 Intentar obtener el token
-    try {
-      console.log('Intentando obtener token...');
-      await this.ficha_itemService.obtenerToken();
-      console.log(' Token obtenido correctamente');
-    } catch (tokenError) {
-      console.error(' Error en obtenerToken():', tokenError);
-      return {
-        message: 'error',
-        etapa: 'obtenerToken',
-        error: (tokenError as any).message || tokenError,
-      };
+  })
+  async cargadoFichaItemPorCorrelativo(
+    @Body() body: { correlativo_carpeta: number; id_usuario: number }
+  ) {
+    const { correlativo_carpeta, id_usuario } = body;
+    //  Validaciones básicas
+    if (!id_usuario) {
+      console.error('Error: id_usuario es nulo');
+      return { message: 'error', error: 'id_usuario es nulo' };
     }
 
-    // 2 Intentar cargar fichas e ítems
+    if (!correlativo_carpeta) {
+      console.error('Error: correlativo_carpeta es nulo');
+      return { message: 'error', error: 'correlativo_carpeta es nulo' };
+    }
+
     try {
-      console.log('Llamando a obtenerFichaporCorrelativo...');
+      // 1 Intentar obtener el token
+      try {
+        console.log('Intentando obtener token...');
+        await this.ficha_itemService.obtenerToken();
+        console.log(' Token obtenido correctamente');
+      } catch (tokenError) {
+        console.error(' Error en obtenerToken():', tokenError);
+        return {
+          message: 'error',
+          etapa: 'obtenerToken',
+          error: (tokenError as any).message || tokenError,
+        };
+      }
+
+      // 2 Intentar cargar fichas e ítems
+      try {
+        console.log('Llamando a obtenerFichaporCorrelativo...');
+        const result = await this.ficha_itemService.obtenerFichaporCorrelativo(
+          correlativo_carpeta,
+          id_usuario
+        );
+        console.log('Fichas e ítems cargados correctamente');
+        return { message: 'Proceso completado', result };
+      } catch (fichaError) {
+        console.error('Error en obtenerFichaporCorrelativo():', fichaError);
+        return {
+          message: 'error',
+          etapa: 'obtenerFichaporCorrelativo',
+          error: (fichaError as any).message || fichaError,
+        };
+      }
+
+    } catch (error) {
+      // Error inesperado fuera de los bloques internos
+      console.error('Error general inesperado:', error);
+      return {
+        message: 'error',
+        etapa: 'general',
+        error: (error as any).message || error,
+      };
+    }
+  }
+
+
+
+  @Post('cargadoFichaItemPorCorrelativoNuevo')
+  @Public()
+  @ApiOperation({ summary: 'Cargado de fichas e ítems por correlativo' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        correlativo_carpeta: { type: 'number', example: 337777 },
+        id_usuario: { type: 'number', example: 3984 },
+      },
+      required: ['correlativo_carpeta', 'id_usuario'],
+    },
+  })
+  async cargadoFichaItemPorCorrelativoNuevo(@Body() body: { correlativo_carpeta: number; id_usuario: number },
+  ) {
+    try {
+      const { correlativo_carpeta, id_usuario } = body;
+
+      if (!id_usuario) {
+        return { message: '❌ Error: id_usuario es nulo' };
+      }
+      if (!correlativo_carpeta) {
+        return { message: '❌ Error: correlativo_carpeta es nulo' };
+      }
+
+      // obtener token
+      await this.ficha_itemService.obtenerToken();
+
+      // procesar fichas
       const result = await this.ficha_itemService.obtenerFichaporCorrelativo(
         correlativo_carpeta,
-        id_usuario
+        id_usuario,
       );
-      console.log('Fichas e ítems cargados correctamente');
-      return { message: 'Proceso completado', result };
-    } catch (fichaError) {
-      console.error('Error en obtenerFichaporCorrelativo():', fichaError);
+
       return {
-        message: 'error',
-        etapa: 'obtenerFichaporCorrelativo',
-        error: (fichaError as any).message || fichaError,
+        message: '✅ Fichas procesadas correctamente',
+        result,
+      };
+
+    } catch (error) {
+      console.error('❌ Error general:', error);
+      return {
+        message: '❌ Error al cargar fichas o ítems',
+        error: (error as any).message,
       };
     }
-
-  } catch (error) {
-    // Error inesperado fuera de los bloques internos
-    console.error('Error general inesperado:', error);
-    return {
-      message: 'error',
-      etapa: 'general',
-      error: (error as any).message || error,
-    };
   }
-}
-
-
-
-@Post('cargadoFichaItemPorCorrelativoNuevo')
-@Public()
-@ApiOperation({ summary: 'Cargado de fichas e ítems por correlativo' })
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      correlativo_carpeta: { type: 'number', example: 337777 },
-      id_usuario: { type: 'number', example: 3984 },
-    },
-    required: ['correlativo_carpeta', 'id_usuario'],
-  },
-})
-async cargadoFichaItemPorCorrelativoNuevo(@Body() body: { correlativo_carpeta: number; id_usuario: number },
-) {
-  try {
-    const { correlativo_carpeta, id_usuario } = body;
-
-    if (!id_usuario) {
-      return { message: '❌ Error: id_usuario es nulo' };
-    }
-    if (!correlativo_carpeta) {
-      return { message: '❌ Error: correlativo_carpeta es nulo' };
-    }
-
-    // obtener token
-    await this.ficha_itemService.obtenerToken();
-
-    // procesar fichas
-    const result = await this.ficha_itemService.obtenerFichaporCorrelativo(
-      correlativo_carpeta,
-      id_usuario,
-    );
-
-    return {
-      message: '✅ Fichas procesadas correctamente',
-      result,
-    };
-
-  } catch (error) {
-    console.error('❌ Error general:', error);
-    return {
-      message: '❌ Error al cargar fichas o ítems',
-      error: (error as any).message,
-    };
-  }
-}
 
 
   @Post('verificarFicha')
@@ -359,10 +359,17 @@ async cargadoFichaItemPorCorrelativoNuevo(@Body() body: { correlativo_carpeta: n
     try {
       const token = await this.ficha_itemService.obtenerToken();
       const result = await this.ficha_itemService.consultarFicha(correlativo_carpeta);
-      return {result};
+      return { result };
     } catch (error) {
       console.error('Error:', error);
       return { message: 'Test error', error: error || error };
     }
+  }
+
+  @Post('CorreccionMG')
+  @Public()
+  @ApiOperation({ summary: 'cargado de fichas e items' })
+  async CorreccionMG() { //añadir parametro de entrada a servicio test, gestion
+    return await this.ficha_itemService.correccionMG();
   }
 }

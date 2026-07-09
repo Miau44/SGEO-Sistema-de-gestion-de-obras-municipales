@@ -17,7 +17,7 @@ export class ficha_itemService {
   parametricaRepo: any;
   constructor(
     private responseService: ResponseService,
-    
+
     @InjectRepository(Ficha)
     private fichaRepository: Repository<Ficha>,
 
@@ -31,7 +31,7 @@ export class ficha_itemService {
     private documentoRepository: Repository<Documento>,
     private connection: Connection
 
-    
+
   ) { }
 
 
@@ -184,7 +184,7 @@ export class ficha_itemService {
           if (fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIO") || fichaJson.nombre_ficha.toUpperCase().startsWith("SERVICIOS")) {
             //console.log(`Ficha ${fichaJson.cod_carpeta}: es un servicio, no se guarda.`);
             msg += `${fichaJson.cod_carpeta}: es un servicio, no se guarda.\n`;
-            continue; 
+            continue;
           }
 
           //validar que codigo_ficha tenga el texto 2025
@@ -200,40 +200,40 @@ export class ficha_itemService {
             //console.log(`Ficha ${fichaJson.cod_carpeta}: ya existe en la base de datos.`);
             msg += `${fichaJson.cod_carpeta}: ya existe en la base de datos.\n`;
             // //revisar y actualizar si el campo "estado" es igual a "ANULADA"
-            if(fichaJson.estado === "ANULADA" && fichaExistente.estado_carpeta !== "ANULADA"){
+            if (fichaJson.estado === "ANULADA" && fichaExistente.estado_carpeta !== "ANULADA") {
               fichaExistente.estado_carpeta = fichaJson.estado;
               await this.fichaRepository.save(fichaExistente);
 
               //actualizar el campo id_estado de la tabla obra a 0 (inactivo)
               const obraExistente = await this.obraRepository.findOne({ where: { id_ficha: fichaExistente.id_ficha } });
-              if(obraExistente){
+              if (obraExistente) {
                 obraExistente.id_estado_general = 0;
                 await this.obraRepository.save(obraExistente);
               }
-              
+
 
               console.log(`Ficha con cod_carpeta ${fichaJson.cod_carpeta} se actualiza a estado ANULADA.`);
               msg += `${fichaJson.cod_carpeta}: se actualiza a estado ANULADA.\n`;
             }
             continue; // Si ya existe, continuar con la siguiente ficha
           }
-          
 
           //actualización de las fichas revalidadas
           /*const codCarpetaExistente = await this.fichaRepository.findOne({ where: { cod_carpeta: fichaJson.codigo_ficha } });
           if (codCarpetaExistente && codCarpetaExistente.gestion_carpeta!=fichaJson.gestion) {//validamos que tengan el mismo codigo ficha pero distinta gestion
             //actualizamos los campos
-            codCarpetaExistente.gestion_carpeta = fichaJson.gestion // revisar ** al pasar a una gestion anterior ya no ingresara por segunda vez
+            codCarpetaExistente.gestion_carpeta = fichaJson.gestion; 
             codCarpetaExistente.desc_cod_ue = desc_cod_ue_;
             codCarpetaExistente.correlativo_carpeta_anterior = codCarpetaExistente.correlativo_carpeta;
-            codCarpetaExistente.correlativo_carpeta = fichaJson.cod_carpeta; //verificar el cod_carpeta
+            codCarpetaExistente.correlativo_carpeta = fichaJson.cod_carpeta; 
             codCarpetaExistente.continuidad = 1;
             codCarpetaExistente.url_adjuntos = fichaJson.url;
+            codCarpetaExistente.cod_sisin = fichaJson.sisin;
             let actFicha = await this.fichaRepository.save(codCarpetaExistente);
-            msg += `${fichaJson.cod_carpeta}: actualizada por ser multigestion.\n`;
+            msg += `${fichaJson.cod_carpeta} multigestion, actualizacion de ficha\n`;
             continue;
           }*/
-          
+
           try {
             let nueva_ficha = await this.transformarFicha(fichaJson, desc_cod_ue_, this.gestion, id_usuario);
             let nuevaFicha = await this.fichaRepository.save(nueva_ficha);
@@ -246,10 +246,10 @@ export class ficha_itemService {
             //mandar  error si no se puede guardar la obra, trwow error
             //console.error(`❌ Error al procesar la obra ${nueva_ficha.cod_carpeta}:`, (error as any).message);
             msg += `${fichaJson.cod_carpeta}: Error al guardar la obra.\n`;
-            return this.responseService.error(error,msg+ `\n ${fichaJson.cod_carpeta}: Error al guardar la obra.\n`, 500);
+            return this.responseService.error(error, msg + `\n ${fichaJson.cod_carpeta}: Error al guardar la obra.\n`, 500);
           }
         }
-        return "ue: "+desc_cod_ue_+"\n"+msg;
+        return "ue: " + desc_cod_ue_ + "\n" + msg;
       } else {
         console.log("error: sin datos de servicio", data.res);
         return "ue: " + desc_cod_ue_ + "\n" + "sin datos para la UE";
@@ -711,7 +711,7 @@ export class ficha_itemService {
       desc_zona_carpeta: fichaJson.localizacion || '',
       id_estado: 1, //Asignar estado inicial
       estado_carpeta: fichaJson.estado,
-      total_carpeta: fichaJson.monto_total||0,
+      total_carpeta: fichaJson.monto_total || 0,
       gestion_carpeta: gestion,
       cod_estado_carpeta: 1, //validado
       cod_prioridad_carpeta: 0,
@@ -850,10 +850,10 @@ export class ficha_itemService {
     var msgTemp = "";
     itemsJson.forEach(itemJson => {
 
-      if(itemJson.orden == null){
+      if (itemJson.orden == null) {
         //console.log(`Item ${itemJson.codigo_item} ignorado: sin campo orden.`);
         msgTemp += ` Item ${itemJson.codigo_item} ignorado: sin campo orden.`;
-        return ; // Saltar este item
+        return; // Saltar este item
       }
       // Validar si la partida está permitida
       if (!partidasPermitidas.includes(itemJson.partida)) {
@@ -924,12 +924,12 @@ export class ficha_itemService {
     });
 
     const data = await response.json();
-    if(data.res=="OK"){
+    if (data.res == "OK") {
       data.statusCode = 200;
       return data;
     }
-    else{
-      return this.responseService.error('ERROR','No se encontraron datos.',500);
+    else {
+      return this.responseService.error('ERROR', 'No se encontraron datos.', 500);
     }
   };
 
@@ -948,5 +948,42 @@ export class ficha_itemService {
     // Crear un objeto Date (mes empieza en 0 en JavaScript)
     const date = new Date(year, month - 1, day);
     return date;
+  }
+
+  async correccionMG(): Promise<any> {
+    let q = `SELECT cod_carpeta FROM ficha WHERE estado_carpeta = 'VALIDADA' AND cod_estado_carpeta = 1 GROUP BY cod_carpeta HAVING(count(DISTINCT gestion_carpeta)>1)`;
+    let res = await this.fichaRepository.query(q);
+    console.log("FIchas ", res);
+    for (let index = 0; index < res.length; index++) {
+      const element = res[index];
+      const fichas = await this.fichaRepository.find({
+        where: { cod_carpeta: element.cod_carpeta },
+        order: { correlativo_carpeta: 'ASC' },
+        take: 2, // Nos aseguramos de traer solo los 2 que necesitas
+      });
+      console.log("Carpetas ", fichas);
+
+      if (fichas.length < 2) {
+        console.error(`No se encontraron los 2 registros para la carpeta ${element.cod_carpeta}`);
+        continue;
+        //throw new NotFoundException(`No se encontraron los 2 registros para la carpeta ${codCarpeta}`);
+      }
+
+      const primerRegistro = fichas[0];
+      const segundoRegistro = fichas[1];
+
+      primerRegistro.gestion_carpeta = segundoRegistro.gestion_carpeta;
+      primerRegistro.desc_cod_ue = segundoRegistro.desc_cod_ue;
+      primerRegistro.correlativo_carpeta_anterior = primerRegistro.correlativo_carpeta;
+      primerRegistro.correlativo_carpeta = segundoRegistro.correlativo_carpeta;
+      primerRegistro.desc_carpeta = segundoRegistro.desc_carpeta; //Ejemplo de un 3er campo heredado
+      primerRegistro.continuidad = 1;
+      primerRegistro.url_adjuntos = segundoRegistro.url_adjuntos;
+      primerRegistro.cod_sisin = segundoRegistro.cod_sisin;
+      let actPrimeraFicha = await this.fichaRepository.save(primerRegistro);
+
+      segundoRegistro.id_estado = 0;
+      let actSegundaFicha = await this.fichaRepository.save(segundoRegistro);
+    }
   }
 }
