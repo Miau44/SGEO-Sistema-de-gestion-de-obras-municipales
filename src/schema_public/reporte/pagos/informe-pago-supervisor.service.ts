@@ -177,7 +177,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     }*/
 
     //const marcaAgua = this.datosEnvio[0].fecha_aprobacion_pago;
-    const marcaAgua = this.datosEnvio[0].fecha_aprobacion_supervisor;
+    const marcaAgua = this.datosEnvio[0].fecha_supervisor;
 
     //membrete  por  fecha 
     const fechaDocumento = this.datosEnvio[0].fecha_supervisor;
