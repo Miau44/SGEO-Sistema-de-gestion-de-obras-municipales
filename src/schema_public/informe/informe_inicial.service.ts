@@ -527,17 +527,17 @@ desc_subtipo FROM parametrica WHERE id_padre =173		`;
 }
 
   /**
-   * Actualizar los datos del formulario 
+   * Actualizar los datos del formulario se añadio mas campos para el formulario
    */
   async actualizarFormulario(idModificacion: number, idInforme: number, datosFormulario: any) {
-    const { plazo, antecedentes, justificacion, modificacionPlazo, textoAnexos, referencia, id_documento } = datosFormulario;
+    const { plazo, antecedentes, justificacion, modificacionPlazo, conclusion, recomendacion, textoAnexos, referencia, id_documento } = datosFormulario;
   
-    const query = `SELECT public.sp_actualizar_datos_formulario($1, $2, $3, $4, $5, $6, $7, $8,$9)`;
+    const query = `SELECT public.sp_actualizar_datos_formulario($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
   
     await this.dataSource.query(query, [
       idModificacion, idInforme,
       plazo, antecedentes, justificacion,
-      modificacionPlazo, textoAnexos, referencia, JSON.stringify(id_documento) // Convierte el JSON a string para evitar errores
+      modificacionPlazo, conclusion, recomendacion, textoAnexos, referencia, JSON.stringify(id_documento) // Convierte el JSON a string para evitar errores
     ]);
   
     return { message: 'Formulario actualizado correctamente' };
