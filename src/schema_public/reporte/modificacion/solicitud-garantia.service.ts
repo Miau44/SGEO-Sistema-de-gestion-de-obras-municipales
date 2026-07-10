@@ -201,7 +201,7 @@ async generateSolicitudGarantia(id_modif_pago: number): Promise<Buffer> {
       },
       {
         text:[
-            { text: '\n\nNOTA DE SOLICITUD DE GARANTÍA tania', style: 'titulo', alignment: 'center' },
+            { text: '\n\nNOTA DE SOLICITUD DE GARANTÍA', style: 'titulo', alignment: 'center' },
             { text: '\nCITE:' + this.datosEnvio[0].cod_carpeta + '-'+ this.datosSolGa[0].cite_nota + '-' + this.datosSolGa[0].correlativo, style: 'titulo', alignment: 'center' },
         ],
       },
