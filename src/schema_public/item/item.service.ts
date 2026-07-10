@@ -291,46 +291,66 @@ const resultado = await this.itemRepository.query(query);
 
 
   //actualizar items monto adjudicado en bloque
+  /* async updateItemBloque(registros: ItemAdjudicadoDto[]) {
+     try {
+       if (!Array.isArray(registros) || registros.length === 0) {
+         return this.responseService.error('No hay registros para procesar.');
+       }      
+       const resultados = [];
+       for (const registro of registros) {
+         try {
+           const id_obra = await this.findOne(registro.id_item);
+           // const obra = await this.obraService.findOne(id_obra.id_obra);
+           if (!id_obra) {
+             throw new NotFoundException(`Obra with ID ${id_obra} not found`);
+           }
+           const valorDecimales: number = await this.itemObraModalidad({ id_obra: id_obra.id_obra });
+           // ✅ Convertimos a tipo EXACTO 2 | 5
+           const var_decimal: 2 | 5 = valorDecimales === 5 ? 5 : 2;
+           var p_unitario_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0')
+           var total_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0')
+ 
+           const data = {
+             p_unitario_adjudicado: DecimalUtil.roundToDecimals((this.ensureNumber(p_unitario_adjudicado_)), var_decimal),
+             total_adjudicado: DecimalUtil.roundToDecimals(this.ensureNumber(total_adjudicado_), var_decimal)
+           };
+ 
+           const resultado = await this.itemRepository.update({ id_item: registro.id_item }, data);
+           // const resultado = await this.updateItem(registro.id_item, data);          
+ 
+           if (typeof resultado.affected === 'number' && resultado.affected > 0) {
+             resultados.push({ id_item: registro.id_item, estado: 'Actualizado', data });
+           } else {
+             resultados.push({ id_item: registro.id_item, estado: 'No encontrado o sin cambios' });
+           }
+         } catch (error: any) {
+           resultados.push({ id_item: registro.id_item, estado: 'Error', error: error.message });
+         }
+       }
+ 
+       return this.responseService.success(resultados, 'Proceso completado.');
+     } catch (error) {
+       return this.responseService.error(error);
+     }
+ 
+     }*/
+
+
   async updateItemBloque(registros: ItemAdjudicadoDto[]) {
     try {
       if (!Array.isArray(registros) || registros.length === 0) {
         return this.responseService.error('No hay registros para procesar.');
       }
+      const id_obra = await this.findOne(registros[0].id_item);
 
-      const resultados = [];
-
-      for (const registro of registros) {
-        try {
-          const id_obra = await this.findOne(registro.id_item);
-          // const obra = await this.obraService.findOne(id_obra.id_obra);
-          if (!id_obra) {
-            throw new NotFoundException(`Obra with ID ${id_obra} not found`);
-          }
-          const valorDecimales: number = await this.itemObraModalidad({ id_obra: id_obra.id_obra });
-          // ✅ Convertimos a tipo EXACTO 2 | 5
-          const var_decimal: 2 | 5 = valorDecimales === 5 ? 5 : 2;
-          var p_unitario_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.p_unitario_adjudicado?.toString() || '0')
-          var total_adjudicado_ = FormatoNumericoUtil.desformatearNumero(registro.total_adjudicado?.toString() || '0')
-
-          const data = {
-            p_unitario_adjudicado: DecimalUtil.roundToDecimals((this.ensureNumber(p_unitario_adjudicado_)), var_decimal),
-            total_adjudicado: DecimalUtil.roundToDecimals(this.ensureNumber(total_adjudicado_), var_decimal)
-          };
-
-          const resultado = await this.itemRepository.update({ id_item: registro.id_item }, data);
-          // const resultado = await this.updateItem(registro.id_item, data);          
-
-          if (typeof resultado.affected === 'number' && resultado.affected > 0) {
-            resultados.push({ id_item: registro.id_item, estado: 'Actualizado', data });
-          } else {
-            resultados.push({ id_item: registro.id_item, estado: 'No encontrado o sin cambios' });
-          }
-        } catch (error: any) {
-          resultados.push({ id_item: registro.id_item, estado: 'Error', error: error.message });
-        }
+      if (!id_obra.id_obra) {
+        throw new NotFoundException(`Obra with ID ${id_obra} not found`);
       }
+      const query = `SELECT * FROM  public.sp_item_x_total($1::jsonb, $2);`;
+      const parametros = [JSON.stringify(registros), id_obra.id_obra];
+      const resultado = await this.itemRepository.query(query, parametros);
 
-      return this.responseService.success(resultados, 'Proceso completado.');
+      return this.responseService.success(resultado, 'Proceso completado.');
     } catch (error) {
       return this.responseService.error(error);
     }

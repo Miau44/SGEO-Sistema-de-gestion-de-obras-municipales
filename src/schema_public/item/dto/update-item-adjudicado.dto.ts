@@ -7,8 +7,8 @@ export class ItemAdjudicadoDto {
   @ApiProperty()
   p_unitario_adjudicado: number;
 
-  @ApiProperty()
-  total_adjudicado: number;
+ /* @ApiProperty()
+  total_adjudicado: number;*/
 
   
 }
