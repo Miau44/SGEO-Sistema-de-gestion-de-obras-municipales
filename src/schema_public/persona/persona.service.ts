@@ -742,17 +742,30 @@ async listarUsuariosAsignadosPorUE(estructuraGralDto: EstructuraGralDto) {
         p.puesto,
 
         COALESCE(
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id_personapermiso_ue', ppue.id_personapermiso_ue,
-              'gestion', ppue.gestion,
-              'desc_subtipo', per.desc_subtipo,
-              'desc_cod_ue', ppue.desc_cod_ue,
-              'nombre_ue', eo.nombre_ue
-            )
-          ) FILTER (WHERE ppue.id_personapermiso_ue IS NOT NULL),
-          '[]'
-        ) AS permisos
+      jsonb_agg(
+        DISTINCT per.desc_subtipo
+      ) FILTER (
+        WHERE pp.id_persona_permiso IS NOT NULL
+          AND per.desc_subtipo IS NOT NULL
+      ),
+      '[]'::jsonb
+    ) AS roles,
+
+    COALESCE(
+      jsonb_agg(
+        DISTINCT jsonb_build_object(
+          'id_personapermiso_ue', ppue.id_personapermiso_ue,
+          'id_persona_permiso', pp.id_persona_permiso,
+          'gestion', ppue.gestion,
+          'desc_subtipo', per.desc_subtipo,
+          'desc_cod_ue', ppue.desc_cod_ue,
+          'nombre_ue', eo.nombre_ue
+        )
+      ) FILTER (
+        WHERE ppue.id_personapermiso_ue IS NOT NULL
+      ),
+      '[]'::jsonb
+    ) AS permisos
 
       FROM persona p
 
