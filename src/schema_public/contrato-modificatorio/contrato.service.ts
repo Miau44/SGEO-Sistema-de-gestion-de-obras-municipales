@@ -224,6 +224,7 @@ export class ContratoService {
 
         await this.contratoRepository.save(nuevoContrato);
         obra.plazo_ejecucion = item.rplazocontrato;
+        obra.id_estado_general = 20;
         await this.obraRepo.save(obra);
 
         resultado.nuevos++;
