@@ -15,17 +15,17 @@ import { EstructuraFichaDto } from './dto/estructura-fichaDto';
 @Injectable()
 export class FichaService {
 
- constructor(
-  @InjectRepository(Ficha)
-  private obraRepositorio: Repository<Ficha>,
+  constructor(
+    @InjectRepository(Ficha)
+    private obraRepositorio: Repository<Ficha>,
 
-  @InjectRepository(Obra)
-  private obraRepository: Repository<Obra>,
+    @InjectRepository(Obra)
+    private obraRepository: Repository<Obra>,
 
-  private responseService: ResponseService,
+    private responseService: ResponseService,
 
-  private connection: Connection,
-) {}
+    private connection: Connection,
+  ) { }
 
   async create(createFichaDto: CreateFichaDto) {
     try {
@@ -37,37 +37,37 @@ export class FichaService {
   }
 
   async createFichaConObra(createFichaDto: CreateFichaDto) {
-  try {
-    return await this.connection.transaction(async (manager) => {
+    try {
+      return await this.connection.transaction(async (manager) => {
 
-      //  Crear Ficha
-      const ficha = manager.create(Ficha, createFichaDto);
-      const fichaGuardada = await manager.save(ficha);
+        //  Crear Ficha
+        const ficha = manager.create(Ficha, createFichaDto);
+        const fichaGuardada = await manager.save(ficha);
 
-      // Crear Obra 
-      const obra = manager.create(Obra, {
-      id_ficha: fichaGuardada.id_ficha,
-      id_estado_general: 1,
-      usuario_registro: createFichaDto.usuario_registro,
-      id_estado: 1,
-      id_tipo_obra:2
+        // Crear Obra 
+        const obra = manager.create(Obra, {
+          id_ficha: fichaGuardada.id_ficha,
+          id_estado_general: 1,
+          usuario_registro: createFichaDto.usuario_registro,
+          id_estado: 1,
+          id_tipo_obra: 2
+        });
+
+        const obraGuardada = await manager.save(obra);
+
+        return this.responseService.success(
+          {
+            ficha: fichaGuardada,
+            obra: obraGuardada,
+          },
+          "Ficha y Obra registradas correctamente."
+        );
       });
 
-      const obraGuardada = await manager.save(obra);
-
-      return this.responseService.success(
-        {
-          ficha: fichaGuardada,
-          obra: obraGuardada,
-        },
-        "Ficha y Obra registradas correctamente."
-      );
-    });
-
-  } catch (error) {
-    return this.responseService.error(error);
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-}
 
   findAll() {
     return `This action returns all ficha`;
@@ -106,19 +106,6 @@ export class FichaService {
 
   async listarFichaXUe(estructuraFichaDto: EstructuraFichaDto) {
     try {
-      /*  const query = `SELECT * FROM public.Ficha as f
-        INNER JOIN (SELECT  desc_cod_ue, nombre_ue, gestion from estructura_organizacional
-        WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-        WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue} ORDER BY fecha_registro DESC `;*/
-
-      /* const query = ` SELECT * FROM public.Ficha as f
-       INNER JOIN (SELECT desc_cod_da, desc_cod_ue, nombre_ue,  gestion from estructura_organizacional
-       WHERE  gestion =${estructuraFichaDto.gestion} GROUP BY desc_cod_da, desc_cod_ue,nombre_ue, gestion)  eo ON f.desc_cod_ue= eo.desc_cod_ue
-       INNER JOIN  solicitud_designacion sd ON f.id_ficha = sd.id_ficha
-       INNER JOIN persona p ON sd.id_persona = p.id_persona
-       WHERE f.desc_cod_ue = ${estructuraFichaDto.desc_cod_ue} 
-       ORDER BY f.fecha_registro DESC `;  */
-
 
       const query = ` SELECT f.id_ficha,f.cod_carpeta, f.desc_cod_ue, f.desc_carpeta, f.fecha_validacion_carpeta, 
 public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
@@ -167,11 +154,11 @@ public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
   }
 
   async listado(id_carpeta?: number): Promise<any> {
-    console.log("id_carpeta",id_carpeta);
-    
+    console.log("id_carpeta", id_carpeta);
+
     let q = `SELECT * FROM vista_ficha WHERE 1=1 `;
     var res: any;
-    if (id_carpeta!=null && id_carpeta > 0) {
+    if (id_carpeta != null && id_carpeta > 0) {
       q = q + ` AND cod_carpeta = $1`;
       var res = await this.obraRepositorio.query(q, [id_carpeta]);
     }
@@ -186,11 +173,11 @@ public.formato_numerico(f.total_carpeta, 2)  as total_carpeta,
     return res;
   }
 
-    async listadoResumen(): Promise<any> {
-    
+  async listadoResumen(): Promise<any> {
+
     let q = `SELECT * FROM vista_ficha_resumen WHERE 1=1 `;
     console.log(q);
-    
+
     var res: any;
     res = await this.obraRepositorio.query(q);
     // if (id_carpeta!=null && id_carpeta > 0) {

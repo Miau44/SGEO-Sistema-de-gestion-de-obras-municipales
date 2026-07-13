@@ -267,7 +267,7 @@ export class DesignacionService {
             const datadesignacion = {
               estado_designacion: 99,
               correlativo: AprobarDto.designacion[i].correlativo,
-              fecha_aprobacion: await this.date()
+              //fecha_aprobacion: await this.date()
             };
             await this.update(AprobarDto.designacion[i].id_designacion, datadesignacion);
     
@@ -434,6 +434,7 @@ export class DesignacionService {
     }
   }  
 
+  //aprobar designacion 
   async aprobarReemplazoDesignacion(AprobarDto: EstadoObraDesigDto) {
     try {
       // console.log("Datos recibidos AprobarDto:", JSON.stringify(AprobarDto, null, 2));
@@ -446,7 +447,7 @@ export class DesignacionService {
       const datadesignacion = {
         estado_designacion: 102,
         correlativo: reemplazo.correlativo,
-        fecha_aprobacion: await this.date(),
+        //fecha_aprobacion: await this.date(),
       };
 
       let estado_designacion;

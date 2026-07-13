@@ -417,7 +417,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
   // }
 
   async listaPersonasDesignadas(data: PersonasEstadoDto) {
-    try {
+    try { 
       const query = `
       SELECT * 
       FROM public.sp_lista_personas_designadas($1, $2, $3, $4);
@@ -450,7 +450,7 @@ WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.es
       error?.message ||
       'Ocurrió un error al obtener la lista de personas designadas.'
     );
-  }
+    }
   }
 
   //nuevo servicio Mike
@@ -724,43 +724,96 @@ console.log(JSON.stringify(bodySeguridad, null, 2));
 
   }
 }
-async listarUsuariosAsignadosPorUE(
-  estructuraGralDto: EstructuraGralDto,
-) {
+async listarUsuariosAsignadosPorUE(estructuraGralDto: EstructuraGralDto) {
   try {
     const query = `
-    SELECT
-    p.id_persona,
-    p.id_usuario,
-    p.nombre AS pnombre,
-    p.primer_apellido AS pprimer_apellido,
-    p.segundo_apellido AS psegundo_apellido,
+      SELECT
+        p.id_persona,
+        p.id_usuario,
+        p.usuario,
+        p.nombre AS pnombre,
+        p.primer_apellido AS pprimer_apellido,
+        p.segundo_apellido AS psegundo_apellido,
+        pro.desc_subtipo AS profesion,
+        p.registro_profesional,
+        p.fecha_aprobacion,
+        p.fecha_registro,
+        p.id_estado,
+        p.puesto,
 
-    pro.desc_subtipo AS profesion,
+        COALESCE(
+      jsonb_agg(
+        DISTINCT per.desc_subtipo
+      ) FILTER (
+        WHERE pp.id_persona_permiso IS NOT NULL
+          AND per.desc_subtipo IS NOT NULL
+      ),
+      '[]'::jsonb
+    ) AS roles,
 
-    p.registro_profesional,
-    p.fecha_aprobacion,
-    p.fecha_registro,
-    p.id_estado
+    COALESCE(
+      jsonb_agg(
+        DISTINCT jsonb_build_object(
+          'id_personapermiso_ue', ppue.id_personapermiso_ue,
+          'id_persona_permiso', pp.id_persona_permiso,
+          'gestion', ppue.gestion,
+          'desc_subtipo', per.desc_subtipo,
+          'desc_cod_ue', ppue.desc_cod_ue,
+          'nombre_ue', eo.nombre_ue
+        )
+      ) FILTER (
+        WHERE ppue.id_personapermiso_ue IS NOT NULL
+      ),
+      '[]'::jsonb
+    ) AS permisos
 
-FROM persona p
+      FROM persona p
 
-LEFT JOIN parametrica pro
-       ON pro.id_subtipo = p.id_profesion
-      AND pro.id_tipo = 2
+      LEFT JOIN parametrica pro
+        ON pro.id_subtipo = p.id_profesion
+       AND pro.id_tipo = 2
 
-WHERE p.id_estado <> 0
-  AND p.gestion = $1
-  AND p.desc_cod_ue = ANY($2)
+      LEFT JOIN persona_permiso pp
+        ON pp.id_persona = p.id_persona
+       AND pp.id_estado = 1
 
-ORDER BY p.nombre,
-         p.primer_apellido,
-         p.segundo_apellido;
+      LEFT JOIN personapermiso_ue ppue
+        ON ppue.id_persona_permiso = pp.id_persona_permiso
+       AND ppue.id_estado = 1
+       AND ppue.gestion = p.gestion
+
+      LEFT JOIN parametrica per
+        ON per.id_subtipo = pp.id_permiso
+       AND per.id_tipo = 7
+
+      LEFT JOIN estructura_organizacional eo
+        ON eo.desc_cod_ue = ppue.desc_cod_ue
+       AND eo.gestion = ppue.gestion
+
+      WHERE p.id_estado <> 0
+        AND p.gestion = $1
+        AND p.desc_cod_ue = ANY($2)
+
+      GROUP BY
+        p.id_persona,
+        p.id_usuario,
+        p.usuario,
+        p.nombre,
+        p.primer_apellido,
+        p.segundo_apellido,
+        pro.desc_subtipo,
+        p.registro_profesional,
+        p.fecha_aprobacion,
+        p.fecha_registro,
+        p.id_estado,
+        p.puesto
+
+      ORDER BY p.nombre, p.primer_apellido, p.segundo_apellido;
     `;
 
     const values = [
-      estructuraGralDto.gestion,
-      estructuraGralDto.codigoue,
+      Number(estructuraGralDto.gestion),
+      estructuraGralDto.codigoue.map(Number),
     ];
 
     const resultado = await this.personaRepo.query(query, values);
@@ -779,5 +832,4 @@ ORDER BY p.nombre,
     });
   }
 }
-
 }
