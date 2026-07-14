@@ -49,6 +49,7 @@ import { SuspensionModule } from './schema_public/suspension/suspension.module';
 import { LlamadaAtencionModule } from './schema_public/llamada_atencion/llamada_atencion.module';
 import { EstadoGeneralModule } from './schema_public/estado_general/estado_general.module';
 import { SqlServerModule } from './sqlserver.module';
+import { ComunicadoModule } from './schema_public/comunicado/comunicado.module';
 
 
 
@@ -125,7 +126,7 @@ import { SqlServerModule } from './sqlserver.module';
   AvanceFisicoDocumentoModule,
   ArchivoActaModule,
   ProtocoloModule, 
-  SuspensionModule, LlamadaAtencionModule,EstadoGeneralModule
+  SuspensionModule, LlamadaAtencionModule,EstadoGeneralModule, ComunicadoModule
   ],
   controllers: [AppController],
   providers: [AppService, ResponseService, SolicitudGateway ],
