@@ -204,36 +204,49 @@ export class CorreoService {
     let para: string[] = [];
     let autor: string[] = [];
 
-    if (dbName === 'sgeo_temp') {
-      para = this.normalizeEmails(['ibrahim.aruni']);
+    if (dbName === 'SGEO_PROD') {
+      // PRODUCCIÓN: destinatarios obtenidos desde la vista
+      para = this.normalizeEmails(dto.usuario_supervisor ?? '');
+      autor = this.normalizeEmails(dto.usuario_fiscal ?? '');
+
+      console.log('Enviando alerta cronograma a supervisor y fiscal de la vista');
+    } else {
+      //PRUEBAS: destinatarios definidos
+      para = this.normalizeEmails([
+        'ibrahim.aruni'
+      ]);
       autor = this.normalizeEmails([
         'igustavo.acandia@gmail.com',
         'josue.torrez',
       ]);
 
-      console.log('Enviando alerta cronograma con datos HARDCODE');
-    } else {
-      para = this.normalizeEmails(dto.usuario_supervisor);
-      autor = this.normalizeEmails(dto.usuario_fiscal);
-
-      console.log('Enviando alerta cronograma con datos de la vista');
+      console.log(`Enviando alerta cronograma con datos HARDCODE. Base actual: ${dbName || 'NO DEFINIDA'}`);
     }
 
+    /*
+     * En producción, si no existe supervisor pero sí fiscal,
+     * el fiscal pasa a ser el destinatario principal.
+     */
     if (!para.length && autor.length) {
-      para = autor;
+      para = [...autor];
       autor = [];
     }
 
     if (!para.length) {
       throw new HttpException(
-        'No existe correo válido para supervisor o fiscal.',
+        dbName === 'SGEO_PROD'
+          ? 'No existe correo válido para supervisor o fiscal.'
+          : 'No existen correos de prueba válidos configurados.',
         HttpStatus.BAD_REQUEST,
       );
     }
 
+    // Eliminar duplicados en destinatarios principales
     const toSet = new Set(para);
     const toList = [...toSet];
-    const ccList = autor.filter(e => !toSet.has(e));
+
+    // Eliminar de CC cualquier correo que ya esté en TO
+    const ccList = autor.filter(email => !toSet.has(email));
 
     const plantilla = this.construirPlantillaAlertaCronograma(dto);
     const asuntoBase = plantilla.asunto;
