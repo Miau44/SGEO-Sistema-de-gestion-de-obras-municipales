@@ -526,73 +526,29 @@ async getReporteResumenObra(id_obra: number) {
        return this.responseService.error(error, 'Error al obtener las unidades ejecutoras.');
     }
   }
-async listarAlertasCronograma() {
-  try {
-    const query = `
-      WITH datos AS (
-        SELECT
-          cro.id_obra,
-          cro.codigo,
-          cro.nombre,
-          cro.unidad_ejecutora,
-          cro.estado_carpeta,
-          cro.numero_contrato,
-          cro.contratista,
-          cro.fecha_conclusion_obra,
-          cro.fecha_provisional,
-          cro.fecha_programada_definitiva,
-          cro.fecha_definitiva,
-
-          CASE
-            WHEN cro.fecha_provisional IS NOT NULL
-              THEN to_date(cro.fecha_programada_definitiva, 'DD/MM/YYYY')
-            ELSE
-              to_date(cro.fecha_conclusion_obra, 'DD/MM/YYYY')
-          END AS fecha_control,
-
-          CASE
-            WHEN cro.fecha_provisional IS NOT NULL
-              THEN 'RECEPCIÓN DEFINITIVA'
-            ELSE
-              'CONCLUSIÓN DE OBRA'
-          END AS etapa
-        FROM vista_reporte_general_cronograma_obras cro
-        WHERE cro.fecha_definitiva IS NULL
-      )
-      SELECT
-        *,
-        fecha_control - CURRENT_DATE AS dias_restantes,
-
-        CASE
-          WHEN fecha_control < CURRENT_DATE THEN CURRENT_DATE - fecha_control
-          ELSE 0
-        END AS dias_multa,
-
-        CASE
-          WHEN fecha_control < CURRENT_DATE THEN 'ROJO'
-          WHEN fecha_control = CURRENT_DATE THEN 'NARANJA'
-          WHEN fecha_control BETWEEN CURRENT_DATE + 1 AND CURRENT_DATE + 5 THEN 'AMARILLO'
-        END AS tipo_alerta
-
-      FROM datos
-      WHERE fecha_control <= CURRENT_DATE + 5
+  async listarAlertasCronograma() {
+    try {
+      const query = `
+      SELECT *
+      FROM vista_alertas_cronograma_obras
       ORDER BY
         CASE
-          WHEN fecha_control < CURRENT_DATE THEN 3
-          WHEN fecha_control = CURRENT_DATE THEN 2
-          ELSE 1
+          WHEN tipo_alerta = 'ROJO' THEN 3
+          WHEN tipo_alerta = 'NARANJA' THEN 2
+          WHEN tipo_alerta = 'AMARILLO' THEN 1
+          ELSE 0
         END DESC,
         fecha_control ASC;
     `;
 
-    const resultado = await this.obraRepositorio.query(query);
+      const resultado = await this.obraRepositorio.query(query);
 
-    return this.responseService.success(
-      resultado,
-      'Alertas de cronograma listadas correctamente.'
-    );
-  } catch (error) {
-    return this.responseService.error(error);
+      return this.responseService.success(
+        resultado,
+        'Alertas de cronograma listadas correctamente.'
+      );
+    } catch (error) {
+      return this.responseService.error(error);
+    }
   }
-}
 }

@@ -2,13 +2,15 @@
 const cron = require('node-cron');
 import { ficha_itemService } from '../ficha_item/ficha_item.service';
 import { ContratoService } from '../../schema_public/contrato-modificatorio/contrato.service';
+import { CorreoService } from 'src/schema_public/correo/correo.service';
 
 interface CronServices {
   ficha_itemservice: ficha_itemService;
   contratoservice: ContratoService;
+  correoService: CorreoService;
 }
 
-export function inicioCronJobs({ ficha_itemservice, contratoservice }: CronServices) {
+export function inicioCronJobs({ ficha_itemservice, contratoservice, correoService }: CronServices) {
   console.log('Programador de tareas iniciado.');
 
   cron.schedule('0 0 * * *', async () => {
@@ -28,5 +30,10 @@ export function inicioCronJobs({ ficha_itemservice, contratoservice }: CronServi
     
     const tkn = await contratoservice.obtenerToken();
     const contratos = await contratoservice.llenarContratosDesdeServicio(2025,9684);
+    
+    // ALERTAS CRONOGRAMA
+    const alertas_correos = await correoService.procesarAlertasCronograma();
+    console.log(alertas_correos);
+    console.log('==== FIN CRON ====');
   }
 }
