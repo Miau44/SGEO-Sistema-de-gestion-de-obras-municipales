@@ -30,6 +30,7 @@ export class ComunicadoService {
   }
 
   async update(id: number, updateComunicadoDto: any): Promise<any> {
+    updateComunicadoDto.fecha_actualizacion = new Date();
     await this.comunicadoRepository.update(id, updateComunicadoDto);
     return { 
       statusCode: 200,
