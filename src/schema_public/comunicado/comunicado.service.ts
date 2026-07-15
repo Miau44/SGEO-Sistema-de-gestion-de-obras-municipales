@@ -17,12 +17,20 @@ export class ComunicadoService {
     return await this.comunicadoRepository.save(nuevoComunicado);
   }
 
-  async findAll(): Promise<Comunicado[]> {
-    return await this.comunicadoRepository.find({
+  async findAll(): Promise<any> {
+    await this.comunicadoRepository
+      .createQueryBuilder()
+      .update()
+      .set({ id_estado: 2 })
+      .where('id_estado = 1')
+      .andWhere('fecha_expiracion < CURRENT_DATE')
+      .execute();
+    const comunicados = await this.comunicadoRepository.find({
       order: {
-        id_comunicado: 'DESC' 
+        id_comunicado: 'ASC'
       }
     });
+    return comunicados;
   }
 
   findOne(id: number) {
@@ -30,6 +38,7 @@ export class ComunicadoService {
   }
 
   async update(id: number, updateComunicadoDto: any): Promise<any> {
+    updateComunicadoDto.fecha_actualizacion = new Date();
     await this.comunicadoRepository.update(id, updateComunicadoDto);
     return { 
       statusCode: 200,
