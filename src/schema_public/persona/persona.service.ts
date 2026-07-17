@@ -187,12 +187,33 @@ INNER JOIN (SELECT * FROM  public.sp_permisos_xpersona_filas()) as desagregado O
 WHERE p.gestion = ${estructuraDto.gestion} AND p.id_estado IN(${estructuraDto.estado}) AND desagregado.idpermiso IN(${estructuraDto.permiso}) ;  `;
 
 
-      const resultadoSgeo: any[] = await this.personaRepo.query(query);
-      const resultadoSeguridad: any[] = resultadoUsuarios.data
+      // const resultadoSgeo: any[] = await this.personaRepo.query(query);
+      // const resultadoSeguridad: any[] = resultadoUsuarios.data
 
-      const resultado = resultadoSeguridad.map(seguridad => {
-        const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
-        return { seguridad, sgeo: asignado };
+      // const resultado = resultadoSeguridad.map(seguridad => {
+      //   const asignado = resultadoSgeo.filter(sgeo => sgeo.id_usuario === seguridad.idusuario);
+      //   return { seguridad, sgeo: asignado };
+      // });
+
+      const resultadoSgeo: any[] = await this.personaRepo.query(query);
+      const resultadoSeguridad: any[] = resultadoUsuarios.data ?? [];
+
+      // Eliminar usuarios duplicados de Seguridad
+      const resultadoSeguridadSinDuplicados = Array.from(
+        new Map(
+          resultadoSeguridad.map(usuario => [Number(usuario.idusuario), usuario])
+        ).values()
+      );
+
+      const resultado = resultadoSeguridadSinDuplicados.map(seguridad => {
+        const asignado = resultadoSgeo.filter(
+          sgeo => Number(sgeo.id_usuario) === Number(seguridad.idusuario)
+        );
+
+        return {
+          seguridad,
+          sgeo: asignado
+        };
       });
 
       log(resultado)
