@@ -225,7 +225,8 @@ export class ContratoService {
         await this.contratoRepository.save(nuevoContrato);
         obra.plazo_ejecucion = item.rplazocontrato;
         obra.id_estado_general = 20;
-        await this.obraRepo.save(obra);
+        var resp = await this.obraRepo.save(obra);
+        //console.log("act estado general",resp);
 
         resultado.nuevos++;
       } else if (item.rlinkcontrat && !contrato.url) {
