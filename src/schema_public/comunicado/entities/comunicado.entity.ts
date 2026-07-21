@@ -23,9 +23,12 @@ export class Comunicado {
   @Column({ type: 'smallint' })
   id_estado: number;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  usuario_registro: string;
+
+  @CreateDateColumn({ type: 'timestamp', update: false })
   fecha_creacion: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true, default: null })
   fecha_actualizacion: Date;
 }
