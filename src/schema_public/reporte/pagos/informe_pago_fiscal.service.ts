@@ -42,6 +42,7 @@ export class InformePagoFiscal {
   datosCA: any = [];
   datosAF: any = [];
   datosSD: any = [];
+  datosPagosAnt: any = [];
 
   constructor(
     private readonly responseService: ResponseService,
@@ -147,6 +148,16 @@ export class InformePagoFiscal {
     return resultado9[0];
   }
 
+  async certificadosPagoAnteriores(idObra:number,idModificacion:number){
+      const query = `
+          SELECT *
+          FROM vista_reporte_certificados_pago WHERE id_obra=${idObra}
+          AND id_modificacion_pago < ${idModificacion}
+          ORDER BY numero_pago`;
+      const resultado = await this.sequelize.query(query);
+      return resultado[0];
+  }
+
   ///margen por fecha
   /*private obtenerMargenesPorFechaInformePagoFiscal(
       fecha: string | Date,
@@ -200,6 +211,9 @@ export class InformePagoFiscal {
     const res5 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
     this.datosModAp = res5;
 
+    console.log('=========== DATOS ENVIO ===========');
+    console.log(this.datosModAp);
+
     const res6 = await this.datosDescuentos(this.datosEnvio[0].id_obra, id_modif_pago);
     if (!res6 || (Array.isArray(res6) && res6.length === 0) || (typeof res6 === 'object' && Object.keys(res6).length === 0)) {
       throw new Error('No se encontraron datos de los descuentos');
@@ -217,6 +231,13 @@ export class InformePagoFiscal {
 
     const res9 = await this.datosSubDfo(this.datosAF[0].desc_cod_da);
     this.datosSD = res9;
+
+    const res11 = await this.certificadosPagoAnteriores(this.datosEnvio[0].id_obra,id_modif_pago
+    );
+    this.datosPagosAnt = res11;
+
+    console.log('========== DATOS PAGOS ANTERIORES ==========');
+    console.log(this.datosPagosAnt);
 
     const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
     const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
@@ -245,8 +266,8 @@ export class InformePagoFiscal {
 
     //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones en pagos
     const fechaCorte = new Date('2026-06-15');
-    const fechaAprobacion = this.datosEnvio[0].fecha_aprobacion
-      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+    const fechaAprobacion = this.datosEnvio[0].fecha_fiscal
+      ? new Date(this.datosEnvio[0].fecha_fiscal)
       : new Date();
 
     const mostrarTextoFiscal =
@@ -417,7 +438,13 @@ export class InformePagoFiscal {
           text: '2.   ANTECEDENTES',
           style: 'textTitulo', margin: [0, 0, 0, 5]
         },
+
+        {
+          text: '\n'
+        },
+
         ...(
+          !mostrarTextoFiscal &&
           this.buildModAprobadas(this.datosModAp, formatoNumerico).length > 1
             ? [
               {
@@ -436,13 +463,47 @@ export class InformePagoFiscal {
                       { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
                       { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
                     ],
-                    ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                    ...this.buildModAprobadasAntiguas(this.datosModAp, formatoNumerico)
                   ]
                 }, margin: [10, 0, 0, 7],
               },
             ]
             : []
         ),
+
+        ...(mostrarTextoFiscal ? [
+            ...(
+              this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+              ?[
+                  {
+                    text: 'CRONOGRAMA DE MODIFICACIONES CONTRACTUALES',
+                    style: 'textTitulo', margin: [10, 0, 0, 5]
+                  },
+                  {
+                    table: {
+                      widths: [14,50,41,66,50,44,50,45,45], 
+                      body: [
+                        [
+                          { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'FECHA MEMO MINUTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'REFERENCIA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: '% DE INCREMENTO O DECREMENTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                        ],
+                        ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                      ]
+                    }, margin: [10, 0, 0, 7]
+                  }
+              ]
+              :[]
+            ),
+
+            ] : []),
+
          /*{
               text: 'Antecedentes registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
@@ -456,7 +517,7 @@ export class InformePagoFiscal {
                 ], style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 7]
             },*/
 
-          ...(mostrarTextoFiscal ? [
+          /*...(mostrarTextoFiscal ? [
             {
             
               text: this.datosInfFis[0].antecedentes,
@@ -467,7 +528,7 @@ export class InformePagoFiscal {
             {
               text: '\n'
             }
-          ] : []),
+          ] : []),*/
 
 
         //Fecha de conclusion REAL solo si existe
@@ -475,10 +536,13 @@ export class InformePagoFiscal {
           ? [
             {
               table: {
-                widths: ['*', 300],
+                ...(mostrarTextoFiscal ? [
+
+                  ] : []),
+                widths: [130, 338],
                 body: [
                   [
-                    { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: 'FECHA CONCLUSIÓN REAL tania:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
                     { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                   ]
                 ]
@@ -487,6 +551,11 @@ export class InformePagoFiscal {
           ]
           : []
         ),
+
+        {
+              text: '\n'
+            },
+
         // {
         //   table: {
         //     widths: ['*', 300],
@@ -501,6 +570,7 @@ export class InformePagoFiscal {
         ...(this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
           ? [
 
+            ...(!mostrarTextoFiscal ? [
             {
               table: {
                 widths: ['40%', '60%'],
@@ -532,6 +602,19 @@ export class InformePagoFiscal {
                 ]
               }, margin: [60, 0, 60, 7]
             },
+            ] : []),
+
+            ...(mostrarTextoFiscal ? [
+
+              {
+                    text: 'CRONOGRAMA DE CERTIFICADOS DE PAGO',
+                    style: 'textTitulo', margin: [10, 0, 0, 5]
+                  },
+
+              this.buildResumenPagoAnterior(formatoNumerico2)
+
+            ] : []),
+
             /*
               text: 'Antecedentes registrado por el Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
@@ -559,6 +642,10 @@ export class InformePagoFiscal {
             ] : []),
 
             {
+              text: '\n'
+            },
+
+            {
               text: '3.   DESARROLLO\n',  //ANTES ANALISIS
               style: 'textTitulo', margin: [0, 0, 0, 5]
             },
@@ -570,6 +657,8 @@ export class InformePagoFiscal {
                 ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 5]
             },
+
+            ...(!mostrarTextoFiscal ? [
             {
               table: {
                 widths: ['40%', '60%'],
@@ -613,6 +702,14 @@ export class InformePagoFiscal {
                 ]
               }, margin: [60, 0, 60, 7]
             },
+            ] : []),
+
+            ...(mostrarTextoFiscal ? [
+
+               this.buildResumenPagoFiscal(formatoNumerico2)
+
+            ] : []),
+
             ...(this.datosDes[0]?.justificacion_retencion
               ? [
                 [
@@ -738,6 +835,10 @@ export class InformePagoFiscal {
               }
             ] : []),
 
+            {
+              text: '\n'
+            },            
+
             /*{
               text: 'Recomendaciones del Fiscal de Obra:',
               style: 'textTitulo', margin: [10, 0, 0, 5]
@@ -764,6 +865,12 @@ export class InformePagoFiscal {
                 ', se enmarca en los procedimientos y normativas contractuales. Por lo que es procedente el pago, bajo el siguiente detalle:',
               style: 'textDato', alignment: 'justify', margin: [10, 0, 0, 5]
             },
+
+            {
+              text: '\n'
+            },
+
+            ...(!mostrarTextoFiscal ? [
             {
               table: {
                 widths: ['40%', '60%'],
@@ -807,6 +914,14 @@ export class InformePagoFiscal {
                 ]
               }, margin: [60, 0, 60, 7]
             },
+            ] : []),
+
+            ...(mostrarTextoFiscal ? [
+
+               this.buildResumenPagoFiscal(formatoNumerico2)
+
+            ] : []),
+
             ...(this.datosDes[0]?.justificacion_retencion
               ? [
                 [
@@ -887,14 +1002,14 @@ export class InformePagoFiscal {
                     ], margin: [0, 0, 0, 5]
                   },  
                   /*{
-                  text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                  text: 'Es cuánto se informa para los fines consiguientes.',  
                   },*/
                   /*...(mostrarTextoFiscal ? [
                   {
                     
                     text: this.datosInfFis[0].conclusion,
                     
-                    //text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                    //text: 'Es cuánto se informa para los fines consiguientes.',  
                     style: 'textDato',
                     alignment: 'justify',
                     margin: [10, 0, 0, 7]
@@ -929,7 +1044,7 @@ export class InformePagoFiscal {
               {
                 
                 //text: this.datosInfFis[0].conclusion,
-                text: 'Es cuánto se informa para los fines consiguientes tania.',  
+                text: 'Es cuánto se informa para los fines consiguientes.',  
                 style: 'textDato',
                 alignment: 'justify',
                 margin: [10, 0, 0, 7]
@@ -1167,22 +1282,27 @@ export class InformePagoFiscal {
 
       c = c + 1;
       let rowData = [
-        { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
-        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion, formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
-        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total, formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
-        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
-        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] , alignment: 'center', margin: [0, 18, 0, 0]},
+        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] , margin: [0, 10, 0, 0]},
+        { text: [{ text: this.formatearFecha(datosResp[i].fecha_memo_minuta), style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: datosResp[i].referencia, style: 'textDatoT' }], alignment: 'justify'},
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion, formatoNumerico2), alignment: 'right', style: 'textDatoT' }] , margin: [0, 18, 0, 0] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total, formatoNumerico2), style: 'textDatoT', alignment: 'right' }] , margin: [0, 18, 0, 0] },
+        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0] },
+        { text: [{ text: datosResp[i].porcentaje_total, style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0] },
       ];
       arrayData.push(rowData);
     }
     // Fila final con total
     const totalRow = [
       {
-        colSpan: 2,
+        colSpan: 4,
         text: 'TOTAL',
         style: 'textTituloT', alignment: 'center',
       },
+      {},
+      {},
       {},
       {
         text: this.formatIfNumber(totalvariacion, formatoNumerico2),
@@ -1193,6 +1313,7 @@ export class InformePagoFiscal {
         text: totalplazo,
         style: 'textTituloT', alignment: 'center'
       },
+      {},
       {
         text: ' ',
         style: 'textTituloT', alignment: 'center',
@@ -1202,6 +1323,542 @@ export class InformePagoFiscal {
     arrayData.push(totalRow);
     return arrayData;
   }
+
+
+  /////funcion para la tabla de pagos presentes 
+  buildResumenPagoFiscal(formatoNumerico2: Intl.NumberFormat) {
+
+    const encabezados: any[] = [];
+    const datos: any[] = [];
+    const widths: any[] = [];
+
+    // aquí va el código que te pasé (sin el return de la función anónima)
+
+    encabezados.push({
+      text: 'Nro.',
+      style: 'textTituloT',
+      alignment: 'center',
+      fillColor: '#dddddd'
+    });
+
+    datos.push({
+      text: '1',
+      style: 'textDatoT',
+      alignment: 'center'
+    });
+
+    encabezados.push({
+      text: 'PLANILLA DE CERTIFICADO',
+      style: 'textTituloT',
+      alignment: 'center',
+      fillColor: '#dddddd'
+    });
+
+    datos.push({
+      text:
+        'CERTIFICADO DE PAGO ' +
+        this.datosEnvio[0].detalle +
+        ' Nro. ' +
+        this.datosEnvio[0].numero_pago,
+      style: 'textDatoT',
+      alignment: 'center'
+    });
+
+    // IMPORTE PRESENTE
+    encabezados.push({
+        text: 'IMPORTE DEL PRESENTE CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs ' +
+          this.formatIfNumber(
+            this.datosEnvio[0].monto_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // DEDUCCIONES
+      encabezados.push({
+        text: 'DEDUCCIONES',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs(-) ' +
+          this.formatIfNumber(
+            this.datosDes[0].deduccion_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // RETENCIONES (solo si existe)
+      if (this.datosDes[0]?.justificacion_retencion) {
+
+        encabezados.push({
+          text: 'RETENCIONES (*)',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+        });
+
+        datos.push({
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              this.datosDes[0].retencion_presente,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'center'
+        });
+
+      }
+
+      // MULTAS
+      encabezados.push({
+        text: 'MULTAS',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs(-) ' +
+          this.formatIfNumber(
+            this.datosDes[0].multa_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // OTRAS RETENCIONES (solo si existe)
+      if (this.datosDes[0].penalidad_anterior > 0) {
+
+        encabezados.push({
+          text: 'OTRAS RETENCIONES ANTERIORES',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+        });
+
+        datos.push({
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              this.datosDes[0].penalidad_anterior,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'center'
+        });
+
+      }
+
+      // IMPORTE NETO
+      encabezados.push({
+        text: 'IMPORTE NETO A PAGAR',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs ' +
+          this.formatIfNumber(
+            this.datosEnvio[0].importe_por_pagar,
+            formatoNumerico2
+          ) +
+          '\n(' +
+          this.convertToWords(
+            this.formatIfNumber(
+              this.datosEnvio[0].importe_por_pagar,
+              formatoNumerico2
+            ),
+            'Bs.'
+          ) +
+          ')',
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // Crear automáticamente los anchos
+      for (let i = 0; i < encabezados.length; i++) {
+        widths.push('*');
+      }
+
+    return {
+      table: {
+        widths,
+        body: [
+          encabezados,
+          datos
+        ]
+      },
+      margin: [10, 0, 10, 7]
+    };
+  }
+
+  // Función para poblar la tabla de MODIFICACIONES APROBADAS
+    buildModAprobadasAntiguas(data: any,formatoNumerico: Intl.NumberFormat) {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
+    let datosResp = data;
+    let arrayData = [];
+    let totalvariacion = 0;
+    let totalplazo = 0;
+
+    var c = 0;
+    for (let i = 0; i < datosResp.length; i++) {
+      const totalmodif = Number(datosResp[i].monto_variacion) || 0;
+      totalvariacion += totalmodif;
+
+      const plazo = Number(datosResp[i].dias_variacion) || 0;
+      totalplazo += plazo;
+
+      c = c + 1;
+      let rowData = [
+        { text: [{ text: c, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] },
+        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] },
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] },
+      ];
+      arrayData.push(rowData);
+    }
+    // Fila final con total
+      const totalRow = [
+        {
+          colSpan: 2,
+          text: 'TOTAL',
+          style: 'textTituloT', alignment: 'center',
+        },
+        {}, 
+        { text: this.formatIfNumber(totalvariacion, formatoNumerico2),
+          style: 'textTituloT', alignment: 'right' }, 
+        {}, 
+        { text: totalplazo,
+          style: 'textTituloT', alignment: 'center' },
+        { text: ' ',
+          style: 'textTituloT', alignment: 'center', },
+      ];
+
+    arrayData.push(totalRow);
+    return arrayData;
+  }
+
+
+  ///////////////para fiscales  tabla de pagos anteriores  
+  buildResumenPagoAnterior(formatoNumerico2: Intl.NumberFormat) {
+
+    const encabezados: any[] = [];
+    //const datos: any[] = [];
+    //const widths: any[] = [];
+    const body: any[] = [];
+    const widths: any[] = [];
+
+    const mostrarOtrasRetenciones =
+      this.datosDes[0].penalidad_anterior > 0;
+
+    const mostrarRetenciones =
+      this.datosDes[0]?.justificacion_retencion;
+
+    // aquí va el código que te pasé (sin el return de la función anónima)
+
+    encabezados.push(
+      {
+        text: 'NRO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'PLANILLA DE CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'IMPORTE DEL CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'DEDUCCIONES',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      ...(mostrarRetenciones
+        ? [{
+          text: 'RETENCIONES (*)',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+          }]
+        : []),
+
+      {
+        text: 'MULTAS',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      ...(mostrarOtrasRetenciones
+        ? [{
+            text: 'OTRAS RETENCIONES ANTERIORES',
+            style: 'textTituloT',
+            alignment: 'center',
+            fillColor: '#dddddd'
+          }]
+        : []),
+
+      {
+        text: 'IMPORTE NETO A PAGAR',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      }
+    );
+
+    body.push(encabezados);
+
+    //console.log('Cantidad de columnas encabezado:', encabezados.length);
+
+    //console.log('Cantidad pagos:', this.datosPagosAnt.length);
+
+    let totalImporteCertificado = 0;
+    let totalImporteNeto = 0;
+
+    this.datosPagosAnt.forEach((pago:any, index:any) => {
+
+      //console.log('Pago', index, pago);
+
+      totalImporteCertificado += Number(pago.monto_presente);
+      totalImporteNeto += Number(pago.importe_por_pagar);
+
+      body.push([
+      
+      //const fila = [
+
+        {
+          text: index + 1,
+          style: 'textDatoT',
+          alignment: 'center'
+        },
+
+        {
+          text:
+            'CERTIFICADO DE PAGO ' +
+            pago.detalle +
+            ' Nro. ' +
+            pago.numero_pago,
+          style: 'textDatoT',
+          alignment: 'left'
+        },
+
+        {
+          text:
+            'Bs ' +
+            this.formatIfNumber(
+              pago.monto_presente,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        {
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.deduccion,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        ...(mostrarRetenciones
+          ? [
+              {
+                text:
+                  'Bs(-) ' +
+                  this.formatIfNumber(
+                    pago.retencion,
+                    formatoNumerico2
+                  ),
+                style: 'textDatoT',
+                alignment: 'right'
+              }]
+          : []),
+
+        {
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.multa,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        /*{
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.penalidad,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },*/
+
+         ...(mostrarOtrasRetenciones
+          ? [{
+              text:
+                'Bs(-) ' +
+                this.formatIfNumber(
+                  pago.penalidad,
+                  formatoNumerico2
+                ),
+              style: 'textDatoT',
+              alignment: 'right'
+            }]
+          : []),
+
+        {
+          text:
+            'Bs ' +
+            this.formatIfNumber(
+              pago.importe_por_pagar,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        }
+
+      ]);
+
+      /*];
+
+      console.log('Cantidad de columnas fila:', fila.length);
+
+      body.push(fila);*/
+
+    });
+
+    const filaTotal: any[] = [];
+
+    // TOTAL ocupa NRO + PLANILLA
+    filaTotal.push({
+      text: 'TOTAL',
+      colSpan: 2,
+      style: 'textDatoT',
+      bold: true,
+      alignment: 'center',
+      //fillColor: '#eeeeee'
+    });
+
+    filaTotal.push({});
+
+    filaTotal.push({
+    text: 'Bs ' + this.formatIfNumber( this.datosCA[0].total_certificado_anterior, formatoNumerico2),
+    style: 'textDatoT',
+    bold: true,
+    alignment: 'right',
+    //fillColor: '#eeeeee'
+  });
+
+  // DEDUCCIONES
+  filaTotal.push({
+    text: '',
+    //fillColor: '#eeeeee'
+  });
+
+  // RETENCIONES (si existe la columna)
+  if (mostrarRetenciones) {
+    filaTotal.push({
+      text: '',
+      //fillColor: '#eeeeee'
+    });
+  }
+
+  // MULTAS
+  filaTotal.push({
+    text: '',
+    //fillColor: '#eeeeee'
+  });
+
+  // OTRAS RETENCIONES (si existe la columna)
+  if (mostrarOtrasRetenciones) {
+    filaTotal.push({
+      text: '',
+      //fillColor: '#eeeeee'
+    });
+  }
+
+  // IMPORTE NETO A PAGAR
+  filaTotal.push({
+    text: 'Bs ' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior, formatoNumerico2),
+    style: 'textDatoT',
+    bold: true,
+    alignment: 'right',
+    //fillColor: '#eeeeee'
+  });
+
+  // Agregar la fila al final de la tabla
+  body.push(filaTotal);
+
+    /*widths.push(
+      '5%',
+      '28%',
+      '12%',
+      '11%',
+      ...(mostrarRetenciones
+      ? ['11%']
+      : []),
+      '11%',
+      ...(mostrarOtrasRetenciones
+      ? ['11%']
+      : []),
+      '11%'
+    );*/
+
+    for (let i = 0; i < encabezados.length; i++) {
+      widths.push('*');
+    }
+
+    return {
+      table: {
+        headerRows: 1,
+        widths,
+        body
+      },
+      margin: [10, 0, 10, 7]
+    };
+
+  }
+
 
   //Función para generar de manera escrita el monto del dinero
   private unidades = [

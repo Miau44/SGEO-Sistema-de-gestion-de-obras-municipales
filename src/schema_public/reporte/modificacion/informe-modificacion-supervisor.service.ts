@@ -163,17 +163,25 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     }
     this.datosEnvio = datosGenerales;
 
+    /*console.log('=========== DATOS ENVIO ===========');
+    console.table(this.datosEnvio);*/
+
     const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron datos del informe de Supervisor');
     }
     this.datosInfSup = res3; 
+    /*console.log('=========== INFORME SUPERVISOR ===========');
+    console.log(this.datosInfSup);*/
 
     const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
     // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
     //     throw new Error('No se encontraron datos de las modificaciones de la obra');
     //}
     this.datosModAp = res4;
+
+    /*console.log('=========== MODIFICACION ===========');
+    console.table(this.datosMod);*/
 
     const res5 = await this.modificacionActual(id_modif_pago);
     if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
@@ -252,12 +260,21 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     });
 
     //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
-    const fechaCorte = new Date('2026-05-15');
+    //const fechaCorte = new Date('2026-05-15');
 
     // si no existe fecha_aprobacion usar today
-    const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
-      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+    //const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
+    //  ? new Date(this.datosEnvio[0].fecha_aprobacion)
+    //  : new Date();
+
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones 
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
       : new Date();
+
+    const mostrarTextoSupervisor =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
 
     /*const esNuevoFormato = fechaComparacion >= fechaCorte;
     const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
@@ -730,11 +747,45 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       {
         text: '\n'
       },
+      ...(mostrarTextoSupervisor ? [
+        {
+          text: this.datosInfSup[0].conclusion ,
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        }
+      ] : []),
       {
+        text: '\n'
+      },
+      ...(mostrarTextoSupervisor ? [
+              {
+                text: '8.   RECOMENDACIONES\n',
+                style: 'textTitulo', margin: [0, 0, 0, 5]
+              },
+              {
+                text: this.datosInfSup[0].recomendacion,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
+      {
+        text: ['\n'],
+      }, 
+      {
+        text: mostrarTextoSupervisor
+          ? '9.   ANEXOS\n'
+          : '8.   ANEXOS\n',
+        style: 'textTitulo',
+        margin: [0, 0, 0, 5]
+      },
+      /*{
         //anexo
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
+      },*/
       ...(Array.isArray(this.datosAdj) && this.datosAdj.length > 0
       ? [
           {
