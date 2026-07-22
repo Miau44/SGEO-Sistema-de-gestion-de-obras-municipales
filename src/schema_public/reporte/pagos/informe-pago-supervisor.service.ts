@@ -38,6 +38,7 @@ export class InformePagoSupervisor {
     datosDes: any = [];
     datosCA: any = [];
     datosAdj: any = [];
+    datosPagosAnt: any = [];
 
     constructor(
       private readonly responseService: ResponseService,
@@ -107,6 +108,16 @@ export class InformePagoSupervisor {
     return resultado6[0];
    }
 
+  async certificadosPagoAnteriores(idObra:number,idModificacion:number){
+      const query = `
+          SELECT *
+          FROM vista_reporte_certificados_pago WHERE id_obra=${idObra}
+          AND id_modificacion_pago < ${idModificacion}
+          ORDER BY numero_pago`;
+      const resultado = await this.sequelize.query(query);
+      return resultado[0];
+  }
+
   //margen por  fecha  
   /*private obtenerMargenesPorFechaInformePagoSupervisor(
       fecha: string | Date,
@@ -137,12 +148,23 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       throw new Error('No se encontraron datos para el ID de la obra proporcionada');
     }
     this.datosEnvio = datosGenerales;
+    console.log('=========== DATOS ENVIO ===========');
+    console.log(this.datosEnvio);
+
+    const res8 = await this.certificadosPagoAnteriores(this.datosEnvio[0].id_obra,id_modif_pago
+    );
+    this.datosPagosAnt = res8;
+
+    console.log('========== DATOS PAGOS ANTERIORES ==========');
+    console.log(this.datosPagosAnt);
 
     const res3 = await this.datosInformePagoSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron datos del informe de Supervisor');
     }
     this.datosInfSup = res3; 
+    console.log('=========== DATOS ENVIO ===========');
+    console.table(this.datosInfSup);
 
     const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra);
     this.datosModAp = res4;
@@ -152,6 +174,9 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         throw new Error('No se encontraron datos de los descuentos');
     }
     this.datosDes = res5;
+
+    console.log('========== DATOS DESCUENTOS ==========');
+    console.log(this.datosDes);
 
     const res6 = await this.datosCertificadoAnt(this.datosEnvio[0].id_obra, id_modif_pago);
     this.datosCA = res6;
@@ -186,7 +211,15 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     //margenes dinamicos  para el nuevio membretado 
     const margenesDinamicos = this.reportService.obtenerMargenesporfechaoficio(fechaDocumento);
 
-    
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones pagos
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
+      : new Date();
+
+    const mostrarTextoSupervisor =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
+
     let porc_presente = 0;
     const montoContrato = Number(this.datosEnvio[0].monto_contrato);
     const total_autorizado = Number(this.datosEnvio[0].monto_presente);
@@ -344,6 +377,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
         //layout: 'noBorders'
       },
       ...(
+        !mostrarTextoSupervisor &&
          this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
          ?[
             {
@@ -362,7 +396,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                     { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
                     { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
                   ],
-                  ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                  ...this.buildModAprobadasAntiguas(this.datosModAp, formatoNumerico)
                 ]
               }, margin: [10, 0, 0, 7]
             }
@@ -370,7 +404,9 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
          :[]
       ),
       //Fecha de conclusion REAL solo si existe
-      ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+      ...( 
+        !mostrarTextoSupervisor &&
+        this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
         ?[
           {
             table: {
@@ -381,7 +417,7 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                 ]
               ]
-            }, margin: [10, 0, 0, 7]
+            }, margin: [10, 0, 0, 10]
           },
         ]
         :[]
@@ -389,41 +425,171 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
       
       ...( this.datosEnvio[0].numero_pago > 1  //Mostrar si es número pago > 1
         ?[
+            
             {
               text: '2.   ANTECEDENTES',
               style: 'textTitulo', margin: [0, 0, 0, 5] 
             },
+
             {
-              table: {
-                  widths: ['40%','60%'], 
-                  body: [
-                    [ { text: 'MONTO CERTIFICADOS ANTERIORES ', style: 'textTituloT' },
-                      { text: 'Bs' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2), style: 'textTituloT' }
-                    ],
-                    [
-                      { text: 'DEDUCCIONES ANTERIORES ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2), style: 'textTituloT'}
-                    ],
-                    [
-                      { text: 'RETENCIONES ANTERIORES ', style: 'textTituloT' },
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2), style: 'textTituloT'}
-                    ],
-                    [
-                      { text: 'MULTAS ANTERIORES ', style: 'textTituloT'},
-                      { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_anterior,formatoNumerico2), style: 'textTituloT'}
-                    ],
-                    ...(this.datosDes[0].penalidad_anterior === 0
-                      ?[
-                        [
-                          { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
-                          { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'}
-                        ]
-                      ]
-                      :[]
-                    ),
-                  ]
-                }, margin: [60, 0, 60, 7] 
+              text: '\n'
             },
+            
+            ...(mostrarTextoSupervisor ? [
+            ...(
+              this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+              ?[
+                  {
+                    text: 'CRONOGRAMA DE MODIFICACIONES CONTRACTUALES',
+                    style: 'textTitulo', margin: [10, 0, 0, 5]
+                  },
+                  {
+                    table: {
+                      widths: [14,50,41,66,50,44,50,45,45], 
+                      body: [
+                        [
+                          { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'FECHA MEMO MINUTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'REFERENCIA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: '% DE INCREMENTO O DECREMENTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                        ],
+                        ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                      ]
+                    }, margin: [10, 0, 0, 7]
+                  }
+              ]
+              :[]
+            ),
+            //Fecha de conclusion REAL solo si existe
+            ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+              ?[
+                {
+                  table: {
+                    widths: [130, 338],
+                    body: [ 
+                      [
+                        { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                        { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+                      ]
+                    ]
+                  }, margin: [10, 0, 0, 10]
+                },
+              ]
+              :[]
+            ),
+            ] : []),
+
+            ...(!mostrarTextoSupervisor ? [
+                  {
+                    table: {
+                        widths: ['40%','60%'], 
+                        body: [
+                          [ { text: 'MONTO CERTIFICADOS ANTERIORES ', style: 'textTituloT' },
+                            { text: 'Bs' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior,formatoNumerico2), style: 'textTituloT' }
+                          ],
+                          [
+                            { text: 'DEDUCCIONES ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].deduccion_anterior,formatoNumerico2), style: 'textTituloT'}
+                          ],
+                          [
+                            { text: 'RETENCIONES ANTERIORES ', style: 'textTituloT' },
+                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].retencion_anterior,formatoNumerico2), style: 'textTituloT'}
+                          ],
+                          [
+                            { text: 'MULTAS ANTERIORES ', style: 'textTituloT'},
+                            { text: 'Bs' + this.formatIfNumber(this.datosDes[0].multa_anterior,formatoNumerico2), style: 'textTituloT'}
+                          ],
+                          ...(this.datosDes[0].penalidad_anterior === 0
+                            ?[
+                              [
+                                { text: 'OTRAS RETENCIONES ANTERIORES ', style: 'textTituloT'},
+                                { text: 'Bs' + this.formatIfNumber(this.datosDes[0].penalidad_anterior,formatoNumerico2), style: 'textTituloT'}
+                              ]
+                            ]
+                            :[]
+                          ),
+                        ]
+                      }, margin: [60, 0, 60, 7] 
+                  },
+            ] : []),
+
+            ...(mostrarTextoSupervisor ? [
+
+              {
+                    text: 'CRONOGRAMA DE CERTIFICADOS DE PAGO',
+                    style: 'textTitulo', margin: [10, 0, 0, 5]
+                  },
+
+              this.buildResumenPagoSupervisorAnterior(formatoNumerico2)
+
+            ] : []),
+
+            /*...(mostrarTextoSupervisor ? [
+            ...(
+              this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+              ?[
+                  {
+                    text: 'CRONOGRAMA DE MODIFICACIONES CONTRACTUALES',
+                    style: 'textTitulo', margin: [10, 0, 0, 5]
+                  },
+                  {
+                    table: {
+                      widths: [14,50,41,66,50,44,50,45,45], 
+                      body: [
+                        [
+                          { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                          { text: 'FECHA MEMO MINUTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'REFERENCIA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: '% DE INCREMENTO O DECREMENTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                          { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                        ],
+                        ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                      ]
+                    }, margin: [10, 0, 0, 7]
+                  }
+              ]
+              :[]
+            ),
+            //Fecha de conclusion REAL solo si existe
+            ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+              ?[
+                {
+                  table: {
+                    widths: ['*', 300],
+                    body: [ 
+                      [
+                        { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                        { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+                      ]
+                    ]
+                  }, margin: [10, 0, 0, 7]
+                },
+              ]
+              :[]
+            ),
+            ] : []),*/
+
+            ...(mostrarTextoSupervisor ? [
+              {
+                text: this.datosInfSup[0].antecedentes ,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+            {
+              text: '\n'
+            },
+
             {
               text: '3.   DESARROLLO\n',
               style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -435,6 +601,12 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   'en forma conjunta por el supervisor y el contratista, el mismo que se detalla a continuación:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
             },
+
+            {
+              text: '\n'
+            },
+
+            ...(!mostrarTextoSupervisor ? [
             {
               table: {
                   widths: ['40%','60%'], 
@@ -476,6 +648,14 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   ]
               }, margin: [60, 0, 60, 7]
             },
+            ] : []),
+
+            ...(mostrarTextoSupervisor ? [
+
+               this.buildResumenPagoSupervisor(formatoNumerico2)
+
+            ] : []),
+            
             ...(this.datosDes[0]?.justificacion_retencion
               ? [
                   [
@@ -491,6 +671,19 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                 ]
               : []
             ),
+
+            ...(mostrarTextoSupervisor ? [
+              {
+                text: this.datosInfSup[0].analisis ,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+            {
+              text: '\n'
+            },
+
             {
               text: '4.   CONCLUSIÓN',
               style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -542,6 +735,17 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
               text: 'La supervisión de obra recomienda el pago del presente certificado de pago de acuerdo a lo expuesto.',
               style: 'textDato', margin: [10, 0, 0, 5]
             },
+            ...(mostrarTextoSupervisor ? [
+              {
+                text: this.datosInfSup[0].recomendacion ,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+            {
+              text: '\n'
+            },
             {
               text: '6.   ANEXOS\n',
               style: 'textTitulo', margin: [0, 0, 0, 5]
@@ -566,10 +770,90 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
             },
          ]
         :[ //Si es Pago UNICO o es el PRIMERO
+            ...(mostrarTextoSupervisor ? [
+                {
+                  text: '2.   ANTECEDENTES\n',
+                  style: 'textTitulo', margin: [0, 0, 0, 5]
+                },
+
+                {
+                  text: '\n'
+                },
+
+                ...(
+                  this.buildModAprobadas(this.datosModAp,formatoNumerico).length > 1 
+                  ?[
+                      {
+                        text: 'CRONOGRAMA DE MODIFICACIONES CONTRACTUALES',
+                        style: 'textTitulo', margin: [10, 0, 0, 5]
+                      },
+                      {
+                        table: {
+                          widths: [14,50,41,66,50,44,50,45,45], 
+                          body: [
+                            [
+                              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                              { text: 'FECHA MEMO MINUTA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: 'REFERENCIA', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: '% DE INCREMENTO O DECREMENTO', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                              { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                            ],
+                            ...this.buildModAprobadas(this.datosModAp, formatoNumerico)
+                          ]
+                        }, margin: [10, 0, 0, 7]
+                      }
+                  ]
+                  :[]
+                ),
+                //Fecha de conclusion REAL solo si existe
+                ...( this.datosEnvio[0].fe_ap_acta!= null && this.datosEnvio[0].fe_ap_acta !== '' 
+                  ?[
+                    {
+                      table: {
+                        widths: [130, 338],
+                        body: [ 
+                          [
+                            { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                            { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
+                          ]
+                        ]
+                      }, margin: [10, 0, 0, 10]
+                    },
+                  ]
+                  :[]
+                ),
+
+                {
+                  text: this.datosInfSup[0].antecedentes,
+                  style: 'textDato',
+                  alignment: 'justify',
+                  margin: [10, 0, 0, 7]
+                }
+              ] : []),
+
             {
+              text: ['\n'],
+            }, 
+
+            {
+              text: mostrarTextoSupervisor
+                ? '3.   DESARROLLO\n'
+                : '2.   DESARROLLO\n',
+              style: 'textTitulo',
+              margin: [0, 0, 0, 5]
+            },
+            
+            {
+              text: '\n'
+            },
+            /*{
               text: '2.   DESARROLLO\n',
               style: 'textTitulo', margin: [0, 0, 0, 5]
-            },
+            },*/
             {
               text: 'El presente CERTIFICADO DE PAGO ' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ' correspondiente al periodo del ' + 
                   this.formatearFecha(this.datosEnvio[0].fecha_inicio_periodo) + ' al ' + this.formatearFecha(this.datosEnvio[0].fecha_fin_periodo) +  
@@ -577,6 +861,12 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   'en forma conjunta por el supervisor y el contratista, el mismo que se detalla a continuación:',
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 5] 
             },
+
+            {
+              text: '\n'
+            },
+
+            ...(!mostrarTextoSupervisor ? [
             {
               table: {
                   widths: ['40%','60%'], 
@@ -618,6 +908,14 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                   ]
               }, margin: [60, 0, 60, 7]
             },
+            ] : []),
+
+            ...(mostrarTextoSupervisor ? [
+
+               this.buildResumenPagoSupervisor(formatoNumerico2)
+
+            ] : []),
+
             ...(this.datosDes[0]?.justificacion_retencion
               ? [
                   [
@@ -633,10 +931,31 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
                 ]
               : []
             ),
+            
+            ...(mostrarTextoSupervisor ? [
+              {
+                text: this.datosInfSup[0].analisis ,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
             {
+              text: ['\n'],
+            }, 
+            {
+              text: mostrarTextoSupervisor
+                ? '4.   CONCLUSIÓN\n'
+                : '3.   CONCLUSIÓN\n',
+              style: 'textTitulo',
+              margin: [0, 0, 0, 5]
+            },
+
+            /*{
               text: '3.   CONCLUSIÓN',
               style: 'textTitulo', margin: [0, 0, 0, 5]
-            },
+            },*/
             {
               ul: 
               [
@@ -676,18 +995,43 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
               ],
               style: 'textDato', alignment:'justify', margin: [10, 0, 0, 7]
             },
-            {
+            /*{
               text: '4.   RECOMENDACIONES',
               style: 'textTitulo', margin: [0, 0, 0, 5]
+            },*/
+            {
+              text: mostrarTextoSupervisor
+                ? '5.   RECOMENDACIONES\n'
+                : '4.   RECOMENDACIONES\n',
+              style: 'textTitulo',
+              margin: [0, 0, 0, 5]
             },
             {
               text: 'La supervisión de obra recomienda el pago del presente certificado de pago de acuerdo a lo expuesto.',
               style: 'textDato', margin: [10, 0, 0, 5]
             },
+
+            ...(mostrarTextoSupervisor ? [
+              {
+                text: this.datosInfSup[0].recomendacion ,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
             {
+              text: mostrarTextoSupervisor
+                ? '6.   ANEXOS\n'
+                : '5.   ANEXOS\n',
+              style: 'textTitulo',
+              margin: [0, 0, 0, 5]
+            },
+
+            /*{
               text: '5.   ANEXOS\n',
               style: 'textTitulo', margin: [0, 0, 0, 5]
-            },
+            },*/
             {
               text: [
                 {text: 'Resúmen del certificado de pago ' + '(' + this.datosEnvio[0].detalle + ' Nro.' + this.datosEnvio[0].numero_pago + ')' }, 
@@ -862,8 +1206,78 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
     return formattedDate;
   }
 
-    // Función para poblar la tabla de MODIFICACIONES APROBADAS
+    // Función para poblar la tabla de MODIFICACIONES APROBADAS 
     buildModAprobadas(data: any,formatoNumerico: Intl.NumberFormat) {
+    const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+    });
+
+    let datosResp = data;
+    let arrayData = [];
+    let totalvariacion = 0;
+    let totalplazo = 0;
+
+    var c = 0;
+    for (let i = 0; i < datosResp.length; i++) {
+      const totalmodif = Number(datosResp[i].monto_variacion) || 0;
+      totalvariacion += totalmodif;
+
+      const plazo = Number(datosResp[i].dias_variacion) || 0;
+      totalplazo += plazo;
+
+      c = c + 1;
+      let rowData = [
+        { text: [{ text: c, style: 'textDatoT', alignment: 'center' }], alignment: 'center', margin: [0, 18, 0, 0] },
+        { text: [{ text: datosResp[i].tipo_mod, style: 'textDatoT' }]  , margin: [0, 10, 0, 0]},
+        { text: [{ text: this.formatearFecha(datosResp[i].fecha_memo_minuta), style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: datosResp[i].referencia, style: 'textDatoT' }], alignment: 'justify'},
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_variacion,formatoNumerico2), alignment: 'right', style: 'textDatoT' }], margin: [0, 18, 0, 0] },
+        { text: [{ text: this.formatIfNumber(datosResp[i].monto_total,formatoNumerico2), style: 'textDatoT', alignment: 'right' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: datosResp[i].dias_variacion, style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: datosResp[i].porcentaje_total, style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+        { text: [{ text: this.formatearFecha(datosResp[i].nueva_conclusion), style: 'textDatoT', alignment: 'center' }] , margin: [0, 18, 0, 0]},
+      ];
+      arrayData.push(rowData);
+    }
+    // Fila final con total
+      const totalRow = [
+        {
+          colSpan: 4,
+          text: 'TOTAL',
+          style: 'textTituloT', alignment: 'center',
+        },
+        {}, 
+        {},
+        {},
+        { 
+          text: this.formatIfNumber(totalvariacion, formatoNumerico2),
+          style: 'textTituloT', alignment: 'right' 
+        }, 
+        
+        {
+          text: '',
+          style: 'textTituloT'
+        }, 
+        { text: totalplazo,
+          style: 'textTituloT', alignment: 'center' 
+        },
+        {},
+        { text: ' ',
+          style: 'textTituloT', alignment: 'center', 
+        },
+      ];
+
+    arrayData.push(totalRow);
+    console.log(arrayData);
+    console.log('Fila normal:', arrayData[0].length);
+    console.log('Fila total:', totalRow.length);
+    return arrayData;
+    
+  }
+
+  // Función para poblar la tabla de MODIFICACIONES APROBADAS
+    buildModAprobadasAntiguas(data: any,formatoNumerico: Intl.NumberFormat) {
     const formatoNumerico2 = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -912,6 +1326,485 @@ async generateInformePagoSupervisor(id_modif_pago: number): Promise<Buffer> {
 
     arrayData.push(totalRow);
     return arrayData;
+  }
+
+  buildResumenPagoSupervisor(formatoNumerico2: Intl.NumberFormat) {
+
+    const encabezados: any[] = [];
+    const datos: any[] = [];
+    const widths: any[] = [];
+
+    // aquí va el código que te pasé (sin el return de la función anónima)
+
+    encabezados.push({
+      text: 'Nro.',
+      style: 'textTituloT',
+      alignment: 'center',
+      fillColor: '#dddddd'
+    });
+
+    datos.push({
+      text: '1',
+      style: 'textDatoT',
+      alignment: 'center'
+    });
+
+    encabezados.push({
+      text: 'PLANILLA DE CERTIFICADO',
+      style: 'textTituloT',
+      alignment: 'center',
+      fillColor: '#dddddd'
+    });
+
+    datos.push({
+      text:
+        'CERTIFICADO DE PAGO ' +
+        this.datosEnvio[0].detalle +
+        ' Nro. ' +
+        this.datosEnvio[0].numero_pago,
+      style: 'textDatoT',
+      alignment: 'center'
+    });
+
+    // IMPORTE PRESENTE
+    encabezados.push({
+        text: 'IMPORTE DEL PRESENTE CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs ' +
+          this.formatIfNumber(
+            this.datosEnvio[0].monto_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // DEDUCCIONES
+      encabezados.push({
+        text: 'DEDUCCIONES',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs(-) ' +
+          this.formatIfNumber(
+            this.datosDes[0].deduccion_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // RETENCIONES (solo si existe)
+      if (this.datosDes[0]?.justificacion_retencion) {
+
+        encabezados.push({
+          text: 'RETENCIONES (*)',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+        });
+
+        datos.push({
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              this.datosDes[0].retencion_presente,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'center'
+        });
+
+      }
+
+      // MULTAS
+      encabezados.push({
+        text: 'MULTAS',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs(-) ' +
+          this.formatIfNumber(
+            this.datosDes[0].multa_presente,
+            formatoNumerico2
+          ),
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // OTRAS RETENCIONES (solo si existe)
+      if (this.datosDes[0].penalidad_anterior > 0) {
+
+        encabezados.push({
+          text: 'OTRAS RETENCIONES ANTERIORES',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+        });
+
+        datos.push({
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              this.datosDes[0].penalidad_anterior,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'center'
+        });
+
+      }
+
+      // IMPORTE NETO
+      encabezados.push({
+        text: 'IMPORTE NETO A PAGAR',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      });
+
+      datos.push({
+        text:
+          'Bs ' +
+          this.formatIfNumber(
+            this.datosEnvio[0].importe_por_pagar,
+            formatoNumerico2
+          ) +
+          '\n(' +
+          this.convertToWords(
+            this.formatIfNumber(
+              this.datosEnvio[0].importe_por_pagar,
+              formatoNumerico2
+            ),
+            'Bs.'
+          ) +
+          ')',
+        style: 'textDatoT',
+        alignment: 'center'
+      });
+
+      // Crear automáticamente los anchos
+      for (let i = 0; i < encabezados.length; i++) {
+        widths.push('*');
+      }
+
+    return {
+      table: {
+        widths,
+        body: [
+          encabezados,
+          datos
+        ]
+      },
+      margin: [10, 0, 10, 7]
+    };
+  }
+
+  buildResumenPagoSupervisorAnterior(formatoNumerico2: Intl.NumberFormat) {
+
+    const encabezados: any[] = [];
+    //const datos: any[] = [];
+    //const widths: any[] = [];
+    const body: any[] = [];
+    const widths: any[] = [];
+
+    const mostrarOtrasRetenciones =
+      this.datosDes[0].penalidad_anterior > 0;
+
+    const mostrarRetenciones =
+      this.datosDes[0]?.justificacion_retencion;
+
+    // aquí va el código que te pasé (sin el return de la función anónima)
+
+    encabezados.push(
+      {
+        text: 'NRO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'PLANILLA DE CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'IMPORTE DEL CERTIFICADO',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      {
+        text: 'DEDUCCIONES',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      ...(mostrarRetenciones
+        ? [{
+          text: 'RETENCIONES (*)',
+          style: 'textTituloT',
+          alignment: 'center',
+          fillColor: '#dddddd'
+          }]
+        : []),
+
+      {
+        text: 'MULTAS',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      },
+      ...(mostrarOtrasRetenciones
+        ? [{
+            text: 'OTRAS RETENCIONES ANTERIORES',
+            style: 'textTituloT',
+            alignment: 'center',
+            fillColor: '#dddddd'
+          }]
+        : []),
+
+      {
+        text: 'IMPORTE NETO A PAGAR',
+        style: 'textTituloT',
+        alignment: 'center',
+        fillColor: '#dddddd'
+      }
+    );
+
+    body.push(encabezados);
+
+    //console.log('Cantidad de columnas encabezado:', encabezados.length);
+
+    //console.log('Cantidad pagos:', this.datosPagosAnt.length);
+
+    let totalImporteCertificado = 0;
+    let totalImporteNeto = 0;
+
+    this.datosPagosAnt.forEach((pago:any, index:any) => {
+
+      //console.log('Pago', index, pago);
+
+      totalImporteCertificado += Number(pago.monto_presente);
+      totalImporteNeto += Number(pago.importe_por_pagar);
+
+      body.push([
+      
+      //const fila = [
+
+        {
+          text: index + 1,
+          style: 'textDatoT',
+          alignment: 'center'
+        },
+
+        {
+          text:
+            'CERTIFICADO DE PAGO ' +
+            pago.detalle +
+            ' Nro. ' +
+            pago.numero_pago,
+          style: 'textDatoT',
+          alignment: 'left'
+        },
+
+        {
+          text:
+            'Bs ' +
+            this.formatIfNumber(
+              pago.monto_presente,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        {
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.deduccion,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        ...(mostrarRetenciones
+          ? [
+              {
+                text:
+                  'Bs(-) ' +
+                  this.formatIfNumber(
+                    pago.retencion,
+                    formatoNumerico2
+                  ),
+                style: 'textDatoT',
+                alignment: 'right'
+              }]
+          : []),
+
+        {
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.multa,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },
+
+        /*{
+          text:
+            'Bs(-) ' +
+            this.formatIfNumber(
+              pago.penalidad,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        },*/
+
+         ...(mostrarOtrasRetenciones
+          ? [{
+              text:
+                'Bs(-) ' +
+                this.formatIfNumber(
+                  pago.penalidad,
+                  formatoNumerico2
+                ),
+              style: 'textDatoT',
+              alignment: 'right'
+            }]
+          : []),
+
+        {
+          text:
+            'Bs ' +
+            this.formatIfNumber(
+              pago.importe_por_pagar,
+              formatoNumerico2
+            ),
+          style: 'textDatoT',
+          alignment: 'right'
+        }
+
+      ]);
+
+      /*];
+
+      console.log('Cantidad de columnas fila:', fila.length);
+
+      body.push(fila);*/
+
+    });
+
+    const filaTotal: any[] = [];
+
+    // TOTAL ocupa NRO + PLANILLA
+    filaTotal.push({
+      text: 'TOTAL',
+      colSpan: 2,
+      style: 'textDatoT',
+      bold: true,
+      alignment: 'center',
+      //fillColor: '#eeeeee'
+    });
+
+    filaTotal.push({});
+
+    filaTotal.push({
+    text: 'Bs ' + this.formatIfNumber( this.datosCA[0].total_certificado_anterior, formatoNumerico2),
+    style: 'textDatoT',
+    bold: true,
+    alignment: 'right',
+    //fillColor: '#eeeeee'
+  });
+
+  // DEDUCCIONES
+  filaTotal.push({
+    text: '',
+    //fillColor: '#eeeeee'
+  });
+
+  // RETENCIONES (si existe la columna)
+  if (mostrarRetenciones) {
+    filaTotal.push({
+      text: '',
+      //fillColor: '#eeeeee'
+    });
+  }
+
+  // MULTAS
+  filaTotal.push({
+    text: '',
+    //fillColor: '#eeeeee'
+  });
+
+  // OTRAS RETENCIONES (si existe la columna)
+  if (mostrarOtrasRetenciones) {
+    filaTotal.push({
+      text: '',
+      //fillColor: '#eeeeee'
+    });
+  }
+
+  // IMPORTE NETO A PAGAR
+  filaTotal.push({
+    text: 'Bs ' + this.formatIfNumber(this.datosCA[0].total_certificado_anterior, formatoNumerico2),
+    style: 'textDatoT',
+    bold: true,
+    alignment: 'right',
+    //fillColor: '#eeeeee'
+  });
+
+  // Agregar la fila al final de la tabla
+  body.push(filaTotal);
+
+    /*widths.push(
+      '5%',
+      '28%',
+      '12%',
+      '11%',
+      ...(mostrarRetenciones
+      ? ['11%']
+      : []),
+      '11%',
+      ...(mostrarOtrasRetenciones
+      ? ['11%']
+      : []),
+      '11%'
+    );*/
+
+    for (let i = 0; i < encabezados.length; i++) {
+      widths.push('*');
+    }
+
+    return {
+      table: {
+        headerRows: 1,
+        widths,
+        body
+      },
+      margin: [10, 0, 10, 7]
+    };
+
   }
 
   //Función para generar de manera escrita el monto del dinero
