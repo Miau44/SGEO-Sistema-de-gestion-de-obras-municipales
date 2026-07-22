@@ -15,15 +15,15 @@ interface CronServices {
 export function inicioCronJobs({ ficha_itemservice, contratoservice, correoService, logService }: CronServices) {
   console.log('Programador de tareas iniciado.');
 
-  cron.schedule('0 0 * * *', async () => {
-    console.log('Ejecutando tarea de media noche...');
-     try {
-      await ejecutarProceso();
-    } catch (error) {
-      console.error('Error general al ejecutar el cron:', error);
-    }
+  // cron.schedule('0 0 * * *', async () => {
+  //   console.log('Ejecutando tarea de media noche...');
+  //    try {
+  //     await ejecutarProceso();
+  //   } catch (error) {
+  //     console.error('Error general al ejecutar el cron:', error);
+  //   }
     
-  });
+  // });
 
    cron.schedule('0 0 * * *', async () => {
     console.log('Ejecutando tarea de medianoche...');
