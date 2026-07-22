@@ -325,6 +325,25 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
     const mostrarTextoFiscal =
       fechaAprobacion && fechaAprobacion >= fechaCorte;
 
+    let datosModApAnteriores: any[] = [];
+    let datosModApActual: any[] = [];
+
+    if (mostrarTextoFiscal) {
+
+      const correlativoActual = Math.max(
+        ...(res2 as any[]).map(x => Number(x.correlativo))
+      );
+
+      datosModApAnteriores = (res2 as any[]).filter(
+        x => Number(x.correlativo) < correlativoActual
+      );
+
+      datosModApActual = (res2 as any[]).filter(
+        x => Number(x.correlativo) === correlativoActual
+      );
+    }
+    
+
     /*const esNuevoFormato = fechaAprobacion >= fechaCorte;
 
     const fechaFiscal = this.fechaString(this.datosEnvio[0].fecha_fiscal);*/
@@ -497,32 +516,56 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
           'modificación referida a: ' + this.datosInf[0].referencia + ' se emite el presente informe.',
           style: 'textDato', alignment:'justify', margin: [10, 0, 0, 0]
       },
-      {
+      
+      ...(!mostrarTextoFiscal ? [
+        {
         text: '\n'
       },
-       {
-        text: 'MODIFICACIONES CONTRACTUALES',
-        style: 'textTitulo', margin: [10, 0, 0, 5] 
-      },
-      {
-        table: {
-          widths: ['6%','32%','16%','16%','16%','16%','16%'],
-          body: [
-            [
-              { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-              { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
-            ],
-            ...this.buildModAprobadas(this.datosModAp,formatoNumerico)
-          ]
-        }, margin: [10, 0, 0, 0] 
-      },
-      {
-        text: '\n'
-      },
+        {
+          text: 'MODIFICACIONES CONTRACTUALES',
+          style: 'textTitulo', margin: [10, 0, 0, 5] 
+        },
+        {
+          table: {
+            widths: ['6%','32%','16%','16%','16%','16%','16%'],
+            body: [
+              [
+                { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              ],
+              ...this.buildModAprobadas( this.datosModAp ,formatoNumerico)
+            ]
+          }, margin: [10, 0, 0, 0] 
+        },
+      ] : []),
+
+      ...(mostrarTextoFiscal && datosModApAnteriores.length > 0? [
+        {
+          text: 'MODIFICACIONES CONTRACTUALES',
+          style: 'textTitulo', margin: [10, 0, 0, 5] 
+        },
+        {
+          table: {
+            widths: ['6%','32%','16%','16%','16%','16%','16%'],
+            body: [
+              [
+                { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+              ],
+              ...this.buildModAprobadas(datosModApAnteriores ,formatoNumerico)
+            ]
+          }, margin: [10, 0, 0, 0] 
+        },
+      ] : []),
+      
       /*{
         text: 'Antecedentes registrado por el Fiscal de Obra:',
         style: 'textTitulo', margin: [10, 0, 0, 5]
@@ -540,6 +583,9 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
       },*/
 
       ...(mostrarTextoFiscal ? [
+        {
+        text: '\n'
+      },
         {
         
           text: this.datosInf[0].antecedentes_fis,
@@ -574,6 +620,31 @@ async generateInformeModificacionFiscal(id_modif_pago: number): Promise<Buffer> 
             text: '3.   DESARROLLO\n',
             style: 'textTitulo', margin: [0, 0, 0, 5]
           },
+
+          {
+            text: 'MODIFICACIONES CONTRACTUALES',
+            style: 'textTitulo', margin: [10, 0, 0, 5] 
+          },
+          {
+            table: {
+              widths: ['6%','32%','16%','16%','16%','16%','16%'],
+              body: [
+                [
+                  { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                  { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin: [0, 5, 0, 0], fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                ],
+                ...this.buildModAprobadas(datosModApActual,formatoNumerico)
+              ]
+            }, margin: [10, 0, 0, 0] 
+          },
+          {
+            text: '\n'
+          },
+
           {
             text: this.datosInf[0].analisis_fis,
             style: 'textDato',
