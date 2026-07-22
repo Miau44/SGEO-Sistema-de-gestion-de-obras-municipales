@@ -181,6 +181,9 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     this.datosModAp = res4;
 
     /*console.log('=========== MODIFICACION ===========');
+    console.log(res4);*/
+
+    /*console.log('=========== MODIFICACION ===========');
     console.table(this.datosMod);*/
 
     const res5 = await this.modificacionActual(id_modif_pago);
@@ -289,6 +292,15 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       : new Date();
 
     const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+
+    //para controlar  la tabla de  modificaiones  en antecedentes t.
+    const correlativoActual = Math.max(
+      ...(res4 as any[]).map(x => Number(x.correlativo))
+    );
+
+    const datosModApAnteriores = (res4 as any[]).filter(
+      x => Number(x.correlativo) < correlativoActual
+    );
 
     /*consola para ver de que  tipo es monto_variacion y del porque no me estaba funcionando
     console.log('fechaSupervisor:', this.datosEnvio[0].fecha_supervisor);
@@ -431,10 +443,13 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
+
+      ...(!mostrarTextoSupervisor ? [
       {
         text: 'MODIFICACIONES',
         style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
+
       {
           table: {
             widths: ['6%','32%','16%','16%','16%','16%','16%'], 
@@ -451,6 +466,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ]
           }, margin: [10, 0, 0, 7], 
       },
+      ] : []),
+
       {
         text: '\n2.   ANTECEDENTES',
         style: 'textTitulo', margin: [0, 0, 0, 5] 
@@ -464,6 +481,32 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       // ]
       //   :[]
       // ),
+
+
+      //tabla para  mostrar los  datos de modificaciones en antecedentes solo las modificaciones anteriores y no la presente
+      ...(mostrarTextoSupervisor  && datosModApAnteriores.length > 0  ? [
+        {
+          text: 'MODIFICACIONES',
+          style: 'textTitulo', margin: [10, 0, 0, 5] 
+        },
+
+        {
+            table: {
+              widths: ['6%','32%','16%','16%','16%','16%','16%'], 
+              body: [
+                [
+                  { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                  { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                ],
+                ...this.buildModAprobadas(datosModApAnteriores, formatoNumerico)
+              ]
+            }, margin: [10, 0, 0, 7], 
+        },
+      ] : []),
       
       {
           text: this.datosInfSup[0].antecedentes,
