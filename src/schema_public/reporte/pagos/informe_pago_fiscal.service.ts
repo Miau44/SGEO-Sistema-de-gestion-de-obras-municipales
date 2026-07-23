@@ -542,7 +542,7 @@ export class InformePagoFiscal {
                 widths: [130, 338],
                 body: [
                   [
-                    { text: 'FECHA CONCLUSIÓN REAL tania:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
+                    { text: 'FECHA CONCLUSIÓN REAL:', style: 'textTituloT', alignment: 'right', fillColor: '#dddddd' },
                     { text: this.formatearFecha(this.datosEnvio[0].fecha_acta), style: 'textDatoT', fillColor: '#dddddd' }
                   ]
                 ]
