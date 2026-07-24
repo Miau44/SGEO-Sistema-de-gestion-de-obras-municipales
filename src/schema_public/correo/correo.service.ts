@@ -315,6 +315,15 @@ export class CorreoService {
     dto: EnviarAlertaCronogramaDto,
     plantilla: any,
   ): string {
+    const fechaFormateada = new Intl.DateTimeFormat('es-BO', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(dto.fecha_control));
+
+    const fechaMostrar =
+      fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
     return `
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
       <p>De nuestra consideración:</p>
@@ -326,7 +335,7 @@ export class CorreoService {
 
       <p>
         <strong>${plantilla.fechaDescripcion}:</strong>
-        ${dto.fecha_control}
+        ${fechaMostrar}
       </p>
 
       <p>
@@ -341,7 +350,7 @@ export class CorreoService {
 
       <p>
         Atentamente,<br>
-        <strong>Sistema SGEO</strong>
+        <strong>SISTEMA DE GESTION DE EJECUCION DE OBRAS</strong>
       </p>
     </div>
   `.trim();
