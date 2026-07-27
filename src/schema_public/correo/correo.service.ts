@@ -203,13 +203,37 @@ export class CorreoService {
 
     let para: string[] = [];
     let autor: string[] = [];
-
     if (dbName === 'SGEO_PROD') {
-      // PRODUCCIÓN: destinatarios obtenidos desde la vista
-      para = this.normalizeEmails(dto.usuario_supervisor ?? '');
-      autor = this.normalizeEmails(dto.usuario_fiscal ?? '');
+      // Destinatarios obtenidos desde la vista
+      const supervisores = this.normalizeEmails(dto.usuario_supervisor ?? '');
 
-      console.log('Enviando alerta cronograma a supervisor y fiscal de la vista');
+      const fiscales = this.normalizeEmails(dto.usuario_fiscal ?? '');
+
+      // Copias obligatorias en producción
+      const copiasObligatorias = this.normalizeEmails([
+        'josue.torrez',
+        'cesar.peraltav',
+      ]);
+
+      if (supervisores.length) {
+          para = supervisores;
+          autor = [
+            ...fiscales,
+            ...copiasObligatorias,
+          ];
+      } else if (fiscales.length) {
+        para = fiscales;
+        autor = copiasObligatorias;
+      } else {
+        
+        throw new HttpException(
+          'No existe correo válido para supervisor o fiscal.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      console.log(
+        'Enviando alerta cronograma a supervisor, fiscal y copias obligatorias'
+      );
     } else {
       //PRUEBAS: destinatarios definidos
       para = this.normalizeEmails([
@@ -217,7 +241,7 @@ export class CorreoService {
       ]);
       autor = this.normalizeEmails([
         'igustavo.acandia@gmail.com',
-        'josue.torrez',
+        //'josue.torrez'
       ]);
 
       console.log(`Enviando alerta cronograma con datos HARDCODE. Base actual: ${dbName || 'NO DEFINIDA'}`);
@@ -271,7 +295,7 @@ export class CorreoService {
     let mensaje = '';
 
     if (dto.tipo_alerta === 'AMARILLO') {
-      asunto = `ADVERTENCIA DE VENCIMIENTO DE PLAZO ${tipoEntrega} - ${dto.codigo}`;
+      asunto = `VENCIMIENTO DE PLAZO CONTRACTUAL - ${dto.codigo}`;
       titulo = `PLAZO PRÓXIMO A VENCER - ENTREGA ${tipoEntrega}`;
       mensaje = `
       Mediante la presente, se efectúa la advertencia respecto al cumplimiento
@@ -282,7 +306,7 @@ export class CorreoService {
     }
 
     if (dto.tipo_alerta === 'NARANJA') {
-      asunto = `VENCIMIENTO DE PLAZO HOY - ENTREGA ${tipoEntrega} - ${dto.codigo}`;
+      asunto = `VENCIMIENTO DE PLAZO CONTRACTUAL - HOY - ENTREGA ${tipoEntrega} - ${dto.codigo}`;
       titulo = `VENCIMIENTO HOY - ENTREGA ${tipoEntrega}`;
       mensaje = `
       Mediante la presente, se comunica que el plazo contractual establecido
@@ -292,8 +316,8 @@ export class CorreoService {
     }
 
     if (dto.tipo_alerta === 'ROJO') {
-      asunto = `PLAZO VENCIDO - ENTREGA ${tipoEntrega} - ${dto.codigo}`;
-      titulo = `PLAZO VENCIDO - ENTREGA ${tipoEntrega}`;
+      asunto = `PLAZO CONTRACTUAL VENCIDO - ENTREGA ${tipoEntrega} - ${dto.codigo}`;
+      titulo = `PLAZO CONTRACTUAL VENCIDO - ENTREGA ${tipoEntrega}`;
       mensaje = `
       Mediante la presente, se comunica que el plazo contractual establecido
       para la entrega ${tipoEntrega.toLowerCase()} ha vencido, registrándose
@@ -315,19 +339,67 @@ export class CorreoService {
     dto: EnviarAlertaCronogramaDto,
     plantilla: any,
   ): string {
+    const fechaFormateada = new Intl.DateTimeFormat('es-BO', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(dto.fecha_control));
+
+    const fechaMostrar =
+      fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
     return `
-    <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-      <p>De nuestra consideración:</p>
+    <div
+      style="
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        color: #333333;
+        line-height: 1.4;
+      "
+    >
+
+      <p>
+        De nuestra consideración:
+      </p>
 
       <p>
         <strong>Obra:</strong>
         ${dto.codigo}; ${dto.nombre}
       </p>
 
-      <p>
-        <strong>${plantilla.fechaDescripcion}:</strong>
-        ${dto.fecha_control}
-      </p>
+      <!-- BLOQUE DESTACADO DE LA FECHA -->
+      <div
+        style="
+          margin-top: 18px;
+          margin-bottom: 18px;
+          padding: 12px 18px;
+          background-color: #fff8dc;
+          border: 3px solid #f39c12;
+          border-radius: 6px;
+          font-family: Arial, Helvetica, sans-serif;
+          line-height: 1.4;
+        "
+      >
+        <span
+          style="
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+          "
+        >
+          ${plantilla.fechaDescripcion}:
+        </span>
+
+        <span
+          style="
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a4fd0;
+          "
+        >
+          ${fechaMostrar}
+        </span>
+      </div>
 
       <p>
         <strong>Proveído:</strong>
@@ -335,17 +407,21 @@ export class CorreoService {
       </p>
 
       <p>
-        Se solicita realizar el seguimiento correspondiente y adoptar
-        las acciones necesarias dentro del plazo previsto.
+        Se solicita realizar el seguimiento correspondiente
+        y adoptar las acciones necesarias dentro del plazo previsto.
       </p>
 
       <p>
         Atentamente,<br>
-        <strong>Sistema SGEO</strong>
+        <strong>
+          Dirección de Fiscalización de Obras y Servicios<br><br>
+          SISTEMA DE GESTION DE EJECUCION DE OBRAS
+        </strong>
       </p>
+
     </div>
   `.trim();
-  }
+}
 
   private async enviarYRegistrarCorreo(
   toList: string[],

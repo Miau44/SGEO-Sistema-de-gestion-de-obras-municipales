@@ -36,4 +36,10 @@ export class CorreoController {
   async enviarAlertaCronograma(@Body() dto: EnviarAlertaCronogramaDto) {
     return this.correoService.enviarAlertaCronograma(dto);
   }
+
+  // Ejecución manual del mismo proceso utilizado por el cron
+  @Post('procesar-alertas-cronograma')
+  procesarAlertasCronograma() {
+    return this.correoService.procesarAlertasCronograma();
+  }
 }
