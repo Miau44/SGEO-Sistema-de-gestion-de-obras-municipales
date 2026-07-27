@@ -103,8 +103,8 @@ export class fichaInspeccion {
         this.datosAvance = res1;
 
         const res2 = await this.datosAprobadorFis(id_obra);
-        console.log('PASO 3 - datosAprobadorFis');
-        console.log(res2);
+        //console.log('PASO 3 - datosAprobadorFis');
+        //console.log(res2);
 
         if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
         throw new Error('No se encontraron del Aprobador de Fiscal');
@@ -112,8 +112,8 @@ export class fichaInspeccion {
         this.datosFis = res2;
 
         const res3 = await this.datosAprobadorSup(id_obra);
-        console.log('PASO 4 - datosAprobadorSup');
-        console.log(res3);
+        //console.log('PASO 4 - datosAprobadorSup');
+        //console.log(res3);
 
         if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron del Aprobador de Supervisor');
@@ -150,54 +150,28 @@ export class fichaInspeccion {
         console.log(urlImagen);
 
         const url = new URL(urlImagen);
-
-        //console.log('HOST:', url.host);
-        //console.log('PATH:', url.pathname);
-        //console.log('QUERY:', url.search);
-        //console.log('FECHA INICIO FETCH:', new Date().toISOString());
        
-        /*console.log(this.datosAvance[0].ruta_documento);
-        const response = await fetch(urlImagen);
-        console.log('PASO 6 - Fetch realizado');
-        console.log(response.status);
-        console.log(response.ok);
-        const arrayBuffer  = await response.arrayBuffer();
-        console.log('PASO 7 - arrayBuffer generado');*/
+        /*const response = await fetch(urlImagen);
+        const arrayBuffer  = await response.arrayBuffer();*/
 
         let response;
         try {
             response = await fetch(urlImagen);
 
-            //console.log('PASO 6 - Fetch realizado');
-            //console.log('Status:', response.status);
-            //console.log('OK:', response.ok);
-            //console.log('FECHA FIN FETCH:', new Date().toISOString());
-
         } catch (error) {
-            //console.error('ERROR EN FETCH');
-            //console.error(error);
-            //console.log('FECHA ERROR FETCH:', new Date().toISOString());
             throw error;
         }
 
         let arrayBuffer;
         try {
             arrayBuffer = await response.arrayBuffer();
-
-            //console.log('PASO 7 - arrayBuffer generado');
-            //console.log('Tamaño ArrayBuffer:', arrayBuffer.byteLength);
-
         } catch (error) {
-            //console.error('ERROR EN ARRAYBUFFER');
-            //console.error(error);
             throw error;
         }
 
         const buffer = Buffer.from(arrayBuffer);
         // Convertir a base64
         const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
-        //console.log('PASO 7.1 - Base64 generado');
-        //console.log('Longitud Base64:', base64.length);
         
         ///prueba
         const imagenBloque = base64 && base64.length > "data:image/jpeg;base64,".length
@@ -585,8 +559,6 @@ export class fichaInspeccion {
         pageMargins: [50, 50, 30, 30] as any, // Márgenes: izquierda, arriba, derecha, abajo
 
     };
-
-    //console.log('PASO 8 - Antes de crear PDF');
 
     // Generar el PDF en memoria
     //const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
