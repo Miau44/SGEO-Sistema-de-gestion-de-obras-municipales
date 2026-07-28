@@ -49,7 +49,14 @@ private readonly DECIMAL_PLACES = 5;
     try {
 
       const query = `
-        SELECT *
+        SELECT 
+          codigo,
+          nombre,
+          unidad_ejecutora,
+          numero_contrato,
+          monto_adjudicado,
+          fiscal,
+          estado_carpeta
         FROM public.vista_reporte_general
         WHERE fecha_definitiva IS NULL
         ORDER BY codigo;
