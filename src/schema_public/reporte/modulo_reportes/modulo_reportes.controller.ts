@@ -37,7 +37,14 @@ export class ModuloReportesController {
     return this.moduloReportesService.remove(+id);
   }
 
+////para la tabla de  reporte  general con el filtro 
 
+  @Post('reporte-general-tabla')
+  listarReporteGeneralTabla() {
+    try {
+      return this.moduloReportesService.listarReporteGeneralTabla();
+    } catch (error) {}
+  }
 
   @Post('reporte-general')
   exportarGeneral(@Body() reporteObra: ReporteGestionDto) {
