@@ -44,22 +44,22 @@ private readonly DECIMAL_PLACES = 5;
 
 
   ///agragar uno mas para la  tabla  que  estamo filtrando 
-
   async listarReporteGeneralTabla() {
     try {
 
       const query = `
-        SELECT 
+        SELECT
           codigo,
           nombre,
           unidad_ejecutora,
           numero_contrato,
           monto_adjudicado,
           fiscal,
-          estado_carpeta
-        FROM public.vista_reporte_general
-        WHERE fecha_definitiva IS NULL
-        ORDER BY codigo;
+          supervisor,
+          estado_carpeta,
+          COALESCE(NULLIF(estado_solicitud, ''), 'SIN ACCIÓN') AS estado_solicitud
+        FROM public.vista_reporte_general_sup_fis
+        ORDER BY fiscal, supervisor;
       `;
 
       const resultado = await this.reporteRepositorio.query(query);
