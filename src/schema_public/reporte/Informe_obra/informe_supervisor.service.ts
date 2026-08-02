@@ -203,7 +203,9 @@ async generateInformeObraSupervisor(id_obra: number, id_informe: number): Promis
                       ]
                     },
                   ],
-              ...(this.datosEnvio[0].total_carpeta > 500000
+              ...(this.datosEnvio[0].total_carpeta > 500000 &&
+                  this.datosInf[0].via_nombre?.trim() &&
+                  this.datosInf[0].via_cargo?.trim()
                 ?[
                   [
                     { text: 'VIA:', style: 'textTitulo', margin: [0, 5, 0, 5], alignment:'right' },

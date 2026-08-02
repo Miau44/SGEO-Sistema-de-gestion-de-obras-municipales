@@ -6,6 +6,8 @@ import { AllExceptionsFilter } from './schema_public/exception';
 import { inicioCronJobs } from './schema_sim/utils/cron-jobs'; // Asegúrate de que la ruta sea correcta
 import { ficha_itemService } from './schema_sim/ficha_item/ficha_item.service';
 import { ContratoService } from './schema_public/contrato-modificatorio/contrato.service';
+import { CorreoService } from './schema_public/correo/correo.service';
+import { LogService } from './schema_public/log/log.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -36,6 +38,8 @@ async function bootstrap() {
   inicioCronJobs({
     ficha_itemservice: app.get(ficha_itemService),
     contratoservice: app.get(ContratoService),
+    correoService: app.get(CorreoService),
+    logService: app.get(LogService)
   });
 }
 bootstrap();

@@ -42,6 +42,35 @@ private readonly DECIMAL_PLACES = 5;
   }
 
 
+
+  ///agragar uno mas para la  tabla  que  estamo filtrando 
+  async listarReporteGeneralTabla() {
+    try {
+
+      const query = `
+        SELECT
+          codigo,
+          nombre,
+          unidad_ejecutora,
+          numero_contrato,
+          monto_adjudicado,
+          fiscal,
+          supervisor,
+          estado_carpeta,
+          COALESCE(NULLIF(estado_solicitud, ''), 'SIN ACCIÓN') AS estado_solicitud
+        FROM public.vista_reporte_general_sup_fis
+        ORDER BY fiscal, supervisor;
+      `;
+
+      const resultado = await this.reporteRepositorio.query(query);
+
+      return this.responseService.success(resultado, 'Listado correctamente.');
+
+    } catch (error) {
+      return this.responseService.error(error);
+    }
+  }
+
   async descargarComputosMetricos(data: ReporteGestionDto) {
     try {
     

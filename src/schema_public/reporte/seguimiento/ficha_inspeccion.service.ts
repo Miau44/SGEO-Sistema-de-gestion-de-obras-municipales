@@ -103,12 +103,18 @@ export class fichaInspeccion {
         this.datosAvance = res1;
 
         const res2 = await this.datosAprobadorFis(id_obra);
+        //console.log('PASO 3 - datosAprobadorFis');
+        //console.log(res2);
+
         if (!res2 || (Array.isArray(res2) && res2.length === 0) || (typeof res2 === 'object' && Object.keys(res2).length === 0)) {
         throw new Error('No se encontraron del Aprobador de Fiscal');
         }
         this.datosFis = res2;
 
         const res3 = await this.datosAprobadorSup(id_obra);
+        //console.log('PASO 4 - datosAprobadorSup');
+        //console.log(res3);
+
         if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron del Aprobador de Supervisor');
         }
@@ -116,7 +122,7 @@ export class fichaInspeccion {
 
         const headerImage = path.join(__dirname, '..', 'assets', 'images', 'logo_gamlp.png');
         const footerImage = path.join(__dirname, '..', 'assets', 'images', 'footer.png');
-        const imgLogo = 'assets/images/logoSGEO.png'
+        const imgLogo = 'assets/images/logo_sgeo.png'
         //const marcaAgua = this.datosInf[0].fecha_aprobacion;
 
         //console.log('DATOS AVANCE', this.datosAvance);
@@ -140,10 +146,30 @@ export class fichaInspeccion {
         
         // Extraer la imagen
         const urlImagen  = this.datosAvance[0].ruta_documento;
-        const response = await fetch(urlImagen);
-        const arrayBuffer  = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        console.log('PASO 5 - URL Imagen');
+        console.log(urlImagen);
 
+        const url = new URL(urlImagen);
+       
+        /*const response = await fetch(urlImagen);
+        const arrayBuffer  = await response.arrayBuffer();*/
+
+        let response;
+        try {
+            response = await fetch(urlImagen);
+
+        } catch (error) {
+            throw error;
+        }
+
+        let arrayBuffer;
+        try {
+            arrayBuffer = await response.arrayBuffer();
+        } catch (error) {
+            throw error;
+        }
+
+        const buffer = Buffer.from(arrayBuffer);
         // Convertir a base64
         const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
         
@@ -162,8 +188,6 @@ export class fichaInspeccion {
             italics: true,
             margin: [0, 20, 0, 20]
         };
-
-        
 
         const documentDefinition = {
         pageSize: 'LETTER' as any,
@@ -537,7 +561,19 @@ export class fichaInspeccion {
     };
 
     // Generar el PDF en memoria
-    const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    //const pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+    //console.log('PASO 9 - PDF creado');
+
+    let pdfDoc;
+    try {
+        pdfDoc = this.printer.createPdfKitDocument(documentDefinition);
+        console.log('PASO 9 - PDF creado');
+    } catch (error) {
+        console.error('ERROR AL CREAR PDF');
+        console.error(error);
+        throw error;
+    }
+
     //let chunks: Buffer[] = []; RARO, NO ENTIENDO POR QUE DEJO DE FUNCIONAR
     const chunks: Uint8Array[] = [];
 

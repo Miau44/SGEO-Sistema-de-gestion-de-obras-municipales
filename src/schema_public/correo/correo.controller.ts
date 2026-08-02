@@ -3,7 +3,9 @@ import { CorreoService } from './correo.service';
 import { CreateCorreoDto } from './dto/create-correo.dto';
 import { UpdateCorreoDto } from './dto/update-correo.dto';
 import { EnviarCorreoProcesoDto } from './dto/enviar-correo-proceso.dto';
+import { EnviarAlertaCronogramaDto } from './dto/enviar-alerta-cronograma.dto';
 import { ApiTags } from '@nestjs/swagger';
+
 
 @ApiTags('Correo')
 @Controller('correo')
@@ -28,5 +30,16 @@ export class CorreoController {
   @Post('enviar')
   async enviarCorreo(@Body() dto: EnviarCorreoProcesoDto) {
     return this.correoService.enviarCorreoProceso(dto);
+  }
+
+  @Post('enviar-alerta-cronograma')
+  async enviarAlertaCronograma(@Body() dto: EnviarAlertaCronogramaDto) {
+    return this.correoService.enviarAlertaCronograma(dto);
+  }
+
+  // Ejecución manual del mismo proceso utilizado por el cron
+  @Post('procesar-alertas-cronograma')
+  procesarAlertasCronograma() {
+    return this.correoService.procesarAlertasCronograma();
   }
 }

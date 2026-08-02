@@ -40,16 +40,27 @@ export class ArchivoActaService {
 
   if (
     dto.id_tipo_recepcion !== undefined &&
-    ![1, 2, 3 ,4 , 5, 6, 7].includes(dto.id_tipo_recepcion)
+    ![1, 2, 3 ,4 , 5, 6, 7, 8, 9, 10].includes(dto.id_tipo_recepcion)
   ) {
-    throw new BadRequestException(
-      'id_tipo_recepcion solo puede ser 1 (Ingreso), 2 (Salida Supervisor) o 3 (Salida Empresa) , 4 (legajo modificaciones) , 5 (legajo pagos)',
+   throw new BadRequestException(
+      'id_tipo_recepcion solo puede ser:\n' +
+      '1 (Ingreso)\n' +
+      '2 (Salida Supervisor)\n' +
+      '3 (Salida Empresa)\n' +
+      '4 (Legajo Modificaciones)\n' +
+      '5 (Legajo Pagos)\n' +
+      '6 (Legajo Modificaciones Salida)\n' +
+      '7 (Legajo Pagos salida)\n'+
+      '8 (Legajo Informe Obra Supervisor)\n'+
+      '9 (Legajo Informe Obra Fiscal)\n'+
+      '10(Legajo Informe Llamada de atencion)\n'+
+      '11(Legajo Informe Suspension)'
     );
   }
 
   // 🔥 VALIDACIONES NUEVAS (CLAVE)
   // INGRESO (tipo 1 y 5 )
-  if (dto.id_tipo_recepcion === 1 || dto.id_tipo_recepcion === 5 ) {
+  if (dto.id_tipo_recepcion === 1 || dto.id_tipo_recepcion === 5 || dto.id_tipo_recepcion==8 || dto.id_tipo_recepcion==9) {
     if (!dto.nombre_encargado || dto.nombre_encargado.trim() === '') {
       throw new BadRequestException('El campo "Ingresado por" es obligatorio');
     }
@@ -199,7 +210,7 @@ export class ArchivoActaService {
     const tipoRecepcion =
       dto.id_tipo_recepcion ?? archivoActa.id_tipo_recepcion;
 
-    if (![1, 2, 3, 4 ,5, 6, 7].includes(tipoRecepcion)) {
+    if (![1, 2, 3, 4 ,5, 6, 7, 8, 9, 10, 11].includes(tipoRecepcion)) {
       throw new BadRequestException('id_tipo_recepcion inválido');
     }
 
@@ -207,7 +218,7 @@ export class ArchivoActaService {
       dto.id_documento ?? archivoActa.id_documento;
 
 // TIPO 4 (CASO ESPECIAL)
-if (tipoRecepcion === 4) {
+if (tipoRecepcion === 5 ||tipoRecepcion === 8 || tipoRecepcion === 9 || tipoRecepcion === 10 || tipoRecepcion === 11) {
 
   //  RECHAZADO
   if (dto.aprobado === false) {
@@ -225,7 +236,7 @@ if (tipoRecepcion === 4) {
 
 // OTROS TIPOS QUE REQUIEREN DOCUMENTO
 if (
-  (tipoRecepcion === 2 || tipoRecepcion === 7) &&
+  (tipoRecepcion === 2 || tipoRecepcion === 7 || tipoRecepcion === 8 || tipoRecepcion === 9 || tipoRecepcion === 10 || tipoRecepcion === 11) &&
   !idDocumentoFinal
 ) {
   throw new BadRequestException(
@@ -309,7 +320,7 @@ if (
     }
 
 
-   if (tipo_recepcion === 4 || tipo_recepcion === 5 || tipo_recepcion === 6 || tipo_recepcion === 7) {
+   if (tipo_recepcion === 4 || tipo_recepcion === 5 || tipo_recepcion === 6 || tipo_recepcion === 7 || tipo_recepcion === 8 || tipo_recepcion === 9 || tipo_recepcion ===10 || tipo_recepcion === 11) {
 
   const fiscal = await this.archivoActaRepo.query(
     `

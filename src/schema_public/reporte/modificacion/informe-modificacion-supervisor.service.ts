@@ -163,17 +163,28 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     }
     this.datosEnvio = datosGenerales;
 
+    /*console.log('=========== DATOS ENVIO ===========');
+    console.table(this.datosEnvio);*/
+
     const res3 = await this.datosInformeModifSupervisor(this.datosEnvio[0].id_solicitud);
     if (!res3 || (Array.isArray(res3) && res3.length === 0) || (typeof res3 === 'object' && Object.keys(res3).length === 0)) {
         throw new Error('No se encontraron datos del informe de Supervisor');
     }
     this.datosInfSup = res3; 
+    /*console.log('=========== INFORME SUPERVISOR ===========');
+    console.log(this.datosInfSup);*/
 
     const res4 = await this.modificacionesAprobadas(this.datosEnvio[0].id_obra, this.datosEnvio[0].id_solicitud);
     // if (!res4 || (Array.isArray(res4) && res4.length === 0) || (typeof res4 === 'object' && Object.keys(res4).length === 0)) {
     //     throw new Error('No se encontraron datos de las modificaciones de la obra');
     //}
     this.datosModAp = res4;
+
+    /*console.log('=========== MODIFICACION ===========');
+    console.log(res4);*/
+
+    /*console.log('=========== MODIFICACION ===========');
+    console.table(this.datosMod);*/
 
     const res5 = await this.modificacionActual(id_modif_pago);
     if (!res5 || (Array.isArray(res5) && res5.length === 0) || (typeof res5 === 'object' && Object.keys(res5).length === 0)) {
@@ -252,12 +263,21 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
     });
 
     //fecha  corte para agregar las  dos fechas FECHA ELABORACIOM: FECHA APROBACION
-    const fechaCorte = new Date('2026-05-15');
+    //const fechaCorte = new Date('2026-05-15');
 
     // si no existe fecha_aprobacion usar today
-    const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
-      ? new Date(this.datosEnvio[0].fecha_aprobacion)
+    //const fechaComparacion = this.datosEnvio[0].fecha_aprobacion
+    //  ? new Date(this.datosEnvio[0].fecha_aprobacion)
+    //  : new Date();
+
+    //fecha  corte para agregar antecedentes el desarrollo concluciones recomendaciones 
+    const fechaCorte = new Date('2026-06-15');
+    const fechaAprobacion = this.datosEnvio[0].fecha_supervisor
+      ? new Date(this.datosEnvio[0].fecha_supervisor)
       : new Date();
+
+    const mostrarTextoSupervisor =
+      fechaAprobacion && fechaAprobacion >= fechaCorte;
 
     /*const esNuevoFormato = fechaComparacion >= fechaCorte;
     const fechaSupervisor = this.fechaString(this.datosEnvio[0].fecha_supervisor);*/
@@ -272,6 +292,15 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       : new Date();
 
     const usarNuevoTextoMonto = fechaComparacionMonto >= fechaCorteMonto;
+
+    //para controlar  la tabla de  modificaiones  en antecedentes t.
+    const correlativoActual = Math.max(
+      ...(res4 as any[]).map(x => Number(x.correlativo))
+    );
+
+    const datosModApAnteriores = (res4 as any[]).filter(
+      x => Number(x.correlativo) < correlativoActual
+    );
 
     /*consola para ver de que  tipo es monto_variacion y del porque no me estaba funcionando
     console.log('fechaSupervisor:', this.datosEnvio[0].fecha_supervisor);
@@ -414,10 +443,13 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
         }, margin: [10, 0, 0, 7] 
         //layout: 'noBorders'
       },
+
+      ...(!mostrarTextoSupervisor ? [
       {
         text: 'MODIFICACIONES',
         style: 'textTitulo', margin: [10, 0, 0, 5] 
       },
+
       {
           table: {
             widths: ['6%','32%','16%','16%','16%','16%','16%'], 
@@ -434,6 +466,8 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
             ]
           }, margin: [10, 0, 0, 7], 
       },
+      ] : []),
+
       {
         text: '\n2.   ANTECEDENTES',
         style: 'textTitulo', margin: [0, 0, 0, 5] 
@@ -447,6 +481,32 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       // ]
       //   :[]
       // ),
+
+
+      //tabla para  mostrar los  datos de modificaciones en antecedentes solo las modificaciones anteriores y no la presente
+      ...(mostrarTextoSupervisor  && datosModApAnteriores.length > 0  ? [
+        {
+          text: 'MODIFICACIONES',
+          style: 'textTitulo', margin: [10, 0, 0, 5] 
+        },
+
+        {
+            table: {
+              widths: ['6%','32%','16%','16%','16%','16%','16%'], 
+              body: [
+                [
+                  { text: 'Nro.', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                  { text: 'TIPO MODIFICACIÓN', style: 'textTituloT', alignment: 'center', margin:[0,5,0,0], fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN DEL MONTO(Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MONTO PROPUESTO (Bs)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'MODIFICACIÓN PLAZO (d.c.)', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                  { text: 'NUEVA FECHA CONCLUSIÓN', style: 'textTituloT', alignment: 'center', fillColor: '#dddddd' },
+                ],
+                ...this.buildModAprobadas(datosModApAnteriores, formatoNumerico)
+              ]
+            }, margin: [10, 0, 0, 7], 
+        },
+      ] : []),
       
       {
           text: this.datosInfSup[0].antecedentes,
@@ -730,11 +790,45 @@ async generateInformeModificacionSupervisor(id_modif_pago: number): Promise<Buff
       {
         text: '\n'
       },
+      ...(mostrarTextoSupervisor ? [
+        {
+          text: this.datosInfSup[0].conclusion ,
+          style: 'textDato',
+          alignment: 'justify',
+          margin: [10, 0, 0, 7]
+        }
+      ] : []),
       {
+        text: '\n'
+      },
+      ...(mostrarTextoSupervisor ? [
+              {
+                text: '8.   RECOMENDACIONES\n',
+                style: 'textTitulo', margin: [0, 0, 0, 5]
+              },
+              {
+                text: this.datosInfSup[0].recomendacion,
+                style: 'textDato',
+                alignment: 'justify',
+                margin: [10, 0, 0, 7]
+              }
+            ] : []),
+
+      {
+        text: ['\n'],
+      }, 
+      {
+        text: mostrarTextoSupervisor
+          ? '9.   ANEXOS\n'
+          : '8.   ANEXOS\n',
+        style: 'textTitulo',
+        margin: [0, 0, 0, 5]
+      },
+      /*{
         //anexo
         text: '8.   ANEXOS\n',
         style: 'textTitulo', margin: [0, 0, 0, 5]
-      },
+      },*/
       ...(Array.isArray(this.datosAdj) && this.datosAdj.length > 0
       ? [
           {

@@ -33,7 +33,7 @@ export class CreateArchivoActaDto {
   })
   @IsNumber()
   @Min(1)
-  @Max(7)
+  @Max(10)
   @IsOptional()
   id_tipo_recepcion?: number;
 
