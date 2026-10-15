@@ -17,7 +17,7 @@ export const SQLSERVER_CONNECTION = 'SQLSERVER_CONNECTION';
           database: process.env.DB_MSSQL_NAME,
           port: parseInt(process.env.DB_MSSQL_PORT || '1433', 10),
           options: {
-            encrypt: true, 
+            encrypt: false, 
             trustServerCertificate: true, 
           },
           // Configuración del Pool (ideal para rendimiento en solo lectura)
